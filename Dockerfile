@@ -29,7 +29,7 @@ RUN mkdir /home/lib /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits
 
 # install R libraries needed for analysis
-COPY r_package_installs.R /home/lib/r_package_installs.R
+COPY R/r_package_installs.R /home/lib/r_package_installs.R
 RUN chmod +x /home/lib/r_package_installs.R && /home/lib/r_package_installs.R
 
 # make sure we have wget
