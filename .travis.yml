@@ -13,7 +13,7 @@ before_script:
 
 script:
 - docker build --pull --cache-from slapnap/slapnap --tag slapnap/slapnap .
-- docker run -e reduce_covs=TRUE -e reduce_outcomes=TRUE -e reduce_library=TRUE slapnap/slapnap 
+- docker run -e "Nab=VRC07-523-LS;PGT121" -e reduce_covs=TRUE -e reduce_outcomes=TRUE -e reduce_library=TRUE slapnap/slapnap 
 
 after_script:
 - docker images

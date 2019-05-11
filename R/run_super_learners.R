@@ -21,7 +21,7 @@ dat <- dat[complete.cases(dat),]
 if(reduce_library){
   SL.library <- c("SL.mean", "SL.glm")
 }else{
-  SL.library <- c("SL.mean", "SL.ranger", "SL.glmnet")  
+  SL.library <- c("SL.mean", "SL.glm")  
 }
 
 # get names of predictors
@@ -61,7 +61,8 @@ sl_ic50 <- sl_one_outcome(outcome_name = "pc.ic50",
                           family = "gaussian",
                           SL.library = SL.library, 
                           cvControl = list(V = 10),
-                          method = "method.CC_LS")
+                          method = "method.CC_LS",
+                          reduce_covs = reduce_covs)
 
 if(!reduce_outcomes){
   sl_ic80 <- sl_one_outcome(outcome_name = "pc.ic80",
