@@ -1,0 +1,83 @@
+---
+title: "SLAPNAP Report"
+author: "SLAPNAP Team"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: bookdown::html_document2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+```{r}
+# get NAbs names from ENV variable
+antibody_string <- Sys.getenv("Nab")
+antibodies <- strsplit(antibody_string, split = ";")[[1]]
+n_ab <- length(antibodies)
+# load data
+analysis_data_name <- list.files("/home/dat/analysis")
+dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
+```
+
+# Descriptives of endpoints
+
+The NAbs studied in this analysis are `r antibodies`. Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(fig:histic50) and Figure \@ref(fig:histic80), respectively. Histograms for the predicted IC-50 an IC-80 based on the additive model are shown in Figure \@ref(fig:histcombn), while a histrogram of the predicted IIP is shown in Figure \@ref(fig:histiip).
+
+```{r histic50, fig.cap = "Histogram of IC50 values for individual NAbs"}
+if(n_ab > 1){
+	tot_figs <- ifelse(n_ab%%2 == 0, n_ab, n_ab +1)
+	layout(matrix(1:tot_figs, ncol = 2))
+}
+for(i in seq_len(n_ab)){
+	this_name <- gsub("-", ".", paste0(antibodies[i], ".ic50.imputed"))
+	hist(dat[ , this_name], main = antibodies[i],
+	     xlab = "IC-50")
+}
+```
+
+```{r histic80, fig.cap = "Histogram of IC80 values for individual NAbs"}
+if(n_ab > 1){
+	layout(matrix(1:tot_figs, ncol = 2))	
+}
+for(i in seq_len(n_ab)){
+	this_name <- gsub("-", ".", paste0(antibodies[i], ".ic80.imputed"))
+	hist(dat[ , this_name], main = antibodies[i],
+	     xlab = "IC-80")
+}
+```
+
+```{r histcombn, fig.cap = "Histogram of estimated IC50 and IC80 for combined NAbs. Top row = original scale; bottom row = log10 scale"}
+layout(matrix(1:4, nrow = 2, byrow = TRUE))
+hist(dat$pc.ic50, main = "", xlab = "Estimated IC-50")
+hist(dat$pc.ic80, main = "", xlab = "Estimated IC-80")
+hist(dat$log10.pc.ic50, main = "", xlab = expression(log[10]*" estimated IC-50"))
+hist(dat$log10.pc.ic80, main = "", xlab = expression(log[10]*" estimated IC-50"))
+```
+
+```{r histiip, fig.cap = "Estimated IIP for combined NAbs"}
+hist(dat$iip, main = "", xlab = "Estimated IIP")
+```
+
+```{r checkmiss}
+n_row_prev <- nrow(dat)
+dat <- dat[complete.cases(dat),]
+n_row_now <- nrow(dat)
+```
+There were `r n_row_prev` observations extracted from the CATNAP database. There were `r n_row_now` observations with complete sequence data that were used in the analysis.
+
+# Super Learner
+
+```{r load_super_learners}
+fit_ic50 <- get(load("/home/slfits/cvfit_pc.ic50.RData"))
+# fit_ic80 <- get(load("/home/slfits/cvfit_pc.ic80.RData"))
+# fit_iip <- get(load("/home/slfits/cvfit_iip.RData"))
+```
+
+Figure \@ref(fig:plotic50) shows the cross-validated performance for predicting IC-50. 
+
+```{r plotic50, fig.cap = "Cross-validated performance of Super Learner for estimated IC-50"}
+# TO DO: Bring in code to plot CV-R2 from flu projects
+plot(fit_ic50)
+```
