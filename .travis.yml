@@ -1,0 +1,28 @@
+sudo: required
+
+env:
+  global:
+  - secure: pdOjTo47Znvl++KA2XHWzGcZFsxCz7ElgpKnK6mLWfpMjjiZ+AXQPyrGBpBhn++o5UhRB8TfFB+dHlpd7gclrMe0/TglatPWUmcIq0oqkLMT0nL2XoVo03n39RBF3sjNe9vt/E0sJQefGFUdK4jomst1encCq1t7fim4io2YmBOQmalGRN5I6PQAFvAlcBuj/BGICsWoNhlIyI9GuD1L76CP4I83MahJ/Za/bT9IpiOrXmA/Srn/H84GQkfXaje9gLzP98VOltgDmH1oQvjAVZCaDPPibn8eYjlPy4k8SG6si6qWPeiPEI0hb+vSEjzMNQlF2RBMherReYmujGEiXcRCnM8MoGvO8RvwYDHDCTZv/YJOXvGEcxvIBHDHjb4r6BBqf2KmQIkxlkixdmbH2r2xfX4d+KaicEV8v0pNjs11SPI2WVxVasHlHyl1ysbAoAga63Lo2HLqVnnoR9ya1c6ks1LFJwCeaojoThYV4pgRw3aPwcp9Sc+xWgizjKiGAXhlDq2agoyEuhENSqpLVk6RUFj8Z97OAAb8lhFKwWA/OsyiK3psZdTuYcvYDMgOhDSuyiIcDFj28IM+37YEtkHQkbDztDuM1fzeI0SW/djZhLrVrW7ob75LfsxMBjw9bdiS3rg0cwk1zFM2jme9eUvN+If9wcf/SPZbHZGsuqk=
+  - secure: qY/mkLN8aZk8v4imPVoI4pCVZFopYPc1QMISM501fINPMJ9k9/u0lG9Typ8RFHAmy5KE5QpT8SCd8wo6jxHiyX3XAhCth985Up/1pXBeMTdWEQCQRSWH/smoLRjaY/AqtHCcowkg+OpNWYTKPcJEINoWaacFEj49/iFIC9/glOR1QvMlD/6MvuxXzH3eCdIakEVin5KNH7EZl9mMgRgb72tK28LjbCGx+0emA0kcHIgBSOMe1YUUkmkhnVH6NdjYTRd2YyFkJjE3EbIvxL6TPnGJ/9fHXeZDBmrlKC3AC43MtUdjDcZ8J6vitCbV+AjYQ4FN65V6DUlXKF0choqLAdTM+IQU0M3W/XQm+9uB1/ogmMeA6rqKtjGu8XxW+R1FFKUUHcMTdbl9S9nO8g80ETJQtsi2R9bj7QnaRAbmVKzhDPy8mFbrCVqrou+Co+1UYWGCFVr5VovaXxSWcHkRXSGFFOsTqx/ryUo2PBqRkdd1TuuLfVRgaiv9gnCttwfHlOUqz/1ukBJ0jMezIbPAlM7KDlP2HC3QCrSfVXFm26UPKtPQj+F3cnT+4VJHNsMvamBgYNuTOfwiz1KCThhXsw6NTn5Nyf/di6ZecGzMIJi5jb3E3urhxUPJVSmz1vMQHdexft0HtEyIi++vV6ZFQWYxpA+nwWehL7VfaKER2K8=
+
+services:
+- docker
+
+before_script:
+- docker pull slapnap/slapnap || true
+
+script:
+- docker build --pull --cache-from slapnap/slapnap --tag slapnap/slapnap .
+- docker run -e reduce_covs=TRUE -e reduce_outcomes=TRUE -e reduce_library=TRUE slapnap/slapnap 
+
+after_script:
+- docker images
+
+before_deploy:
+- docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+
+deploy:
+  provider: script
+  script: docker push slapnap/slapnap
+  on:
+    branch: master
