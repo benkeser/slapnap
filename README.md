@@ -1,8 +1,8 @@
 
 # SLAPNAP
 
-[![Travis-CI Build
-Status](https://travis-ci.com/benkeser/slapnap.svg?branch=master)](https://travis-ci.com/benkeser/slapnap)
+[![Build
+Status](https://travis-ci.com/benkeser/slapnap.svg?token=WgmsWkd2hyf88ZxhK8bp&branch=master)](https://travis-ci.com/benkeser/slapnap)
 [![Project Status: Active - The project has reached a stable, usable
 state and is being actively
 developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)

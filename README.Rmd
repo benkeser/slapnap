@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
 
 # SLAPNAP
 
-[![Travis-CI Build Status](https://travis-ci.com/benkeser/slapnap.svg?branch=master)](https://travis-ci.com/benkeser/slapnap)
+[![Build Status](https://travis-ci.com/benkeser/slapnap.svg?token=WgmsWkd2hyf88ZxhK8bp&branch=master)](https://travis-ci.com/benkeser/slapnap)
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 <!-- [![DOI](https://zenodo.org/badge/75324341.svg)](https://zenodo.org/badge/latestdoi/75324341) -->
