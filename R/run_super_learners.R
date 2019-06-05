@@ -35,12 +35,18 @@ set.seed(123125)
 #' function to run super learner and cv super learner on a single outcome
 #' @param outcome_name String name of outcome
 #' @param pred_names Vector of string names of predictor variables
+#' @param save_dir name of directory to save results to
+#' @param fit_name name of fits (defaults to fit_<outcome_name>.RData)
+#' @param cv_fit_name name of CV fits (defaults to cvfit_<outcome_name>.RData)
+#' @param reduce_covs Flag to reduce the number of covariates under consideration
+#' @param save_full_object Flag for whether or not to save the full fitted object, or just the fitted values
 sl_one_outcome <- function(outcome_name, 
                            pred_names,                           
                            save_dir = "/home/slfits/",
                            fit_name = paste0("fit_", outcome_name, ".RData"),
                            cv_fit_name = paste0("cvfit_", outcome_name, ".RData"),
                            reduce_covs = FALSE,
+                           save_full_object = TRUE,
                            ...){
         pred <- dat[ , pred_names]
 
@@ -49,13 +55,21 @@ sl_one_outcome <- function(outcome_name,
         }
 
         fit <- SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
-        save(fit, file = paste0(save_dir, fit_name))
+        if (save_full_object) {
+            save(fit, file = paste0(save_dir, fit_name))    
+        } 
+        save(fit$SL.predict, file = gsub(".RData", ".rds", gsub("fit", "fitted", fit_name)))
 
         cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
-        save(cv_fit, file = paste0(save_dir, cv_fit_name))
+        if (save_full_object) {
+            save(cv_fit, file = paste0(save_dir, cv_fit_name))
+        } 
+        save(cv_fit$SL.predict, file = gsub(".RData", ".rds", gsub("cvfit", "cvfitted", cv_fit_name)))
+        
         return(invisible(NULL))
 }
 
+## run full super learner
 sl_ic50 <- sl_one_outcome(outcome_name = "pc.ic50",
                           pred_names = pred_names,
                           family = "gaussian",
@@ -63,7 +77,7 @@ sl_ic50 <- sl_one_outcome(outcome_name = "pc.ic50",
                           cvControl = list(V = 10),
                           method = "method.CC_LS",
                           reduce_covs = reduce_covs)
-
+## run reduced super learners
 if(!reduce_outcomes){
   sl_ic80 <- sl_one_outcome(outcome_name = "pc.ic80",
                             pred_names = pred_names,

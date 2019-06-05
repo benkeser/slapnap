@@ -29,7 +29,8 @@ pkg <- c(
   "SuperLearner",
   "nloptr",
   "quadprog",
-  "ggplot2"
+  "ggplot2",
+  "vimp"
 )
 
 for(p in pkg){
