@@ -1,4 +1,4 @@
-# Start by pulling r-base image
+# Start by pulling ubuntu image
 FROM ubuntu:latest
 
 # update libraries
@@ -53,26 +53,9 @@ COPY sh/run_analysis.sh /home/lib/run_analysis.sh
 COPY R/render_report.R /home/lib/render_report.R
 RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R
 
-# e="VRC07-523-LS;PGT121"
-# -e  "Nab=VRC07-523-LS;PGT121;PGDM1400"
-# # requirements.R file is where we'll define 
-# # all the packages that we need to install. 
-# COPY requirements.R /tmp/requirements.R
-# # test_rscript.R is the R script that executes the job
-# COPY test_rscript.R /tmp/test_rscript.R
-# # run_remote.sh is a shell script that runs all R code and 
-# # copies results back up to s3
-# COPY run_remote.sh /tmp/run_remote.sh
-
-# # make run_remote executable
-# RUN chmod +x /tmp/run_remote.sh
-# # define a save directory that is passed to run_remote.sh
-# ENV SAVE_DIR="/tmp/save_dir/"
-# # actually make the save directory
-# RUN mkdir "$SAVE_DIR"
-
-# # install required libs on container
-# RUN Rscript /tmp/requirements.R
-
-# entry point to container runs run_analysis.sh and passes through 
+# entry point to container runs run_analysis.sh
 CMD /home/lib/run_analysis.sh
+
+
+
+

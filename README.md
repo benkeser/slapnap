@@ -1,6 +1,11 @@
 
 # SLAPNAP
 
+> Super LeArner Predictions using NAb Panels
+
+**Authors:** [David Benkeser](https://www.github.com/benkeser/), Craig
+Magaret, Sohail Nizam, Bhavesh Borate, Brian Williamson, Peter Gilbert
+
 [![Build
 Status](https://travis-ci.com/benkeser/slapnap.svg?token=WgmsWkd2hyf88ZxhK8bp&branch=master)](https://travis-ci.com/benkeser/slapnap)
 [![Project Status: Active - The project has reached a stable, usable
@@ -9,11 +14,6 @@ developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repo
 [![MIT
 license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 <!-- [![DOI](https://zenodo.org/badge/75324341.svg)](https://zenodo.org/badge/latestdoi/75324341) -->
-
-> Super LeArner Predictions using NAb Panels
-
-**Authors:** [David Benkeser](https://www.github.com/benkeser/), Craig
-Magaret, Sohail Nizam, Bhavesh Borate, Brian Williamson, Peter Gilbert
 
 -----
 
