@@ -13,6 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV reduce_covs=FALSE
 ENV reduce_outcomes=FALSE
 ENV reduce_library=FALSE
+ENV reduce_groups=FALSE
 
 # install R from command line
 RUN apt-get install -y r-base
