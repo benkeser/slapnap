@@ -30,9 +30,10 @@ pkg <- c(
   "nloptr",
   "quadprog",
   "ggplot2",
-  "vimp"
+  "cowplot"
 )
 
 for(p in pkg){
 	suppressMessages(install.packages(p))
 }
+suppressMessages(install.packages("vimp_1.3.0.tar.gz", type = "source", repos = NULL))
