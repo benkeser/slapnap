@@ -49,6 +49,9 @@ COPY R/variable_groups.R /home/lib/variable_groups.R
 COPY R/run_super_learners.R /home/lib/run_super_learners.R
 COPY R/get_vimp.R /home/lib/get_vimp.R
 
+# copy R package (only until new version gets to GitHub)
+COPY vimp_
+
 RUN chmod +x /home/lib/merge_proc_v2.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 
 
