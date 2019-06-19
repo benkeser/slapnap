@@ -69,7 +69,7 @@ sl_one_outcome <- function(outcome_name,
             saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
         } 
         saveRDS(cv_fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
-        
+        saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
         return(invisible(NULL))
 }
 
