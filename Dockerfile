@@ -46,7 +46,10 @@ RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_co
 COPY R/multi_ab_v2.Rlib /home/lib/multi_ab_v2.Rlib
 COPY R/merge_proc_v2.R /home/lib/merge_proc_v2.R
 COPY R/run_super_learners.R /home/lib/run_super_learners.R
-RUN chmod +x /home/lib/merge_proc_v2.R /home/lib/run_super_learners.R
+COPY R/get_vimp.R /home/lib/get_vimp.R
+
+RUN chmod +x /home/lib/merge_proc_v2.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
+
 
 # copy report Rmd 
 COPY R/report.Rmd /home/lib/report.Rmd
