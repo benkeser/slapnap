@@ -2,7 +2,7 @@
 FROM ubuntu:latest
 
 # update libraries
-RUN apt-get update -y
+RUN apt-get update && apt-get upgrade -y
 
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
