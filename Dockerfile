@@ -34,7 +34,7 @@ COPY R/r_package_installs.R /home/lib/r_package_installs.R
 RUN chmod +x /home/lib/r_package_installs.R && /home/lib/r_package_installs.R
 
 # make sure we have wget
-RUN apt-get install wget
+RUN apt-get install -y wget
 
 # pull CATNAP data from LANL
 RUN wget -O /home/dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"
