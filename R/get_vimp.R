@@ -28,7 +28,41 @@ full_sl_fits <- all_sl_fits[grepl("fit_", sl_fit_names)]
 full_cv_sl_fits <- all_sl_fits[grepl("cvfit_", sl_fit_names)]
 reduced_sl_fits <- all_sl_fits[grepl("fitted_", sl_fit_names)]
 reduced_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", sl_fit_names)]
+full_cv_sl_folds <- all_sl_fits[grepl("cvfolds_", sl_fit_names)]
+
+continuous_outcomes <- c("pc.ic50", "pc.ic80", "iip")
+binary_outcomes <- c("dichotomous.1", "dichotomous.2")
+
 
 # for continuous outcomes, do r-squared
+continuous_outcome_vimp <- vector("list", length = length(continuous_outcomes))
+continuous_outcome_cv_vimp <- vector("list", length = length(continuous_outcomes))
+set.seed(474747)
+for (i in 1:length(continuous_outcome_vimp)) {
+    ## make sub-folds for non-cv
+    sub_folds <- sample(1:2, length(dat[, continuous_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
+
+    continuous_outcome_vimp[[i]] <- vector("list", length = length(reduced_sl_fits))
+    for (j in 1:length(reduced_sl_fits)) {
+        continuous_outcome_vimp[[i]][[j]] <- vimp::vimp_rsquared(Y = dat[, continuous_outcomes[i]], 
+                                                            f1 = full_sl_fits[[i]],
+                                                            f2 = reduced_sl_fits[[j]],
+                                                            indx = ,
+                                                            run_regression = FALSE,
+                                                            alpha = 0.05,
+                                                            folds = sub_folds)
+    }
+    continuous_outcome_cv_vimp[[i]] <- vector("list", length = length(reduced_cv_sl_fits))
+    for (j in 1:length(reduced_cv_sl_fits)) {
+        continuous_outcome_cv_vimp[[i]][[j]] <- vimp::cv_vim(Y = dat[, continuous_outcomes[i]],
+                                                             f1 = full_cv_sl_fits[[i]],
+                                                             f2 = reduced_cv_sl_fits[[i]],
+                                                             indx = ,
+                                                             run_regression = FALSE,
+                                                             alpha = 0.05,
+                                                             folds = full_cv_sl_folds[[i]])
+    }
+}
 
 # for binary outcomes, do AUC, accuracy, deviance
+binary_outcome_vimp <- vector("list", length = length(binary_outcomes))
