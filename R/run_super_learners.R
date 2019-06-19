@@ -1,5 +1,7 @@
 #! /usr/bin/env Rscript
 
+## run the super learners for all outcomes, pre-defined variable groups
+
 # load libraries
 library(SuperLearner)
 source("variable_groups.R")
