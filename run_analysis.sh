@@ -5,7 +5,7 @@
 #-----------------------------------------------------
 
 # run script to install required packages
-printf "Installing required R packages"
+printf "Installing required R packages \n"
 /home/lib/r_package_installs.R
 
 # run script to build analytic data set
@@ -15,6 +15,10 @@ printf "Building analytic data set from CATNAP database \n"
 # run script to fit super learners
 printf "Fitting super learners \n"
 /home/lib/run_super_learners.R
+
+# run script to get variable importance
+printf "Obtaining variable importance \n"
+/home/lib/get_vimp.R
 
 # run script to compile report
 printf "Compiling results using R Markdown \n"
