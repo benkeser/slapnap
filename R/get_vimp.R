@@ -44,12 +44,14 @@ all_var_grp_lst <- all_outcome_var_lst[grepl("minus", all_outcome_var_lst)]
 continuous_outcomes <- all_outcome_lst[grepl("ic50", all_outcome_lst) | grepl("ic80", all_outcome_lst) | grepl("iip", all_outcome_lst)]
 continuous_grps <- tail(unlist(strsplit(all_var_grp_lst[grepl("ic50", all_outcome_lst) | grepl("ic80", all_outcome_lst) | grepl("iip", all_outcome_lst)], "_", fixed = TRUE)), n = 1)
 continuous_outcome_vimp <- vector("list", length = length(continuous_outcomes))
+continuous_outcome_cv_vimp <- vector("list", length = length(continuous_outcomes))
 set.seed(474747)
 for (i in 1:length(continuous_outcome_vimp)) {
     ## make sub-folds for non-cv
     sub_folds <- sample(1:2, length(dat[, continuous_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
 
     continuous_outcome_vimp[[i]] <- vector("list", length = length(continuous_grps))
+    continuous_outcome_cv_vimp[[i]] <- vector("list", length = length(continuous_grps))
     for (j in 1:length(reduced_sl_fits)) {
         continuous_outcome_vimp[[i]][[j]] <- vimp::vim(Y = dat[, continuous_outcomes[i]], 
                                                             f1 = full_sl_fits[[i]],
@@ -76,13 +78,15 @@ for (i in 1:length(continuous_outcome_vimp)) {
 # for binary outcomes, do AUC (this only, for now)
 binary_outcomes <- all_outcome_lst[grepl("dichotomous.1", all_outcome_lst) | grepl("dichotomous", all_outcome_lst) | grepl("iip", all_outcome_lst)]
 binary_grps <- all_var_grp_lst[grepl("ic50", all_outcome_lst) | grepl("ic80", all_outcome_lst) | grepl("iip", all_outcome_lst)]
-binary_outcome_vimp <- vector("list", length = length(continuous_outcomes))
+binary_outcome_vimp <- vector("list", length = length(binary_outcomes))
+binary_outcome_cv_vimp <- vector("list", length = length(binary_outcomes))
 set.seed(474747)
 for (i in 1:length(binary_outcome_vimp)) {
     ## make sub-folds for non-cv
     sub_folds <- sample(1:2, length(dat[, binary_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
 
     binary_outcome_vimp[[i]] <- vector("list", length = length(binary_grps))
+    binary_outcome_cv_vimp[[i]] <- vector("list", length = length(binary_grps))
     for (j in 1:length(reduced_sl_fits)) {
         binary_outcome_vimp[[i]][[j]] <- vimp::vim(Y = dat[, binary_outcomes[i]], 
                                                             f1 = full_sl_fits[[i]],
