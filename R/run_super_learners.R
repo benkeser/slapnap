@@ -4,7 +4,7 @@
 
 # load libraries
 library(SuperLearner)
-source("variable_groups.R")
+source("/home/lib/variable_groups.R")
 
 # attempt to read in environment variables
 reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"

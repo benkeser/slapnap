@@ -70,9 +70,9 @@ There were `r n_row_prev` observations extracted from the CATNAP database. There
 # Super Learner
 
 ```{r load_super_learners}
-fit_ic50 <- get(load("/home/slfits/cvfit_pc.ic50.RData"))
-# fit_ic80 <- get(load("/home/slfits/cvfit_pc.ic80.RData"))
-# fit_iip <- get(load("/home/slfits/cvfit_iip.RData"))
+fit_ic50 <- readRDS("/home/slfits/cvfit_pc.ic50.rds")
+# fit_ic80 <- readRDS("/home/slfits/cvfit_pc.ic80.rds")
+# fit_iip <- readRDS("/home/slfits/cvfit_iip.rds")
 ```
 
 Figure \@ref(fig:plotic50) shows the cross-validated performance for predicting IC-50. 
@@ -80,4 +80,25 @@ Figure \@ref(fig:plotic50) shows the cross-validated performance for predicting 
 ```{r plotic50, fig.cap = "Cross-validated performance of Super Learner for estimated IC-50"}
 # TO DO: Bring in code to plot CV-R2 from flu projects
 plot(fit_ic50)
+```
+
+# Variable importance
+
+```{r load_vimp_objects}
+library("dplyr")
+library("ggplot2")
+library("cowplot")
+continuous_outcome_vimp <- readRDS("/home/slfits/continuous_outcome_vimp.rds")
+continuous_outcome_cv_vimp <- readRDS("/home/slfits/continuous_outcome_cv_vimp.rds")
+# binary_outcome_vimp <- readRDS("/home/slfits/binary_outcome_vimp.rds")
+# binary_outcome_cv_vimp <- readRDS("/home/slfits/binary_outcome_cv_vimp.rds")
+```
+
+Figure \@ref(fig:continuous_cv_vimp) shows variable importance estimates for predicting continuous outcomes.
+
+```{r plot-continuous-vimp, fig.cap = "Variable importance estimates for continuous outcomes"}
+x_lab <- expression(paste(R^2))
+x_lim <- c(0, 1)
+## create a plot for each continuous outcome
+continuous_outcome_vimp_plots <- lapply()
 ```

@@ -73,7 +73,42 @@ for (i in 1:length(continuous_outcome_vimp)) {
     }
 }
 
-# for binary outcomes, do AUC, accuracy, deviance;
+# for binary outcomes, do AUC (this only, for now)
 binary_outcomes <- all_outcome_lst[grepl("dichotomous.1", all_outcome_lst) | grepl("dichotomous", all_outcome_lst) | grepl("iip", all_outcome_lst)]
 binary_grps <- all_var_grp_lst[grepl("ic50", all_outcome_lst) | grepl("ic80", all_outcome_lst) | grepl("iip", all_outcome_lst)]
 binary_outcome_vimp <- vector("list", length = length(continuous_outcomes))
+set.seed(474747)
+for (i in 1:length(binary_outcome_vimp)) {
+    ## make sub-folds for non-cv
+    sub_folds <- sample(1:2, length(dat[, binary_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
+
+    binary_outcome_vimp[[i]] <- vector("list", length = length(binary_grps))
+    for (j in 1:length(reduced_sl_fits)) {
+        binary_outcome_vimp[[i]][[j]] <- vimp::vim(Y = dat[, binary_outcomes[i]], 
+                                                            f1 = full_sl_fits[[i]],
+                                                            f2 = reduced_sl_fits[[j]],
+                                                            indx = which(pred_names %in% unlist(all_var_groups[grepl(binary_grps[j], names(all_var_groups))])),
+                                                            run_regression = FALSE,
+                                                            alpha = 0.05,
+                                                            type = "auc",
+                                                            folds = sub_folds)
+    }
+    binary_outcome_cv_vimp[[i]] <- vector("list", length = length(reduced_cv_sl_fits))
+    for (j in 1:length(reduced_cv_sl_fits)) {
+        binary_outcome_cv_vimp[[i]][[j]] <- vimp::cv_vim(Y = dat[, binary_outcomes[i]],
+                                                             f1 = full_cv_sl_fits[[i]],
+                                                             f2 = reduced_cv_sl_fits[[i]],
+                                                             indx = which(pred_names %in% unlist(all_var_groups[grepl(binary_grps[j], names(all_var_groups))])),
+                                                             run_regression = FALSE,
+                                                             alpha = 0.05,
+                                                             type = "auc",
+                                                             folds = full_cv_sl_folds[[i]])
+    }
+}
+
+## save them off
+saveRDS(continuous_outcome_vimp, "/home/slfits/continuous_outcome_vimp.rds")
+saveRDS(continuous_outcome_cv_vimp, "/home/slfits/continuous_outcome_cv_vimp.rds")
+
+saveRDS(binary_outcome_vimp, "/home/slfits/binary_outcome_vimp.rds")
+saveRDS(binary_outcome_vimp, "/home/slfits/binary_outcome_cv_vimp.rds")
