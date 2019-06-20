@@ -29,6 +29,8 @@ pkg <- c(
   "SuperLearner",
   "nloptr",
   "quadprog",
+  "dplyr",
+  "tidyr",
   "ggplot2",
   "cowplot"
 )
