@@ -30,6 +30,8 @@ RUN mkdir /home/lib /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits
 
 # install R libraries needed for analysis
+# copy R package (only until new version gets to GitHub)
+COPY vimp_1.3.0.tar.gz /home/lib/vimp_1.3.0.tar.gz
 COPY R/r_package_installs.R /home/lib/r_package_installs.R
 RUN chmod +x /home/lib/r_package_installs.R && /home/lib/r_package_installs.R
 
@@ -45,13 +47,9 @@ RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_co
 # copy R scripts to do data pull and make executable
 COPY R/multi_ab_v2.Rlib /home/lib/multi_ab_v2.Rlib
 COPY R/merge_proc_v2.R /home/lib/merge_proc_v2.R
-COPY R/r_package_installs.R /home/lib/r_package_installs.R
 COPY R/variable_groups.R /home/lib/variable_groups.R
 COPY R/run_super_learners.R /home/lib/run_super_learners.R
 COPY R/get_vimp.R /home/lib/get_vimp.R
-
-# copy R package (only until new version gets to GitHub)
-COPY vimp_1.3.0.tar.gz /home/lib/vimp_1.3.0.tar.gz
 
 RUN chmod +x /home/lib/merge_proc_v2.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 

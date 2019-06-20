@@ -4,10 +4,6 @@
 # This script is executed as entry point to container
 #-----------------------------------------------------
 
-# run script to install required packages
-printf "Installing required R packages \n"
-/home/lib/r_package_installs.R
-
 # run script to build analytic data set
 printf "Building analytic data set from CATNAP database \n"
 /home/lib/merge_proc_v2.R
