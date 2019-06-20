@@ -38,4 +38,4 @@ pkg <- c(
 for(p in pkg){
 	suppressMessages(install.packages(p))
 }
-suppressMessages(install.packages("vimp_1.3.0.tar.gz", type = "source", repos = NULL))
+suppressMessages(install.packages("/home/lib/vimp_1.3.0.tar.gz", type = "source", repos = NULL))
