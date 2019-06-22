@@ -41,12 +41,12 @@ full_cv_sl_folds <- all_sl_fits[grepl("cvfolds_", sl_fit_names) & !grepl("minus"
 continuous_sl_fits <- full_sl_fits[grepl("ic50", names(full_sl_fits)) | grepl("ic80", names(full_sl_fits)) | grepl("iip", names(full_sl_fits))]
 continuous_reduced_sl_fits <- reduced_sl_fits[grepl("ic50", names(reduced_sl_fits)) | grepl("ic80", names(reduced_sl_fits)) | grepl("iip", names(reduced_sl_fits))]
 continuous_cv_sl_fits <- full_cv_sl_fits[grepl("ic50", names(full_cv_sl_fits)) | grepl("ic80", names(full_cv_sl_fits)) | grepl("iip", names(full_cv_sl_fits))]
-continuous_cv_reduced_sl_fits <- reduced_cv_sl_fits[grepl("ic50", names(reduced_cv_sl_fits)) | grepl("ic80", names(reduced_cv_sl_fits)) | grepl("iip", names(reduced_cv_sl_fits))]
+continuous_reduced_cv_sl_fits <- reduced_cv_sl_fits[grepl("ic50", names(reduced_cv_sl_fits)) | grepl("ic80", names(reduced_cv_sl_fits)) | grepl("iip", names(reduced_cv_sl_fits))]
 continuous_cv_sl_folds <- full_cv_sl_folds[grepl("ic50", names(full_cv_sl_folds)) | grepl("ic80", names(full_cv_sl_folds)) | grepl("iip", names(full_cv_sl_folds))]
 binary_sl_fits <- full_sl_fits[grepl("dichotomous.1", names(full_sl_fits)) | grepl("dichotomous.2", names(full_sl_fits))]
 binary_reduced_sl_fits <- reduced_sl_fits[grepl("dichotomous.1", names(reduced_sl_fits)) | grepl("dichotomous.2", names(reduced_sl_fits))]
 binary_cv_sl_fits <- full_cv_sl_fits[grepl("dichotomous.1", names(full_cv_sl_fits)) | grepl("dichotomous.2", names(full_cv_sl_fits))]
-binary_cv_reduced_sl_fits <- reduced_cv_sl_fits[grepl("dichotomous.1", names(reduced_cv_sl_fits)) | grepl("dichotomous.2", names(reduced_cv_sl_fits))]
+binary_reduced_cv_sl_fits <- reduced_cv_sl_fits[grepl("dichotomous.1", names(reduced_cv_sl_fits)) | grepl("dichotomous.2", names(reduced_cv_sl_fits))]
 binary_cv_sl_folds <- full_cv_sl_folds[grepl("dichotomous.1", names(full_cv_sl_folds)) | grepl("dichotomous.2", names(full_cv_sl_folds))]
 
 ## get the outcomes in the list
@@ -117,7 +117,7 @@ for (i in 1:length(binary_outcome_vimp)) {
 
     binary_outcome_vimp[[i]] <- vector("list", length = length(binary_grps))
     binary_outcome_cv_vimp[[i]] <- vector("list", length = length(binary_grps))
-    for (j in 1:length(reduced_sl_fits)) {
+    for (j in 1:length(binary_reduced_sl_fits)) {
         binary_outcome_vimp[[i]][[j]] <- vimp::vim(Y = dat[, binary_outcomes[i]], 
                                                             f1 = binary_sl_fits[[i]],
                                                             f2 = binary_reduced_sl_fits[[j]],
@@ -128,7 +128,7 @@ for (i in 1:length(binary_outcome_vimp)) {
                                                             folds = sub_folds)
     }
     binary_outcome_cv_vimp[[i]] <- vector("list", length = length(reduced_cv_sl_fits))
-    for (j in 1:length(reduced_cv_sl_fits)) {
+    for (j in 1:length(binary_reduced_cv_sl_fits)) {
         max_in_fold <- max(unlist(lapply(binary_cv_sl_folds[[i]], function(x) length(x))))
         folds_tmp <- lapply(binary_cv_sl_folds[[i]], function(x) {
             if (length(x) < max_in_fold) {
