@@ -79,6 +79,7 @@ for (i in 1:length(continuous_outcome_vimp)) {
     }
     continuous_outcome_cv_vimp[[i]] <- vector("list", length = length(continuous_reduced_cv_sl_fits))
     for (j in 1:length(continuous_reduced_cv_sl_fits)) {
+        ## make a vector of folds
         max_in_fold <- max(unlist(lapply(continuous_cv_sl_folds[[i]], function(x) length(x))))
         folds_tmp <- lapply(continuous_cv_sl_folds[[i]], function(x) {
             if (length(x) < max_in_fold) {
@@ -92,10 +93,13 @@ for (i in 1:length(continuous_outcome_vimp)) {
                           each = round(length(dat[, continuous_outcomes[i]])/length(folds_tmp)))
         folds_mat <- cbind(fold_row_nums, folds_init)
         folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
+        ## make a list of the outcome, fitted values
+        full_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_cv_sl_fits[[i]][folds == x])
+        redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_reduced_cv_sl_fits[[i]][folds == x])
     
         continuous_outcome_cv_vimp[[i]][[j]] <- vimp::cv_vim(Y = dat[, continuous_outcomes[i]],
-                                                             f1 = continuous_cv_sl_fits[[i]],
-                                                             f2 = continuous_reduced_cv_sl_fits[[i]],
+                                                             f1 = full_lst,
+                                                             f2 = redu_lst,
                                                              indx = which(pred_names %in% unlist(all_var_groups[grepl(continuous_grps[j], names(all_var_groups))])),
                                                              run_regression = FALSE,
                                                              alpha = 0.05,
