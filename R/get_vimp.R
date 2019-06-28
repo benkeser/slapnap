@@ -78,24 +78,24 @@ for (i in 1:length(continuous_outcome_vimp)) {
                                                             folds = sub_folds)
     }
     continuous_outcome_cv_vimp[[i]] <- vector("list", length = length(continuous_reduced_cv_sl_fits))
+    ## make a vector of folds
+    max_in_fold <- max(unlist(lapply(continuous_cv_sl_folds[[i]], function(x) length(x))))
+    folds_tmp <- lapply(continuous_cv_sl_folds[[i]], function(x) {
+        if (length(x) < max_in_fold) {
+            c(x, rep(NA, max_in_fold - length(x)))
+        } else {
+            x
+        }
+    })
+    fold_row_nums <- as.vector(do.call(cbind, folds_tmp))
+    folds_init <- rep(as.numeric(names(folds_tmp)), 
+                      each = round(length(dat[, continuous_outcomes[i]])/length(folds_tmp)))
+    folds_mat <- cbind(fold_row_nums, folds_init)
+    folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
+    ## make a list of the outcome, fitted values
+    full_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_cv_sl_fits[[i]][folds == x])
     for (j in 1:length(continuous_reduced_cv_sl_fits)) {
-        ## make a vector of folds
-        max_in_fold <- max(unlist(lapply(continuous_cv_sl_folds[[i]], function(x) length(x))))
-        folds_tmp <- lapply(continuous_cv_sl_folds[[i]], function(x) {
-            if (length(x) < max_in_fold) {
-                c(x, rep(NA, max_in_fold - length(x)))
-            } else {
-                x
-            }
-        })
-        fold_row_nums <- as.vector(do.call(cbind, folds_tmp))
-        folds_init <- rep(as.numeric(names(folds_tmp)), 
-                          each = round(length(dat[, continuous_outcomes[i]])/length(folds_tmp)))
-        folds_mat <- cbind(fold_row_nums, folds_init)
-        folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
-        ## make a list of the outcome, fitted values
-        full_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_cv_sl_fits[[i]][folds == x])
-        redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_reduced_cv_sl_fits[[i]][folds == x])
+        redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_reduced_cv_sl_fits[[j]][folds == x])
     
         continuous_outcome_cv_vimp[[i]][[j]] <- vimp::cv_vim(Y = dat[, continuous_outcomes[i]],
                                                              f1 = full_lst,
@@ -132,20 +132,21 @@ for (i in 1:length(binary_outcome_vimp)) {
                                                             folds = sub_folds)
     }
     binary_outcome_cv_vimp[[i]] <- vector("list", length = length(reduced_cv_sl_fits))
+    max_in_fold <- max(unlist(lapply(binary_cv_sl_folds[[i]], function(x) length(x))))
+    folds_tmp <- lapply(binary_cv_sl_folds[[i]], function(x) {
+        if (length(x) < max_in_fold) {
+            c(x, rep(NA, max_in_fold - length(x)))
+        } else {
+            x
+        }
+    })
+    fold_row_nums <- as.vector(do.call(cbind, folds_tmp))
+    folds_init <- rep(as.numeric(names(folds_tmp)), 
+                      each = round(length(dat[, binary_outcomes[i]])/length(folds_tmp)))
+    folds_mat <- cbind(fold_row_nums, folds_init)
+    folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
     for (j in 1:length(binary_reduced_cv_sl_fits)) {
-        max_in_fold <- max(unlist(lapply(binary_cv_sl_folds[[i]], function(x) length(x))))
-        folds_tmp <- lapply(binary_cv_sl_folds[[i]], function(x) {
-            if (length(x) < max_in_fold) {
-                c(x, rep(NA, max_in_fold - length(x)))
-            } else {
-                x
-            }
-        })
-        fold_row_nums <- as.vector(do.call(cbind, folds_tmp))
-        folds_init <- rep(as.numeric(names(folds_tmp)), 
-                          each = round(length(dat[, binary_outcomes[i]])/length(folds_tmp)))
-        folds_mat <- cbind(fold_row_nums, folds_init)
-        folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
+        
     
         binary_outcome_cv_vimp[[i]][[j]] <- vimp::cv_vim(Y = dat[, binary_outcomes[i]],
                                                              f1 = binary_cv_sl_fits[[i]],
