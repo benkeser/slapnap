@@ -2,18 +2,20 @@
 
 ## plot vimp for a single outcome/group combination
 ## @param vimp_est the estimated importance (along with CIs, etc.)
+## @param title the title of the plot
 ## @param x_lim the x-axis limits
 ## @param x_lab the x-axis label
 ## @param lgnd_pos the legend position
 ## @param point_size the point size
 ## @param main_font_size the size of text
-plot_one_vimp <- function(vimp_est, x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(), point_size = 5, main_font_size = 20) {
+plot_one_vimp <- function(vimp_est, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20) {
     ## plot by ordered vimp measure
     vimp_plot <- vimp_est %>%
-        arrange(desc(measure)) %>%
-        ggplot(aes(x = measure, y = group[order(measure)])) +
-        geom_errorbarh(aes(xmin = ci_ll, xmax = ci_ul)) +
+        arrange(desc(est)) %>%
+        ggplot(aes(x = est, y = group[order(est)])) +
+        geom_errorbarh(aes(xmin = cil, xmax = ciu)) +
         geom_point(size = point_size) +
+        ggtitle(title) +
         xlab(x_lab) + 
         ylab("Feature group") +
         scale_x_continuous(breaks = round(seq(x_lim[1], x_lim[2], 0.1), 1),
