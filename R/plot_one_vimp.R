@@ -1,14 +1,25 @@
 #!/usr/bin/env Rscript
 
 ## plot vimp for a single outcome/group combination
-## @param vimp_est the estimated importance (along with CIs, etc.)
+## @param vimp_obj the variable importance object
 ## @param title the title of the plot
 ## @param x_lim the x-axis limits
 ## @param x_lab the x-axis label
 ## @param lgnd_pos the legend position
 ## @param point_size the point size
 ## @param main_font_size the size of text
-plot_one_vimp <- function(vimp_est, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20) {
+plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20) {
+    ## get the variable importances
+    if (!is.null(vimp_obj$mat)) {
+        vimp_est <- vimp_obj$mat
+        vimp_est$group <- rownames(vimp_obj$mat)
+    } else {
+        vimp_est <- cbind(est = vimp_obj$est, se = vimp_obj$se, cil = vimp_obj$cil, ciu = vimp_obj$ciu)
+        print_s <- ifelse(length(vimp_obj$s) <= 10, 
+                      paste(vimp_obj$s, collapse = ", "), 
+                      paste(c(vimp_obj$s[1:10], "..."), collapse = ", "))
+        vimp_est$group <- paste("s = ", print_s, sep = "") 
+    }
     ## plot by ordered vimp measure
     vimp_plot <- vimp_est %>%
         arrange(desc(est)) %>%

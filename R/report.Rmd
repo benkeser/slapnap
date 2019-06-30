@@ -103,5 +103,5 @@ x_lab <- expression(paste(R^2))
 x_lim <- c(0, 1)
 ## create a plot for each continuous outcome
 continuous_outcome_vimp_plots <- lapply(continuous_outcome_cv_vimp, plot_one_vimp, title = "Cross-validated variable importance")
-plot_grid(continuous_outcome_vimp_plots)
+plot_grid(plotlist = continuous_outcome_vimp_plots)
 ```
