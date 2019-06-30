@@ -65,8 +65,7 @@ for (i in 1:length(continuous_outcome_vimp)) {
     ## make sub-folds for non-cv
     sub_folds <- sample(1:2, length(dat[, continuous_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
 
-    continuous_outcome_vimp[[i]] <- vector("list", length = length(continuous_grps))
-    continuous_outcome_cv_vimp[[i]] <- vector("list", length = length(continuous_grps))
+    continuous_outcome_vimp[[i]] <- vector("list", length = length(continuous_reduced_sl_fits))
     for (j in 1:length(continuous_reduced_sl_fits)) {
         continuous_outcome_vimp[[i]][[j]] <- vimp::vim(Y = dat[, continuous_outcomes[i]], 
                                                             f1 = continuous_sl_fits[[i]],
@@ -75,7 +74,8 @@ for (i in 1:length(continuous_outcome_vimp)) {
                                                             run_regression = FALSE,
                                                             alpha = 0.05,
                                                             type = "r_squared",
-                                                            folds = sub_folds)
+                                                            folds = sub_folds,
+                                                            na.rm = TRUE)
     }
     continuous_outcome_cv_vimp[[i]] <- vector("list", length = length(continuous_reduced_cv_sl_fits))
     ## make a vector of folds
@@ -104,7 +104,8 @@ for (i in 1:length(continuous_outcome_vimp)) {
                                                              run_regression = FALSE,
                                                              alpha = 0.05,
                                                              type = "r_squared",
-                                                             folds = folds)
+                                                             folds = folds,
+                                                             na.rm = TRUE)
     }
 }
 
@@ -119,8 +120,7 @@ for (i in 1:length(binary_outcome_vimp)) {
     ## make sub-folds for non-cv
     sub_folds <- sample(1:2, length(dat[, binary_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
 
-    binary_outcome_vimp[[i]] <- vector("list", length = length(binary_grps))
-    binary_outcome_cv_vimp[[i]] <- vector("list", length = length(binary_grps))
+    binary_outcome_vimp[[i]] <- vector("list", length = length(binary_reduced_sl_fits))
     for (j in 1:length(binary_reduced_sl_fits)) {
         binary_outcome_vimp[[i]][[j]] <- vimp::vim(Y = dat[, binary_outcomes[i]], 
                                                             f1 = binary_sl_fits[[i]],
@@ -129,9 +129,11 @@ for (i in 1:length(binary_outcome_vimp)) {
                                                             run_regression = FALSE,
                                                             alpha = 0.05,
                                                             type = "auc",
-                                                            folds = sub_folds)
+                                                            folds = sub_folds,
+                                                            na.rm = TRUE)
     }
-    binary_outcome_cv_vimp[[i]] <- vector("list", length = length(reduced_cv_sl_fits))
+    binary_outcome_cv_vimp[[i]] <- vector("list", length = length(binary_reduced_cv_sl_fits))
+    ## make a vector of folds
     max_in_fold <- max(unlist(lapply(binary_cv_sl_folds[[i]], function(x) length(x))))
     folds_tmp <- lapply(binary_cv_sl_folds[[i]], function(x) {
         if (length(x) < max_in_fold) {
@@ -145,17 +147,20 @@ for (i in 1:length(binary_outcome_vimp)) {
                       each = round(length(dat[, binary_outcomes[i]])/length(folds_tmp)))
     folds_mat <- cbind(fold_row_nums, folds_init)
     folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
+    ## make a list of the outcome, fitted values
+    full_lst <- lapply(as.list(1:length(unique(folds))), function(x) binary_cv_sl_fits[[i]][folds == x])
     for (j in 1:length(binary_reduced_cv_sl_fits)) {
-        
+        redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) binary_reduced_cv_sl_fits[[j]][folds == x])
     
         binary_outcome_cv_vimp[[i]][[j]] <- vimp::cv_vim(Y = dat[, binary_outcomes[i]],
-                                                             f1 = binary_cv_sl_fits[[i]],
-                                                             f2 = binary_reduced_cv_sl_fits[[i]],
+                                                             f1 = full_lst,
+                                                             f2 = redu_lst,
                                                              indx = which(pred_names %in% unlist(all_var_groups[grepl(binary_grps[j], names(all_var_groups))])),
                                                              run_regression = FALSE,
                                                              alpha = 0.05,
                                                              type = "auc",
-                                                             folds = folds)
+                                                             folds = folds,
+                                                             na.rm = TRUE)
     }
 }
 

@@ -1,0 +1,8 @@
+vimp::vim(Y = dat[, continuous_outcomes[i]], 
+        f1 = continuous_cv_sl_fits[[i]],
+        f2 = continuous_reduced_cv_sl_fits[[j]],
+        indx = which(pred_names %in% unlist(all_var_groups[grepl(continuous_grps[j], names(all_var_groups))])),
+        run_regression = FALSE,
+        alpha = 0.05,
+        type = "r_squared",
+        folds = sub_folds)
