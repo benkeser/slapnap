@@ -1,1 +1,5 @@
 .DS_Store
+
+
+## ignore anything in test/, so that we can play around
+test/*
