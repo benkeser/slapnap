@@ -29,9 +29,13 @@ pkg <- c(
   "SuperLearner",
   "nloptr",
   "quadprog",
-  "ggplot2"
+  "dplyr",
+  "tidyr",
+  "ggplot2",
+  "cowplot"
 )
 
 for(p in pkg){
 	suppressMessages(install.packages(p))
 }
+suppressMessages(install.packages("/home/lib/vimp_1.3.0.tar.gz", type = "source", repos = NULL))

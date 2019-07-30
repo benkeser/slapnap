@@ -12,6 +12,10 @@ printf "Building analytic data set from CATNAP database \n"
 printf "Fitting super learners \n"
 /home/lib/run_super_learners.R
 
+# run script to get variable importance
+printf "Estimating variable importance \n"
+/home/lib/get_vimp.R
+
 # run script to compile report
 printf "Compiling results using R Markdown \n"
 /home/lib/render_report.R
