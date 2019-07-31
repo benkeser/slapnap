@@ -18,6 +18,9 @@ ENV reduce_groups=FALSE
 # install R from command line
 RUN apt-get install -y r-base
 
+# put vim on for now, for ease of editing docs inside container
+RUN apt-get install -y vim 
+
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc
 
@@ -37,6 +40,7 @@ RUN Rscript -e 'install.packages("ggplot2", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("glmnet", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ranger", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("xgboost", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("RColorBrewer", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_1.3.0.tar.gz", type = "source", repos = NULL))'
 
 # make directories

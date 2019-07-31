@@ -1,3 +1,79 @@
+get_cor_pred_outcome <- function(cv_fit){
+  c1 <- cor(cv_fit$SL.predict, cv_fit$Y)
+  c2 <- cor(cv_fit$SL.predict, cv_fit$Y, method = "spearman")
+  return(c(c1, c2))
+}
+
+plot_cv_predictions <- function(cv_fit, outcome_name, log_axis = TRUE,
+                                zoom = FALSE, zoom_lim = c(0,10)){
+  # get super learner predictions
+  sl_pred <- cv_fit$SL.predict
+  cv_folds <- rep(NA, length(sl_pred))
+  for(v in seq_along(cv_fit$folds)){
+    cv_folds[cv_fit$folds[[v]]] <- v
+  }
+  cv_fold_palette <- RColorBrewer::brewer.pal(length(cv_fit$folds), "Set3")  
+  d <- data.frame(prediction = sl_pred, outcome = cv_fit$Y)
+  p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) + 
+    geom_point() + theme_bw() +
+    scale_color_manual(values = cv_fold_palette) + 
+    labs(x = "Cross-Validated SL prediction", y = outcome_name, col = "CV fold") +
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5)
+  if(log_axis){
+    p <- p + scale_x_log10() + scale_y_log10()
+  }
+  if(zoom){
+    p <- p + xlim(zoom_lim[1], zoom_lim[2]) + ylim(zoom_lim[1], zoom_lim[2])
+  }
+  p
+}
+
+get_est_and_ci <- function(cv_fit, Rsquared = FALSE, constant = qnorm(0.975)){
+  class(cv_fit) <- "myCV.SuperLearner"
+  sumx <- summary(cv_fit, Rsquared = Rsquared, method = ifelse(Rsquared, "method.CC_LS", "method.AUC"))
+  Mean <- sumx$Table$Ave
+  if(Rsquared){
+    se <- sumx$Table$log_se
+    Lower <- 1 - exp( log(-Mean + 1) + constant * se)
+    Upper <- 1 - exp( log(-Mean + 1) - constant * se)
+  }else{
+    se <- sumx$Table$se
+    # put AUC CI on logit scale
+    grad <- 1 / (Mean - Mean^2)
+    logit_se <- sqrt(se^2 * grad^2)
+    Lower <- plogis(qlogis(Mean) - constant * logit_se); Upper <- plogis(qlogis(Mean) + constant * logit_se)
+  }
+  return(list(est = Mean[1], ci = c(Lower[1], Upper[1])))
+}
+
+plot_roc_curves <- function(cv_fit, topRank = 1){
+  class(cv_fit) <- "myCV.SuperLearner"
+  sortedAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm)) %>%
+    arrange(-Ave)
+
+  predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
+    bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
+    bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Super Learner"))) %>%
+    bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y"))) %>%
+    gather("algo", "pred", -Y) %>%
+    filter(algo %in% sortedAlgos$Algorithm[1:(2+topRank)])
+
+  roc.obj <- predict %>%
+    group_by(algo) %>%
+    nest() %>%
+    mutate(pred.obj = purrr::map(data, ~ prediction(.x$pred, .x$Y)), 
+           perf.obj = purrr::map(pred.obj, ~ performance(.x, "tpr", "fpr")),
+           roc.dat = purrr::map(perf.obj, ~ tibble(xval = .x@x.values[[1]], 
+                                                   yval = .x@y.values[[1]]))) 
+  roc.obj %>%
+    unnest(roc.dat) %>%
+    ggplot(aes(x=xval, y=yval, col=algo)) +
+    geom_step(lwd=2) +
+    theme(legend.position = "top") +
+    scale_color_manual(values=rgb(c(0,1,0), c(1,0,0), c(0,0,1), 0.5)) + 
+    labs(x = "Cross-Validated False Positive Rate", y = "Cross-Validated True Positive Rate", col = "Algorithm") 
+}
+
 summary.myCV.SuperLearner <- function (object, obsWeights = NULL, 
                                        method = NULL, ...) {
     if ("env" %in% names(object)) {
@@ -139,7 +215,10 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
       Upper <- 1 - exp( log(-Mean + 1) + constant * se)
     }else{
       se <- sumx$Table$se
-      Lower <- Mean - constant * se; Upper <- Mean + constant * se
+      # put AUC CI on logit scale
+      grad <- 1 / (Mean - Mean^2)
+      logit_se <- sqrt(se^2 * grad^2)
+      Lower <- plogis(qlogis(Mean) - constant * logit_se); Upper <- plogis(qlogis(Mean) + constant * logit_se)
     }
     assign("d", data.frame(Y = Mean, X = sumx$Table$Algorithm, 
         Lower = Lower, Upper = Upper))
@@ -163,11 +242,11 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
         p <- ggplot2::ggplot(d, ggplot2::aes_string(x = "X", 
             y = "Y", ymin = "Lower", ymax = "Upper")) +
             geom_hline(yintercept = 0, linetype="dashed", color = "red") +
-            ggplot2::geom_pointrange(size = 0.05) + 
+            ggplot2::geom_pointrange(size = 0.5) + 
             ggplot2::coord_flip() + ggplot2::ylab(this_y_lab) + 
             ggplot2::xlab("Method") + 
             ggplot2::ggtitle(main_title) + 
-            scale_y_continuous(limits=c(xlim1, xlim2),oob = scales::squish) +
+            scale_y_continuous(limits=c(xlim1, xlim2), oob = scales::squish) +
             ggplot2::theme(axis.text = element_text(size = text_size))
     }
     return(p)
