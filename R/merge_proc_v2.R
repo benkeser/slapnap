@@ -63,7 +63,7 @@ seqname.full <- names (data.seq)
 header.info <- strsplit (names (data.seq), split=".", fixed = TRUE)
 subtype <- unlist (lapply (header.info, function (x) return (x[1])))
 country <- unlist (lapply (header.info, function (x) return (x[2])))
-seqname.db <- unlist (lapply (header.info, function (x) return (x[3])))
+seqname.db <- unlist (lapply (header.info, function (x) return (x[4]))) # entry 3 appears now to be a year
 
 # prep information for our antibody combinations
 #ab.combinations <- apply (permutations (n=length (antibodies), r=length (antibodies), v=antibodies), 1, paste0, collapse="+")
@@ -154,6 +154,7 @@ readouts$log10.pc.ic80 <- log10 (readouts$pc.ic80)
 iip.c <- 10
 iip.m <- log10 (4) / (readouts$log10.pc.ic80 - readouts$log10.pc.ic50)
 iip.f.c <- (iip.c ^ iip.m) / ((readouts$pc.ic50 ^ iip.m) + (iip.c ^ iip.m))
+iip.f.c[iip.f.c >= 1] <- 1 - .Machine$double.neg.eps
 readouts$iip <- -log10 (1 - iip.f.c)
 
 # derive the "Dichotomous 1" endpoint (i.e., is the PC IC50 higher than the
@@ -175,7 +176,7 @@ readouts$dichotomous.2 <- as.numeric (rowSums (readouts[, grep ("ic50.imputed", 
 
 
 # let's start off by making our HXB2 map
-hxb2.seq <- toupper (paste (data.seq$B.FR.HXB2.K03455, collapse=""))
+hxb2.seq <- toupper (paste (data.seq$B.FR.1983.HXB2.K03455, collapse="")) # does not seem like robust mapping
 hxb2.map <- mk.hxb2.map (hxb2.seq)
 
 # generate our AA residue information and remove invariant columns

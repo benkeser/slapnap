@@ -21,19 +21,31 @@ RUN apt-get install -y r-base
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc
 
+# install R libraries needed for analysis
+# copy R package (only until new version gets to GitHub)
+COPY vimp_1.3.0.tar.gz /home/lib/vimp_1.3.0.tar.gz
+RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("rmarkdown", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("bookdown", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("seqinr", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("SuperLearner", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("quadprog", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("dplyr", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("tidyr", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("cowplot", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("ggplot2", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("glmnet", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("ranger", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("xgboost", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_1.3.0.tar.gz", type = "source", repos = NULL))'
+
 # make directories
 # lib contains R source files
 # dat contains data 
 # dat/catnap contains original catnap data
 # dat/analysis contains analysis data
-RUN mkdir /home/lib /home/dat /home/dat/catnap /home/dat/analysis /home/out
+RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits
-
-# install R libraries needed for analysis
-# copy R package (only until new version gets to GitHub)
-COPY vimp_1.3.0.tar.gz /home/lib/vimp_1.3.0.tar.gz
-COPY R/r_package_installs.R /home/lib/r_package_installs.R
-RUN chmod +x /home/lib/r_package_installs.R && /home/lib/r_package_installs.R
 
 # make sure we have wget
 RUN apt-get install -y wget
@@ -50,6 +62,8 @@ COPY R/merge_proc_v2.R /home/lib/merge_proc_v2.R
 COPY R/variable_groups.R /home/lib/variable_groups.R
 COPY R/run_super_learners.R /home/lib/run_super_learners.R
 COPY R/get_vimp.R /home/lib/get_vimp.R
+COPY R/super_learner_libraries.R /home/lib/super_learner_libraries.R
+COPY R/plotting_functions.R /home/lib/plotting_functions.R
 
 RUN chmod +x /home/lib/merge_proc_v2.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 

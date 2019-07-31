@@ -5,6 +5,7 @@
 # load libraries
 library(SuperLearner)
 source("/home/lib/variable_groups.R")
+source("/home/lib/super_learner_libraries.R")
 
 # attempt to read in environment variables
 reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
@@ -23,9 +24,9 @@ dat <- dat[complete.cases(dat),]
 
 # if short run, use a simple library
 if(reduce_library){
-  SL.library <- c("SL.mean", "SL.glm")
+  SL.library <- default_library_reduced # defined in super_learner_libraries.R
 }else{
-  SL.library <- c("SL.mean", "SL.glm")  
+  SL.library <- default_library # defined in super_learner_libraries.R
 }
 
 # get names of predictors
@@ -62,7 +63,10 @@ sl_one_outcome <- function(outcome_name,
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))    
         } 
+        # save super learner predictions
         saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+        # save super learner weights
+        saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
 
         cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
         if (save_full_object) {
@@ -79,7 +83,7 @@ sl_ic50 <- sl_one_outcome(outcome_name = "pc.ic50",
                           family = "gaussian",
                           SL.library = SL.library, 
                           cvControl = list(V = 10),
-                          method = "method.CC_LS",
+                          method = "tmp_method.CC_LS",
                           reduce_covs = reduce_covs)
 ## run super learners on pre-defined groups
 all_var_groups <- get_variable_groups(dat, pred_names)
@@ -92,7 +96,7 @@ if (reduce_groups) {
                                     family = "gaussian",
                                     SL.library = SL.library,
                                     cvControl = list(V = 10),
-                                    method = "method.CC_LS",
+                                    method = "tmp_method.CC_LS",
                                     reduce_covs = reduce_covs,
                                     save_full_object = FALSE)
 } else {
@@ -108,7 +112,7 @@ if (reduce_groups) {
                                         family = "gaussian",
                                         SL.library = SL.library,
                                         cvControl = list(V = 10),
-                                        method = "method.CC_LS",
+                                        method = "tmp_method.CC_LS",
                                         reduce_covs = reduce_covs,
                                         save_full_object = FALSE)
         }
@@ -121,7 +125,8 @@ if(!reduce_outcomes){
                            family = "gaussian",
                            SL.library = SL.library, 
                            cvControl = list(V = 10),
-                           method = "method.CC_LS")
+                           method = "tmp_method.CC_LS", 
+                           reduce_covs = reduce_covs)
   for (i in 1:length(all_var_groups)) {
         if (length(all_var_groups[i]) == 0) {
 
@@ -134,7 +139,7 @@ if(!reduce_outcomes){
                                         family = "gaussian",
                                         SL.library = SL.library,
                                         cvControl = list(V = 10),
-                                        method = "method.CC_LS",
+                                        method = "tmp_method.CC_LS",
                                         reduce_covs = reduce_covs,
                                         save_full_object = FALSE)
         }
@@ -144,7 +149,8 @@ if(!reduce_outcomes){
                            family = "gaussian",
                            SL.library = SL.library, 
                            cvControl = list(V = 10),
-                           method = "method.CC_LS")
+                           reduce_covs = reduce_covs,
+                           method = "tmp_method.CC_LS")
   for (i in 1:length(all_var_groups)) {
         if (length(all_var_groups[i]) == 0) {
 
@@ -157,7 +163,7 @@ if(!reduce_outcomes){
                                         family = "gaussian",
                                         SL.library = SL.library,
                                         cvControl = list(V = 10),
-                                        method = "method.CC_LS",
+                                        method = "tmp_method.CC_LS",
                                         reduce_covs = reduce_covs,
                                         save_full_object = FALSE)
         }
@@ -166,8 +172,10 @@ if(!reduce_outcomes){
                             pred_names = pred_names,
                            family = "binomial",
                            SL.library = SL.library, 
-                           cvControl = list(V = 10),
-                           method = "method.CC_nloglik")
+                           cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
+                                            stratifyCV = TRUE),
+                           method = "tmp_method.CC_nloglik",
+                           reduce_covs = reduce_covs)
   for (i in 1:length(all_var_groups)) {
         if (length(all_var_groups[i]) == 0) {
 
@@ -179,8 +187,9 @@ if(!reduce_outcomes){
                                         cv_fit_name = paste0("cvfitted_dichotomous.1_minus_", this_name, ".rds"),
                                         family = "binomial",
                                         SL.library = SL.library,
-                                        cvControl = list(V = 10),
-                                        method = "method.CC_nloglik",
+                                        cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
+                                            stratifyCV = TRUE),
+                                        method = "tmp_method.CC_nloglik",
                                         reduce_covs = reduce_covs,
                                         save_full_object = FALSE)
         }
@@ -189,8 +198,10 @@ if(!reduce_outcomes){
                             pred_names = pred_names,
                            family = "binomial",
                            SL.library = SL.library, 
-                           cvControl = list(V = 10),
-                         method = "method.CC_nloglik")
+                           cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
+                                            stratifyCV = TRUE),
+                         method = "tmp_method.CC_nloglik",
+                         reduce_covs = reduce_covs)
   for (i in 1:length(all_var_groups)) {
         if (length(all_var_groups[i]) == 0) {
 
@@ -202,8 +213,9 @@ if(!reduce_outcomes){
                                         cv_fit_name = paste0("cvfitted_dichotomous.2_minus_", this_name, ".rds"),
                                         family = "binomial",
                                         SL.library = SL.library,
-                                        cvControl = list(V = 10),
-                                        method = "method.CC_nloglik",
+                                        cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
+                                            stratifyCV = TRUE),
+                                        method = "tmp_method.CC_nloglik",
                                         reduce_covs = reduce_covs,
                                         save_full_object = FALSE)
         }

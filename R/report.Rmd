@@ -9,6 +9,12 @@ output: bookdown::html_document2
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
+
+# attempt to read in environment variables
+reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
+reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
+reduce_library <- Sys.getenv("reduce_library") == "TRUE"
+reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
 ```
 
 ```{r}
@@ -22,8 +28,14 @@ dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE
 ```
 
 # Descriptives of endpoints
+```{r checkmiss}
+n_row_prev <- nrow(dat)
+dat <- dat[complete.cases(dat),]
+n_row_now <- nrow(dat)
+```
+The NAbs studied in this analysis are `r antibodies`. There were `r n_row_prev` observations extracted from the CATNAP database. There were `r n_row_now` observations with complete sequence data that were used in the analysis.
 
-The NAbs studied in this analysis are `r antibodies`. Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(fig:histic50) and Figure \@ref(fig:histic80), respectively. Histograms for the predicted IC-50 an IC-80 based on the additive model are shown in Figure \@ref(fig:histcombn), while a histrogram of the predicted IIP is shown in Figure \@ref(fig:histiip).
+Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(fig:histic50) and Figure \@ref(fig:histic80), respectively. Histograms for the predicted IC-50 an IC-80 based on the additive model are shown in Figure \@ref(fig:histcombn), while a histogram of the predicted IIP is shown in Figure \@ref(fig:histiip).
 
 ```{r histic50, fig.cap = "Histogram of IC50 values for individual NAbs"}
 if(n_ab > 1){
@@ -60,26 +72,84 @@ hist(dat$log10.pc.ic80, main = "", xlab = expression(log[10]*" estimated IC-50")
 hist(dat$iip, main = "", xlab = "Estimated IIP")
 ```
 
-```{r checkmiss}
-n_row_prev <- nrow(dat)
-dat <- dat[complete.cases(dat),]
-n_row_now <- nrow(dat)
+# Super Learner results
+
+A super learner was fit to each outcome. For continuous outcomes, super learner weights were chosen to optimize 10-fold cross-validated MSE; for binary outcomes, weights were chosen to optimize 10-fold negative log-likelihood loss. The algorithms used in the super learner are shown in Table \@ref(fig:super_learner_library_table). 
+
+```{r super_learner_library_table, fig.cap = "Super learner library"}
+source("/home/lib/super_learner_libraries.R")
+library_table <- data.frame()
+this_library <- if(reduce_library){
+	default_library_reduced
+}else{
+	default_library
+}
+Description <- sapply(this_library, function(x){
+	eval(parse(text = paste0("descr_", x)))
+})
+knitr::kable(as.data.frame(Description))
 ```
-There were `r n_row_prev` observations extracted from the CATNAP database. There were `r n_row_now` observations with complete sequence data that were used in the analysis.
 
-# Super Learner
+The weights assigned to each algorithm for each outcome are shown in Table \@ref{fig:super_learner_weight_table}. Cross-validated risks for each outcome are shown in the following Section. 
 
-```{r load_super_learners}
-fit_ic50 <- readRDS("/home/slfits/cvfit_pc.ic50.rds")
-# fit_ic80 <- readRDS("/home/slfits/cvfit_pc.ic80.rds")
-# fit_iip <- readRDS("/home/slfits/cvfit_iip.rds")
+```{r super_learner_weight_table, fig.cap = "Table of super learner weights for each outcome"}
+source("/home/lib/plotting_functions.R")
+# load super learner fits
+outcome_names <- if(!reduce_outcomes){
+	c("pc.ic50", "pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
+}else{
+	c("pc.ic50")
+}
+weight_list <- vector(mode = "list", length = length(outcome_names))
+ct <- 0
+for(o in outcome_names){
+	ct <- ct + 1
+	fit_name <- paste0("fit_", o, ".rds")
+	weight_list[[ct]] <- readRDS(paste0("/home/slfits/slweights_", fit_name))
+}
+weight_table <- data.frame(Reduce(cbind, weight_list))
+colnames(weight_table) <- outcome_names
+row.names(weight_table) <- this_library
+knitr::kable(as.data.frame(weight_table), digits = 2)
 ```
 
-Figure \@ref(fig:plotic50) shows the cross-validated performance for predicting IC-50. 
+The cross-validated performance of super learner (in terms of $R^2$ for continuous outcomes and AUC for dichotomous outcomes) relative to the discrete super learner and candidate algorithms are shown for IC-50 in Figure \@ref(fig:plotic50), for IC-80 in Figure \@ref(fig:plotic80), for IIP in Figure \@ref(fig:plotiip), and for the two dichotomous endpoints in Figure \@ref(fig:plotdichot1) and \@ref(fig:dichot2). 
 
-```{r plotic50, fig.cap = "Cross-validated performance of Super Learner for estimated IC-50"}
-# TO DO: Bring in code to plot CV-R2 from flu projects
-plot(fit_ic50)
+```{r load_cvfit_objects}
+cvfit_ic50 <- readRDS("/home/slfits/cvfit_pc.ic50.rds")
+if(!reduce_outcomes){
+	cvfit_ic80 <- readRDS("/home/slfits/cvfit_pc.ic80.rds")
+	cvfit_iip <- readRDS("/home/slfits/cvfit_iip.rds")
+	cvfit_dichotomous.1 <- readRDS("/home/slfits/cvfit_dichotomous.1.rds")
+	cvfit_dichotomous.2 <- readRDS("/home/slfits/cvfit_dichotomous.2.rds")
+}
+```
+
+```{r plotic50, fig.cap = "Cross-validated R-squared for estimated IC-50"}
+class(cvfit_ic50) <- "myCV.SuperLearner"
+plot(cvfit_ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8, text_size = 9,
+     method = "method.CC_LS")
+```
+```{r plotic80, fig.cap = "Cross-validated R-squared for estimated IC-80"}
+class(cvfit_ic80) <- "myCV.SuperLearner"
+plot(cvfit_ic80, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8, text_size = 9,
+     method = "method.CC_LS")
+```
+```{r plotiip, fig.cap = "Cross-validated R-squared for estimated IIP"}
+class(cvfit_iip) <- "myCV.SuperLearner"
+plot(cvfit_iip, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8, text_size = 9,
+     method = "method.CC_LS")
+```
+
+```{r plotdichot1, fig.cap = "Cross-validated AUC for predicting sensitivity based on estimated IC-50"}
+class(cvfit_dichotomous.1) <- "myCV.SuperLearner"
+plot(cvfit_dichotomous.1, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9,
+     Rsquared = FALSE)
+```
+```{r plotdichot2, fig.cap = "Cross-validated AUC for predicting sensitivity based on sensitivity to individual NAbs"}
+class(cvfit_dichotomous.2) <- "myCV.SuperLearner"
+plot(cvfit_dichotomous.2, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9,
+     Rsquared = FALSE)
 ```
 
 # Variable importance
