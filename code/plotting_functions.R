@@ -5,22 +5,33 @@ get_cor_pred_outcome <- function(cv_fit){
 }
 
 plot_cv_predictions <- function(cv_fit, outcome_name, log_axis = TRUE,
-                                zoom = FALSE, zoom_lim = c(0,10)){
-  # get super learner predictions
+                                zoom = FALSE, zoom_lim = c(0,10),
+                                resid = FALSE){
+  # get super learner predictions or residuals
   sl_pred <- cv_fit$SL.predict
+  resid <- cv_fit$Y - cv_fit$SL.predict
   cv_folds <- rep(NA, length(sl_pred))
   for(v in seq_along(cv_fit$folds)){
     cv_folds[cv_fit$folds[[v]]] <- v
   }
   cv_fold_palette <- RColorBrewer::brewer.pal(length(cv_fit$folds), "Set3")  
-  d <- data.frame(prediction = sl_pred, outcome = cv_fit$Y)
-  p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) + 
-    geom_point() + theme_bw() +
-    scale_color_manual(values = cv_fold_palette) + 
-    labs(x = "Cross-Validated SL prediction", y = outcome_name, col = "CV fold") +
-    geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5)
-  if(log_axis){
-    p <- p + scale_x_log10() + scale_y_log10()
+  if(!resid){
+    d <- data.frame(prediction = sl_pred, outcome = cv_fit$Y)
+    p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) + 
+      geom_point() + theme_bw() +
+      scale_color_manual(values = cv_fold_palette) + 
+      labs(x = "Cross-Validated SL prediction", y = outcome_name, col = "CV fold") +
+      geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5)
+    if(log_axis){
+      p <- p + scale_x_log10() + scale_y_log10()
+    }
+  }else{
+    d <- data.frame(residual = resid, prediction = sl_pred)
+    p <- ggplot(d, aes(x = prediction, y = residual, color = factor(cv_folds))) + 
+      geom_point() + theme_bw() +
+      scale_color_manual(values = cv_fold_palette) + 
+      labs(x = "Cross-Validated SL prediction", y = "Residual", col = "CV fold") +
+      geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5)
   }
   if(zoom){
     p <- p + xlim(zoom_lim[1], zoom_lim[2]) + ylim(zoom_lim[1], zoom_lim[2])

@@ -10,6 +10,11 @@ knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
 
+library(magrittr)
+library(dplyr)
+library(tidyr)
+library(ROCR)
+
 # attempt to read in environment variables
 reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
 reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
@@ -47,8 +52,8 @@ class(cvfit_ic50) <- class(cvfit_ic80) <- class(cvfit_iip) <- class(cvfit_dichot
 rslt_ic50 <- get_est_and_ci(cvfit_ic50, Rsquared = TRUE)
 rslt_ic80 <- get_est_and_ci(cvfit_ic80, Rsquared = TRUE)
 rslt_iip <- get_est_and_ci(cvfit_iip, Rsquared = TRUE)
-rslt_dichotomous.1 <- get_est_and_ci(cvfit_dichotomous.1)
-rslt_dichotomous.2 <- get_est_and_ci(cvfit_dichotomous.2)
+rslt_dichot1 <- get_est_and_ci(cvfit_dichotomous.1)
+rslt_dichot2 <- get_est_and_ci(cvfit_dichotomous.2)
 
 # get summary measures for executive summary
 sum_ic50 <- summary(cvfit_ic50, Rsquared = TRUE, method = "method.CC_LS")
@@ -63,15 +68,9 @@ sum_dichot2 <- summary(cvfit_dichotomous.2, Rsquared = FALSE, method = "method.A
 
 The NAbs studied in this analysis are `r antibodies`. There were `r n_row_prev` observations extracted from the CATNAP database. There were `r n_row_now` observations with complete sequence data that were used in the analysis. 
 
-The estimate of the cross-validated $R^2$ of the super learner for predicting IC-50 is `r round(rslt_ic50$est, 3)` (95\% CI: `r round(rslt_ic50$ci[1], 3)` , `r round(rslt_ic50$ci[2], 3)`). 
+The estimate of the cross-validated $R^2$ of the super learner for predicting IC-50 is `r round(rslt_ic50$est, 3)` (95\% CI: `r round(rslt_ic50$ci[1], 3)` , `r round(rslt_ic50$ci[2], 3)`); for IC-80 is `r round(rslt_ic80$est, 3)` (95\% CI: `r round(rslt_ic80$ci[1], 3)` , `r round(rslt_ic80$ci[2], 3)`); and IIP is `r round(rslt_iip$est, 3)` (95\% CI: `r round(rslt_iip$ci[1], 3)` , `r round(rslt_iip$ci[2], 3)`). 
 
-The estimate of the cross-validated $R^2$ of the super learner for predicting IC-80 is `r round(rslt_ic80$est, 3)` (95\% CI: `r round(rslt_ic80$ci[1], 3)` , `r round(rslt_ic80$ci[2], 3)`). 
-
-The estimate of the cross-validated $R^2$ of the super learner for predicting IIP is `r round(rslt_iip$est, 3)` (95\% CI: `r round(rslt_iip$ci[1], 3)` , `r round(rslt_iip$ci[2], 3)`). 
-
-The estimate of the cross-validated AUC of the super learner for predicting sensitivity defined by predicted IC-50 of more than 1 is `r round(rslt_dichot1$est, 3)` (95\% CI: `r round(rslt_dichot1$ci[1], 3)` , `r round(rslt_dichot1$ci[2], 3)`). 
-
-The estimate of the cross-validated AUC of the super learner for predicting sensitivity defined by predicted IC-50 of more than 1 is `r round(rslt_dichot2$est, 3)` (95\% CI: `r round(rslt_dichot2$ci[1], 3)` , `r round(rslt_dichot2$ci[2], 3)`). 
+The estimate of the cross-validated AUC of the super learner for predicting sensitivity defined by predicted IC-50 of more than a sensitivity threshold is `r round(rslt_dichot1$est, 3)` (95\% CI: `r round(rslt_dichot1$ci[1], 3)` , `r round(rslt_dichot1$ci[2], 3)`); for predicting sensitivity defined by having each individual IC-50 above a sensitivity threshold is `r round(rslt_dichot2$est, 3)` (95\% CI: `r round(rslt_dichot2$ci[1], 3)` , `r round(rslt_dichot2$ci[2], 3)`). 
 
 <!--
 	Something here about variable importance 
@@ -83,42 +82,46 @@ Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(
 
 ```{r histic50, fig.cap = "Histogram of IC50 values for individual NAbs"}
 if(n_ab > 1){
-	tot_figs <- ifelse(n_ab%%2 == 0, n_ab, n_ab +1)
-	layout(matrix(1:tot_figs, ncol = 2))
+	tot_figs <- n_ab*2
+	layout(matrix(1:tot_figs, ncol = 2, byrow = TRUE))
 }
 for(i in seq_len(n_ab)){
 	this_name <- gsub("-", ".", paste0(antibodies[i], ".ic50.imputed"))
 	hist(dat[ , this_name], main = antibodies[i],
-	     xlab = "IC-50")
+	     xlab = "IC-50")	
+	hist(log10(dat[ , this_name]), main = antibodies[i],
+	     xlab = expression(log[10]*"(IC-50)"))
 }
 ```
 
 ```{r histic80, fig.cap = "Histogram of IC80 values for individual NAbs"}
 if(n_ab > 1){
-	layout(matrix(1:tot_figs, ncol = 2))	
+	layout(matrix(1:tot_figs, ncol = 2, byrow = TRUE))	
 }
 for(i in seq_len(n_ab)){
 	this_name <- gsub("-", ".", paste0(antibodies[i], ".ic80.imputed"))
-	hist(dat[ , this_name], main = antibodies[i],
-	     xlab = "IC-80")
+	hist(log10(dat[ , this_name]), main = antibodies[i],
+	     xlab = expression(log[10]*"(IC-80)"))
 }
 ```
 
 ```{r histcombn, fig.cap = "Histogram of estimated IC50 and IC80 for combined NAbs. Top row = original scale; bottom row = log10 scale"}
 layout(matrix(1:4, nrow = 2, byrow = TRUE))
 hist(dat$pc.ic50, main = "", xlab = "Estimated IC-50")
-hist(dat$pc.ic80, main = "", xlab = "Estimated IC-80")
 hist(dat$log10.pc.ic50, main = "", xlab = expression(log[10]*" estimated IC-50"))
+hist(dat$pc.ic80, main = "", xlab = "Estimated IC-80")
 hist(dat$log10.pc.ic80, main = "", xlab = expression(log[10]*" estimated IC-50"))
 ```
 
 ```{r histiip, fig.cap = "Estimated IIP for combined NAbs"}
+layout(matrix(1:2,nrow = 1))
 hist(dat$iip, main = "", xlab = "Estimated IIP")
+hist(dat$iip, main = "", xlab = expression(log[10]*"(IIP)"))
 ```
 
 # Super learner prediction results
 
-A super learner was fit to each outcome. For continuous outcomes, super learner weights were chosen to optimize 10-fold cross-validated MSE; for binary outcomes, weights were chosen to optimize 10-fold negative log-likelihood loss. The algorithms used in the super learner are shown in Table \@ref(fig:super_learner_library_table). 
+A super learner was fit to each outcome. For continuous outcomes, super learner weights were chosen to optimize estimated 10-fold cross-validated MSE; for binary outcomes, weights were chosen to optimize a 10-fold negative log-likelihood risk estimate. The algorithms used in the super learner are shown in Table \@ref(fig:super_learner_library_table). 
 
 ```{r super_learner_library_table, fig.cap = "Super learner library"}
 source("/home/lib/super_learner_libraries.R")

@@ -18,7 +18,7 @@ ENV reduce_groups=FALSE
 # install R from command line
 RUN apt-get install -y r-base
 
-# put vim on for now, for ease of editing docs inside container
+# put vim on for ease of editing docs inside container
 RUN apt-get install -y vim 
 
 # install pandoc (for Rmarkdown conversions)
@@ -61,26 +61,22 @@ RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/
 RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
 # copy R scripts to do data pull and make executable
-COPY R/multi_ab_v2.Rlib /home/lib/multi_ab_v2.Rlib
-COPY R/merge_proc_v2.R /home/lib/merge_proc_v2.R
-COPY R/variable_groups.R /home/lib/variable_groups.R
-COPY R/run_super_learners.R /home/lib/run_super_learners.R
-COPY R/get_vimp.R /home/lib/get_vimp.R
-COPY R/super_learner_libraries.R /home/lib/super_learner_libraries.R
-COPY R/plotting_functions.R /home/lib/plotting_functions.R
+COPY code/multi_ab_v2.Rlib /home/lib/multi_ab_v2.Rlib
+COPY code/merge_proc_v2.R /home/lib/merge_proc_v2.R
+COPY code/variable_groups.R /home/lib/variable_groups.R
+COPY code/run_super_learners.R /home/lib/run_super_learners.R
+COPY code/get_vimp.R /home/lib/get_vimp.R
+COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R
+COPY code/plotting_functions.R /home/lib/plotting_functions.R
 
 RUN chmod +x /home/lib/merge_proc_v2.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 
 
 # copy report Rmd 
-COPY R/report.Rmd /home/lib/report.Rmd
-COPY sh/run_analysis.sh /home/lib/run_analysis.sh
-COPY R/render_report.R /home/lib/render_report.R
+COPY code/report.Rmd /home/lib/report.Rmd
+COPY code/run_analysis.sh /home/lib/run_analysis.sh
+COPY code/render_report.R /home/lib/render_report.R
 RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R
 
 # entry point to container runs run_analysis.sh
 CMD /home/lib/run_analysis.sh
-
-
-
-
