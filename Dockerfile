@@ -40,8 +40,8 @@ RUN Rscript -e 'install.packages("ggplot2", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("glmnet", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ranger", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("xgboost", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("RColorBrewer", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_1.3.0.tar.gz", type = "source", repos = NULL))'
+RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 
 # make directories
 # lib contains R source files

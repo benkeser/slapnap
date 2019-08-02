@@ -11,9 +11,12 @@ knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
 
 library(magrittr)
+library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(ROCR)
+library(knitr)
+library(gridExtra)
 
 # attempt to read in environment variables
 reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
@@ -28,12 +31,12 @@ source("/home/lib/plotting_functions.R")
 antibody_string <- Sys.getenv("Nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 n_ab <- length(antibodies)
+
 # load data
 analysis_data_name <- list.files("/home/dat/analysis")
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
-```
 
-```{r checkmiss}
+# check missing values
 n_row_prev <- nrow(dat)
 dat <- dat[complete.cases(dat),]
 n_row_now <- nrow(dat)
@@ -41,36 +44,51 @@ n_row_now <- nrow(dat)
 
 ```{r load_cvfit_objects}
 cvfit_ic50 <- readRDS("/home/slfits/cvfit_pc.ic50.rds")
+class(cvfit_ic50) <- "myCV.SuperLearner"
 if(!reduce_outcomes){
 	cvfit_ic80 <- readRDS("/home/slfits/cvfit_pc.ic80.rds")
 	cvfit_iip <- readRDS("/home/slfits/cvfit_iip.rds")
 	cvfit_dichotomous.1 <- readRDS("/home/slfits/cvfit_dichotomous.1.rds")
 	cvfit_dichotomous.2 <- readRDS("/home/slfits/cvfit_dichotomous.2.rds")
+	class(cvfit_ic80) <- class(cvfit_iip) <- class(cvfit_dichotomous.1) <- 
+		class(cvfit_dichotomous.2) <- "myCV.SuperLearner"
 }
-class(cvfit_ic50) <- class(cvfit_ic80) <- class(cvfit_iip) <- class(cvfit_dichotomous.1) <- 
-	class(cvfit_dichotomous.2) <- "myCV.SuperLearner"
+
 rslt_ic50 <- get_est_and_ci(cvfit_ic50, Rsquared = TRUE)
 rslt_ic80 <- get_est_and_ci(cvfit_ic80, Rsquared = TRUE)
 rslt_iip <- get_est_and_ci(cvfit_iip, Rsquared = TRUE)
 rslt_dichot1 <- get_est_and_ci(cvfit_dichotomous.1)
 rslt_dichot2 <- get_est_and_ci(cvfit_dichotomous.2)
 
-# get summary measures for executive summary
-sum_ic50 <- summary(cvfit_ic50, Rsquared = TRUE, method = "method.CC_LS")
-sum_ic80 <- summary(cvfit_ic80, Rsquared = TRUE, method = "method.CC_LS")
-sum_iip <- summary(cvfit_iip, Rsquared = TRUE, method = "method.CC_LS")
-sum_dichot1 <- summary(cvfit_dichotomous.1, Rsquared = FALSE, method = "method.AUC")
-sum_dichot2 <- summary(cvfit_dichotomous.2, Rsquared = FALSE, method = "method.AUC")
-
+# # get summary measures for executive summary
+# sum_ic50 <- summary(cvfit_ic50, Rsquared = TRUE, method = "method.CC_LS")
+# sum_ic80 <- summary(cvfit_ic80, Rsquared = TRUE, method = "method.CC_LS")
+# sum_iip <- summary(cvfit_iip, Rsquared = TRUE, method = "method.CC_LS")
+# sum_dichot1 <- summary(cvfit_dichotomous.1, Rsquared = FALSE, method = "method.AUC")
+# sum_dichot2 <- summary(cvfit_dichotomous.2, Rsquared = FALSE, method = "method.AUC")
 ```
 
 # Executive summary
 
 The NAbs studied in this analysis are `r antibodies`. There were `r n_row_prev` observations extracted from the CATNAP database. There were `r n_row_now` observations with complete sequence data that were used in the analysis. 
 
-The estimate of the cross-validated $R^2$ of the super learner for predicting IC-50 is `r round(rslt_ic50$est, 3)` (95\% CI: `r round(rslt_ic50$ci[1], 3)` , `r round(rslt_ic50$ci[2], 3)`); for IC-80 is `r round(rslt_ic80$est, 3)` (95\% CI: `r round(rslt_ic80$ci[1], 3)` , `r round(rslt_ic80$ci[2], 3)`); and IIP is `r round(rslt_iip$est, 3)` (95\% CI: `r round(rslt_iip$ci[1], 3)` , `r round(rslt_iip$ci[2], 3)`). 
+```{r rsquaredtable}
+rsqtab <- rbind(unlist(rslt_ic50), unlist(rslt_ic80), unlist(rslt_iip))
+row.names(rsqtab) <- c("IC-50","IC-80","IIP")
+kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
+      digits = 3, row.names = TRUE,
+      caption = "Estimates of cross-validated R-squared for super learner predictions of the three continuous-valued outcomes")
+```
 
-The estimate of the cross-validated AUC of the super learner for predicting sensitivity defined by predicted IC-50 of more than a sensitivity threshold is `r round(rslt_dichot1$est, 3)` (95\% CI: `r round(rslt_dichot1$ci[1], 3)` , `r round(rslt_dichot1$ci[2], 3)`); for predicting sensitivity defined by having each individual IC-50 above a sensitivity threshold is `r round(rslt_dichot2$est, 3)` (95\% CI: `r round(rslt_dichot2$ci[1], 3)` , `r round(rslt_dichot2$ci[2], 3)`). 
+```{r auctable}
+auctab <- rbind(unlist(rslt_dichot1), unlist(rslt_dichot2))
+row.names(auctab) <- c("Estimated sensitivity", "Multiple sensitivity")
+kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
+      digits = 3, row.names = TRUE, 
+      caption = "Estimates of cross-validated AUC for super learner predictions of the two dichotomous outcomes")
+```
+
+The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \@ref(rsquaredtable). The estimated cross-validated $R^2$ of the super learner for predicting binary sensitivity measures are shown in Table \@ref(auctable).
 
 <!--
 	Something here about variable importance 
@@ -80,44 +98,129 @@ The estimate of the cross-validated AUC of the super learner for predicting sens
 
 Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(fig:histic50) and Figure \@ref(fig:histic80), respectively. Histograms for the predicted IC-50 an IC-80 based on the additive model are shown in Figure \@ref(fig:histcombn), while a histogram of the predicted IIP is shown in Figure \@ref(fig:histiip).
 
-```{r histic50, fig.cap = "Histogram of IC50 values for individual NAbs"}
-if(n_ab > 1){
-	tot_figs <- n_ab*2
-	layout(matrix(1:tot_figs, ncol = 2, byrow = TRUE))
-}
+```{r histic50, fig.cap = "Histogram of IC50 values for individual NAbs", fig.height=5}
+ic50_hist <- list()
+ic50_tab <- list()
+ct <- 0
 for(i in seq_len(n_ab)){
+	ct <- ct + 1
 	this_name <- gsub("-", ".", paste0(antibodies[i], ".ic50.imputed"))
-	hist(dat[ , this_name], main = antibodies[i],
-	     xlab = "IC-50")	
-	hist(log10(dat[ , this_name]), main = antibodies[i],
-	     xlab = expression(log[10]*"(IC-50)"))
+	ic50_hist[[ct]] <- make_hist_plot(dat, var_name = this_name, 
+	                                  x_lab = paste0("IC-50 ", antibodies[i]),
+	                                  y_lab = "Density")
+	ic50_tab[[ct]] <- summary(dat[, this_name])[1:6] # to ignore NA columns
+	ct <- ct+1
+ 	dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
+ 	ic50_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name),
+ 	                                  x_lab = bquote(log[10]~"(IC-50 "~.(antibodies[i])~")"),
+ 	                                  y_lab = "") 	
+ 	ic50_tab[[ct]] <- summary(dat[, paste0("log10_",this_name)])[1:6]
 }
+do.call(grid.arrange, ic50_hist)
+```
+
+```{r tableic50, fig.cap = "Summary statistics of IC-50 values for individual NAbs"}
+ic50_table <- Reduce(rbind, ic50_tab)
+row.names(ic50_table) <- c(paste0("IC-50 ", antibodies), 
+                           paste0("log(IC-50 ", antibodies,")"))[c(seq(1,n_ab*2,by=2),seq(2, n_ab*2, by = 2))]
+kable(ic50_table, row.names = TRUE, digits = 3)
 ```
 
 ```{r histic80, fig.cap = "Histogram of IC80 values for individual NAbs"}
-if(n_ab > 1){
-	layout(matrix(1:tot_figs, ncol = 2, byrow = TRUE))	
-}
+ic80_hist <- list()
+ic80_tab <- list()
+ct <- 0
 for(i in seq_len(n_ab)){
+	ct <- ct + 1
 	this_name <- gsub("-", ".", paste0(antibodies[i], ".ic80.imputed"))
-	hist(log10(dat[ , this_name]), main = antibodies[i],
-	     xlab = expression(log[10]*"(IC-80)"))
+	ic80_hist[[ct]] <- make_hist_plot(dat, var_name = this_name, 
+	                                  x_lab = paste0("IC-80 ", antibodies[i]),
+	                                  y_lab = "Density")
+	ic80_tab[[ct]] <- summary(dat[, this_name])[1:6] # to ignore NA columns
+	ct <- ct+1
+ 	dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
+ 	ic80_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), 
+	                                  x_lab = bquote(log[10]~"(IC-80 "~.(antibodies[i])~")"),
+	                                  y_lab = "")
+ 	ic80_tab[[ct]] <- summary(dat[, paste0("log10_",this_name)])[1:6]
 }
+do.call(grid.arrange, ic80_hist)
 ```
 
+```{r tableic80, fig.cap = "Summary statistics of IC-80 values for individual NAbs"}
+ic80_table <- Reduce(rbind, ic80_tab)
+row.names(ic80_table) <- c(paste0("IC-80 ", antibodies), 
+                           paste0("log(IC-80 ", antibodies,")"))[c(seq(1,n_ab*2,by=2),seq(2, n_ab*2, by = 2))]
+kable(ic80_table, row.names = TRUE, digits = 3)
+```
+
+
 ```{r histcombn, fig.cap = "Histogram of estimated IC50 and IC80 for combined NAbs. Top row = original scale; bottom row = log10 scale"}
-layout(matrix(1:4, nrow = 2, byrow = TRUE))
-hist(dat$pc.ic50, main = "", xlab = "Estimated IC-50")
-hist(dat$log10.pc.ic50, main = "", xlab = expression(log[10]*" estimated IC-50"))
-hist(dat$pc.ic80, main = "", xlab = "Estimated IC-80")
-hist(dat$log10.pc.ic80, main = "", xlab = expression(log[10]*" estimated IC-50"))
+combn_hist <- list()
+combn_hist[[1]] <- make_hist_plot(dat, "pc.ic50", "Estimated IC-50", "Density")
+combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic50", bquote(log[10]~"(estimated IC-50)"), "")
+combn_hist[[3]] <- make_hist_plot(dat, "pc.ic80", "Estimated IC-80", "Density")
+combn_hist[[4]] <- make_hist_plot(dat, "log10.pc.ic80", bquote(log[10]~"(estimated IC-80)"), "")
+do.call(grid.arrange, combn_hist)
 ```
 
 ```{r histiip, fig.cap = "Estimated IIP for combined NAbs"}
-layout(matrix(1:2,nrow = 1))
-hist(dat$iip, main = "", xlab = "Estimated IIP")
-hist(dat$iip, main = "", xlab = expression(log[10]*"(IIP)"))
+iip_hist <- list()
+iip_hist[[1]] <- make_hist_plot(dat, "iip", "Estimated IIP", "Density")
+# dat$log10.iip <- log10(dat$iip)
+# iip_hist[[2]] <- make_hist_plot(dat, "log10.iip", bquote(log[10]~"(estimated IIP)"), "")
+do.call(grid.arrange, iip_hist)
 ```
+
+```{r combn_table}
+# make a table of ic50 80 and iip for combined NAbs
+combn_table <- rbind(
+  summary(dat$pc.ic50)[1:6],
+  summary(dat$log10.pc.ic50)[1:6],
+  summary(dat$pc.ic80)[1:6],
+  summary(dat$log10.pc.ic80)[1:6],
+  summary(dat$iip)[1:6]
+)
+row.names(combn_table) <- c(
+  "Estimated IC-50", "log(estimated IC-50)", "Estimated IC-80", "log(estimated IC-80)", "IIP"
+)
+kable(combn_table, row.names = TRUE, digits = 3)
+```
+
+```{r dichot_outcomes_fig, fig.cap = "Distribution of binary sensitivity outcomes. Estimated indicates whether the estimated IC-50 falls above a sensitivity threshold. Multiple indicates whether at least two individual NAbs fall above a sensitivity threshold."}
+n <- n_row_now
+# make a stacked data set for easy use of geom_bar
+dichot_dat <- data.frame(
+  Outcome_type = c("Estimated", "Estimated", "Multiple", "Multiple"),
+  Outcome = rep(c("Resistant", "Sensitive"), 2),
+  value = 100*c(mean(dat$dichotomous.1), 1 - mean(dat$dichotomous.1),
+            mean(dat$dichotomous.2), 1 - mean(dat$dichotomous.2))
+)
+trans_fill <- c(
+  rgb(30, 21, 42, alpha = 255/2, maxColorValue = 255),
+  rgb(78, 103, 102, alpha = 255/2, maxColorValue = 255),
+  rgb(90,177,187, alpha = 255/2, maxColorValue = 255),
+  rgb(165, 200, 130, alpha = 255/2, maxColorValue = 255),
+  rgb(247, 221, 114, alpha = 255/2, maxColorValue = 255)
+)
+
+fill <- c(
+  rgb(30, 21, 42, maxColorValue = 255),
+  rgb(78, 103, 102, maxColorValue = 255),
+  rgb(90,177,187, maxColorValue = 255),
+  rgb(165, 200, 130, maxColorValue = 255),
+  rgb(247, 221, 114, maxColorValue = 255)
+)
+
+ggplot(dichot_dat, aes(y = value, x = factor(Outcome_type), fill = factor(Outcome))) + 
+	geom_bar(position = "fill", stat = "identity") + 
+	scale_fill_manual(values = fill[c(2,4)]) + 
+	theme_bw() + 
+	xlab("Sensitivity Measure") + 
+	geom_text(data = dichot_dat, aes(y = value, label = paste0(round(value, 2), "%"), stat = "identity"), 
+	          position = position_fill(vjust = 0.5)) 
+```
+
 
 # Super learner prediction results
 
@@ -181,7 +284,7 @@ plot_cv_predictions(cvfit_ic50, outcome_name = "IC-50", log_axis = FALSE)
 The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IC-80 in Figure \@ref(fig:plotic80).
 
 ```{r plotic80, fig.cap = "Cross-validated R-squared for estimated IC-80"}
-plot(cvfit_ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8, text_size = 9,
+plot(cvfit_ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 1, text_size = 9,
      method = "method.CC_LS")
 # and get correlations
 cor_ic80 <- get_cor_pred_outcome(cvfit_ic80)
@@ -198,7 +301,7 @@ plot_cv_predictions(cvfit_ic80, outcome_name = "IC-80", log_axis = FALSE)
 The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IIP in Figure \@ref(fig:plotiip).
 
 ```{r plotiip, fig.cap = "Cross-validated R-squared for estimated IIP"}
-plot(cvfit_iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 0.8, text_size = 9,
+plot(cvfit_iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 1, text_size = 9,
      method = "method.CC_LS")
 # and get correlations
 cor_iip <- get_cor_pred_outcome(cvfit_iip)
@@ -221,6 +324,10 @@ plot(cvfit_dichotomous.1, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9
 
 ```{r rocdichot1, fig.cap = "Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting sensitivity based on estimated IC-50"}
 plot_roc_curves(cvfit_dichotomous.1)
+```
+
+```{r predprob1, fig.cap = "Predicted probabilities for resistant and sensitive viruses for the super learner, discrete super learner, and single best performing algorithm."}
+plot_predicted_prob_boxplots(cvfit_dichotomous.1, cols = trans_fill[c(2,4)])
 ```
 
 ## Dichotomous sensitivity 2

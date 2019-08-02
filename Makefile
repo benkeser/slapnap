@@ -8,7 +8,10 @@ longrun:
 	docker run -e "Nab=VRC07-523-LS;PGT121" slapnap/slapnap	
 
 build:
-	docker build -t slapnap . 
+	docker build -t slapnap/slapnap:latest . 
 
-buildfast:
-	Rscript -e "devtools::build(vignettes = FALSE)"
+debugrun:
+	docker run -e "Nab=VRC07-523-LS;PGT121" -e reduce_covs=TRUE -e reduce_library=TRUE -it \
+		-v ~/Dropbox/Emory/AMP/slapnap/code:/home/lib \
+		-v ~/Dropbox/Emory/AMP/slapnap/slfits:/home/slfits \
+		slapnap/slapnap:latest bash

@@ -1,3 +1,13 @@
+
+
+make_hist_plot <- function(dat, var_name, x_lab, y_lab){
+  ggplot(dat, aes_string(x = var_name)) + 
+            geom_histogram(aes(y=..density..), colour="black", fill="white")+
+            geom_density(alpha=.2, fill="#FF6666") +
+            theme_bw() + xlab(x_lab) +
+            ylab(y_lab)
+}
+
 get_cor_pred_outcome <- function(cv_fit){
   c1 <- cor(cv_fit$SL.predict, cv_fit$Y)
   c2 <- cor(cv_fit$SL.predict, cv_fit$Y, method = "spearman")
@@ -6,16 +16,16 @@ get_cor_pred_outcome <- function(cv_fit){
 
 plot_cv_predictions <- function(cv_fit, outcome_name, log_axis = TRUE,
                                 zoom = FALSE, zoom_lim = c(0,10),
-                                resid = FALSE){
+                                resid_scale = FALSE){
   # get super learner predictions or residuals
   sl_pred <- cv_fit$SL.predict
-  resid <- cv_fit$Y - cv_fit$SL.predict
+  resids <- cv_fit$Y - cv_fit$SL.predict
   cv_folds <- rep(NA, length(sl_pred))
   for(v in seq_along(cv_fit$folds)){
     cv_folds[cv_fit$folds[[v]]] <- v
   }
   cv_fold_palette <- RColorBrewer::brewer.pal(length(cv_fit$folds), "Set3")  
-  if(!resid){
+  if(!resid_scale){
     d <- data.frame(prediction = sl_pred, outcome = cv_fit$Y)
     p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) + 
       geom_point() + theme_bw() +
@@ -26,7 +36,7 @@ plot_cv_predictions <- function(cv_fit, outcome_name, log_axis = TRUE,
       p <- p + scale_x_log10() + scale_y_log10()
     }
   }else{
-    d <- data.frame(residual = resid, prediction = sl_pred)
+    d <- data.frame(residual = resids, prediction = sl_pred)
     p <- ggplot(d, aes(x = prediction, y = residual, color = factor(cv_folds))) + 
       geom_point() + theme_bw() +
       scale_color_manual(values = cv_fold_palette) + 
@@ -57,10 +67,14 @@ get_est_and_ci <- function(cv_fit, Rsquared = FALSE, constant = qnorm(0.975)){
   return(list(est = Mean[1], ci = c(Lower[1], Upper[1])))
 }
 
-plot_roc_curves <- function(cv_fit, topRank = 1){
+plot_roc_curves <- function(cv_fit, topRank = 1, 
+                            cols = c(rgb(78, 103, 102, alpha = 255/2, maxColorValue = 255),
+                                     rgb(90,177,187, alpha = 255/2, maxColorValue = 255),
+                                     rgb(165, 200, 130, alpha = 255/2, maxColorValue = 255))) {
   class(cv_fit) <- "myCV.SuperLearner"
-  sortedAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm)) %>%
-    arrange(-Ave)
+  allAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm)) 
+  allCandidates <- allAlgos[-(1:2), ] %>% arrange(-Ave)
+  sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
 
   predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
     bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
@@ -81,8 +95,36 @@ plot_roc_curves <- function(cv_fit, topRank = 1){
     ggplot(aes(x=xval, y=yval, col=algo)) +
     geom_step(lwd=2) +
     theme(legend.position = "top") +
-    scale_color_manual(values=rgb(c(0,1,0), c(1,0,0), c(0,0,1), 0.5)) + 
+    scale_color_manual(values = cols) + 
     labs(x = "Cross-Validated False Positive Rate", y = "Cross-Validated True Positive Rate", col = "Algorithm") 
+}
+
+plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, cols){
+  class(cv_fit) <- "myCV.SuperLearner"
+  allAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm)) 
+  allCandidates <- allAlgos[-(1:2), ] %>% arrange(-Ave)
+  sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
+
+  predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
+    bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
+    bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Super Learner"))) %>%
+    bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y"))) %>%
+    gather("algo", "pred", -Y) %>%
+    filter(algo %in% sortedAlgos$Algorithm[1:(2+topRank)])
+
+  predict %>%
+  mutate(Sensitivity = if_else(Y==1, "Resistant", "Sensitive")) %>%
+  filter(!is.na(Sensitivity)) %>%
+  ggplot(aes(x = Sensitivity, y = pred)) + 
+  facet_grid(. ~ algo) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) + 
+  ylab(paste0("Predicted Probability of Resistance")) + xlab("") + 
+  scale_colour_manual(values = cols) + 
+  theme_bw() + coord_cartesian(ylim=c(0,1)) +
+  theme(legend.position = "", strip.text.x = element_text(size = 10), 
+        text = element_text(size=12), axis.title = element_text(size=10))
+
 }
 
 summary.myCV.SuperLearner <- function (object, obsWeights = NULL, 
@@ -252,14 +294,14 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
         SuperLearner:::.SL.require("ggplot2")
         p <- ggplot2::ggplot(d, ggplot2::aes_string(x = "X", 
             y = "Y", ymin = "Lower", ymax = "Upper")) +
-            geom_hline(yintercept = 0, linetype="dashed", color = "red") +
+            ggplot2::theme_bw() + 
             ggplot2::geom_pointrange(size = 0.5) + 
             ggplot2::coord_flip() + ggplot2::ylab(this_y_lab) + 
             ggplot2::xlab("Method") + 
             ggplot2::ggtitle(main_title) + 
             scale_y_continuous(limits=c(xlim1, xlim2), oob = scales::squish) +
-            ggplot2::theme(axis.text = element_text(size = text_size))
-    }
+            ggplot2::theme(axis.text = element_text(size = text_size))   
+          }
     return(p)
 }
 
