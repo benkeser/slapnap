@@ -70,7 +70,7 @@ COPY code/get_vimp.R /home/lib/get_vimp.R
 COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R
 COPY code/plotting_functions.R /home/lib/plotting_functions.R
 
-RUN chmod +x /home/lib/merge_proc_v2.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
+RUN chmod +x /home/lib/merge_proc_v3.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 
 # add option to avoid cv super learner fitting (for debugging)
 ENV no_cv=FALSE
