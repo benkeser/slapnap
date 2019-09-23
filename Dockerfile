@@ -2,7 +2,7 @@
 FROM ubuntu:latest
 
 # update libraries
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https
 
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,7 +19,7 @@ ENV reduce_groups=FALSE
 RUN apt-get install -y r-base
 
 # put vim on for ease of editing docs inside container
-RUN apt-get install -y vim 
+RUN apt-get install -y vim
 
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc
@@ -45,7 +45,7 @@ RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 
 # make directories
 # lib contains R source files
-# dat contains data 
+# dat contains data
 # dat/catnap contains original catnap data
 # dat/analysis contains analysis data
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
@@ -72,7 +72,7 @@ COPY code/plotting_functions.R /home/lib/plotting_functions.R
 RUN chmod +x /home/lib/merge_proc_v2.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 
 
-# copy report Rmd 
+# copy report Rmd
 COPY code/report.Rmd /home/lib/report.Rmd
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
