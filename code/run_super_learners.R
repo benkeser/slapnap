@@ -13,6 +13,9 @@ reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
 reduce_library <- Sys.getenv("reduce_library") == "TRUE"
 reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
 
+# ~~~!~~~! add option to not do cross-val sl fitting !~~~!~~~ #
+reduce_groups <- Sys.getenv("no_cv") == "TRUE"
+
 # load data
 analysis_data_name <- list.files("/home/dat/analysis")
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
@@ -45,6 +48,7 @@ set.seed(123125)
 #' @param cv_fit_name name of CV fits (defaults to cvfit_<outcome_name>.rds)
 #' @param reduce_covs Flag to reduce the number of covariates under consideration
 #' @param save_full_object Flag for whether or not to save the full fitted object, or just the fitted values
+#' @param run_cv Whether or not to run the cv super learner
 sl_one_outcome <- function(outcome_name, 
                            pred_names,                           
                            save_dir = "/home/slfits/",
@@ -52,6 +56,7 @@ sl_one_outcome <- function(outcome_name,
                            cv_fit_name = paste0("cvfit_", outcome_name, ".rds"),
                            reduce_covs = FALSE,
                            save_full_object = TRUE,
+                           run_cv = TRUE, 
                            ...){
         pred <- dat[ , pred_names]
 
@@ -68,12 +73,14 @@ sl_one_outcome <- function(outcome_name,
         # save super learner weights
         saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
 
-        cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
-        if (save_full_object) {
-            saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
-        } 
-        saveRDS(cv_fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
-        saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
+        if(run_cv){
+          cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+          if (save_full_object) {
+              saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+          }
+          saveRDS(cv_fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
+          saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
+        }
         return(invisible(NULL))
 }
 
@@ -84,7 +91,9 @@ sl_ic50 <- sl_one_outcome(outcome_name = "pc.ic50",
                           SL.library = SL.library, 
                           cvControl = list(V = 10),
                           method = "tmp_method.CC_LS",
-                          reduce_covs = reduce_covs)
+                          reduce_covs = reduce_covs,
+                          run_cv = !no_cv)
+
 ## run super learners on pre-defined groups
 all_var_groups <- get_variable_groups(dat, pred_names)
 if (reduce_groups) {

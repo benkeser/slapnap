@@ -6,7 +6,7 @@
 
 # run script to build analytic data set
 printf "Building analytic data set from CATNAP database \n"
-/home/lib/merge_proc_v2.R
+/home/lib/merge_proc_v3.R
 
 # run script to fit super learners
 printf "Fitting super learners \n"

@@ -18,16 +18,43 @@ descr_SL.xgboost6 <- paste0(descr_SL.xgboost, 6)
 descr_SL.xgboost8 <- paste0(descr_SL.xgboost, 8)
 
 # random forests
+SL.ranger.imp <- function (Y, X, newX, family, obsWeights, num.trees = 500, mtry = floor(sqrt(ncol(X))), 
+    write.forest = TRUE, probability = family$family == "binomial", 
+    min.node.size = ifelse(family$family == "gaussian", 5, 1), 
+    replace = TRUE, sample.fraction = ifelse(replace, 1, 0.632), 
+    num.threads = 1, verbose = TRUE, ...) {
+    SuperLearner:::.SL.require("ranger")
+    if (family$family == "binomial") {
+        Y = as.factor(Y)
+    }
+    if (is.matrix(X)) {
+        X = data.frame(X)
+    }
+    fit <- ranger::ranger(`_Y` ~ ., data = cbind(`_Y` = Y, X), 
+        num.trees = num.trees, mtry = mtry, min.node.size = min.node.size, 
+        replace = replace, sample.fraction = sample.fraction, 
+        case.weights = obsWeights, write.forest = write.forest, 
+        probability = probability, num.threads = num.threads, 
+        verbose = verbose, importance = "impurity")
+    pred <- predict(fit, data = newX)$predictions
+    if (family$family == "binomial") {
+        pred = pred[, "1"]
+    }
+    fit <- list(object = fit, verbose = verbose)
+    class(fit) <- c("SL.ranger")
+    out <- list(pred = pred, fit = fit)
+    return(out)
+}
 SL.ranger.reg <- function(..., X, mtry = floor(sqrt(ncol(X)))){
-	SL.ranger(..., mtry = mtry)
+	SL.ranger.imp(..., mtry = mtry)
 }
 
 SL.ranger.small <- function(..., X, mtry = floor(sqrt(ncol(X)) * 1/2)){
-	SL.ranger(..., mtry = mtry)
+	SL.ranger.imp(..., mtry = mtry)
 }
 
 SL.ranger.large <- function(..., X, mtry = floor(sqrt(ncol(X)) * 2)){
-	SL.ranger(..., mtry = mtry)
+	SL.ranger.imp(..., mtry = mtry)
 }
 descr_SL.ranger <- "random forest with mtry equal to "
 descr_SL.ranger.reg <- paste0(descr_SL.ranger, "square root of number of predictors")
