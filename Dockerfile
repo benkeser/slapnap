@@ -18,15 +18,18 @@ ENV reduce_groups=FALSE
 # make sure we have wget
 RUN apt-get install -y wget
 
-# install R from command line
+# install R from command line; get >= R-3.5
+RUN add-apt-repository ppa:marutter/rrutter3.5
 RUN apt-get install -y r-base && apt-get install -y r-base-dev && apt-get build-dep -y r-base
 
 # upgrade to R-3.5.0 if we aren't already at it
 RUN R --version > r_version.txt
-RUN $'if grep "version 3.4"; then \n\
-        wget -O /home/lib/ "https://cran.rstudio.com/src/base/R-3/R-3.5.0.tar.gz" \n\
+RUN $'if grep -q "version 3.4" r_version.txt; then \n\
+        wget -O /home/lib/R-3.5.0.tar.gz "https://cran.rstudio.com/src/base/R-3/R-3.5.0.tar.gz" \n\
+    else \n\
+        echo 'R already >= 3.5.0' \n\
     fi \n\
-    tar -xzvf /home/lib/R-3.5.0.tar.gz \n\
+    tar -xf /home/lib/R-3.5.0.tar.gz -C /home/lib/ \n\
     /home/lib/R-3.5.0/configure --prefix=/opt/R/3.5.0 --enable-R-shlib \n\
     make \n\
     make install'
