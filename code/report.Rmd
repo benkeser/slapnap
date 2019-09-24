@@ -18,7 +18,6 @@ library(ROCR)
 library(knitr)
 library(gridExtra)
 library(vimp)
-# library(cowplot)
 
 # attempt to read in environment variables
 reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
@@ -46,23 +45,38 @@ n_row_now <- nrow(dat)
 ```
 
 ```{r load_cvfit_objects}
-cvfit_ic50 <- readRDS("/home/slfits/cvfit_pc.ic50.rds")
-class(cvfit_ic50) <- "myCV.SuperLearner"
-if(!reduce_outcomes){
-	cvfit_ic80 <- readRDS("/home/slfits/cvfit_pc.ic80.rds")
-	cvfit_iip <- readRDS("/home/slfits/cvfit_iip.rds")
-	cvfit_dichotomous.1 <- readRDS("/home/slfits/cvfit_dichotomous.1.rds")
-	cvfit_dichotomous.2 <- readRDS("/home/slfits/cvfit_dichotomous.2.rds")
-	class(cvfit_ic80) <- class(cvfit_iip) <- class(cvfit_dichotomous.1) <-
-		class(cvfit_dichotomous.2) <- "myCV.SuperLearner"
+if (!no_cv) {
+    cvfit_ic50 <- readRDS("/home/slfits/cvfit_pc.ic50.rds")
+    class(cvfit_ic50) <- "myCV.SuperLearner"
+    if(!reduce_outcomes){
+    	cvfit_ic80 <- readRDS("/home/slfits/cvfit_pc.ic80.rds")
+    	cvfit_iip <- readRDS("/home/slfits/cvfit_iip.rds")
+    	cvfit_dichotomous.1 <- readRDS("/home/slfits/cvfit_dichotomous.1.rds")
+    	cvfit_dichotomous.2 <- readRDS("/home/slfits/cvfit_dichotomous.2.rds")
+    	class(cvfit_ic80) <- class(cvfit_iip) <- class(cvfit_dichotomous.1) <-
+    		class(cvfit_dichotomous.2) <- "myCV.SuperLearner"
+    }
+} else {
+    cvfit_ic50 <- readRDS("/home/slfits/fit_pc.ic50.rds")
+    class(cvfit_ic50) <- "myCV.SuperLearner"
+    if (!reduce_outcomes) {
+        cvfit_ic80 <- readRDS("/home/slfits/fit_pc.ic80.rds")
+    	cvfit_iip <- readRDS("/home/slfits/fit_iip.rds")
+    	cvfit_dichotomous.1 <- readRDS("/home/slfits/fit_dichotomous.1.rds")
+    	cvfit_dichotomous.2 <- readRDS("/home/slfits/fit_dichotomous.2.rds")
+        class(cvfit_ic80) <- class(cvfit_iip) <- class(cvfit_dichotomous.1) <-
+    		class(cvfit_dichotomous.2) <- "myCV.SuperLearner"
+    }
 }
-
 rslt_ic50 <- get_est_and_ci(cvfit_ic50, Rsquared = TRUE)
-rslt_ic80 <- get_est_and_ci(cvfit_ic80, Rsquared = TRUE)
-rslt_iip <- get_est_and_ci(cvfit_iip, Rsquared = TRUE)
-rslt_dichot1 <- get_est_and_ci(cvfit_dichotomous.1)
-rslt_dichot2 <- get_est_and_ci(cvfit_dichotomous.2)
-
+if (!reduce_outcomes) {
+    rslt_ic80 <- get_est_and_ci(cvfit_ic80, Rsquared = TRUE)
+    rslt_iip <- get_est_and_ci(cvfit_iip, Rsquared = TRUE)
+    rslt_dichot1 <- get_est_and_ci(cvfit_dichotomous.1)
+    rslt_dichot2 <- get_est_and_ci(cvfit_dichotomous.2)
+} else {
+    rslt_ic80 <- rslt_iip <- rslt_dichot1 <- rslt_dichot2 <- NA
+}
 # # get summary measures for executive summary
 # sum_ic50 <- summary(cvfit_ic50, Rsquared = TRUE, method = "method.CC_LS")
 # sum_ic80 <- summary(cvfit_ic80, Rsquared = TRUE, method = "method.CC_LS")

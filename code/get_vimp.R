@@ -81,23 +81,24 @@ for (i in 1:length(continuous_outcome_vimp)) {
                                         scale = 'identity')")))
     }
     eval(parse(text = paste0("continuous_outcome_vimp[[i]] <- merge_vim(", paste(paste0(continuous_nms_grid$outcome[i], "_", unique(continuous_nms_grid$grp)), collapse = ", "), ")")))
-    ## make a vector of folds
-    max_in_fold <- max(unlist(lapply(continuous_cv_sl_folds[[i]], function(x) length(x))))
-    folds_tmp <- lapply(continuous_cv_sl_folds[[i]], function(x) {
-        if (length(x) < max_in_fold) {
-            c(x, rep(NA, max_in_fold - length(x)))
-        } else {
-            x
-        }
-    })
-    fold_row_nums <- as.vector(do.call(cbind, folds_tmp))
-    folds_init <- rep(as.numeric(names(folds_tmp)),
-                      each = round(length(dat[, continuous_outcomes[i]])/length(folds_tmp)))
-    folds_mat <- cbind(fold_row_nums, folds_init)
-    folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
-    ## make a list of the outcome, fitted values
-    full_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_cv_sl_fits[[i]][folds == x])
     if (!no_cv) {
+        ## make a vector of folds
+        max_in_fold <- max(unlist(lapply(continuous_cv_sl_folds[[i]], function(x) length(x))))
+        folds_tmp <- lapply(continuous_cv_sl_folds[[i]], function(x) {
+            if (length(x) < max_in_fold) {
+                c(x, rep(NA, max_in_fold - length(x)))
+            } else {
+                x
+            }
+        })
+        fold_row_nums <- as.vector(do.call(cbind, folds_tmp))
+        folds_init <- rep(as.numeric(names(folds_tmp)),
+                          each = round(length(dat[, continuous_outcomes[i]])/length(folds_tmp)))
+        folds_mat <- cbind(fold_row_nums, folds_init)
+        folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
+        ## make a list of the outcome, fitted values
+        full_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_cv_sl_fits[[i]][folds == x])
+
         for (j in 1:length(continuous_reduced_cv_sl_fits)) {
             redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_reduced_cv_sl_fits[[j]][folds == x])
 
@@ -124,67 +125,71 @@ binary_outcome_vimp <- vector("list", length = length(binary_outcomes))
 binary_outcome_cv_vimp <- vector("list", length = length(binary_outcomes))
 binary_nms_grid <- expand.grid(outcome = binary_outcomes, grp = binary_grps)
 set.seed(474747)
-for (i in 1:length(binary_outcome_vimp)) {
-    ## make sub-folds for non-cv
-    sub_folds <- sample(1:2, length(dat[, binary_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
+if (!reduce_outcomes) {
+    for (i in 1:length(binary_outcome_vimp)) {
+        ## make sub-folds for non-cv
+        sub_folds <- sample(1:2, length(dat[, binary_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
 
-    for (j in 1:length(binary_reduced_sl_fits)) {
-        eval(parse(text = paste0(paste0(unique(binary_nms_grid$outcome)[i], "_", unique(binary_nms_grid$grp)[j]),
-                                 " <- vimp::vim(Y = dat[, binary_outcomes[i]],
-                                        f1 = binary_sl_fits[[i]],
-                                        f2 = binary_reduced_sl_fits[[j]],
-                                        indx = which(pred_names %in% unlist(all_var_groups[grepl(binary_grps[j], names(all_var_groups))])),
-                                        run_regression = FALSE,
-                                        alpha = 0.05,
-                                        type = 'auc',
-                                        folds = sub_folds,
-                                        na.rm = TRUE,
-                                        scale = 'identity')")))
-    }
-    eval(parse(text = paste0("binary_outcome_vimp[[i]] <- merge_vim(", paste(paste0(binary_nms_grid$outcome[i], "_", unique(binary_nms_grid$grp)), collapse = ", "), ")")))
-    ## make a vector of folds
-    max_in_fold <- max(unlist(lapply(binary_cv_sl_folds[[i]], function(x) length(x))))
-    folds_tmp <- lapply(binary_cv_sl_folds[[i]], function(x) {
-        if (length(x) < max_in_fold) {
-            c(x, rep(NA, max_in_fold - length(x)))
-        } else {
-            x
-        }
-    })
-    fold_row_nums <- as.vector(do.call(cbind, folds_tmp))
-    folds_init <- rep(as.numeric(names(folds_tmp)),
-                      each = round(length(dat[, binary_outcomes[i]])/length(folds_tmp)))
-    folds_mat <- cbind(fold_row_nums, folds_init)
-    folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
-    ## make a list of the outcome, fitted values
-    full_lst <- lapply(as.list(1:length(unique(folds))), function(x) binary_cv_sl_fits[[i]][folds == x])
-    if (!no_cv) {
-        for (j in 1:length(binary_reduced_cv_sl_fits)) {
-            redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) binary_reduced_cv_sl_fits[[j]][folds == x])
-
-            eval(parse(text = paste0(paste0("cv_", unique(binary_nms_grid$outcome)[i], "_", unique(binary_nms_grid$grp)[j]),
-                                     " <- vimp::cv_vim(Y = dat[, binary_outcomes[i]],
-                                            f1 = full_lst,
-                                            f2 = redu_lst,
+        for (j in 1:length(binary_reduced_sl_fits)) {
+            eval(parse(text = paste0(paste0(unique(binary_nms_grid$outcome)[i], "_", unique(binary_nms_grid$grp)[j]),
+                                     " <- vimp::vim(Y = dat[, binary_outcomes[i]],
+                                            f1 = binary_sl_fits[[i]],
+                                            f2 = binary_reduced_sl_fits[[j]],
                                             indx = which(pred_names %in% unlist(all_var_groups[grepl(binary_grps[j], names(all_var_groups))])),
                                             run_regression = FALSE,
                                             alpha = 0.05,
                                             type = 'auc',
-                                            folds = folds,
+                                            folds = sub_folds,
                                             na.rm = TRUE,
                                             scale = 'identity')")))
         }
-        eval(parse(text = paste0("binary_outcome_cv_vimp[[i]] <- merge_vim(", paste(paste0("cv_", binary_nms_grid$outcome[i], "_", unique(binary_nms_grid$grp)), collapse = ", "), ")")))
+        eval(parse(text = paste0("binary_outcome_vimp[[i]] <- merge_vim(", paste(paste0(binary_nms_grid$outcome[i], "_", unique(binary_nms_grid$grp)), collapse = ", "), ")")))
+        if (!no_cv) {
+            ## make a vector of folds
+            max_in_fold <- max(unlist(lapply(binary_cv_sl_folds[[i]], function(x) length(x))))
+            folds_tmp <- lapply(binary_cv_sl_folds[[i]], function(x) {
+                if (length(x) < max_in_fold) {
+                    c(x, rep(NA, max_in_fold - length(x)))
+                } else {
+                    x
+                }
+            })
+            fold_row_nums <- as.vector(do.call(cbind, folds_tmp))
+            folds_init <- rep(as.numeric(names(folds_tmp)),
+                              each = round(length(dat[, binary_outcomes[i]])/length(folds_tmp)))
+            folds_mat <- cbind(fold_row_nums, folds_init)
+            folds <- folds_mat[order(folds_mat[, 1]), 2][!is.na(folds_mat[, 1])]
+            ## make a list of the outcome, fitted values
+            full_lst <- lapply(as.list(1:length(unique(folds))), function(x) binary_cv_sl_fits[[i]][folds == x])
+
+            for (j in 1:length(binary_reduced_cv_sl_fits)) {
+                redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) binary_reduced_cv_sl_fits[[j]][folds == x])
+
+                eval(parse(text = paste0(paste0("cv_", unique(binary_nms_grid$outcome)[i], "_", unique(binary_nms_grid$grp)[j]),
+                                         " <- vimp::cv_vim(Y = dat[, binary_outcomes[i]],
+                                                f1 = full_lst,
+                                                f2 = redu_lst,
+                                                indx = which(pred_names %in% unlist(all_var_groups[grepl(binary_grps[j], names(all_var_groups))])),
+                                                run_regression = FALSE,
+                                                alpha = 0.05,
+                                                type = 'auc',
+                                                folds = folds,
+                                                na.rm = TRUE,
+                                                scale = 'identity')")))
+            }
+            eval(parse(text = paste0("binary_outcome_cv_vimp[[i]] <- merge_vim(", paste(paste0("cv_", binary_nms_grid$outcome[i], "_", unique(binary_nms_grid$grp)), collapse = ", "), ")")))
+        }
     }
 }
-
 ## save them off
 saveRDS(continuous_outcome_vimp, "/home/slfits/continuous_outcome_vimp.rds")
 if (!no_cv) {
     saveRDS(continuous_outcome_cv_vimp, "/home/slfits/continuous_outcome_cv_vimp.rds")
 }
 
-saveRDS(binary_outcome_vimp, "/home/slfits/binary_outcome_vimp.rds")
-if (!no_cv) {
-    saveRDS(binary_outcome_vimp, "/home/slfits/binary_outcome_cv_vimp.rds")
+if (!reduce_outcomes) {
+    saveRDS(binary_outcome_vimp, "/home/slfits/binary_outcome_vimp.rds")
+    if (!no_cv) {
+        saveRDS(binary_outcome_vimp, "/home/slfits/binary_outcome_cv_vimp.rds")
+    }
 }
