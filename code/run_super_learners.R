@@ -14,7 +14,7 @@ reduce_library <- Sys.getenv("reduce_library") == "TRUE"
 reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
 
 # ~~~!~~~! add option to not do cross-val sl fitting !~~~!~~~ #
-reduce_groups <- Sys.getenv("no_cv") == "TRUE"
+no_cv <- Sys.getenv("no_cv") == "TRUE"
 
 # load data
 analysis_data_name <- list.files("/home/dat/analysis")
@@ -49,14 +49,14 @@ set.seed(123125)
 #' @param reduce_covs Flag to reduce the number of covariates under consideration
 #' @param save_full_object Flag for whether or not to save the full fitted object, or just the fitted values
 #' @param run_cv Whether or not to run the cv super learner
-sl_one_outcome <- function(outcome_name, 
-                           pred_names,                           
+sl_one_outcome <- function(outcome_name,
+                           pred_names,
                            save_dir = "/home/slfits/",
                            fit_name = paste0("fit_", outcome_name, ".rds"),
                            cv_fit_name = paste0("cvfit_", outcome_name, ".rds"),
                            reduce_covs = FALSE,
                            save_full_object = TRUE,
-                           run_cv = TRUE, 
+                           run_cv = TRUE,
                            ...){
         pred <- dat[ , pred_names]
 
@@ -66,8 +66,8 @@ sl_one_outcome <- function(outcome_name,
 
         fit <- SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
         if (save_full_object) {
-            saveRDS(fit, file = paste0(save_dir, fit_name))    
-        } 
+            saveRDS(fit, file = paste0(save_dir, fit_name))
+        }
         # save super learner predictions
         saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
         # save super learner weights
@@ -88,7 +88,7 @@ sl_one_outcome <- function(outcome_name,
 sl_ic50 <- sl_one_outcome(outcome_name = "pc.ic50",
                           pred_names = pred_names,
                           family = "gaussian",
-                          SL.library = SL.library, 
+                          SL.library = SL.library,
                           cvControl = list(V = 10),
                           method = "tmp_method.CC_LS",
                           reduce_covs = reduce_covs,
@@ -132,9 +132,9 @@ if(!reduce_outcomes){
   sl_ic80 <- sl_one_outcome(outcome_name = "pc.ic80",
                             pred_names = pred_names,
                            family = "gaussian",
-                           SL.library = SL.library, 
+                           SL.library = SL.library,
                            cvControl = list(V = 10),
-                           method = "tmp_method.CC_LS", 
+                           method = "tmp_method.CC_LS",
                            reduce_covs = reduce_covs)
   for (i in 1:length(all_var_groups)) {
         if (length(all_var_groups[i]) == 0) {
@@ -156,7 +156,7 @@ if(!reduce_outcomes){
   sl_iip <- sl_one_outcome(outcome_name = "iip",
                             pred_names = pred_names,
                            family = "gaussian",
-                           SL.library = SL.library, 
+                           SL.library = SL.library,
                            cvControl = list(V = 10),
                            reduce_covs = reduce_covs,
                            method = "tmp_method.CC_LS")
@@ -180,7 +180,7 @@ if(!reduce_outcomes){
   sl_dichotomous1 <- sl_one_outcome(outcome_name = "dichotomous.1",
                             pred_names = pred_names,
                            family = "binomial",
-                           SL.library = SL.library, 
+                           SL.library = SL.library,
                            cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
                                             stratifyCV = TRUE),
                            method = "tmp_method.CC_nloglik",
@@ -206,7 +206,7 @@ if(!reduce_outcomes){
   sl_dichotomous2 <- sl_one_outcome(outcome_name = "dichotomous.2",
                             pred_names = pred_names,
                            family = "binomial",
-                           SL.library = SL.library, 
+                           SL.library = SL.library,
                            cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
                                             stratifyCV = TRUE),
                          method = "tmp_method.CC_nloglik",
