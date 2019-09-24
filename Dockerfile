@@ -19,8 +19,9 @@ ENV reduce_groups=FALSE
 RUN apt-get install -y wget
 
 # install R from command line; get >= R-3.5
-RUN add-apt-repository ppa:marutter/rrutter3.5
-RUN apt-get install -y r-base && apt-get install -y r-base-dev && apt-get build-dep -y r-base
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository -y ppa:marutter/rrutter3.5
+RUN apt-get install -y r-base && apt-get install -y r-base-dev
 
 # put vim on for ease of editing docs inside container
 RUN apt-get install -y vim
@@ -30,7 +31,7 @@ RUN apt-get install -y pandoc
 
 # install R libraries needed for analysis
 # copy R package (only until new version gets to GitHub)
-COPY vimp_1.3.0.tar.gz /home/lib/vimp_1.3.0.tar.gz
+COPY vimp_2.2.0.tar.gz /home/lib/vimp_2.2.0.tar.gz
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("rmarkdown", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bookdown", repos="https://cran.rstudio.com")'
