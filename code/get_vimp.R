@@ -29,14 +29,17 @@ all_var_groups <- get_variable_groups(dat, pred_names)
 
 # load all superlearner fits
 sl_fit_names <- list.files("/home/slfits")
-sl_fitted_names <- paste0("/home/slfits/", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names)])
+sl_fitted_names <- paste0("/home/slfits/", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names)])
 all_sl_fits <- lapply(as.list(sl_fitted_names), readRDS)
-names(all_sl_fits) <- sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names)]
-full_sl_fits <- all_sl_fits[grepl("fitted_", sl_fitted_names) & !grepl("cvfitted_", sl_fitted_names) & !grepl("minus", sl_fitted_names)]
-full_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", sl_fitted_names) & !grepl("minus", sl_fitted_names)]
-reduced_sl_fits <- all_sl_fits[grepl("fitted_", sl_fitted_names) & !grepl("cvfitted_", sl_fitted_names) & grepl("minus", sl_fitted_names) & !grepl("slweights", sl_fitted_names)]
-reduced_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", sl_fitted_names) & grepl("minus", sl_fitted_names) & !grepl("slweights", sl_fitted_names)]
-full_cv_sl_folds <- all_sl_fits[grepl("cvfolds_", sl_fit_names) & !grepl("minus", sl_fit_names)]
+names(all_sl_fits) <- sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names)]
+all_sl_nms <- names(all_sl_fits)
+## subset to full, reduced
+full_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
+full_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
+reduced_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
+reduced_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", all_sl_nms) & grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
+## get folds for cv
+full_cv_sl_folds <- all_sl_fits[grepl("cvfolds_", all_sl_nms) & !grepl("minus", all_sl_nms)]
 
 
 ## split out into continuous, dichotomous
