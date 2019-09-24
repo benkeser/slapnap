@@ -2,7 +2,7 @@
 FROM ubuntu:latest
 
 # update libraries
-RUN apt-get clean && apt-get update && apt-get upgrade -y
+RUN apt-get clean && apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https
 
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -15,8 +15,21 @@ ENV reduce_outcomes=FALSE
 ENV reduce_library=FALSE
 ENV reduce_groups=FALSE
 
+# make sure we have wget
+RUN apt-get install -y wget
+
 # install R from command line
-RUN apt-get install -y r-base
+RUN apt-get install -y r-base && apt-get install -y r-base-dev && apt-get build-dep -y r-base
+
+# upgrade to R-3.5.0 if we aren't already at it
+RUN R --version > r_version.txt
+RUN $'if grep "version 3.4"; then \n\
+        wget -O /home/lib/ "https://cran.rstudio.com/src/base/R-3/R-3.5.0.tar.gz" \n\
+    fi \n\
+    tar -xzvf /home/lib/R-3.5.0.tar.gz \n\
+    /home/lib/R-3.5.0/configure --prefix=/opt/R/3.5.0 --enable-R-shlib \n\
+    make \n\
+    make install'
 
 # put vim on for ease of editing docs inside container
 RUN apt-get install -y vim
@@ -52,8 +65,6 @@ RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits
 
-# make sure we have wget
-RUN apt-get install -y wget
 
 # pull CATNAP data from LANL
 RUN wget -O /home/dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"
