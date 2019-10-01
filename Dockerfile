@@ -52,6 +52,9 @@ RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits
 
+# install ffmpeg for animating figures
+RUN apt-get install -y ffmpeg
+
 # make sure we have wget
 RUN apt-get install -y wget
 

@@ -1,0 +1,91 @@
+---
+title: "Animated variable importance"
+author: "David Benkeser"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: bookdown::html_document2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+my_webm <- function (x, options) {
+	library(knitr)
+	format <- "webm"
+    x = c(xfun::sans_ext(x), xfun::file_ext(x))
+    fig.num = options$fig.num
+    format = sub("^[.]", "", format)
+    base = sub(paste0(fig.num, "$"), "", x[1])
+    fig.fname = paste0(base, "%d", ".", x[2])
+    mov.fname = paste0(sub("-$", "", base), ".", format)
+    extra = switch(format, webm = paste("-b:v", knitr:::`%n%`(options$ffmpeg.bitrate,
+        "1M"), "-crf 10"), mp4 = "-pix_fmt yuv420p")
+    more_extra <- paste0('-vf "movie=', fig.fname, ' [fix]; [in] setsar=sar=1,format=rgba [inf]; [inf][fix] blend=all_mode=overlay:all_opacity=1,format=yuva422p10le [out]"')
+    ffmpeg.cmd = paste("ffmpeg", "-y", "-r", 1/options$interval, 
+        "-i", fig.fname, extra, more_extra, mov.fname)
+    if (Sys.which("ffmpeg") == "") 
+        knitr:::stop2("Could not find ffmpeg command. You should either change the animation.fun ", 
+            "hook option or install ffmpeg with libvpx enabled.")
+    message("executing: ", ffmpeg.cmd)
+    system(ffmpeg.cmd, ignore.stdout = TRUE)
+    
+    opts = paste(knitr:::sc_split(options$aniopts), collapse = " ")
+    opts = paste(sprintf("width=\"%s\"", options$out.width), 
+        sprintf("height=\"%s\"", options$out.height), opts)
+    cap = knitr:::.img.cap(options, alt = TRUE)
+    if (cap != "") 
+        cap = sprintf("<p>%s</p>", cap)
+    sprintf("<video %s><source src=\"%s\" />%s</video>", trimws(opts), 
+        paste0(opts_knit$get("base.url"), mov.fname), cap)
+}
+
+
+options(stringsAsFactors = FALSE)
+library(magrittr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(ROCR)
+library(knitr)
+library(gridExtra)
+library(xgboost); library(ranger); library(glmnet)
+# library(gifski)
+path.home <- "/home/slfits"
+path.home <- "/home/dat/analysis/"
+
+analysis_data_name <- "/multiab_catnap_VRC07-523-LS_PGT121_PGDM1400_01Sep2019.csv"
+analysis_data_name <- list.files("/home/dat/analysis")
+dat <- read.csv(paste0(path.home, analysis_data_name), header = TRUE)
+dat <- dat[complete.cases(dat),]
+
+geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
+pred_names <- colnames(dat)[geog_idx:ncol(dat)]
+
+source("/home/lib/ml_var_importance_measures.R")
+source("/home/lib/var_import_plot.R")
+
+imp_ic50 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
+                               dir_loc = "/home/slfits/",
+                               dat = dat, which_cols = geog_idx:ncol(dat))
+imp_ic50_2 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
+                               dir_loc = "/home/slfits/",
+                               dat = dat, which_cols = geog_idx:ncol(dat),
+                               n_importance_measures = 2)
+
+```
+
+Here's an attempt at animation:
+
+```{r, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls'}
+for(m in 1:50){
+	make_ml_import_plot(dat = dat, imp_df = imp_ic50, max_import = m)
+}
+```
+ 
+Here's the same figure, but requiring that a feature be important by at least two metrics:
+
+```{r, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls'}
+for(m in 1:50){
+	make_ml_import_plot(dat = dat, imp_df = imp_ic50_2, max_import = m)
+}
+```

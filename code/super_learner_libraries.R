@@ -1,15 +1,54 @@
 # boosted algorithms
+SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights, id, ntrees = 1000, 
+    max_depth = 4, shrinkage = 0.1, minobspernode = 10, params = list(), 
+    nthread = 1, verbose = 0, save_period = NULL, ...) 
+{
+    .SL.require("xgboost")
+    if (packageVersion("xgboost") < 0.6) 
+        stop("SL.xgboost requires xgboost version >= 0.6, try help('SL.xgboost') for details")
+    if (!is.matrix(X)) {
+        X = model.matrix(~. - 1, X)
+    }
+    xgmat = xgboost::xgb.DMatrix(data = X, label = Y, weight = obsWeights)
+    if (family$family == "gaussian") {
+        model = xgboost::xgboost(data = xgmat, objective = "reg:squarederror", 
+            nrounds = ntrees, max_depth = max_depth, min_child_weight = minobspernode, 
+            eta = shrinkage, verbose = verbose, nthread = nthread, 
+            params = params, save_period = save_period)
+    }
+    if (family$family == "binomial") {
+        model = xgboost::xgboost(data = xgmat, objective = "binary:logistic", 
+            nrounds = ntrees, max_depth = max_depth, min_child_weight = minobspernode, 
+            eta = shrinkage, verbose = verbose, nthread = nthread, 
+            params = params, save_period = save_period)
+    }
+    if (family$family == "multinomial") {
+        model = xgboost::xgboost(data = xgmat, objective = "multi:softmax", 
+            nrounds = ntrees, max_depth = max_depth, min_child_weight = minobspernode, 
+            eta = shrinkage, verbose = verbose, num_class = length(unique(Y)), 
+            nthread = nthread, params = params, save_period = save_period)
+    }
+    if (!is.matrix(newX)) {
+        newX = model.matrix(~. - 1, newX)
+    }
+    pred = predict(model, newdata = newX)
+    fit = list(object = model)
+    class(fit) = c("SL.xgboost")
+    out = list(pred = pred, fit = fit)
+    return(out)
+}
+
 SL.xgboost2 <- function(..., max_depth = 2){
-	SL.xgboost(..., max_depth = max_depth)
+	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 SL.xgboost4 <- function(..., max_depth = 4){
-	SL.xgboost(..., max_depth = max_depth)
+	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 SL.xgboost6 <- function(..., max_depth = 6){
-	SL.xgboost(..., max_depth = max_depth)
+	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 SL.xgboost8 <- function(..., max_depth = 8){
-	SL.xgboost(..., max_depth = max_depth)
+	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 descr_SL.xgboost <- "boosted regression trees with maximum depth of "
 descr_SL.xgboost2 <- paste0(descr_SL.xgboost, 2)
@@ -56,10 +95,10 @@ SL.ranger.small <- function(..., X, mtry = floor(sqrt(ncol(X)) * 1/2)){
 SL.ranger.large <- function(..., X, mtry = floor(sqrt(ncol(X)) * 2)){
 	SL.ranger.imp(..., mtry = mtry)
 }
-descr_SL.ranger <- "random forest with mtry equal to "
-descr_SL.ranger.reg <- paste0(descr_SL.ranger, "square root of number of predictors")
-descr_SL.ranger.small <- paste0(descr_SL.ranger, "one-half times square root of number of predictors")
-descr_SL.ranger.large <- paste0(descr_SL.ranger, "two times square root of number of predictors")
+descr_SL.ranger.imp <- "random forest with mtry equal to "
+descr_SL.ranger.reg <- paste0(descr_SL.ranger.imp, "square root of number of predictors")
+descr_SL.ranger.small <- paste0(descr_SL.ranger.imp, "one-half times square root of number of predictors")
+descr_SL.ranger.large <- paste0(descr_SL.ranger.imp, "two times square root of number of predictors")
 
 # lasso
 SL.glmnet.50 <- function(..., alpha = 0.5){
@@ -85,7 +124,8 @@ default_library <- c("SL.mean","SL.xgboost2", "SL.xgboost4", "SL.xgboost6", "SL.
                      "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large", 
                      "SL.glmnet", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
 
-default_library_reduced <- c("SL.mean", "SL.glm")
+# default_library_reduced <- c("SL.mean", "SL.glm")
+default_library_reduced <- c("SL.ranger.imp", "SL.glmnet", "SL.xgboost2")
 
 #' Temporary fix for convex combination method mean squared error
 #' Relative to existing implementation, we reduce the tolerance at which 
