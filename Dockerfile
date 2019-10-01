@@ -53,6 +53,7 @@ RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits
 
 # install ffmpeg for animating figures
+RUN apt-get update
 RUN apt-get install -y ffmpeg
 
 # make sure we have wget
