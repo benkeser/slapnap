@@ -75,7 +75,7 @@ if (!reduce_outcomes) {
     rslt_dichot1 <- get_est_and_ci(cvfit_dichotomous.1)
     rslt_dichot2 <- get_est_and_ci(cvfit_dichotomous.2)
 } else {
-    rslt_ic80 <- rslt_iip <- rslt_dichot1 <- rslt_dichot2 <- NA
+    rslt_ic80 <- rslt_iip <- rslt_dichot1 <- rslt_dichot2 <- rep(NA, 3)
 }
 # # get summary measures for executive summary
 # sum_ic50 <- summary(cvfit_ic50, Rsquared = TRUE, method = "method.CC_LS")
@@ -90,24 +90,38 @@ if (!reduce_outcomes) {
 The NAbs studied in this analysis are `r antibodies`. There were `r n_row_prev` observations extracted from the CATNAP database. There were `r n_row_now` observations with complete sequence data that were used in the analysis.
 
 ```{r rsquaredtable}
-rsqtab <- rbind(unlist(rslt_ic50), unlist(rslt_ic80), unlist(rslt_iip))
-row.names(rsqtab) <- c("IC-50","IC-80","IIP")
-kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
-      digits = 3, row.names = TRUE,
-      caption = "Estimates of cross-validated R-squared for super learner predictions of the three continuous-valued outcomes")
+if (no_cv) {
+    print("No R-squared table available if cv is not used.")
+} else {
+    if (reduce_outcomes) {
+        print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+    }
+    rsqtab <- rbind(unlist(rslt_ic50), unlist(rslt_ic80), unlist(rslt_iip))
+    row.names(rsqtab) <- c("IC-50","IC-80","IIP")
+    kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
+          digits = 3, row.names = TRUE,
+          caption = "Estimates of cross-validated R-squared for super learner predictions of the three continuous-valued outcomes")
+}
 ```
 
 ```{r auctable}
-auctab <- rbind(unlist(rslt_dichot1), unlist(rslt_dichot2))
-row.names(auctab) <- c("Estimated sensitivity", "Multiple sensitivity")
-kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
-      digits = 3, row.names = TRUE,
-      caption = "Estimates of cross-validated AUC for super learner predictions of the two dichotomous outcomes")
+if (no_cv) {
+    print("No AUC table available if cv is not used.")
+} else {
+    if (reduce_outcomes) {
+        print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+    }
+    auctab <- rbind(unlist(rslt_dichot1), unlist(rslt_dichot2))
+    row.names(auctab) <- c("Estimated sensitivity", "Multiple sensitivity")
+    kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
+          digits = 3, row.names = TRUE,
+          caption = "Estimates of cross-validated AUC for super learner predictions of the two dichotomous outcomes")
+}
 ```
 
 The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \@ref(tab:rsquaredtable). The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \@ref(tab:auctable).
 
-```{r group_vimp_continuous, fig.cap = "Group variable importance for continuous outcomes", fig.height = 10, fig.width = 10}
+```{r groupVimpCont, fig.cap = "Group variable importance for continuous outcomes", fig.height = 10, fig.width = 20}
 source("/home/lib/plot_one_vimp.R")
 continuous_outcome_vimp <- readRDS("/home/slfits/continuous_outcome_vimp.rds")
 x_lab <- expression(paste("Difference in ", R^2, sep = ""))
@@ -117,32 +131,38 @@ x_lim <- c(0, 1)
 continuous_outcome_vimp_plots <- lapply(continuous_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab, x_lim = x_lim))
 grob_lst <- continuous_outcome_vimp_plots
 if (!no_cv) {
-    x_lab_cv <- expression(paste("Difference in cross-validated ", R^2, sep = ""))
+    x_lab_cv <- expression(paste("Difference in CV-", R^2, sep = ""))
     continuous_outcome_cv_vimp <- readRDS("/home/slfits/continuous_outcome_cv_vimp.rds")
     continuous_outcome_cv_vimp_plots <- lapply(continuous_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_cv, x_lim = x_lim))
     grob_lst <- c(grob_lst, continuous_outcome_cv_vimp_plots)
 }
-do.call(grid.arrange, grob_lst)
+# do.call(grid.arrange, grob_lst)
+grid.arrange(grobs = grob_lst, ncol = 3)
 ```
 
-```{r group_vimp_binary, fig.cap = "Group variable importance for binary outcomes", fig.height = 10, fig.width = 10}
-source("/home/lib/plot_one_vimp.R")
-binary_outcome_vimp <- readRDS("/home/slfits/binary_outcome_vimp.rds")
-x_lab <- expression(paste("Difference in ", AUC, sep = ""))
-x_lim <- c(0, 1)
-## create a plot for each binary outcome
-binary_outcome_vimp_plots <- lapply(binary_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab, x_lim = x_lim))
-grob_lst <- binary_outcome_vimp_plots
-if (!no_cv) {
-    x_lab_cv <- expression(paste("Difference in cross-validated ", AUC, sep = ""))
-    binary_outcome_cv_vimp <- readRDS("/home/slfits/binary_outcome_cv_vimp.rds")
-    binary_outcome_cv_vimp_plots <- lapply(binary_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_cv, x_lim = x_lim))
-    grob_lst <- c(grob_lst, binary_outcome_cv_vimp_plots)
+```{r groupVimpBin, fig.cap = "Group variable importance for binary outcomes", fig.height = 10, fig.width = 20}
+if (!reduce_outcomes) {
+    source("/home/lib/plot_one_vimp.R")
+    binary_outcome_vimp <- readRDS("/home/slfits/binary_outcome_vimp.rds")
+    x_lab <- expression(paste("Difference in ", AUC, sep = ""))
+    x_lim <- c(0, 1)
+    ## create a plot for each binary outcome
+    binary_outcome_vimp_plots <- lapply(binary_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab, x_lim = x_lim))
+    grob_lst <- binary_outcome_vimp_plots
+    if (!no_cv) {
+        x_lab_cv <- expression(paste("Difference in CV-", AUC, sep = ""))
+        binary_outcome_cv_vimp <- readRDS("/home/slfits/binary_outcome_cv_vimp.rds")
+        binary_outcome_cv_vimp_plots <- lapply(binary_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_cv, x_lim = x_lim))
+        grob_lst <- c(grob_lst, binary_outcome_cv_vimp_plots)
+    }
+    # do.call(grid.arrange, grob_lst)
+    grid.arrange(grobs = grob_lst, ncol = 2)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
-do.call(grid.arrange, grob_lst)
 ```
 
-The estimated variable importance of the groups defined in [table?] for predicting the continuous outcomes, with respect to the difference in nonparametric $R^2$, is shown in Figure \@ref(fig:group_vimp_continuous). The estimated variable importance of these groups for predicting the binary outcomes, with respect to the difference in nonparametric AUC, is shown in Figure \@ref(fig:group_vimp_binary).
+The estimated variable importance of the groups defined in [table?] for predicting the continuous outcomes, with respect to the difference in nonparametric $R^2$, is shown in Figure \@ref(fig:groupVimpCont). The estimated variable importance of these groups for predicting the binary outcomes, with respect to the difference in nonparametric AUC, is shown in Figure \@ref(fig:groupVimpBin).
 
 # Summary of endpoints
 
@@ -334,16 +354,25 @@ plot_cv_predictions(cvfit_ic50, outcome_name = "IC-50", log_axis = FALSE)
 The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IC-80 in Figure \@ref(fig:plotic80).
 
 ```{r plotic80, fig.cap = "Cross-validated R-squared for estimated IC-80"}
-plot(cvfit_ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 1, text_size = 9,
-     method = "method.CC_LS")
-# and get correlations
-cor_ic80 <- get_cor_pred_outcome(cvfit_ic80)
+if (!reduce_outcomes) {
+    plot(cvfit_ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 1, text_size = 9,
+         method = "method.CC_LS")
+    # and get correlations
+    cor_ic80 <- get_cor_pred_outcome(cvfit_ic80)
+} else {
+    cor_ic80 <- NA
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
 
 Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions made by the super learner plotted against outcomes. The Pearson correlation between predictions and true outcomes was `r round(cor_ic80[1], 3)`; the Spearman correlation was `r round(cor_ic80[2], 3)`.
 
 ```{r plotic80predversusoutcomes, fig.cap = "Cross-validated super learner predicted IC-80 plotted against actual IC-80 values. Colors correspond to different cross-validation folds"}
-plot_cv_predictions(cvfit_ic80, outcome_name = "IC-80", log_axis = FALSE)
+if (!reduce_outcomes) {
+    plot_cv_predictions(cvfit_ic80, outcome_name = "IC-80", log_axis = FALSE)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
 
 ## IIP
@@ -351,16 +380,25 @@ plot_cv_predictions(cvfit_ic80, outcome_name = "IC-80", log_axis = FALSE)
 The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IIP in Figure \@ref(fig:plotiip).
 
 ```{r plotiip, fig.cap = "Cross-validated R-squared for estimated IIP"}
-plot(cvfit_iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 1, text_size = 9,
-     method = "method.CC_LS")
-# and get correlations
-cor_iip <- get_cor_pred_outcome(cvfit_iip)
+if (!reduce_outcomes) {
+    plot(cvfit_iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 1, text_size = 9,
+         method = "method.CC_LS")
+    # and get correlations
+    cor_iip <- get_cor_pred_outcome(cvfit_iip)
+} else {
+    cor_iip <- NA
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
 
 Figure \@ref(fig:plotiippredversusoutcomes) shows cross-validated predictions made by the super learner plotted against outcomes. The Pearson correlation between predictions and true outcomes was `r round(cor_iip[1], 3)`; the Spearman correlation was `r round(cor_iip[2], 3)`.
 
 ```{r plotiippredversusoutcomes, fig.cap = "Cross-validated super learner predicted IIP plotted against actual IIP values. Colors correspond to different cross-validation folds"}
-plot_cv_predictions(cvfit_iip, outcome_name = "IIP", log_axis = FALSE)
+if (!reduce_outcomes) {
+    plot_cv_predictions(cvfit_iip, outcome_name = "IIP", log_axis = FALSE)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
 
 ## Dichotomous sensitivity 1
@@ -368,16 +406,28 @@ plot_cv_predictions(cvfit_iip, outcome_name = "IIP", log_axis = FALSE)
 The cross-validated performance of super learner (in terms of AUC) relative to the discrete super learner and candidate algorithms are shown for the first dichotomous endpoint (estimated IC-50 above sensitivity threshold) in Figure \@ref(fig:plotdichot1). Figure \@ref(fig:rocdichot1) shows cross-validated ROC curves for this endpoint.
 
 ```{r plotdichot1, fig.cap = "Cross-validated AUC for predicting sensitivity based on estimated IC-50"}
-plot(cvfit_dichotomous.1, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9,
-     Rsquared = FALSE, method = "method.AUC")
+if (!reduce_outcomes) {
+    plot(cvfit_dichotomous.1, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9,
+         Rsquared = FALSE, method = "method.AUC")
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
 
 ```{r rocdichot1, fig.cap = "Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting sensitivity based on estimated IC-50"}
-plot_roc_curves(cvfit_dichotomous.1)
+if (!reduce_outcomes) {
+    plot_roc_curves(cvfit_dichotomous.1)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
 
 ```{r predprob1, fig.cap = "Predicted probabilities for resistant and sensitive viruses for the super learner, discrete super learner, and single best performing algorithm."}
-plot_predicted_prob_boxplots(cvfit_dichotomous.1, cols = trans_fill[c(2,4)])
+if (!reduce_outcomes) {
+    plot_predicted_prob_boxplots(cvfit_dichotomous.1, cols = trans_fill[c(2,4)])
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
 
 ## Dichotomous sensitivity 2
@@ -385,10 +435,18 @@ plot_predicted_prob_boxplots(cvfit_dichotomous.1, cols = trans_fill[c(2,4)])
 The cross-validated performance of super learner (in terms of AUC) relative to the discrete super learner and candidate algorithms are shown for the second dichotomous endpoint (each individual IC-50 above threshold) in Figure \@ref(fig:plotdichot2). Figure \@ref(fig:rocdichot2) shows cross-validated ROC curves for this endpoint.
 
 ```{r plotdichot2, fig.cap = "Cross-validated AUC for predicting sensitivity based on sensitivity to individual NAbs"}
-plot(cvfit_dichotomous.2, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9,
-     Rsquared = FALSE, method = "method.AUC")
+if (!reduce_outcomes) {
+    plot(cvfit_dichotomous.2, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9,
+         Rsquared = FALSE, method = "method.AUC")
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
 
 ```{r rocdichot2, fig.cap = "Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting sensitivity based on sensitivity to individual NAbs"}
-plot_roc_curves(cvfit_dichotomous.2)
+if (!reduce_outcomes) {
+    plot_roc_curves(cvfit_dichotomous.2)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
 ```
