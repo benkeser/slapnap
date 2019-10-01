@@ -129,7 +129,7 @@ if (reduce_groups) {
 }
 
 if(!reduce_outcomes){
-  sl_ic80 <- sl_one_outcome(outcome_name = "pc.ic80",
+  sl_ic80 <- sl_one_outcome(outcome_name = "log10.pc.ic80",
     pred_names = pred_names,
     family = "gaussian",
     SL.library = SL.library,
