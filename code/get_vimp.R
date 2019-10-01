@@ -5,6 +5,7 @@
 # load libraries
 library("SuperLearner")
 library("vimp")
+library("dplyr")
 source("/home/lib/variable_groups.R")
 
 # attempt to read in environment variables
@@ -29,9 +30,9 @@ all_var_groups <- get_variable_groups(dat, pred_names)
 
 # load all superlearner fits
 sl_fit_names <- list.files("/home/slfits")
-sl_fitted_names <- paste0("/home/slfits/", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names)])
+sl_fitted_names <- paste0("/home/slfits/", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl("report", sl_fit_names)])
 all_sl_fits <- lapply(as.list(sl_fitted_names), readRDS)
-names(all_sl_fits) <- sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names)]
+names(all_sl_fits) <- sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl("report", sl_fit_names)]
 all_sl_nms <- names(all_sl_fits)
 ## subset to full, reduced
 full_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
