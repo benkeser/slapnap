@@ -40,23 +40,25 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
 }
 
 vimp_plot_name <- function(vimp_obj) {
-    row_nm <- rownames(vimp_obj$mat)[1]
-    tmp_string <- strsplit(row_nm, "_", fixed = TRUE)[[1]][1]
-    if (tmp_string == "iip") {
-        return ("IIP")
-    } else if (tmp_string == "pc.ic50") {
-        return ("IC-50")
-    } else if (tmp_string == "pc.ic80") {
-        return ("IC-80")
-    } else if (tmp_string == "dichotomous.1") {
-        return ("Estimated sensitivity")
+    row_nm <- vimp_obj$mat$print_name
+    tmp_string_init <- strsplit(row_nm, "_", fixed = TRUE)[[1]]
+    tmp_string <- paste0(tmp_string_init[-length(tmp_string_init)], collapse = "_")
+    if (grepl("iip", tmp_string)) {
+        plot_nm <- "IIP"
+    } else if (grepl("pc.ic50", tmp_string)) {
+        plot_nm <- "IC-50"
+    } else if (grepl("pc.ic80", tmp_string)) {
+        plot_nm <- "IC-80"
+    } else if (grepl("dichotomous.1", tmp_string)) {
+        plot_nm <- "Estimated sensitivity"
     } else {
-        return ("Multiple sensitivity")
+        plot_nm <- "Multiple Sensitivity"
     }
+    return(plot_nm)
 }
 
 vimp_nice_rownames <- function(vimp_obj) {
-    row_nm <- rownames(vimp_obj$mat)
+    row_nm <- vimp_obj$mat$print_name
     return(unlist(lapply(strsplit(row_nm, "_", fixed = TRUE), function(x) tail(x, n = 1))))
 }
 
