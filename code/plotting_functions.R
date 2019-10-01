@@ -21,6 +21,7 @@ plot_cv_predictions <- function(cv_fit, outcome_name, log_axis = TRUE,
   sl_pred <- cv_fit$SL.predict
   resids <- cv_fit$Y - cv_fit$SL.predict
   cv_folds <- rep(NA, length(sl_pred))
+  these_corr <- get_cor_pred_outcome(cv_fit)
   for(v in seq_along(cv_fit$folds)){
     cv_folds[cv_fit$folds[[v]]] <- v
   }
@@ -31,7 +32,10 @@ plot_cv_predictions <- function(cv_fit, outcome_name, log_axis = TRUE,
       geom_point() + theme_bw() +
       scale_color_manual(values = cv_fold_palette) + 
       labs(x = "Cross-Validated SL prediction", y = outcome_name, col = "CV fold") +
-      geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5)
+      geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5) + 
+      annotate("text", -Inf, Inf, label = paste0("Pearson corr. = ", round(these_corr[1], 2), "\n",
+                                                 "Spearman corr. = ", round(these_corr[2], 2)), 
+               hjust = -0.1, vjust = 1.1)
     if(log_axis){
       p <- p + scale_x_log10() + scale_y_log10()
     }
@@ -94,6 +98,7 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
     unnest(roc.dat) %>%
     ggplot(aes(x=xval, y=yval, col=algo)) +
     geom_step(lwd=2) +
+    theme_bw() + 
     theme(legend.position = "top") +
     scale_color_manual(values = cols) + 
     labs(x = "Cross-Validated False Positive Rate", y = "Cross-Validated True Positive Rate", col = "Algorithm") 

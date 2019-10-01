@@ -57,6 +57,9 @@ RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz",
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits
 
+# install ffmpeg for animating figures
+RUN apt-get update
+RUN apt-get install -y ffmpeg
 
 # pull CATNAP data from LANL
 RUN wget -O /home/dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"

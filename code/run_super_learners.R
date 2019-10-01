@@ -33,10 +33,8 @@ if(reduce_library){
 }
 
 # get names of predictors
-non_pred_names <- c("pc.ic50", "pc.ic80", "iip",
-                    "dichotomous.1", "dichotomous.2",
-                    "seq.id.lanl","seq.id.catnap")
-pred_names <- colnames(dat)[!(colnames(dat) %in% non_pred_names)]
+geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
+pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 
 set.seed(123125)
 
@@ -85,6 +83,7 @@ sl_one_outcome <- function(outcome_name,
 }
 
 ## run full super learner
+<<<<<<< HEAD
 sl_ic50 <- sl_one_outcome(outcome_name = "pc.ic50",
     pred_names = pred_names,
     family = "gaussian",
@@ -93,11 +92,22 @@ sl_ic50 <- sl_one_outcome(outcome_name = "pc.ic50",
     method = "tmp_method.CC_LS",
     reduce_covs = reduce_covs,
     run_cv = !no_cv)
+=======
+sl_ic50 <- sl_one_outcome(outcome_name = "log10.pc.ic50", #!!! change to log-scale
+                          pred_names = pred_names,
+                          family = "gaussian",
+                          SL.library = SL.library, 
+                          cvControl = list(V = 10),
+                          method = "tmp_method.CC_LS",
+                          reduce_covs = reduce_covs,
+                          run_cv = !no_cv)
+>>>>>>> d3e699972da437bfd25bd8463e9ee82960da2b2b
 
 ## run super learners on pre-defined groups
 all_var_groups <- get_variable_groups(dat, pred_names)
 if (reduce_groups) {
     this_name <- names(all_var_groups)[1]
+<<<<<<< HEAD
     sl_ic50_i <- sl_one_outcome(outcome_name = "pc.ic50",
         pred_names = pred_names[!(pred_names %in% all_var_groups[[1]])],
         fit_name = paste0("fitted_pc.ic50_minus_", this_name, ".rds"),
@@ -109,6 +119,18 @@ if (reduce_groups) {
         reduce_covs = reduce_covs,
         run_cv = !no_cv,
         save_full_object = FALSE)
+=======
+    sl_ic50_i <- sl_one_outcome(outcome_name = "log10.pc.ic50",
+                                    pred_names = pred_names[!(pred_names %in% all_var_groups[[1]])],
+                                    fit_name = paste0("fitted_pc.ic50_minus_", this_name, ".rds"),
+                                    cv_fit_name = paste0("cvfitted_pc.ic50_minus_", this_name, ".rds"),
+                                    family = "gaussian",
+                                    SL.library = SL.library,
+                                    cvControl = list(V = 10),
+                                    method = "tmp_method.CC_LS",
+                                    reduce_covs = reduce_covs,
+                                    save_full_object = FALSE)
+>>>>>>> d3e699972da437bfd25bd8463e9ee82960da2b2b
 } else {
     for (i in 1:length(all_var_groups)) {
         if (length(all_var_groups[i]) == 0) {
@@ -131,6 +153,7 @@ if (reduce_groups) {
 }
 
 if(!reduce_outcomes){
+<<<<<<< HEAD
   sl_ic80 <- sl_one_outcome(outcome_name = "pc.ic80",
     pred_names = pred_names,
     family = "gaussian",
@@ -155,6 +178,18 @@ if(!reduce_outcomes){
     } else {
         for (i in 1:length(all_var_groups)) {
             if (length(all_var_groups[i]) == 0) {
+=======
+  sl_ic80 <- sl_one_outcome(outcome_name = "log10.pc.ic80",
+                            pred_names = pred_names,
+                           family = "gaussian",
+                           SL.library = SL.library, 
+                           cvControl = list(V = 10),
+                           method = "tmp_method.CC_LS", 
+                           reduce_covs = reduce_covs,
+                           run_cv = !no_cv)
+  for (i in 1:length(all_var_groups)) {
+        if (length(all_var_groups[i]) == 0) {
+>>>>>>> d3e699972da437bfd25bd8463e9ee82960da2b2b
 
             } else {
             this_name <- names(all_var_groups)[i]
@@ -174,6 +209,7 @@ if(!reduce_outcomes){
     }
 
   sl_iip <- sl_one_outcome(outcome_name = "iip",
+<<<<<<< HEAD
     pred_names = pred_names,
     family = "gaussian",
     SL.library = SL.library,
@@ -197,6 +233,17 @@ if(!reduce_outcomes){
   } else {
       for (i in 1:length(all_var_groups)) {
             if (length(all_var_groups[i]) == 0) {
+=======
+                            pred_names = pred_names,
+                           family = "gaussian",
+                           SL.library = SL.library, 
+                           cvControl = list(V = 10),
+                           reduce_covs = reduce_covs,
+                           method = "tmp_method.CC_LS",
+                           run_cv = !no_cv)
+  for (i in 1:length(all_var_groups)) {
+        if (length(all_var_groups[i]) == 0) {
+>>>>>>> d3e699972da437bfd25bd8463e9ee82960da2b2b
 
             } else {
                 this_name <- names(all_var_groups)[i]
@@ -215,6 +262,7 @@ if(!reduce_outcomes){
         }
   }
   sl_dichotomous1 <- sl_one_outcome(outcome_name = "dichotomous.1",
+<<<<<<< HEAD
     pred_names = pred_names,
     family = "binomial",
     SL.library = SL.library,
@@ -239,6 +287,18 @@ if(!reduce_outcomes){
   } else {
       for (i in 1:length(all_var_groups)) {
             if (length(all_var_groups[i]) == 0) {
+=======
+                            pred_names = pred_names,
+                           family = "binomial",
+                           SL.library = SL.library, 
+                           cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
+                                            stratifyCV = TRUE),
+                           method = "tmp_method.CC_nloglik",
+                           reduce_covs = reduce_covs,
+                           run_cv = !no_cv)
+  for (i in 1:length(all_var_groups)) {
+        if (length(all_var_groups[i]) == 0) {
+>>>>>>> d3e699972da437bfd25bd8463e9ee82960da2b2b
 
             } else {
                 this_name <- names(all_var_groups)[i]
@@ -259,6 +319,7 @@ if(!reduce_outcomes){
   }
 
   sl_dichotomous2 <- sl_one_outcome(outcome_name = "dichotomous.2",
+<<<<<<< HEAD
     pred_names = pred_names,
     family = "binomial",
     SL.library = SL.library,
@@ -283,6 +344,18 @@ if(!reduce_outcomes){
   } else {
       for (i in 1:length(all_var_groups)) {
             if (length(all_var_groups[i]) == 0) {
+=======
+                            pred_names = pred_names,
+                           family = "binomial",
+                           SL.library = SL.library, 
+                           cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
+                                            stratifyCV = TRUE),
+                         method = "tmp_method.CC_nloglik",
+                         reduce_covs = reduce_covs,
+                           run_cv = !no_cv)
+  for (i in 1:length(all_var_groups)) {
+        if (length(all_var_groups[i]) == 0) {
+>>>>>>> d3e699972da437bfd25bd8463e9ee82960da2b2b
 
             } else {
                 this_name <- names(all_var_groups)[i]

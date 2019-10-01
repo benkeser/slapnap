@@ -1,47 +1,12 @@
 ---
-title: "SLAPNAP Report"
+title: 'SLAPNAP Report: `r format(strsplit(Sys.getenv("Nab"), split = ";")[[1]])`'
 author: "SLAPNAP Team"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(message = FALSE)
-knitr::opts_chunk$set(warning = FALSE)
-
-library(magrittr)
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(ROCR)
-library(knitr)
-library(gridExtra)
-library(vimp)
-
-# attempt to read in environment variables
-reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
-reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
-reduce_library <- Sys.getenv("reduce_library") == "TRUE"
-reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
-no_cv <- Sys.getenv("no_cv") == TRUE
-```
-
-```{r}
-source("/home/lib/plotting_functions.R")
-# get NAbs names from ENV variable
-antibody_string <- Sys.getenv("Nab")
-antibodies <- strsplit(antibody_string, split = ";")[[1]]
-n_ab <- length(antibodies)
-
-# load data
-analysis_data_name <- list.files("/home/dat/analysis")
-dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
-
-# check missing values
-n_row_prev <- nrow(dat)
-dat <- dat[complete.cases(dat),]
-n_row_now <- nrow(dat)
+source("/home/lib/report_preamble.R")
 ```
 
 ```{r load_cvfit_objects}
@@ -166,7 +131,9 @@ The estimated variable importance of the groups defined in Table \@ref(tab:vimpG
 
 # Summary of endpoints
 
-Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(fig:histic50) and Figure \@ref(fig:histic80), respectively. Histograms for the predicted IC-50 an IC-80 based on the additive model are shown in Figure \@ref(fig:histcombn), while a histogram of the predicted IIP is shown in Figure \@ref(fig:histiip).
+Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(fig:histic50) and Figure \@ref(fig:histic80), respectively. Related summaries are shown in Table \@ref(tab:tableic50) and Table \@ref(tab:tableic80).
+
+Histograms for the predicted IC-50 an IC-80 based on the additive model are shown in Figure \@ref(fig:histcombn), a histogram of the predicted IIP is shown in Figure \@ref(fig:histiip), and related summaries are shown in Table \@ref(tab:combntable). The distribution of the two binary sensitivity measures is shown in Figure \@ref(fig:dichot).
 
 ```{r histic50, fig.cap = "Histogram of IC50 values for individual NAbs", fig.height=5}
 ic50_hist <- list()
@@ -189,11 +156,12 @@ for(i in seq_len(n_ab)){
 do.call(grid.arrange, ic50_hist)
 ```
 
-```{r tableic50, fig.cap = "Summary statistics of IC-50 values for individual NAbs"}
+```{r tableic50}
 ic50_table <- Reduce(rbind, ic50_tab)
 row.names(ic50_table) <- c(paste0("IC-50 ", antibodies),
                            paste0("log(IC-50 ", antibodies,")"))[c(seq(1,n_ab*2,by=2),seq(2, n_ab*2, by = 2))]
-kable(ic50_table, row.names = TRUE, digits = 3)
+kable(ic50_table, row.names = TRUE, digits = 3,
+      caption = "Summary statistics of IC-50 values for individual NAbs")
 ```
 
 ```{r histic80, fig.cap = "Histogram of IC80 values for individual NAbs"}
@@ -217,11 +185,12 @@ for(i in seq_len(n_ab)){
 do.call(grid.arrange, ic80_hist)
 ```
 
-```{r tableic80, fig.cap = "Summary statistics of IC-80 values for individual NAbs"}
+```{r tableic80}
 ic80_table <- Reduce(rbind, ic80_tab)
 row.names(ic80_table) <- c(paste0("IC-80 ", antibodies),
                            paste0("log(IC-80 ", antibodies,")"))[c(seq(1,n_ab*2,by=2),seq(2, n_ab*2, by = 2))]
-kable(ic80_table, row.names = TRUE, digits = 3)
+kable(ic80_table, row.names = TRUE, digits = 3,
+      caption = "Summary statistics of IC-80 values for individual NAbs")
 ```
 
 
@@ -242,7 +211,7 @@ iip_hist[[1]] <- make_hist_plot(dat, "iip", "Estimated IIP", "Density")
 do.call(grid.arrange, iip_hist)
 ```
 
-```{r combn_table}
+```{r combntable}
 # make a table of ic50 80 and iip for combined NAbs
 combn_table <- rbind(
   summary(dat$pc.ic50)[1:6],
@@ -254,10 +223,11 @@ combn_table <- rbind(
 row.names(combn_table) <- c(
   "Estimated IC-50", "log(estimated IC-50)", "Estimated IC-80", "log(estimated IC-80)", "IIP"
 )
-kable(combn_table, row.names = TRUE, digits = 3)
+kable(combn_table, row.names = TRUE, digits = 3,
+      caption = "Summaries of combined NAb endpoints")
 ```
 
-```{r dichot_outcomes_fig, fig.cap = "Distribution of binary sensitivity outcomes. Estimated indicates whether the estimated IC-50 falls above a sensitivity threshold. Multiple indicates whether at least two individual NAbs fall above a sensitivity threshold."}
+```{r dichot, fig.cap = "Distribution of binary sensitivity outcomes. Estimated indicates whether the estimated IC-50 falls above a sensitivity threshold. Multiple indicates whether at least two individual NAbs fall above a sensitivity threshold."}
 n <- n_row_now
 # make a stacked data set for easy use of geom_bar
 dichot_dat <- data.frame(
@@ -286,6 +256,7 @@ ggplot(dichot_dat, aes(y = value, x = factor(Outcome_type), fill = factor(Outcom
 	geom_bar(position = "fill", stat = "identity") +
 	scale_fill_manual(values = fill[c(2,4)]) +
 	theme_bw() +
+	labs(fill = "") +
 	xlab("Sensitivity Measure") +
 	geom_text(data = dichot_dat, aes(y = value, label = paste0(round(value, 2), "%"), stat = "identity"),
 	          position = position_fill(vjust = 0.5))
@@ -294,9 +265,14 @@ ggplot(dichot_dat, aes(y = value, x = factor(Outcome_type), fill = factor(Outcom
 
 # Super learner prediction results
 
-A super learner was fit to each outcome. For continuous outcomes, super learner weights were chosen to optimize estimated 10-fold cross-validated MSE; for binary outcomes, weights were chosen to optimize a 10-fold negative log-likelihood risk estimate. The algorithms used in the super learner are shown in Table \@ref(fig:super_learner_library_table).
+```{r}
+# get a fresh data set
+dat <- get_dat()$dat
+```
 
-```{r super_learner_library_table, fig.cap = "Super learner library"}
+A super learner was fit to each outcome. For continuous outcomes, super learner weights were chosen to optimize estimated 10-fold cross-validated MSE; for binary outcomes, weights were chosen to optimize a 10-fold negative log-likelihood risk estimate. The algorithms used in the super learner are shown in Table \@ref(tab:superlearnerlibrarytable).
+
+```{r superlearnerlibrarytable}
 source("/home/lib/super_learner_libraries.R")
 library_table <- data.frame()
 this_library <- if(reduce_library){
@@ -307,17 +283,18 @@ this_library <- if(reduce_library){
 Description <- sapply(this_library, function(x){
 	eval(parse(text = paste0("descr_", x)))
 })
-knitr::kable(as.data.frame(Description))
+knitr::kable(as.data.frame(Description),
+             caption = "Super learner library")
 ```
 
-The weights assigned to each algorithm for each outcome are shown in Table \@ref{fig:super_learner_weight_table}. Cross-validated risks for each outcome are shown in the following subsections.
+The weights assigned to each algorithm for each outcome are shown in Table \@ref{tab:superlearnerweighttable}. Cross-validated risks for each outcome are shown in the following subsections.
 
-```{r super_learner_weight_table, fig.cap = "Table of super learner weights for each outcome"}
+```{r superlearnerweighttable}
 # load super learner fits
 outcome_names <- if(!reduce_outcomes){
-	c("pc.ic50", "pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
+	c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
 }else{
-	c("pc.ic50")
+	c("log10.pc.ic50")
 }
 weight_list <- vector(mode = "list", length = length(outcome_names))
 ct <- 0
@@ -329,7 +306,8 @@ for(o in outcome_names){
 weight_table <- data.frame(Reduce(cbind, weight_list))
 colnames(weight_table) <- outcome_names
 row.names(weight_table) <- this_library
-knitr::kable(as.data.frame(weight_table), digits = 2)
+knitr::kable(as.data.frame(weight_table), digits = 2,
+             caption = "Table of super learner weights for each outcome")
 ```
 
 ## IC-50
@@ -347,6 +325,26 @@ Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions m
 
 ```{r plotic50predversusoutcomes, fig.cap = "Cross-validated super learner predicted IC-50 plotted against actual IC-50 values. Colors correspond to different cross-validation folds"}
 plot_cv_predictions(cvfit_ic50, outcome_name = "IC-50", log_axis = FALSE)
+```
+
+Figure \@ref(fig:plotic50imp) shows an animated representation of the importance of individual features for predicting estimated IC-50. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
+
+```{r plotic50imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting IC50'}
+for(m in 1:50){
+	make_ml_import_plot(dat = dat, imp_df = imp_ic50, max_import = m)
+}
+```
+
+Table \@ref(tab:tableic50imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+
+```{r tableic50imp}
+# imp_ic50 is created in preamble
+ic50_tab <- get_importance_table(imp_ic50, max_features = 15)
+direction_resis <- get_importance_resis(ic50_tab, dat = dat, which_outcome = "log10.pc.ic50")
+ic50_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+kable(ic50_tab, caption = "Top 10 most important features for predicting IC-50 and their importance ranks by each measure",
+      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+      row.names = FALSE)
 ```
 
 ## IC-80
@@ -375,6 +373,26 @@ if (!reduce_outcomes) {
 }
 ```
 
+Figure \@ref(fig:plotic80imp) shows an animated representation of the importance of individual features for predicting estimate IC-80. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
+
+```{r plotic80imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting IC-80'}
+for(m in 1:50){
+	make_ml_import_plot(dat = dat, imp_df = imp_ic80, max_import = m)
+}
+```
+
+Table \@ref(tab:tableic80imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+
+```{r tableic80imp}
+# imp_ic50 is created in preamble
+ic80_tab <- get_importance_table(imp_ic80, max_features = 15)
+direction_resis <- get_importance_resis(ic80_tab, dat = dat, which_outcome = "log10.pc.ic80")
+ic80_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+kable(ic80_tab, caption = "Top 10 most important features for predicting IC-80 and their importance ranks by each measure",
+      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+      row.names = FALSE)
+```
+
 ## IIP
 
 The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IIP in Figure \@ref(fig:plotiip).
@@ -400,6 +418,27 @@ if (!reduce_outcomes) {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
 ```
+
+Figure \@ref(fig:plotiipimp) shows an animated representation of the importance of individual features for predicting estimate IC-80. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
+
+```{r plotiipimp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting IIP'}
+for(m in 1:50){
+	make_ml_import_plot(dat = dat, imp_df = imp_iip, max_import = m)
+}
+```
+
+Table \@ref(tab:tableiipimp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+
+```{r tableiipimp}
+# imp_ic50 is created in preamble
+iip_tab <- get_importance_table(imp_iip, max_features = 15)
+direction_resis <- get_importance_resis(iip_tab, dat = dat, which_outcome = "iip")
+iip_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+kable(iip_tab, caption = "Top 10 most important features for predicting IIP and their importance ranks by each measure",
+      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+      row.names = FALSE)
+```
+
 
 ## Dichotomous sensitivity 1
 
@@ -430,6 +469,27 @@ if (!reduce_outcomes) {
 }
 ```
 
+Figure \@ref(fig:plotdichot1imp) shows an animated representation of the importance of individual features for predicting estimated sensitivity . To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
+
+```{r plotdichot1imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting estimated sensitivity'}
+for(m in 1:50){
+	make_ml_import_plot(dat = dat, imp_df = imp_dichot1, max_import = m)
+}
+```
+
+Table \@ref(tab:tabledichot1imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+
+```{r tabledichot1imp}
+# imp_ic50 is created in preamble
+dichot1_tab <- get_importance_table(imp_dichot1, max_features = 15)
+direction_resis <- get_importance_resis(dichot1_tab, dat = dat, which_outcome = "dichotomous.1")
+dichot1_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+kable(dichot1_tab, caption = "Top 10 most important features for predicting estimated sensitivity and their importance ranks by each measure",
+      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+      row.names = FALSE)
+```
+
+
 ## Dichotomous sensitivity 2
 
 The cross-validated performance of super learner (in terms of AUC) relative to the discrete super learner and candidate algorithms are shown for the second dichotomous endpoint (each individual IC-50 above threshold) in Figure \@ref(fig:plotdichot2). Figure \@ref(fig:rocdichot2) shows cross-validated ROC curves for this endpoint.
@@ -449,6 +509,26 @@ if (!reduce_outcomes) {
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
+```
+
+Figure \@ref(fig:plotdichot2imp) shows an animated representation of the importance of individual features for predicting multiple sensitivity. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
+
+```{r plotdichot2imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting multiple sensitivity.'}
+for(m in 1:50){
+	make_ml_import_plot(dat = dat, imp_df = imp_dichot2, max_import = m)
+}
+```
+
+Table \@ref(tab:tabledichot2imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+
+```{r tabledichot2imp}
+# imp_ic50 is created in preamble
+dichot2_tab <- get_importance_table(imp_dichot2, max_features = 15)
+direction_resis <- get_importance_resis(dichot2_tab, dat = dat, which_outcome = "dichotomous.2")
+dichot2_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+kable(dichot2_tab, caption = "Top 10 most important features for predicting multiple sensitivity and their importance ranks by each measure",
+      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+      row.names = FALSE)
 ```
 
 ## Variable group definitions
