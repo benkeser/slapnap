@@ -30,8 +30,6 @@ RUN apt-get install -y vim
 RUN apt-get install -y pandoc
 
 # install R libraries needed for analysis
-# copy R package (only until new version gets to GitHub)
-COPY vimp_2.0.0.tar.gz /home/lib/vimp_2.0.0.tar.gz
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("rmarkdown", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bookdown", repos="https://cran.rstudio.com")'
@@ -45,9 +43,11 @@ RUN Rscript -e 'install.packages("ggplot2", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("glmnet", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ranger", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("xgboost", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz", type = "source", repos = NULL))'
 RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
+# copy R package (only until new version gets to GitHub)
+COPY vimp_2.0.0.tar.gz /home/lib/vimp_2.0.0.tar.gz
+RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz", type = "source", repos = NULL))'
 
 # make directories
 # lib contains R source files
