@@ -59,7 +59,7 @@ sl_one_outcome <- function(outcome_name,
         pred <- dat[ , pred_names]
 
         if(reduce_covs){
-          pred <- pred[ , 1:3]
+          pred <- pred[ , 1:5]
         }
 
         fit <- SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
