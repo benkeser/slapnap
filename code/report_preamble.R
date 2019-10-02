@@ -86,21 +86,18 @@ source("/home/lib/var_import_plot.R")
 
 # get importance measures
 col_idx <- geog_idx:ncol(dat)
-if (reduce_covs) {
-    col_idx <- geog_idx:(geog_idx + 2)
-}
 imp_ic50 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx)
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 imp_ic80 <- get_all_importance("log10.pc.ic80", binary_outcome = FALSE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx)
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 imp_iip <- get_all_importance("iip", binary_outcome = FALSE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx)
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 imp_dichot1 <- get_all_importance("dichotomous.1", binary_outcome = TRUE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx)
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 imp_dichot2 <- get_all_importance("dichotomous.2", binary_outcome = TRUE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx)
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
