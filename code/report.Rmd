@@ -11,10 +11,10 @@ source("/home/lib/report_preamble.R")
 
 ```{r load_cvfit_objects}
 if (!no_cv) {
-    cvfit_ic50 <- readRDS("/home/slfits/cvfit_pc.ic50.rds")
+    cvfit_ic50 <- readRDS("/home/slfits/cvfit_log10.pc.ic50.rds")
     class(cvfit_ic50) <- "myCV.SuperLearner"
     if(!reduce_outcomes){
-    	cvfit_ic80 <- readRDS("/home/slfits/cvfit_pc.ic80.rds")
+    	cvfit_ic80 <- readRDS("/home/slfits/cvfit_log10.pc.ic80.rds")
     	cvfit_iip <- readRDS("/home/slfits/cvfit_iip.rds")
     	cvfit_dichotomous.1 <- readRDS("/home/slfits/cvfit_dichotomous.1.rds")
     	cvfit_dichotomous.2 <- readRDS("/home/slfits/cvfit_dichotomous.2.rds")
@@ -22,10 +22,10 @@ if (!no_cv) {
     		class(cvfit_dichotomous.2) <- "myCV.SuperLearner"
     }
 } else {
-    cvfit_ic50 <- readRDS("/home/slfits/fit_pc.ic50.rds")
+    cvfit_ic50 <- readRDS("/home/slfits/fit_log10.pc.ic50.rds")
     class(cvfit_ic50) <- "myCV.SuperLearner"
     if (!reduce_outcomes) {
-        cvfit_ic80 <- readRDS("/home/slfits/fit_pc.ic80.rds")
+        cvfit_ic80 <- readRDS("/home/slfits/fit_log10.pc.ic80.rds")
     	cvfit_iip <- readRDS("/home/slfits/fit_iip.rds")
     	cvfit_dichotomous.1 <- readRDS("/home/slfits/fit_dichotomous.1.rds")
     	cvfit_dichotomous.2 <- readRDS("/home/slfits/fit_dichotomous.2.rds")
