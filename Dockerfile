@@ -45,9 +45,6 @@ RUN Rscript -e 'install.packages("ranger", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("xgboost", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
-# copy R package (only until new version gets to GitHub)
-COPY vimp_2.0.0.tar.gz /home/lib/vimp_2.0.0.tar.gz
-RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz", type = "source", repos = NULL))'
 
 # make directories
 # lib contains R source files
@@ -57,6 +54,9 @@ RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz",
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits
 
+# install ffmpeg for animating figures
+RUN apt-get update
+RUN apt-get install -y ffmpeg
 
 # pull CATNAP data from LANL
 RUN wget -O /home/dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"
@@ -64,6 +64,9 @@ RUN wget -O /home/dat/catnap/viruses.txt "https://www.hiv.lanl.gov/cgi-bin/commo
 RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/virseqs_aa.fasta"
 RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
+# copy R package (only until new version gets to GitHub)
+COPY vimp_2.0.0.tar.gz /home/lib/vimp_2.0.0.tar.gz
+RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz", type = "source", repos = NULL))'
 # copy R scripts to do data pull and make executable
 COPY code/multi_ab_v3.Rlib /home/lib/multi_ab_v3.Rlib
 COPY code/merge_proc_v3.R /home/lib/merge_proc_v3.R

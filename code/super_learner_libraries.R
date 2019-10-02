@@ -1,15 +1,54 @@
 # boosted algorithms
+SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights, id, ntrees = 1000,
+    max_depth = 4, shrinkage = 0.1, minobspernode = 10, params = list(),
+    nthread = 1, verbose = 0, save_period = NULL, ...)
+{
+    SuperLearner:::.SL.require("xgboost")
+    if (packageVersion("xgboost") < 0.6)
+        stop("SL.xgboost requires xgboost version >= 0.6, try help('SL.xgboost') for details")
+    if (!is.matrix(X)) {
+        X = model.matrix(~. - 1, X)
+    }
+    xgmat = xgboost::xgb.DMatrix(data = X, label = Y, weight = obsWeights)
+    if (family$family == "gaussian") {
+        model = xgboost::xgboost(data = xgmat, objective = "reg:squarederror",
+            nrounds = ntrees, max_depth = max_depth, min_child_weight = minobspernode,
+            eta = shrinkage, verbose = verbose, nthread = nthread,
+            params = params, save_period = save_period)
+    }
+    if (family$family == "binomial") {
+        model = xgboost::xgboost(data = xgmat, objective = "binary:logistic",
+            nrounds = ntrees, max_depth = max_depth, min_child_weight = minobspernode,
+            eta = shrinkage, verbose = verbose, nthread = nthread,
+            params = params, save_period = save_period)
+    }
+    if (family$family == "multinomial") {
+        model = xgboost::xgboost(data = xgmat, objective = "multi:softmax",
+            nrounds = ntrees, max_depth = max_depth, min_child_weight = minobspernode,
+            eta = shrinkage, verbose = verbose, num_class = length(unique(Y)),
+            nthread = nthread, params = params, save_period = save_period)
+    }
+    if (!is.matrix(newX)) {
+        newX = model.matrix(~. - 1, newX)
+    }
+    pred = predict(model, newdata = newX)
+    fit = list(object = model)
+    class(fit) = c("SL.xgboost")
+    out = list(pred = pred, fit = fit)
+    return(out)
+}
+
 SL.xgboost2 <- function(..., max_depth = 2){
-	SL.xgboost(..., max_depth = max_depth)
+	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 SL.xgboost4 <- function(..., max_depth = 4){
-	SL.xgboost(..., max_depth = max_depth)
+	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 SL.xgboost6 <- function(..., max_depth = 6){
-	SL.xgboost(..., max_depth = max_depth)
+	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 SL.xgboost8 <- function(..., max_depth = 8){
-	SL.xgboost(..., max_depth = max_depth)
+	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 descr_SL.xgboost <- "boosted regression trees with maximum depth of "
 descr_SL.xgboost2 <- paste0(descr_SL.xgboost, 2)
@@ -18,10 +57,10 @@ descr_SL.xgboost6 <- paste0(descr_SL.xgboost, 6)
 descr_SL.xgboost8 <- paste0(descr_SL.xgboost, 8)
 
 # random forests
-SL.ranger.imp <- function (Y, X, newX, family, obsWeights, num.trees = 500, mtry = floor(sqrt(ncol(X))), 
-    write.forest = TRUE, probability = family$family == "binomial", 
-    min.node.size = ifelse(family$family == "gaussian", 5, 1), 
-    replace = TRUE, sample.fraction = ifelse(replace, 1, 0.632), 
+SL.ranger.imp <- function (Y, X, newX, family, obsWeights, num.trees = 500, mtry = floor(sqrt(ncol(X))),
+    write.forest = TRUE, probability = family$family == "binomial",
+    min.node.size = ifelse(family$family == "gaussian", 5, 1),
+    replace = TRUE, sample.fraction = ifelse(replace, 1, 0.632),
     num.threads = 1, verbose = TRUE, ...) {
     SuperLearner:::.SL.require("ranger")
     if (family$family == "binomial") {
@@ -30,11 +69,11 @@ SL.ranger.imp <- function (Y, X, newX, family, obsWeights, num.trees = 500, mtry
     if (is.matrix(X)) {
         X = data.frame(X)
     }
-    fit <- ranger::ranger(`_Y` ~ ., data = cbind(`_Y` = Y, X), 
-        num.trees = num.trees, mtry = mtry, min.node.size = min.node.size, 
-        replace = replace, sample.fraction = sample.fraction, 
-        case.weights = obsWeights, write.forest = write.forest, 
-        probability = probability, num.threads = num.threads, 
+    fit <- ranger::ranger(`_Y` ~ ., data = cbind(`_Y` = Y, X),
+        num.trees = num.trees, mtry = mtry, min.node.size = min.node.size,
+        replace = replace, sample.fraction = sample.fraction,
+        case.weights = obsWeights, write.forest = write.forest,
+        probability = probability, num.threads = num.threads,
         verbose = verbose, importance = "impurity")
     pred <- predict(fit, data = newX)$predictions
     if (family$family == "binomial") {
@@ -56,10 +95,10 @@ SL.ranger.small <- function(..., X, mtry = floor(sqrt(ncol(X)) * 1/2)){
 SL.ranger.large <- function(..., X, mtry = floor(sqrt(ncol(X)) * 2)){
 	SL.ranger.imp(..., mtry = mtry)
 }
-descr_SL.ranger <- "random forest with mtry equal to "
-descr_SL.ranger.reg <- paste0(descr_SL.ranger, "square root of number of predictors")
-descr_SL.ranger.small <- paste0(descr_SL.ranger, "one-half times square root of number of predictors")
-descr_SL.ranger.large <- paste0(descr_SL.ranger, "two times square root of number of predictors")
+descr_SL.ranger.imp <- "random forest with mtry equal to "
+descr_SL.ranger.reg <- paste0(descr_SL.ranger.imp, "square root of number of predictors")
+descr_SL.ranger.small <- paste0(descr_SL.ranger.imp, "one-half times square root of number of predictors")
+descr_SL.ranger.large <- paste0(descr_SL.ranger.imp, "two times square root of number of predictors")
 
 # lasso
 SL.glmnet.50 <- function(..., alpha = 0.5){
@@ -82,19 +121,20 @@ descr_SL.mean <- "intercept only regression"
 descr_SL.glm <- "main terms generalized linear model"
 
 default_library <- c("SL.mean","SL.xgboost2", "SL.xgboost4", "SL.xgboost6", "SL.xgboost8",
-                     "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large", 
+                     "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large",
                      "SL.glmnet", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
 
-default_library_reduced <- c("SL.mean", "SL.glm")
+# default_library_reduced <- c("SL.mean", "SL.glm")
+default_library_reduced <- c("SL.ranger.imp", "SL.glmnet", "SL.xgboost2")
 
 #' Temporary fix for convex combination method mean squared error
-#' Relative to existing implementation, we reduce the tolerance at which 
+#' Relative to existing implementation, we reduce the tolerance at which
 #' we declare predictions from a given algorithm the same as another
-tmp_method.CC_LS <- function () 
+tmp_method.CC_LS <- function ()
 {
-    computeCoef = function(Z, Y, libraryNames, verbose, obsWeights, 
+    computeCoef = function(Z, Y, libraryNames, verbose, obsWeights,
         errorsInLibrary = NULL, ...) {
-        cvRisk <- apply(Z, 2, function(x) mean(obsWeights * (x - 
+        cvRisk <- apply(Z, 2, function(x) mean(obsWeights * (x -
             Y)^2))
         names(cvRisk) <- libraryNames
         compute <- function(x, y, wt = rep(1, length(y))) {
@@ -104,7 +144,7 @@ tmp_method.CC_LS <- function ()
             d <- crossprod(wX, wY)
             A <- cbind(rep(1, ncol(wX)), diag(ncol(wX)))
             bvec <- c(1, rep(0, ncol(wX)))
-            fit <- tryCatch({quadprog::solve.QP(Dmat = D, dvec = d, Amat = A, 
+            fit <- tryCatch({quadprog::solve.QP(Dmat = D, dvec = d, Amat = A,
                 bvec = bvec, meq = 1)
           }, error = function(e){
             out <- list()
@@ -119,14 +159,14 @@ tmp_method.CC_LS <- function ()
         }))
         anyNACols <- length(naCols) > 0
         if (anyNACols) {
-            warning(paste0(paste0(libraryNames[naCols], collapse = ", "), 
+            warning(paste0(paste0(libraryNames[naCols], collapse = ", "),
                 " have NAs.", "Removing from super learner."))
         }
         tol <- 4
         dupCols <- which(duplicated(round(Z, tol), MARGIN = 2))
         anyDupCols <- length(dupCols) > 0
         if (anyDupCols) {
-            warning(paste0(paste0(libraryNames[dupCols], collapse = ", "), 
+            warning(paste0(paste0(libraryNames[dupCols], collapse = ", "),
                 " are duplicates of previous learners.", " Removing from super learner."))
         }
         if (anyDupCols | anyNACols) {
@@ -153,48 +193,48 @@ tmp_method.CC_LS <- function ()
           coef[coef < 1e-04] <- 0
           coef <- coef/sum(coef)
         }
-        if (!sum(coef) > 0) 
+        if (!sum(coef) > 0)
             warning("All algorithms have zero weight", call. = FALSE)
         list(cvRisk = cvRisk, coef = coef, optimizer = fit)
     }
     computePred = function(predY, coef, ...) {
         predY %*% matrix(coef)
     }
-    out <- list(require = "quadprog", computeCoef = computeCoef, 
+    out <- list(require = "quadprog", computeCoef = computeCoef,
         computePred = computePred)
     invisible(out)
 }
 
 
 #' Temporary fix for convex combination method negative log-likelihood loss
-#' Relative to existing implementation, we reduce the tolerance at which 
+#' Relative to existing implementation, we reduce the tolerance at which
 #' we declare predictions from a given algorithm the same as another.
-#' Note that because of the way \code{SuperLearner} is structure, one needs to 
+#' Note that because of the way \code{SuperLearner} is structure, one needs to
 #' install the optimization software separately.
-tmp_method.CC_nloglik <- function () 
+tmp_method.CC_nloglik <- function ()
 {
     computePred = function(predY, coef, control, ...) {
         if (sum(coef != 0) == 0) {
             stop("All metalearner coefficients are zero, cannot compute prediction.")
         }
-        stats::plogis(trimLogit(predY[, coef != 0], trim = control$trimLogit) %*% 
+        stats::plogis(trimLogit(predY[, coef != 0], trim = control$trimLogit) %*%
             matrix(coef[coef != 0]))
     }
-    computeCoef = function(Z, Y, libraryNames, obsWeights, control, 
+    computeCoef = function(Z, Y, libraryNames, obsWeights, control,
         verbose, ...) {
         tol <- 4
         dupCols <- which(duplicated(round(Z, tol), MARGIN = 2))
         anyDupCols <- length(dupCols) > 0
         modZ <- Z
         if (anyDupCols) {
-            warning(paste0(paste0(libraryNames[dupCols], collapse = ", "), 
+            warning(paste0(paste0(libraryNames[dupCols], collapse = ", "),
                 " are duplicates of previous learners.", " Removing from super learner."))
             modZ <- modZ[, -dupCols, drop = FALSE]
         }
         modlogitZ <- trimLogit(modZ, control$trimLogit)
         logitZ <- trimLogit(Z, control$trimLogit)
-        cvRisk <- apply(logitZ, 2, function(x) -sum(2 * obsWeights * 
-            ifelse(Y, stats::plogis(x, log.p = TRUE), stats::plogis(x, log.p = TRUE, 
+        cvRisk <- apply(logitZ, 2, function(x) -sum(2 * obsWeights *
+            ifelse(Y, stats::plogis(x, log.p = TRUE), stats::plogis(x, log.p = TRUE,
                 lower.tail = FALSE))))
         names(cvRisk) <- libraryNames
         obj_and_grad <- function(y, x, w = NULL) {
@@ -202,13 +242,13 @@ tmp_method.CC_nloglik <- function ()
             x <- x
             function(beta) {
                 xB <- x %*% cbind(beta)
-                loglik <- y * stats::plogis(xB, log.p = TRUE) + (1 - 
+                loglik <- y * stats::plogis(xB, log.p = TRUE) + (1 -
                   y) * stats::plogis(xB, log.p = TRUE, lower.tail = FALSE)
-                if (!is.null(w)) 
+                if (!is.null(w))
                   loglik <- loglik * w
                 obj <- -2 * sum(loglik)
                 p <- stats::plogis(xB)
-                grad <- if (is.null(w)) 
+                grad <- if (is.null(w))
                   2 * crossprod(x, cbind(p - y))
                 else 2 * crossprod(x, w * cbind(p - y))
                 list(objective = obj, gradient = grad)
@@ -219,10 +259,10 @@ tmp_method.CC_nloglik <- function ()
         if (anyNA(cvRisk)) {
             upper_bounds[is.na(cvRisk)] = 0
         }
-        r <- tryCatch({nloptr::nloptr(x0 = rep(1/ncol(modZ), ncol(modZ)), 
-            eval_f = obj_and_grad(Y, modlogitZ), lb = lower_bounds, 
-            ub = upper_bounds, eval_g_eq = function(beta) (sum(beta) - 
-                1), eval_jac_g_eq = function(beta) rep(1, length(beta)), 
+        r <- tryCatch({nloptr::nloptr(x0 = rep(1/ncol(modZ), ncol(modZ)),
+            eval_f = obj_and_grad(Y, modlogitZ), lb = lower_bounds,
+            ub = upper_bounds, eval_g_eq = function(beta) (sum(beta) -
+                1), eval_jac_g_eq = function(beta) rep(1, length(beta)),
             opts = list(algorithm = "NLOPT_LD_SLSQP", xtol_abs = 1e-08))
         }, error = function(e){
           out <- list()
