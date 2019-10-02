@@ -12,13 +12,13 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
     ## get the variable importances
     if (!is.null(vimp_obj$mat)) {
         vimp_est <- vimp_obj$mat
-        vimp_est$group <- rownames(vimp_obj$mat)
+        vimp_est$group <- vimp_nice_rownames(vimp_obj)
     } else {
         vimp_est <- cbind(est = vimp_obj$est, se = vimp_obj$se, cil = vimp_obj$cil, ciu = vimp_obj$ciu)
-        print_s <- ifelse(length(vimp_obj$s) <= 10, 
-                      paste(vimp_obj$s, collapse = ", "), 
+        print_s <- ifelse(length(vimp_obj$s) <= 10,
+                      paste(vimp_obj$s, collapse = ", "),
                       paste(c(vimp_obj$s[1:10], "..."), collapse = ", "))
-        vimp_est$group <- paste("s = ", print_s, sep = "") 
+        vimp_est$group <- paste("s = ", print_s, sep = "")
     }
     ## plot by ordered vimp measure
     vimp_plot <- vimp_est %>%
@@ -27,7 +27,7 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
         geom_errorbarh(aes(xmin = cil, xmax = ciu)) +
         geom_point(size = point_size) +
         ggtitle(title) +
-        xlab(x_lab) + 
+        xlab(x_lab) +
         ylab("Feature group") +
         scale_x_continuous(breaks = round(seq(x_lim[1], x_lim[2], 0.1), 1),
                        labels = as.character(round(seq(x_lim[1], x_lim[2], 0.1), 1)),
@@ -39,7 +39,28 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
     return(vimp_plot)
 }
 
+vimp_plot_name <- function(vimp_obj) {
+    row_nm <- vimp_obj$mat$print_name
+    tmp_string_init <- strsplit(row_nm, "_", fixed = TRUE)[[1]]
+    tmp_string <- paste0(tmp_string_init[-length(tmp_string_init)], collapse = "_")
+    if (grepl("iip", tmp_string)) {
+        plot_nm <- "IIP"
+    } else if (grepl("pc.ic50", tmp_string)) {
+        plot_nm <- "IC-50"
+    } else if (grepl("pc.ic80", tmp_string)) {
+        plot_nm <- "IC-80"
+    } else if (grepl("dichotomous.1", tmp_string)) {
+        plot_nm <- "Estimated sensitivity"
+    } else {
+        plot_nm <- "Multiple Sensitivity"
+    }
+    return(plot_nm)
+}
 
+vimp_nice_rownames <- function(vimp_obj) {
+    row_nm <- vimp_obj$mat$print_name
+    return(unlist(lapply(strsplit(row_nm, "_", fixed = TRUE), function(x) tail(x, n = 1))))
+}
 
 ### HERE'S THE CODE I TOOK FROM THE RMD. PUTTING HERE FOR THE TIME BEING
 # # Variable importance

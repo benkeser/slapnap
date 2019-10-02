@@ -12,12 +12,14 @@ library(ROCR)
 library(knitr)
 library(gridExtra)
 library(xgboost); library(ranger); library(glmnet)
+library(vimp)
 
 # attempt to read in environment variables
 reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
 reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
 reduce_library <- Sys.getenv("reduce_library") == "TRUE"
 reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
+no_cv <- Sys.getenv("no_cv") == TRUE
 
 
 source("/home/lib/plotting_functions.R")
@@ -53,21 +55,21 @@ my_webm <- function (x, options) {
     extra = switch(format, webm = paste("-b:v", knitr:::`%n%`(options$ffmpeg.bitrate,
         "1M"), "-crf 10"), mp4 = "-pix_fmt yuv420p")
     more_extra <- paste0('-vf "movie=', fig.fname, ' [fix]; [in] setsar=sar=1,format=rgba [inf]; [inf][fix] blend=all_mode=overlay:all_opacity=1,format=yuva422p10le [out]"')
-    ffmpeg.cmd = paste("ffmpeg", "-y", "-r", 1/options$interval, 
+    ffmpeg.cmd = paste("ffmpeg", "-y", "-r", 1/options$interval,
         "-i", fig.fname, extra, more_extra, mov.fname)
-    if (Sys.which("ffmpeg") == "") 
-        stop2("Could not find ffmpeg command. You should either change the animation.fun ", 
+    if (Sys.which("ffmpeg") == "")
+        stop2("Could not find ffmpeg command. You should either change the animation.fun ",
             "hook option or install ffmpeg with libvpx enabled.")
     message("executing: ", ffmpeg.cmd)
     system(ffmpeg.cmd, ignore.stdout = TRUE)
-    
+
     opts = paste(knitr:::sc_split(options$aniopts), collapse = " ")
-    opts = paste(sprintf("width=\"%s\"", options$out.width), 
+    opts = paste(sprintf("width=\"%s\"", options$out.width),
         sprintf("height=\"%s\"", options$out.height), opts)
     cap = knitr:::.img.cap(options, alt = TRUE)
-    if (cap != "") 
+    if (cap != "")
         cap = sprintf("<p>%s</p>", cap)
-    sprintf("<video %s><source src=\"%s\" />%s</video>", trimws(opts), 
+    sprintf("<video %s><source src=\"%s\" />%s</video>", trimws(opts),
         paste0(opts_knit$get("base.url"), mov.fname), cap)
 }
 
@@ -83,20 +85,19 @@ source("/home/lib/var_import_plot.R")
 
 
 # get importance measures
+col_idx <- geog_idx:ncol(dat)
 imp_ic50 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = geog_idx:ncol(dat))
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 imp_ic80 <- get_all_importance("log10.pc.ic80", binary_outcome = FALSE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = geog_idx:ncol(dat))
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 imp_iip <- get_all_importance("iip", binary_outcome = FALSE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = geog_idx:ncol(dat))
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 imp_dichot1 <- get_all_importance("dichotomous.1", binary_outcome = TRUE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = geog_idx:ncol(dat))
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 imp_dichot2 <- get_all_importance("dichotomous.2", binary_outcome = TRUE,
                                dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = geog_idx:ncol(dat))
-
-
+                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)

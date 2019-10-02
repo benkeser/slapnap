@@ -2,7 +2,7 @@
 FROM ubuntu:latest
 
 # update libraries
-RUN apt-get clean && apt-get update && apt-get upgrade -y 
+RUN apt-get clean && apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https
 
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -15,18 +15,21 @@ ENV reduce_outcomes=FALSE
 ENV reduce_library=FALSE
 ENV reduce_groups=FALSE
 
-# install R from command line
-RUN apt-get install -y r-base
+# make sure we have wget
+RUN apt-get install -y wget
+
+# install R from command line; get >= R-3.5
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository -y ppa:marutter/rrutter3.5
+RUN apt-get install -y r-base && apt-get install -y r-base-dev
 
 # put vim on for ease of editing docs inside container
-RUN apt-get install -y vim 
+RUN apt-get install -y vim
 
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc
 
 # install R libraries needed for analysis
-# copy R package (only until new version gets to GitHub)
-COPY vimp_1.3.0.tar.gz /home/lib/vimp_1.3.0.tar.gz
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("rmarkdown", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bookdown", repos="https://cran.rstudio.com")'
@@ -40,13 +43,12 @@ RUN Rscript -e 'install.packages("ggplot2", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("glmnet", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ranger", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("xgboost", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_1.3.0.tar.gz", type = "source", repos = NULL))'
 RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
 
 # make directories
 # lib contains R source files
-# dat contains data 
+# dat contains data
 # dat/catnap contains original catnap data
 # dat/analysis contains analysis data
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
@@ -56,15 +58,15 @@ RUN mkdir /home/slfits
 RUN apt-get update
 RUN apt-get install -y ffmpeg
 
-# make sure we have wget
-RUN apt-get install -y wget
-
 # pull CATNAP data from LANL
 RUN wget -O /home/dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"
 RUN wget -O /home/dat/catnap/viruses.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/viruses.txt"
 RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/virseqs_aa.fasta"
 RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
+# copy R package (only until new version gets to GitHub)
+COPY vimp_2.0.0.tar.gz /home/lib/vimp_2.0.0.tar.gz
+RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz", type = "source", repos = NULL))'
 # copy R scripts to do data pull and make executable
 COPY code/multi_ab_v3.Rlib /home/lib/multi_ab_v3.Rlib
 COPY code/merge_proc_v3.R /home/lib/merge_proc_v3.R
@@ -79,7 +81,7 @@ RUN chmod +x /home/lib/merge_proc_v3.R /home/lib/run_super_learners.R /home/lib/
 # add option to avoid cv super learner fitting (for debugging)
 ENV no_cv=FALSE
 
-# copy report Rmd 
+# copy report Rmd
 COPY code/report.Rmd /home/lib/report.Rmd
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
