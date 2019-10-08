@@ -68,8 +68,8 @@ RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_co
 COPY vimp_2.0.0.tar.gz /home/lib/vimp_2.0.0.tar.gz
 RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz", type = "source", repos = NULL))'
 # copy R scripts to do data pull and make executable
-COPY code/multi_ab_v3.Rlib /home/lib/multi_ab_v3.Rlib
-COPY code/merge_proc_v3.R /home/lib/merge_proc_v3.R
+COPY code/multi_ab_v4.Rlib /home/lib/multi_ab_v4.Rlib
+COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R
 COPY code/variable_groups.R /home/lib/variable_groups.R
 COPY code/run_super_learners.R /home/lib/run_super_learners.R
 COPY code/get_vimp.R /home/lib/get_vimp.R

@@ -122,6 +122,12 @@ get_importance_resis <- function(imp_df, dat, which_outcome){
 	})
 	return(out)
 }
+
+# imp_list is a list of importance across different outcomes
+combine_importance <- function(imp_list){
+	full_list <- Reduce("rbind", imp_list)
+	imp_ft_more_than_one_outcome <- unique(full_list$variable[duplicated(full_list$variable)])
+}
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # get variable importance measures and save
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
