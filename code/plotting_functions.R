@@ -1,3 +1,69 @@
+make_logo_plot <- function(data, 
+                           outcome_name = "ic50.censored", 
+                           aa_positions = NULL,
+                           plot_gap = FALSE,
+                           plot_zero = FALSE){
+  y = unlist(data[outcome_name])
+  X = data[ , grepl( "hxb2" , names( data ) ) ]
+  X = X[ , !grepl( "sequon_actual" , names( X ) ) ]
+  
+  aa_positions = unique(aa_positions)
+  # if (!all(aa_positions %in% as.numeric(stringr::word(names(X),2,2,sep = '\\.')))){
+  #   stop("aa_positions not in the data")
+  # }
+  # if (length(aa_positions) == 0){
+  #   stop("aa_positions is empty")
+  # }
+  
+  aa_seq = c()
+  # suppress NA warnings message
+  tmp <- suppressWarnings(as.numeric(stringr::word(names(X),2,2,sep = '\\.')))
+  tmp[is.na(tmp)] <- 999999
+  for (position in aa_positions){
+    # position = aa_positions[1]
+    X0 = X[ , tmp == position]
+    names(X0) = stringr::word(names(X0),3,3,sep = '\\.')
+    aa_seq <- unique(c(aa_seq, names(X0)))
+  }
+  aa_seq <- sort(aa_seq)
+  
+  frequency_table_y1 <- matrix(ncol = length(aa_positions), nrow=length(aa_seq),dimnames = list(aa_seq, aa_positions))
+  frequency_table_y0 <- frequency_table_y1
+  
+  for (position in 1:length(aa_positions)){
+    # position = 1
+    X0 = X[ , tmp == aa_positions[position]]
+    names(X0) = stringr::word(names(X0),3,3,sep = '\\.')
+    X0_y1 = X0[y,]
+    X0_y0 = X0[!y,]
+    X0_y1_colSums = colSums(X0_y1)
+    X0_y0_colSums = colSums(X0_y0)
+    
+    frequency_table_y1[,position] <- X0_y1_colSums[match(rownames(frequency_table_y1),names(X0_y1_colSums))]
+    
+    frequency_table_y0[,position] <- X0_y0_colSums[match(rownames(frequency_table_y0),names(X0_y0_colSums))]
+  }
+  
+  frequency_table_y1[is.na(frequency_table_y1)] = 0
+  frequency_table_y0[is.na(frequency_table_y0)] = 0
+  
+  frequency_table_y1_plot = frequency_table_y1
+  frequency_table_y0_plot = frequency_table_y0
+  
+  if (!plot_gap){frequency_table_y1_plot = frequency_table_y1_plot[!rownames(frequency_table_y1_plot) == 'gap',];
+  frequency_table_y0_plot = frequency_table_y0_plot[!rownames(frequency_table_y0_plot) == 'gap',];
+  }
+  if (!plot_zero){frequency_table_y1_plot = frequency_table_y1_plot[rowSums(frequency_table_y1_plot)>0,];
+  frequency_table_y0_plot = frequency_table_y0_plot[rowSums(frequency_table_y0_plot)>0,];
+  }
+  
+  p1 = ggseqlogo::ggseqlogo( frequency_table_y1, method='prob', seq_type = "aa") + ggplot2::ylab(ifelse(outcome_name == "dichotomous.1", "Estimated resistant", "Multiply resistant") ) + ggplot2::theme(legend.position = 'none')
+  p1$scales$scales[[1]] <- ggplot2::scale_x_continuous(breaks = 1:length(aa_positions),labels=aa_positions)
+  p0 = ggseqlogo::ggseqlogo( frequency_table_y0, method='prob', seq_type = "aa") + ggplot2::ylab(ifelse(outcome_name == "dichotomous.1", "Estimated sensitive", "Multiply sensitive") )
+  p0$scales$scales[[1]] <- ggplot2::scale_x_continuous(breaks = 1:length(aa_positions),labels=aa_positions)
+  gridExtra::grid.arrange(p1, p0)
+  return(invisible(list(y1 = frequency_table_y1, y0=frequency_table_y0)))
+}
 
 
 make_hist_plot <- function(dat, var_name, x_lab, y_lab){
