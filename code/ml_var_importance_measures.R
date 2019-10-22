@@ -1,7 +1,7 @@
 # A function that extracts importance measures for each feature
 # from a fitted super learner object. We get the best fitting ranger, xgboost,
 # and LASSO model from the library and extract importance features from those.
-extract_importance <- function(fit_sl, ...){
+extract_importance <- function(fit_sl, data, outcome_name, ...){
 	# find name of best fitting ranger model
 	ranger_fit_idx <- grep("SL.ranger", fit_sl$libraryNames)
 	xgboost_fit_idx <- grep("SL.xgboost", fit_sl$libraryNames)
@@ -15,21 +15,61 @@ extract_importance <- function(fit_sl, ...){
 	min_glmnet_idx <- which.min(fit_sl$cvRisk[glmnet_fit_idx])
 	best_glmnet <- names(fit_sl$cvRisk)[glmnet_fit_idx][min_glmnet_idx]
 
+	# idx of columns of Z matrix corresponding to best fit of each algo
+	col_Z_idx <- c(ranger_fit_idx[min_ranger_idx], xgboost_fit_idx[min_xgboost_idx], 
+	               glmnet_fit_idx[min_glmnet_idx])
+
+	# check that best one predicts better than chance
+	if(grepl("dichotomous", outcome_name)){
+		# compute CV-AUC for each algorithm
+		V <- length(fit_sl$validRows)
+		cv_auc <- NULL
+		for(j in col_Z_idx){
+			split_Z <- vector(mode = "list", length = V)		
+			split_Y <- vector(mode = "list", length = V)
+			for(v in seq_len(V)){
+				split_Z[[v]] <- fit_sl$Z[fit_sl$validRows[[v]], j]
+				split_Y[[v]] <- data[fit_sl$validRows[[v]], outcome_name]
+			}
+			this_cv_auc <- cvAUC::cvAUC(predictions = split_Z, labels = split_Y)$cvAUC
+			cv_auc <- c(cv_auc, this_cv_auc)
+		}
+		include_ranger <- cv_auc[1] > 0.5
+		include_xgboost <- cv_auc[2] > 0.5
+		include_glmnet <- cv_auc[3] > 0.5
+	}else{
+		# compute CV-R^2 for each algorithm
+		include_ranger <- 1 - fit_sl$cvRisk[ranger_fit_idx][min_ranger_idx]/var(data[,outcome_name]) > 0
+		include_xgboost <- 1 - fit_sl$cvRisk[xgboost_fit_idx][min_xgboost_idx]/var(data[,outcome_name]) > 0
+		include_glmnet <- 1 - fit_sl$cvRisk[glmnet_fit_idx][min_glmnet_idx]/var(data[,outcome_name]) > 0
+	}
+
 	# get importance of best ranger
-	best_ranger_fit <- fit_sl$fitLibrary[[best_ranger]]$object
-	ranger_imp <- importance(best_ranger_fit)
-	ranger_imp_ranks <- rank(-ranger_imp)
+	
+		best_ranger_fit <- fit_sl$fitLibrary[[best_ranger]]$object
+		ranger_imp <- importance(best_ranger_fit)
+		ranger_imp_ranks <- rank(-ranger_imp)
+	if(!include_ranger){
+		# replace ranks with Inf
+		ranger_imp_ranks <- rep(Inf, length(ranger_imp_ranks))
+	}
 
 	# get importance of best xgboost
 	best_xgboost_fit <- fit_sl$fitLibrary[[best_xgboost]]$object
 	xgboost_imp_dt <- xgb.importance(model = best_xgboost_fit)
 	colnames(xgboost_imp_dt)[1] <- "variable"
 	xgboost_imp_dt$rank <- seq_len(nrow(xgboost_imp_dt))
+	if(!include_xgboost){
+		xgboost_imp_dt$rank <- rep(Inf, length(xgboost_imp_dt$rank))
+	}
 
 	# get importance of best glmnet
 	best_glmnet_fit <- fit_sl$fitLibrary[[best_glmnet]]$object
 	glmnet_coef <- best_glmnet_fit$glmnet.fit$beta[, which(best_glmnet_fit$lambda == best_glmnet_fit$lambda.min)]
 	glmnet_imp_rank <- rank(-abs(glmnet_coef))
+	if(!include_glmnet){
+		glmnet_imp_rank <- rep(Inf, length(glmnet_imp_rank))
+	}
 
 	# make a data frame to hold results
 	imp_df_init <- data.frame(variable = names(ranger_imp),
@@ -71,8 +111,9 @@ get_all_importance <- function(outcome_name, binary_outcome,
                                n_importance_measures = 1,
                                dat, which_cols, reduce_covs){
  	fit_sl <- readRDS(paste0(dir_loc, "fit_", outcome_name, ".rds"))
- 	imp_df <- extract_importance(fit_sl)
+ 	imp_df <- extract_importance(fit_sl, data = dat, outcome_name = outcome_name)
     imp_df$variable <- as.character(imp_df$variable)
+
 
  	# get p-value importance
  	uni_pvals <- get_uni_pvals(outcome_name = outcome_name, binary_outcome = binary_outcome,
@@ -120,6 +161,30 @@ get_importance_resis <- function(imp_df, dat, which_outcome){
 		this_x <- dat[,x[1]]
 		cor(Y, this_x) >= 0
 	})
+	return(out)
+}
+
+# imp_list is a list of importance tables across different outcomes
+combine_importance <- function(imp_list,
+                               out_names = c("IC50", "IC80", "IIP", "Estimated sens.", "Multiple sens.")){
+	full_list <- Reduce("rbind", imp_list)
+	imp_ft_more_than_one_outcome <- unique(full_list$variable[duplicated(full_list$variable)])
+	# find which outcomes each one is important for
+	if(length(imp_ft_more_than_one_outcome) > 0){
+		imp <- NULL
+		for(v in imp_ft_more_than_one_outcome){
+			this_imp <- NULL
+			for(o in seq_along(out_names)){
+				this_imp <- c(this_imp, v %in% imp_list[[o]]$variable)
+			}
+			imp <- c(imp, paste0(out_names[this_imp], collapse = ", "))
+		}
+		out <- data.frame(Variable = imp_ft_more_than_one_outcome,
+	                  Outcomes = imp)
+	}else{
+		out <- data.frame(Variable = "None", Outcomes = "N/A")
+	}
+	
 	return(out)
 }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

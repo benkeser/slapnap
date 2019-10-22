@@ -100,29 +100,83 @@ descr_SL.ranger.reg <- paste0(descr_SL.ranger.imp, "square root of number of pre
 descr_SL.ranger.small <- paste0(descr_SL.ranger.imp, "one-half times square root of number of predictors")
 descr_SL.ranger.large <- paste0(descr_SL.ranger.imp, "two times square root of number of predictors")
 
-# lasso
-SL.glmnet.50 <- function(..., alpha = 0.5){
-	SL.glmnet(..., alpha = alpha)
-}
-SL.glmnet.25 <- function(..., alpha = 0.25){
-	SL.glmnet(..., alpha = alpha)
-}
-SL.glmnet.75 <- function(..., alpha = 0.75){
-	SL.glmnet(..., alpha = alpha)
+# function used to do smarter CV for glmnet
+get_fold_id <- function(Y){
+  fold_id <- rep(0, length(Y))
+  wiY0 <- which(Y == 0)
+  wiY1 <- which(Y == 1)
+  #if <4 cases, no cv
+  if(length(wiY1) == 4){
+    #if exactly 4 cases, 4-fold cv
+    #1 case per fold
+    fold <- 1:4
+    fold_id[sample(wiY1)] <- fold
+    fold_id[sample(wiY0)] <- rep(fold, length = length(wiY0))
+  }else{
+    #if >=5 cases, 5 fold cv
+    #cases split as evenly as possible
+    fold <- 1:5
+    fold_id[sample(wiY1)] <- rep(fold, length = length(wiY1))
+    fold_id[sample(wiY0)] <- rep(fold, length = length(wiY0))
+  }
+  return(fold_id)
 }
 
-descr_SL.glmnet <- "GLMNET with lambda selected by CV and alpha equal to "
+
+# function to have more robust behavior in SL.glmnet
+SL.glmnet.mycv <- function (Y, X, newX, family, obsWeights, id, alpha = 1, nfolds = 5, 
+    nlambda = 100, useMin = TRUE, loss = "deviance", ...) {
+    .SL.require("glmnet")
+    if (!is.matrix(X)) {
+        X <- model.matrix(~-1 + ., X)
+        newX <- model.matrix(~-1 + ., newX)
+    }
+    fold_id <- get_fold_id(Y)
+    nfolds <- max(fold_id)
+    if(nfolds != 0){
+        fitCV <- glmnet::cv.glmnet(x = X, y = Y, weights = obsWeights, 
+            lambda = NULL, type.measure = loss, nfolds = nfolds, 
+            family = family$family, alpha = alpha, nlambda = nlambda, 
+            ...)
+        pred <- predict(fitCV, newx = newX, type = "response", s = ifelse(useMin, 
+            "lambda.min", "lambda.1se"))
+        fit <- list(object = fitCV, useMin = useMin)
+        class(fit) <- "SL.glmnet"
+    }else{
+        # if fewer than 3 cases, just use mean
+        meanY <- weighted.mean(Y, w = obsWeights)
+        pred <- rep.int(meanY, times = nrow(newX))
+        fit <- list(object = meanY)
+        out <- list(pred = pred, fit = fit)
+        class(out$fit) <- c("SL.mean")
+    }
+    out <- list(pred = pred, fit = fit)
+    return(out)
+}
+
+# lasso
+SL.glmnet.50 <- function(..., alpha = 0.5){
+	SL.glmnet.mycv(..., alpha = alpha)
+}
+SL.glmnet.25 <- function(..., alpha = 0.25){
+	SL.glmnet.mycv(..., alpha = alpha)
+}
+SL.glmnet.75 <- function(..., alpha = 0.75){
+	SL.glmnet.mycv(..., alpha = alpha)
+}
+
+descr_SL.glmnet <- "GLMNET with lambda selected by 5-fold CV and alpha equal to "
 descr_SL.glmnet.50 <- paste0(descr_SL.glmnet, "0.5")
 descr_SL.glmnet.25 <- paste0(descr_SL.glmnet, "0.25")
 descr_SL.glmnet.75 <- paste0(descr_SL.glmnet, "0.75")
-descr_SL.glmnet <- "GLMNET with lambda selected by CV and alpha equal to 0"
+descr_SL.glmnet.mycv <- "GLMNET with lambda selected by CV and alpha equal to 0"
 
 descr_SL.mean <- "intercept only regression"
 descr_SL.glm <- "main terms generalized linear model"
 
 default_library <- c("SL.mean","SL.xgboost2", "SL.xgboost4", "SL.xgboost6", "SL.xgboost8",
                      "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large",
-                     "SL.glmnet", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
+                     "SL.glmnet.mycv", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
 
 # default_library_reduced <- c("SL.mean", "SL.glm")
 default_library_reduced <- c("SL.ranger.imp", "SL.glmnet", "SL.xgboost2")

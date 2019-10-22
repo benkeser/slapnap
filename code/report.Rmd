@@ -129,6 +129,38 @@ if (!reduce_outcomes) {
 
 The estimated variable importance of the groups defined in Table \@ref(tab:vimpGroupTab) for predicting the continuous outcomes, with respect to the difference in nonparametric $R^2$, is shown in Figure \@ref(fig:groupVimpCont). The estimated variable importance of these groups for predicting the binary outcomes, with respect to the difference in nonparametric AUC, is shown in Figure \@ref(fig:groupVimpBin).
 
+The estimated variable importance of individual features are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report. 
+
+```{r combinedvarimpindividualfeatures}
+kable(imp_overall, caption = "Variable importance of individual features, defined by being label as 'important' for prediction of at least two of the outcomes considered; these outcomes are listed in the table.")
+```
+
+The distribution of amino acid at the important residues are shown for sensitive and resistant viruses in Figures \@ref(fig:logoPlot1) and \@ref(fig:logoPlot2).
+
+```{r logoPlot1, fig.cap = "Distribution of amino acids at important residues for estimated sensitive versus resistant viruses", fig.height = 12, fig.width = 10}
+source("plotting_functions.R")
+if(!is.na(imp_overall$Variable[1])){
+  all_imp_vars <- imp_overall$Variable
+  imp_aa_vars <- imp_overall$Variable[grepl("hxb", imp_overall$Variable)]
+  aa_positions <- sort(as.numeric(stringr::word(imp_aa_vars, 2 , 2, sep = '\\.')))
+  make_logo_plot(data = dat, outcome_name = "dichotomous.1", aa_positions = aa_positions)
+}else{
+  print("No features qualified as important for predicting multiple outcomes")
+}
+```
+
+```{r logoPlot2, fig.cap = "Distribution of amino acids at important residues for multiply sensitive versus resistant viruses", fig.height = 12, fig.width = 10}
+source("plotting_functions.R")
+if(!is.na(imp_overall$Variable[1])){
+  all_imp_vars <- imp_overall$Variable
+  imp_aa_vars <- imp_overall$Variable[grepl("hxb", imp_overall$Variable)]
+  aa_positions <- sort(as.numeric(stringr::word(imp_aa_vars, 2 , 2, sep = '\\.')))
+  make_logo_plot(data = dat, outcome_name = "dichotomous.2", aa_positions = aa_positions)
+}else{
+  print("No features qualified as important for predicting multiple outcomes")
+}
+```
+
 # Summary of endpoints
 
 Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(fig:histic50) and Figure \@ref(fig:histic80), respectively. Related summaries are shown in Table \@ref(tab:tableic50) and Table \@ref(tab:tableic80).
@@ -338,10 +370,7 @@ for(m in 1:50){
 Table \@ref(tab:tableic50imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tableic50imp}
-# imp_ic50 is created in preamble
-ic50_tab <- get_importance_table(imp_ic50, max_features = 15)
-direction_resis <- get_importance_resis(ic50_tab, dat = dat, which_outcome = "log10.pc.ic50")
-ic50_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+# ic50_tab is created in preamble
 kable(ic50_tab, caption = "Top 10 most important features for predicting IC-50 and their importance ranks by each measure",
       col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
       row.names = FALSE)
@@ -384,10 +413,7 @@ for(m in 1:50){
 Table \@ref(tab:tableic80imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tableic80imp}
-# imp_ic50 is created in preamble
-ic80_tab <- get_importance_table(imp_ic80, max_features = 15)
-direction_resis <- get_importance_resis(ic80_tab, dat = dat, which_outcome = "log10.pc.ic80")
-ic80_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+# ic80_tab is created in preamble
 kable(ic80_tab, caption = "Top 10 most important features for predicting IC-80 and their importance ranks by each measure",
       col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
       row.names = FALSE)
@@ -430,10 +456,7 @@ for(m in 1:50){
 Table \@ref(tab:tableiipimp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tableiipimp}
-# imp_ic50 is created in preamble
-iip_tab <- get_importance_table(imp_iip, max_features = 15)
-direction_resis <- get_importance_resis(iip_tab, dat = dat, which_outcome = "iip")
-iip_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+# iip_tab is created in preamble
 kable(iip_tab, caption = "Top 10 most important features for predicting IIP and their importance ranks by each measure",
       col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
       row.names = FALSE)
@@ -480,10 +503,7 @@ for(m in 1:50){
 Table \@ref(tab:tabledichot1imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tabledichot1imp}
-# imp_ic50 is created in preamble
-dichot1_tab <- get_importance_table(imp_dichot1, max_features = 15)
-direction_resis <- get_importance_resis(dichot1_tab, dat = dat, which_outcome = "dichotomous.1")
-dichot1_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+# dichot1 is created in preamble
 kable(dichot1_tab, caption = "Top 10 most important features for predicting estimated sensitivity and their importance ranks by each measure",
       col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
       row.names = FALSE)
@@ -522,10 +542,7 @@ for(m in 1:50){
 Table \@ref(tab:tabledichot2imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tabledichot2imp}
-# imp_ic50 is created in preamble
-dichot2_tab <- get_importance_table(imp_dichot2, max_features = 15)
-direction_resis <- get_importance_resis(dichot2_tab, dat = dat, which_outcome = "dichotomous.2")
-dichot2_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+# dichot2_tab is created in preamble
 kable(dichot2_tab, caption = "Top 10 most important features for predicting multiple sensitivity and their importance ranks by each measure",
       col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
       row.names = FALSE)
