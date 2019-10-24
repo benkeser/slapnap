@@ -1,3 +1,6 @@
+## ----------------------------------------------------------------------------
+## Options and packages
+## ----------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
@@ -28,6 +31,9 @@ antibody_string <- Sys.getenv("Nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 n_ab <- length(antibodies)
 
+## ----------------------------------------------------------------------------
+## Read in the data, do some set-up
+## ----------------------------------------------------------------------------
 get_dat <- function(){
 	# load data
 	analysis_data_name <- list.files("/home/dat/analysis")
@@ -83,8 +89,10 @@ source("/home/lib/ml_var_importance_measures.R")
 source("/home/lib/var_import_plot.R")
 
 
-
-# get importance measures
+## ----------------------------------------------------------------------------
+## Individual-level algorithm-specific importance
+## ----------------------------------------------------------------------------
+# get individual p-value-based importance measures; create tables
 col_idx <- geog_idx:ncol(dat)
 imp_ic50 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
                                dir_loc = "/home/slfits/",
@@ -127,3 +135,21 @@ imp_continuous <- combine_importance(list(ic50_tab, ic80_tab, iip_tab), out_name
 imp_dichot <- combine_importance(list(dichot1_tab, dichot2_tab), out_names = c("Estimated Sens.", "Multiple Sens."))
 imp_overall <- combine_importance(list(ic50_tab, ic80_tab, iip_tab, dichot1_tab, dichot2_tab))
 
+## ----------------------------------------------------------------------------
+## Population variable importance
+## ----------------------------------------------------------------------------
+
+## read in group importance results
+source("/home/lib/plot_one_vimp.R")
+continuous_outcome_vimp <- readRDS("/home/slfits/continuous_outcome_vimp.rds")
+x_lab_continuous <- expression(paste("Difference in ", R^2, sep = ""))
+x_lab_continuous_cv <- expression(paste("Difference in CV-", R^2, sep = ""))
+x_lim_continuous <- c(0, 1)
+## create a plot for each continuous outcome
+continuous_outcome_vimp_plots <- lapply(continuous_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_continuous, x_lim = x_lim_continuous))
+if (!no_cv) {
+    continuous_outcome_cv_vimp <- readRDS("/home/slfits/continuous_outcome_cv_vimp.rds")
+    continuous_outcome_cv_vimp_plots <- lapply(continuous_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_continuous_cv, x_lim = x_lim_continuous))
+}
+# do.call(grid.arrange, grob_lst)
+grid.arrange(grobs = grob_lst, ncol = 3)

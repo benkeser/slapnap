@@ -86,50 +86,11 @@ if (no_cv) {
 
 The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \@ref(tab:rsquaredtable). The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \@ref(tab:auctable).
 
-```{r groupVimpCont, fig.cap = "Group variable importance for continuous outcomes", fig.height = 10, fig.width = 20}
-source("/home/lib/plot_one_vimp.R")
-continuous_outcome_vimp <- readRDS("/home/slfits/continuous_outcome_vimp.rds")
-x_lab <- expression(paste("Difference in ", R^2, sep = ""))
-x_lim <- c(0, 1)
-## create a plot for each continuous outcome
-# paste0("Variable importance: ", vimp_plot_name(x)) # makes title too long
-continuous_outcome_vimp_plots <- lapply(continuous_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab, x_lim = x_lim))
-grob_lst <- continuous_outcome_vimp_plots
-if (!no_cv) {
-    x_lab_cv <- expression(paste("Difference in CV-", R^2, sep = ""))
-    continuous_outcome_cv_vimp <- readRDS("/home/slfits/continuous_outcome_cv_vimp.rds")
-    continuous_outcome_cv_vimp_plots <- lapply(continuous_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_cv, x_lim = x_lim))
-    grob_lst <- c(grob_lst, continuous_outcome_cv_vimp_plots)
-}
-# do.call(grid.arrange, grob_lst)
-grid.arrange(grobs = grob_lst, ncol = 3)
-```
-
-```{r groupVimpBin, fig.cap = "Group variable importance for binary outcomes", fig.height = 10, fig.width = 20}
-if (!reduce_outcomes) {
-    source("/home/lib/plot_one_vimp.R")
-    binary_outcome_vimp <- readRDS("/home/slfits/binary_outcome_vimp.rds")
-    x_lab <- expression(paste("Difference in ", AUC, sep = ""))
-    x_lim <- c(0, 1)
-    ## create a plot for each binary outcome
-    binary_outcome_vimp_plots <- lapply(binary_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab, x_lim = x_lim))
-    grob_lst <- binary_outcome_vimp_plots
-    if (!no_cv) {
-        x_lab_cv <- expression(paste("Difference in CV-", AUC, sep = ""))
-        binary_outcome_cv_vimp <- readRDS("/home/slfits/binary_outcome_cv_vimp.rds")
-        binary_outcome_cv_vimp_plots <- lapply(binary_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_cv, x_lim = x_lim))
-        grob_lst <- c(grob_lst, binary_outcome_cv_vimp_plots)
-    }
-    # do.call(grid.arrange, grob_lst)
-    grid.arrange(grobs = grob_lst, ncol = 2)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
 The estimated variable importance of the groups defined in Table \@ref(tab:vimpGroupTab) for predicting the continuous outcomes, with respect to the difference in nonparametric $R^2$, is shown in Figure \@ref(fig:groupVimpCont). The estimated variable importance of these groups for predicting the binary outcomes, with respect to the difference in nonparametric AUC, is shown in Figure \@ref(fig:groupVimpBin).
 
-The estimated variable importance of individual features are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report. 
+CHANGE THESE TO TABLES WITH P-VALUES
+
+The estimated variable importance of individual features are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report.
 
 ```{r combinedvarimpindividualfeatures}
 kable(imp_overall, caption = "Variable importance of individual features, defined by being label as 'important' for prediction of at least two of the outcomes considered; these outcomes are listed in the table.")
@@ -492,7 +453,7 @@ if (!reduce_outcomes) {
 }
 ```
 
-Figure \@ref(fig:plotdichot1imp) shows an animated representation of the importance of individual features for predicting estimated sensitivity . To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
+Figure \@ref(fig:plotdichot1imp) shows an animated representation of the importance of individual features for predicting estimated sensitivity. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
 
 ```{r plotdichot1imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting estimated sensitivity'}
 for(m in 1:50){
@@ -548,6 +509,98 @@ kable(dichot2_tab, caption = "Top 10 most important features for predicting mult
       row.names = FALSE)
 ```
 
+# Population variable importance results
+
+```{r groupVimpBin, fig.cap = "Group variable importance for binary outcomes", fig.height = 10, fig.width = 20}
+if (!reduce_outcomes) {
+    source("/home/lib/plot_one_vimp.R")
+    binary_outcome_vimp <- readRDS("/home/slfits/binary_outcome_vimp.rds")
+    x_lab <- expression(paste("Difference in ", AUC, sep = ""))
+    x_lim <- c(0, 1)
+    ## create a plot for each binary outcome
+    binary_outcome_vimp_plots <- lapply(binary_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab, x_lim = x_lim))
+    grob_lst <- binary_outcome_vimp_plots
+    if (!no_cv) {
+        x_lab_cv <- expression(paste("Difference in CV-", AUC, sep = ""))
+        binary_outcome_cv_vimp <- readRDS("/home/slfits/binary_outcome_cv_vimp.rds")
+        binary_outcome_cv_vimp_plots <- lapply(binary_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_cv, x_lim = x_lim))
+        grob_lst <- c(grob_lst, binary_outcome_cv_vimp_plots)
+    }
+    # do.call(grid.arrange, grob_lst)
+    grid.arrange(grobs = grob_lst, ncol = 2)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+
+## IC-50
+
+```{r ic50groupvimp, fig.cap = "Group variable importance for predicting IC-50", fig.height = 10, fig.width = 20}
+## continuous_outcome_vimp_plots, continuous_outcome_cv_vimp_plots are both created in preamble
+ic50_grp_vimp_grob_lst <- continuous_outcome_vimp_plots[[1]]
+if (!no_cv) {
+    ic50_grp_vimp_grob_lst <- c(ic50_grp_vimp_grob_lst, continuous_outcome_cv_vimp_plots[[1]])
+}
+grid.arrange(grobs = ic50_grp_vimp_grob_lst, ncol = 2)
+```
+
+
+## IC-80
+
+```{r ic80groupvimp, fig.cap = "Group variable importance for predicting IC-80", fig.height = 10, fig.width = 20}
+## continuous_outcome_vimp_plots, continuous_outcome_cv_vimp_plots are both created in preamble
+if (!reduce_outcomes) {
+    ic80_grp_vimp_grob_lst <- continuous_outcome_vimp_plots[[2]]
+    if (!no_cv) {
+        ic80_grp_vimp_grob_lst <- c(ic80_grp_vimp_grob_lst, continuous_outcome_cv_vimp_plots[[2]])
+    }
+    grid.arrange(grobs = ic80_grp_vimp_grob_lst, ncol = 2)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+## IIP
+
+```{r iipgroupvimp, fig.cap = "Group variable importance for predicting IIP", fig.height = 10, fig.width = 20}
+## continuous_outcome_vimp_plots, continuous_outcome_cv_vimp_plots are both created in preamble
+if (!reduce_outcomes) {
+    iip_grp_vimp_grob_lst <- continuous_outcome_vimp_plots[[3]]
+    if (!no_cv) {
+        iip_grp_vimp_grob_lst <- c(iip_grp_vimp_grob_lst, continuous_outcome_cv_vimp_plots[[3]])
+    }
+    grid.arrange(grobs = iip_grp_vimp_grob_lst, ncol = 2)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+## Dichotomous sensitivity 1
+
+```{r dichot1groupvimp, fig.cap = "Group variable importance for predicting estimated sensitivity", fig.height = 10, fig.width = 20}
+## binary_outcome_vimp_plots, binary_outcome_cv_vimp_plots are both created in preamble
+if (!reduce_outcomes) {
+    dichot1_grp_vimp_grob_lst <- binary_outcome_vimp_plots[[1]]
+    if (!no_cv) {
+        dichot1_grp_vimp_grob_lst <- c(dichot1_grp_vimp_grob_lst, binary_outcome_cv_vimp_plots[[1]])
+    }
+    grid.arrange(grobs = dichot1_grp_vimp_grob_lst, ncol = 2)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+## Dichotomous sensitivity 2
+
+```{r dichot2groupvimp, fig.cap = "Group variable importance for predicting estimated sensitivity", fig.height = 10, fig.width = 20}
+## binary_outcome_vimp_plots, binary_outcome_cv_vimp_plots are both created in preamble
+if (!reduce_outcomes) {
+    dichot2_grp_vimp_grob_lst <- binary_outcome_vimp_plots[[2]]
+    if (!no_cv) {
+        dichot2_grp_vimp_grob_lst <- c(dichot2_grp_vimp_grob_lst, binary_outcome_cv_vimp_plots[[2]])
+    }
+    grid.arrange(grobs = dichot2_grp_vimp_grob_lst, ncol = 2)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
 ## Variable group definitions
 
 Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for importance.
