@@ -148,9 +148,9 @@ for (i in 1:length(outcome_names)) {
         if (length(var_groups[j]) != 0) {
             this_group_name <- names(var_groups)[j]
             ## fit based on removing group of interest
-            sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[!(pred_names %in% var_groups[[i]])], fit_name = paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
+            sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[!(pred_names %in% var_groups[[j]])], fit_name = paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
             ## fit based on only group of interest + geographic confounders
-            sl_fit_marginal_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_groups[[i]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
+            sl_fit_marginal_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_groups[[j]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
         }
     }
 }
@@ -161,7 +161,11 @@ for (i in 1:length(outcome_names)) {
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
-    for (j in 1:length())
+    for (j in 1:length(var_inds)) {
+        this_var_name <- var_inds[j]
+        ## fit SL of only this variable plus geographic confounders
+        sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_inds[j]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE)
+    }
 }
 
 ## ----------------------------------------------------------------------------
@@ -171,5 +175,5 @@ for (i in 1:length(outcome_names)) {
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
-    sl_geog_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_geog.rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_geog.rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
+    sl_geog_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_geog.rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_geog.rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE)
 }
