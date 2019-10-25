@@ -17,18 +17,15 @@ get_variable_groups <- function(data, pred_names) {
     gp120_v2_v2g_v2apex <- unique(c(157:196, c(121, 123, 124, 127, 197, 202, 203, 312, 315)))
     gp120_v3_v3g <- unique(c(296:334), c(380, 406, 408, 415, 419, 428, 441, 443, 471), c(156, 137))
     gp41_mper <- c(656:684, 609)
-    all_glycosylationvars <- pred_nms[grepl("sequons", pred_nms)]
-    all_cysteinesvars <- pred_nms[grepl("cysteine", pred_nms)]
-    all_viralgeometryvars <- pred_nms[grepl("length", pred_nms)]
 
     ## get all variable groups
     aa_gp120_cd4bs_vars <- get_variable_group(pred_names, gp120_cd4bs)
     aa_gp120_v2_vars <- get_variable_group(pred_names, gp120_v2_v2g_v2apex)
     aa_gp120_v3_vars <- get_variable_group(pred_names, gp120_v3_v3g)
     aa_gp41_mper_vars <- get_variable_group(pred_names, gp41_mper)
-    aa_glyco_vars <- all_glycosylationvars[all_glycosylationvars %in% colnames(data)]
-    aa_cysteine_vars <- all_cysteinesvars[all_cysteinesvars %in% colnames(data)]
-    aa_geometry_vars <- all_viralgeometryvars[all_viralgeometryvars %in% colnames(data)]
+    aa_glyco_vars <- pred_nams[grepl("sequons", pred_nms)]
+    aa_cysteine_vars <- pred_nams[grepl("cysteine", pred_nms)]
+    aa_geometry_vars <- pred_nams[grepl("length", pred_nms)]
     return(list(gp120_cd4bs = aa_gp120_cd4bs_vars, gp120_v2 = aa_gp120_v2_vars,
                 gp120_v3 = aa_gp120_v3_vars, gp41_mper = aa_gp41_mper_vars,
                 glyco = aa_glyco_vars, cysteines = aa_cysteine_vars,
