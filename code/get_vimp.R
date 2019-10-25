@@ -81,38 +81,6 @@ make_cv_lists <- function(folds_lst, full_vec, redu_vec) {
     return(list(folds = folds, full_lst = full_lst, redu_lst = redu_lst))
 }
 
-# # load all superlearner fits
-# sl_fit_names <- list.files("/home/slfits")
-# sl_fitted_names <- paste0("/home/slfits/", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl("report", sl_fit_names)])
-# all_sl_fits <- lapply(as.list(sl_fitted_names), readRDS)
-# names(all_sl_fits) <- sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl("report", sl_fit_names)]
-# all_sl_nms <- names(all_sl_fits)
-# ## subset to full, reduced
-# full_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
-# full_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
-# reduced_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
-# reduced_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", all_sl_nms) & grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
-# ## get folds for cv
-# full_cv_sl_folds <- all_sl_fits[grepl("cvfolds_", all_sl_nms) & !grepl("minus", all_sl_nms)]
-#
-#
-# ## split out into continuous, dichotomous
-# continuous_sl_fits <- full_sl_fits[grepl("ic50", names(full_sl_fits)) | grepl("ic80", names(full_sl_fits)) | grepl("iip", names(full_sl_fits))]
-# continuous_reduced_sl_fits <- reduced_sl_fits[grepl("ic50", names(reduced_sl_fits)) | grepl("ic80", names(reduced_sl_fits)) | grepl("iip", names(reduced_sl_fits))]
-# continuous_cv_sl_fits <- full_cv_sl_fits[grepl("ic50", names(full_cv_sl_fits)) | grepl("ic80", names(full_cv_sl_fits)) | grepl("iip", names(full_cv_sl_fits))]
-# continuous_reduced_cv_sl_fits <- reduced_cv_sl_fits[grepl("ic50", names(reduced_cv_sl_fits)) | grepl("ic80", names(reduced_cv_sl_fits)) | grepl("iip", names(reduced_cv_sl_fits))]
-# continuous_cv_sl_folds <- full_cv_sl_folds[grepl("ic50", names(full_cv_sl_folds)) | grepl("ic80", names(full_cv_sl_folds)) | grepl("iip", names(full_cv_sl_folds))]
-# binary_sl_fits <- full_sl_fits[grepl("dichotomous.1", names(full_sl_fits)) | grepl("dichotomous.2", names(full_sl_fits))]
-# binary_reduced_sl_fits <- reduced_sl_fits[grepl("dichotomous.1", names(reduced_sl_fits)) | grepl("dichotomous.2", names(reduced_sl_fits))]
-# binary_cv_sl_fits <- full_cv_sl_fits[grepl("dichotomous.1", names(full_cv_sl_fits)) | grepl("dichotomous.2", names(full_cv_sl_fits))]
-# binary_reduced_cv_sl_fits <- reduced_cv_sl_fits[grepl("dichotomous.1", names(reduced_cv_sl_fits)) | grepl("dichotomous.2", names(reduced_cv_sl_fits))]
-# binary_cv_sl_folds <- full_cv_sl_folds[grepl("dichotomous.1", names(full_cv_sl_folds)) | grepl("dichotomous.2", names(full_cv_sl_folds))]
-#
-# ## get the outcomes in the list
-# all_outcome_var_lst <- unique(gsub("__", "_", gsub(".rds", "", gsub("cv", "", gsub("fitted_", "", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("folds", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl(".RData", sl_fit_names)])))))
-# all_outcome_lst <- all_outcome_var_lst[!grepl("minus", all_outcome_var_lst)]
-# all_var_grp_lst <- all_outcome_var_lst[grepl("minus", all_outcome_var_lst)]
-
 ## ---------------------------------------------------------------------------
 ## get variable importance!
 ## ---------------------------------------------------------------------------
