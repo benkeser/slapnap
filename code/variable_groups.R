@@ -23,9 +23,9 @@ get_variable_groups <- function(data, pred_names) {
     aa_gp120_v2_vars <- get_variable_group(pred_names, gp120_v2_v2g_v2apex)
     aa_gp120_v3_vars <- get_variable_group(pred_names, gp120_v3_v3g)
     aa_gp41_mper_vars <- get_variable_group(pred_names, gp41_mper)
-    aa_glyco_vars <- pred_nams[grepl("sequons", pred_nms)]
-    aa_cysteine_vars <- pred_nams[grepl("cysteine", pred_nms)]
-    aa_geometry_vars <- pred_nams[grepl("length", pred_nms)]
+    aa_glyco_vars <- pred_names[grepl("sequons", pred_names)]
+    aa_cysteine_vars <- pred_names[grepl("cysteine", pred_names)]
+    aa_geometry_vars <- pred_names[grepl("length", pred_names)]
     return(list(gp120_cd4bs = aa_gp120_cd4bs_vars, gp120_v2 = aa_gp120_v2_vars,
                 gp120_v3 = aa_gp120_v3_vars, gp41_mper = aa_gp41_mper_vars,
                 glyco = aa_glyco_vars, cysteines = aa_cysteine_vars,

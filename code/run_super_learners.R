@@ -135,73 +135,22 @@ for (i in 1:length(outcome_names)) {
     sl_opts <- get_sl_options(this_outcome_name)
     sl_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv)
 }
-# sl_ic50 <- sl_one_outcome(outcome_name = "log10.pc.ic50", #!!! change to log-scale
-#                             pred_names = pred_names,
-#                             family = "gaussian",
-#                             SL.library = SL.library,
-#                             cvControl = list(V = 10),
-#                             method = "tmp_method.CC_LS",
-#                             reduce_covs = reduce_covs,
-#                             run_cv = !no_cv)
-# if (!reduce_outcomes) {
-# sl_ic80 <- sl_one_outcome(outcome_name = "log10.pc.ic80",
-#                             pred_names = pred_names,
-#                             family = "gaussian",
-#                             SL.library = SL.library,
-#                             cvControl = list(V = 10),
-#                             method = "tmp_method.CC_LS",
-#                             reduce_covs = reduce_covs,
-#                             run_cv = !no_cv)
-# sl_iip <- sl_one_outcome(outcome_name = "iip",
-#                             pred_names = pred_names,
-#                             family = "gaussian",
-#                             SL.library = SL.library,
-#                             cvControl = list(V = 10),
-#                             reduce_covs = reduce_covs,
-#                             run_cv = !no_cv,
-#                             method = "tmp_method.CC_LS")
-# sl_dichotomous1 <- sl_one_outcome(outcome_name = "dichotomous.1",
-#                                     pred_names = pred_names,
-#                                     family = "binomial",
-#                                     SL.library = SL.library,
-#                                     cvControl = list(V = min(c(10, sum(dat$dichotomous.1))), stratifyCV = TRUE),
-#                                     method = "tmp_method.CC_nloglik",
-#                                     reduce_covs = reduce_covs,
-#                                     run_cv = !no_cv)
-# sl_dichotomous2 <- sl_one_outcome(outcome_name = "dichotomous.2",
-#                                     pred_names = pred_names,
-#                                     family = "binomial",
-#                                     SL.library = SL.library,
-#                                     cvControl = list(V = min(c(10, sum(dat$dichotomous.2))), stratifyCV = TRUE),
-#                                     method = "tmp_method.CC_nloglik",
-#                                     reduce_covs = reduce_covs,
-#                                     run_cv = !no_cv)
-# }
 ## ----------------------------------------------------------------------------
 ## (2)+(3) run super learners for each outcome (unless reduce_outcomes = TRUE)
 ##         on (2) reduced set of features defined by removing group of interest
 ##         and (3) group of interest + geographic confounders
 ## ----------------------------------------------------------------------------
 ## run super learners on pre-defined groups
-for (i in 1:length(var_groups)) {
-    if (length(var_groups[i]) != 0) {
-        this_group_name <- names(var_groups)[i]
-        sl_ic50_i <- sl_one_outcome(outcome_name = "log10.pc.ic50", pred_names = pred_names[!(pred_names %in% var_groups[[i]])], fit_name = paste0("fitted_pc.ic50_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_pc.ic50_minus_", this_group_name, ".rds"), family = "gaussian", SL.library = SL.library, cvControl = list(V = V), method = "tmp_method.CC_LS", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-        sl_ic50_i_marginal <- sl_one_outcome(outcome_name = "log10.pc.ic50", pred_names = pred_names[(pred_names %in% var_groups[[i]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_pc.ic50_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_pc.ic50_marginal_", this_group_name, ".rds"), family = "gaussian", SL.library = SL.library, cvControl = list(V = V), method = "tmp_method.CC_LS", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-        if (!reduce_outcomes) {
-            ## fit all based on removing group of interest
-            sl_ic80_i <- sl_one_outcome(outcome_name = "log10.pc.ic80", pred_names = pred_names[!(pred_names %in% var_groups[[i]])], fit_name = paste0("fitted_pc.ic80_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_pc.ic80_minus_", this_group_name, ".rds"), family = "gaussian", SL.library = SL.library, cvControl = list(V = V), method = "tmp_method.CC_LS", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-            sl_iip_i <- sl_one_outcome(outcome_name = "iip", pred_names = pred_names[!(pred_names %in% var_groups[[i]])], fit_name = paste0("fitted_iip_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_iip_minus_", this_group_name, ".rds"), family = "gaussian", SL.library = SL.library, cvControl = list(V = V), method = "tmp_method.CC_LS", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-            sl_dichotomous1_i <- sl_one_outcome(outcome_name = "dichotomous.1", pred_names = pred_names[!(pred_names %in% var_groups[[i]])], fit_name = paste0("fitted_dichotomous.1_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_dichotomous.1_minus_", this_group_name, ".rds"), family = "binomial", SL.library = SL.library, cvControl = list(V = V, stratifyCV = TRUE), method = "tmp_method.CC_nloglik", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-            sl_dichotomous2_i <- sl_one_outcome(outcome_name = "dichotomous.2", pred_names = pred_names[!(pred_names %in% var_groups[[i]])], fit_name = paste0("fitted_dichotomous.2_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_dichotomous.2_minus_", this_group_name, ".rds"), family = "binomial", SL.library = SL.library, cvControl = list(V = V, stratifyCV = TRUE), method = "tmp_method.CC_nloglik", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-            ## fit all based on only including group of interest, plus geographic confounders
-            sl_ic80_i_marginal <- sl_one_outcome(outcome_name = "log10.pc.ic80", pred_names = pred_names[(pred_names %in% var_groups[[i]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_pc.ic80_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_pc.ic80_marginal_", this_group_name, ".rds"), family = "gaussian", SL.library = SL.library, cvControl = list(V = V), method = "tmp_method.CC_LS", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-            sl_iip_i_marginal <- sl_one_outcome(outcome_name = "iip", pred_names = pred_names[(pred_names %in% var_groups[[i]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_iip_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_iip_marginal_", this_group_name, ".rds"), family = "gaussian", SL.library = SL.library, cvControl = list(V = V), method = "tmp_method.CC_LS", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-            sl_dichotomous1_i_marginal <- sl_one_outcome(outcome_name = "dichotomous.1", pred_names = pred_names[(pred_names %in% var_groups[[i]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_dichotomous.1_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_dichotomous.1_marginal_", this_group_name, ".rds"), family = "binomial", SL.library = SL.library, cvControl = list(V = V, stratifyCV = TRUE), method = "tmp_method.CC_nloglik", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-            sl_dichotomous2_i_marginal <- sl_one_outcome(outcome_name = "dichotomous.2", pred_names = pred_names[(pred_names %in% var_groups[[i]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_dichotomous.2_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_dichotomous.2_marginal_", this_group_name, ".rds"), family = "binomial", SL.library = SL.library, cvControl = list(V = V, stratifyCV = TRUE), method = "tmp_method.CC_nloglik", reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
-        }
-        if (reduce_groups & i == 1) {
-            break
+for (i in 1:length(outcome_names)) {
+    this_outcome_name <- outcome_names[i]
+    sl_opts <- get_sl_options(this_outcome_name)
+    for (j in 1:length(var_groups)) {
+        if (length(var_groups[j]) != 0) {
+            this_group_name <- names(var_groups)[j]
+            ## fit based on removing group of interest
+            sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[!(pred_names %in% var_groups[[i]])], fit_name = paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
+            ## fit based on only group of interest + geographic confounders
+            sl_fit_marginal_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_groups[[i]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
         }
     }
 }
