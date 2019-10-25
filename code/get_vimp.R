@@ -1,6 +1,8 @@
 #! /usr/bin/env Rscript
 
-## get variable importance!
+## ---------------------------------------------------------------------------
+## Set up args, variables, functions
+## ---------------------------------------------------------------------------
 
 # load libraries
 library("SuperLearner")
@@ -20,13 +22,27 @@ analysis_data_name <- list.files("/home/dat/analysis")
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
 dat <- dat[complete.cases(dat),]
 
-# get pre-defined groups
 # get names of predictors
-non_pred_names <- c("pc.ic50", "pc.ic80", "iip",
-                    "dichotomous.1", "dichotomous.2",
-                    "seq.id.lanl","seq.id.catnap")
-pred_names <- colnames(dat)[!(colnames(dat) %in% non_pred_names)]
+geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
+pred_names <- colnames(dat)[geog_idx:ncol(dat)]
+# get names of outcomes
+all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
+# if reduce_outcomes, only run on ic50
+if (reduce_outcomes) {
+    outcome_names <- "log10.pc.ic50"
+} else {
+    outcome_names <- all_outcome_names
+}
+# get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)
+all_geog_vars <- pred_names[grepl("geog", pred_names)]
+# if reduce_groups, only run on the cd4 binding site
+if (reduce_groups) {
+    var_groups <- all_var_groups[1]
+} else {
+    var_groups <- all_var_groups
+}
+V <- 10
 
 # load all superlearner fits
 sl_fit_names <- list.files("/home/slfits")
@@ -59,6 +75,10 @@ binary_cv_sl_folds <- full_cv_sl_folds[grepl("dichotomous.1", names(full_cv_sl_f
 all_outcome_var_lst <- unique(gsub("__", "_", gsub(".rds", "", gsub("cv", "", gsub("fitted_", "", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("folds", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl(".RData", sl_fit_names)])))))
 all_outcome_lst <- all_outcome_var_lst[!grepl("minus", all_outcome_var_lst)]
 all_var_grp_lst <- all_outcome_var_lst[grepl("minus", all_outcome_var_lst)]
+
+## ---------------------------------------------------------------------------
+## get variable importance!
+## ---------------------------------------------------------------------------
 
 # for continuous outcomes, do r-squared
 continuous_outcomes <- all_outcome_lst[grepl("ic50", all_outcome_lst) | grepl("ic80", all_outcome_lst) | grepl("iip", all_outcome_lst)]
