@@ -61,28 +61,3 @@ vimp_nice_rownames <- function(vimp_obj) {
     row_nm <- vimp_obj$mat$print_name
     return(unlist(lapply(strsplit(row_nm, "_", fixed = TRUE), function(x) tail(x, n = 1))))
 }
-
-### HERE'S THE CODE I TOOK FROM THE RMD. PUTTING HERE FOR THE TIME BEING
-# # Variable importance
-
-# ```{r load_vimp_objects}
-# library("dplyr")
-# library("ggplot2")
-# library("cowplot")
-# source("/home/lib/plot_one_vimp.R")
-# continuous_outcome_vimp <- readRDS("/home/slfits/continuous_outcome_vimp.rds")
-# continuous_outcome_cv_vimp <- readRDS("/home/slfits/continuous_outcome_cv_vimp.rds")
-# # only load continuous ones, for now
-# # binary_outcome_vimp <- readRDS("/home/slfits/binary_outcome_vimp.rds")
-# # binary_outcome_cv_vimp <- readRDS("/home/slfits/binary_outcome_cv_vimp.rds")
-# ```
-
-# Figure \@ref(fig:continuous_cv_vimp) shows variable importance estimates for predicting continuous outcomes.
-
-# ```{r plot-continuous-vimp, fig.cap = "Variable importance estimates for continuous outcomes"}
-# x_lab <- expression(paste(R^2))
-# x_lim <- c(0, 1)
-# ## create a plot for each continuous outcome
-# continuous_outcome_vimp_plots <- lapply(continuous_outcome_cv_vimp, plot_one_vimp, title = "Cross-validated variable importance")
-# plot_grid(plotlist = continuous_outcome_vimp_plots)
-# ```

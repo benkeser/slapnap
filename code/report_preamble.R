@@ -26,6 +26,7 @@ no_cv <- Sys.getenv("no_cv") == TRUE
 
 
 source("/home/lib/plotting_functions.R")
+source("/home/lib/plot_one_vimp.R")
 # get NAbs names from ENV variable
 antibody_string <- Sys.getenv("Nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
@@ -88,7 +89,6 @@ pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 source("/home/lib/ml_var_importance_measures.R")
 source("/home/lib/var_import_plot.R")
 
-
 ## ----------------------------------------------------------------------------
 ## Individual-level algorithm-specific importance
 ## ----------------------------------------------------------------------------
@@ -138,18 +138,53 @@ imp_overall <- combine_importance(list(ic50_tab, ic80_tab, iip_tab, dichot1_tab,
 ## ----------------------------------------------------------------------------
 ## Population variable importance
 ## ----------------------------------------------------------------------------
-
-## read in group importance results
-source("/home/lib/plot_one_vimp.R")
-continuous_outcome_vimp <- readRDS("/home/slfits/continuous_outcome_vimp.rds")
-x_lab_continuous <- expression(paste("Difference in ", R^2, sep = ""))
-x_lab_continuous_cv <- expression(paste("Difference in CV-", R^2, sep = ""))
-x_lim_continuous <- c(0, 1)
-## create a plot for each continuous outcome
-continuous_outcome_vimp_plots <- lapply(continuous_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_continuous, x_lim = x_lim_continuous))
-if (!no_cv) {
-    continuous_outcome_cv_vimp <- readRDS("/home/slfits/continuous_outcome_cv_vimp.rds")
-    continuous_outcome_cv_vimp_plots <- lapply(continuous_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_continuous_cv, x_lim = x_lim_continuous))
+# get names of outcomes
+all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
+# if reduce_outcomes, only run on ic50
+if (reduce_outcomes) {
+    outcome_names <- "log10.pc.ic50"
+} else {
+    outcome_names <- all_outcome_names
 }
-# do.call(grid.arrange, grob_lst)
-grid.arrange(grobs = grob_lst, ncol = 3)
+# get variable groups
+all_var_groups <- get_variable_groups(dat, pred_names)
+all_geog_vars <- pred_names[grepl("geog", pred_names)]
+# if reduce_groups, only run on the cd4 binding site
+if (reduce_groups) {
+    var_groups <- all_var_groups[1]
+} else {
+    var_groups <- all_var_groups
+}
+V <- 10
+# if reduce_covs, only do individual imp on that number
+if (reduce_covs) {
+    num_covs <- 10
+    var_inds <- pred_names[!grepl("geog", pred_names)][1:(num_covs - length(all_geog_vars))]
+} else {
+    num_covs <- length(pred_names) - length(all_geog_vars)
+    var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
+}
+x_lab_continuous <- expression(paste("Difference in ", R^2, sep = ""))
+x_lim_continuous <- c(0, 1)
+x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
+x_lim_binary <- c(0, 1)
+## read in importance results for each outcome, create a plot for each
+## only return non-cv plots if cv = FALSE
+for (i in 1:length(outcome_names)) {
+    this_outcome_name <- outcome_names[i]
+    if (grepl("dichot", this_outcome_name)) {
+        this_x_lab <- x_lab_binary
+        this_x_lim <- x_lim_binary
+    } else {
+        this_x_lab <- x_lab_continuous
+        this_x_lim <- x_lim_continuous
+    }
+    ## importance results
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = /home/slfits/", this_outcome_name, "_vimp.rds")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = /home/slfits/", this_outcome_name, "_cv_vimp.rds")))
+    ## make plots
+    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- lapply(", this_outcome_name, "_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = this_x_lab, x_lim = this_x_lim))")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- lapply(", this_outcome_name, "_cv_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = this_x_lab, x_lim = this_x_lim))")))
+}
+
+## make table for executive summary
