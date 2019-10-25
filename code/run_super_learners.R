@@ -8,6 +8,9 @@
 ##  (4) a regression of outcome on each individual feature + confounders: for use in individual-level marginal feature importance
 ##  (5) a regression of outcome on only confounders: for use in individual-level marginal feature importance
 
+## ---------------------------------------------------------------------------
+## Set up args, variables, functions
+## ---------------------------------------------------------------------------
 # load libraries
 library(SuperLearner)
 source("/home/lib/variable_groups.R")
