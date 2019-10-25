@@ -43,161 +43,139 @@ if (reduce_groups) {
     var_groups <- all_var_groups
 }
 V <- 10
+# if reduce_covs, only do individual imp on that number
+if (reduce_covs) {
+    num_covs <- 10
+    var_inds <- pred_names[!grepl("geog", pred_names)][1:(num_covs - length(all_geog_vars))]
+} else {
+    num_covs <- length(pred_names) - length(all_geog_vars)
+    var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
+}
 
-# load all superlearner fits
-sl_fit_names <- list.files("/home/slfits")
-sl_fitted_names <- paste0("/home/slfits/", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl("report", sl_fit_names)])
-all_sl_fits <- lapply(as.list(sl_fitted_names), readRDS)
-names(all_sl_fits) <- sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl("report", sl_fit_names)]
-all_sl_nms <- names(all_sl_fits)
-## subset to full, reduced
-full_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
-full_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
-reduced_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
-reduced_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", all_sl_nms) & grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
-## get folds for cv
-full_cv_sl_folds <- all_sl_fits[grepl("cvfolds_", all_sl_nms) & !grepl("minus", all_sl_nms)]
+get_vimp_options <- function(outcome_name) {
+    if (grepl("dichot", outcome_name)) {
+        vimp_measure <- "auc"
+    } else {
+        vimp_measure <- "r_squared"
+    }
+    return(list(vimp_measure = vimp_measure))
+}
 
+make_vimp_list <- function(var_groups, var_inds) {
+    lst <- list()
+    lst$conditional <- NULL
+    lst$marginal <- NULL
+    lst$individual <- NULL
+    return(lst)
+}
 
-## split out into continuous, dichotomous
-continuous_sl_fits <- full_sl_fits[grepl("ic50", names(full_sl_fits)) | grepl("ic80", names(full_sl_fits)) | grepl("iip", names(full_sl_fits))]
-continuous_reduced_sl_fits <- reduced_sl_fits[grepl("ic50", names(reduced_sl_fits)) | grepl("ic80", names(reduced_sl_fits)) | grepl("iip", names(reduced_sl_fits))]
-continuous_cv_sl_fits <- full_cv_sl_fits[grepl("ic50", names(full_cv_sl_fits)) | grepl("ic80", names(full_cv_sl_fits)) | grepl("iip", names(full_cv_sl_fits))]
-continuous_reduced_cv_sl_fits <- reduced_cv_sl_fits[grepl("ic50", names(reduced_cv_sl_fits)) | grepl("ic80", names(reduced_cv_sl_fits)) | grepl("iip", names(reduced_cv_sl_fits))]
-continuous_cv_sl_folds <- full_cv_sl_folds[grepl("ic50", names(full_cv_sl_folds)) | grepl("ic80", names(full_cv_sl_folds)) | grepl("iip", names(full_cv_sl_folds))]
-binary_sl_fits <- full_sl_fits[grepl("dichotomous.1", names(full_sl_fits)) | grepl("dichotomous.2", names(full_sl_fits))]
-binary_reduced_sl_fits <- reduced_sl_fits[grepl("dichotomous.1", names(reduced_sl_fits)) | grepl("dichotomous.2", names(reduced_sl_fits))]
-binary_cv_sl_fits <- full_cv_sl_fits[grepl("dichotomous.1", names(full_cv_sl_fits)) | grepl("dichotomous.2", names(full_cv_sl_fits))]
-binary_reduced_cv_sl_fits <- reduced_cv_sl_fits[grepl("dichotomous.1", names(reduced_cv_sl_fits)) | grepl("dichotomous.2", names(reduced_cv_sl_fits))]
-binary_cv_sl_folds <- full_cv_sl_folds[grepl("dichotomous.1", names(full_cv_sl_folds)) | grepl("dichotomous.2", names(full_cv_sl_folds))]
+make_cv_lists <- function(folds_lst, full_vec, redu_vec) {
+    V <- length(folds_lst)
+    v_lst <- sapply(1:V, function(s) rep(s, length(folds_lst[[s]])))
+    joint_lst <- mapply(list, v_lst, folds_lst, SIMPLIFY = FALSE)
+    folds_mat <- do.call(rbind, lapply(joint_lst, function(x) cbind(x[[1]], x[[2]])))
+    folds <- folds_mat[order(folds_mat[, 2]), 1]
+    ## make lists of the fitted values
+    full_lst <- lapply(as.list(1:length(unique(folds))), function(x) full_vec[folds == x])
+    redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) redu_vec[folds == x])
+    return(list(folds = folds, full_lst = full_lst, redu_lst = redu_lst))
+}
 
-## get the outcomes in the list
-all_outcome_var_lst <- unique(gsub("__", "_", gsub(".rds", "", gsub("cv", "", gsub("fitted_", "", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("folds", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl(".RData", sl_fit_names)])))))
-all_outcome_lst <- all_outcome_var_lst[!grepl("minus", all_outcome_var_lst)]
-all_var_grp_lst <- all_outcome_var_lst[grepl("minus", all_outcome_var_lst)]
+# # load all superlearner fits
+# sl_fit_names <- list.files("/home/slfits")
+# sl_fitted_names <- paste0("/home/slfits/", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl("report", sl_fit_names)])
+# all_sl_fits <- lapply(as.list(sl_fitted_names), readRDS)
+# names(all_sl_fits) <- sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("cvfit_", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl("report", sl_fit_names)]
+# all_sl_nms <- names(all_sl_fits)
+# ## subset to full, reduced
+# full_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
+# full_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", all_sl_nms) & !grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
+# reduced_sl_fits <- all_sl_fits[grepl("fitted_", all_sl_nms) & !grepl("cvfitted_", all_sl_nms) & grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
+# reduced_cv_sl_fits <- all_sl_fits[grepl("cvfitted_", all_sl_nms) & grepl("minus", all_sl_nms) & !grepl("slweights", all_sl_nms)]
+# ## get folds for cv
+# full_cv_sl_folds <- all_sl_fits[grepl("cvfolds_", all_sl_nms) & !grepl("minus", all_sl_nms)]
+#
+#
+# ## split out into continuous, dichotomous
+# continuous_sl_fits <- full_sl_fits[grepl("ic50", names(full_sl_fits)) | grepl("ic80", names(full_sl_fits)) | grepl("iip", names(full_sl_fits))]
+# continuous_reduced_sl_fits <- reduced_sl_fits[grepl("ic50", names(reduced_sl_fits)) | grepl("ic80", names(reduced_sl_fits)) | grepl("iip", names(reduced_sl_fits))]
+# continuous_cv_sl_fits <- full_cv_sl_fits[grepl("ic50", names(full_cv_sl_fits)) | grepl("ic80", names(full_cv_sl_fits)) | grepl("iip", names(full_cv_sl_fits))]
+# continuous_reduced_cv_sl_fits <- reduced_cv_sl_fits[grepl("ic50", names(reduced_cv_sl_fits)) | grepl("ic80", names(reduced_cv_sl_fits)) | grepl("iip", names(reduced_cv_sl_fits))]
+# continuous_cv_sl_folds <- full_cv_sl_folds[grepl("ic50", names(full_cv_sl_folds)) | grepl("ic80", names(full_cv_sl_folds)) | grepl("iip", names(full_cv_sl_folds))]
+# binary_sl_fits <- full_sl_fits[grepl("dichotomous.1", names(full_sl_fits)) | grepl("dichotomous.2", names(full_sl_fits))]
+# binary_reduced_sl_fits <- reduced_sl_fits[grepl("dichotomous.1", names(reduced_sl_fits)) | grepl("dichotomous.2", names(reduced_sl_fits))]
+# binary_cv_sl_fits <- full_cv_sl_fits[grepl("dichotomous.1", names(full_cv_sl_fits)) | grepl("dichotomous.2", names(full_cv_sl_fits))]
+# binary_reduced_cv_sl_fits <- reduced_cv_sl_fits[grepl("dichotomous.1", names(reduced_cv_sl_fits)) | grepl("dichotomous.2", names(reduced_cv_sl_fits))]
+# binary_cv_sl_folds <- full_cv_sl_folds[grepl("dichotomous.1", names(full_cv_sl_folds)) | grepl("dichotomous.2", names(full_cv_sl_folds))]
+#
+# ## get the outcomes in the list
+# all_outcome_var_lst <- unique(gsub("__", "_", gsub(".rds", "", gsub("cv", "", gsub("fitted_", "", sl_fit_names[!grepl("fit_", sl_fit_names) & !grepl("folds", sl_fit_names) & !grepl("slweights", sl_fit_names) & !grepl(".RData", sl_fit_names)])))))
+# all_outcome_lst <- all_outcome_var_lst[!grepl("minus", all_outcome_var_lst)]
+# all_var_grp_lst <- all_outcome_var_lst[grepl("minus", all_outcome_var_lst)]
 
 ## ---------------------------------------------------------------------------
 ## get variable importance!
 ## ---------------------------------------------------------------------------
-
-# for continuous outcomes, do r-squared
-continuous_outcomes <- all_outcome_lst[grepl("ic50", all_outcome_lst) | grepl("ic80", all_outcome_lst) | grepl("iip", all_outcome_lst)]
-continuous_grps <- unlist(lapply(strsplit(all_var_grp_lst[grepl("ic50", all_var_grp_lst) | grepl("ic80", all_var_grp_lst) | grepl("iip", all_var_grp_lst)], "_", fixed = TRUE), function(x) tail(x, n = 1)))
-continuous_outcome_vimp <- vector("list", length = length(continuous_outcomes))
-continuous_outcome_cv_vimp <- vector("list", length = length(continuous_outcomes))
-continuous_nms_grid <- expand.grid(outcome = continuous_outcomes, grp = continuous_grps)
 set.seed(474747)
-for (i in 1:length(continuous_outcome_vimp)) {
-    ## make sub-folds for non-cv
-    sub_folds <- sample(1:2, length(dat[, continuous_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
-
-    for (j in 1:length(continuous_reduced_sl_fits)) {
-        eval(parse(text = paste0(paste0(unique(continuous_nms_grid$outcome)[i], "_", unique(continuous_nms_grid$grp)[j]),
-                                 " <- vimp::vim(Y = dat[, continuous_outcomes[i]],
-                                        f1 = continuous_sl_fits[[i]],
-                                        f2 = continuous_reduced_sl_fits[[j]],
-                                        indx = which(pred_names %in% unlist(all_var_groups[grepl(continuous_grps[j], names(all_var_groups))])),
-                                        run_regression = FALSE,
-                                        alpha = 0.05,
-                                        type = 'r_squared',
-                                        folds = sub_folds,
-                                        na.rm = TRUE,
-                                        scale = 'identity')")))
+for (i in 1:length(outcome_names)) {
+    this_outcome_name <- outcome_names[i]
+    vimp_opts <- get_vimp_options(this_outcome_name)
+    ## create output list
+    eval(parse(text = paste0(this_outcome_name, '_vimp_lst <- make_vimp_list(var_groups, var_inds)')))
+    eval(parse(text = paste0(this_outcome_name, '_cv_vimp_lst <- make_vimp_list(var_groups, var_inds)')))
+    ## load full fit corresponding to this outcome
+    full_fit <- readRDS(paste0("fitted_", this_outcome_name, ".rds"))
+    full_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, ".rds"))
+    ## load geog-only fit corresponding to this outcome
+    geog_fit <- readRDS(paste0("fitted_", this_outcome_name, "_geog.rds"))
+    geog_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, "_geog.rds"))
+    ## group variable importance
+    for (j in 1:length(var_groups)) {
+        this_group_name <- names(var_groups)[j]
+        ## non-cv
+        cond_fit <- readRDS(paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"))
+        marg_fit <- readRDS(paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
+        sub_folds <- sample(1:2, length(dat[, this_outcome_name]), replace = TRUE, prob = c(0.5, 0.5))
+        ## cv
+        cond_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"))
+        marg_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
+        cond_cv_folds <- readRDS(paste0("cvfolds_", this_outcome_name, "_minus_", this_group_name, ".rds"))
+        marg_cv_folds <- readRDS(paste0("cvfolds_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
+        cond_cv_lst <- make_cv_lists(cond_cv_folds, full_cv_fit, cond_cv_fit)
+        marg_cv_lst <- make_cv_lists(marg_cv_folds, marg_cv_fit, geog_cv_fit)
+        ## get conditional, non-cv vimp
+        eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = full_fit, f2 = cond_fit, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')")))
+        ## get marginal, non-cv vimp
+        eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = marg_fit, f2 = geog_fit, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')")))
+        ## get conditional, cv vimp
+        eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = cond_cv_lst$full_lst, f2 = cond_cv_lst$redu_lst, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = cond_cv_lst$folds, na.rm = TRUE, scale = 'identity')")))
+        ## get marginal, cv vimp
+        eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = marg_cv_lst$full_lst, f2 = marg_cv_lst$redu_lst, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = marg_cv_lst$folds, na.rm = TRUE, scale = 'identity')")))
     }
-    eval(parse(text = paste0("continuous_outcome_vimp[[i]] <- merge_vim(", paste(paste0(continuous_nms_grid$outcome[i], "_", unique(continuous_nms_grid$grp)), collapse = ", "), ")")))
-    if (!no_cv) {
-        ## make a vector of folds
-        V <- length(continuous_cv_sl_folds[[i]])
-        v_lst <- sapply(1:V, function(s) rep(s, length(continuous_cv_sl_folds[[i]][[s]])))
-        joint_lst <- mapply(list, v_lst, continuous_cv_sl_folds[[i]], SIMPLIFY = FALSE)
-        folds_mat <- do.call(rbind, lapply(joint_lst, function(x) cbind(x[[1]], x[[2]])))
-        folds <- folds_mat[order(folds_mat[, 2]), 1]
-        ## make a list of the outcome, fitted values
-        full_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_cv_sl_fits[[i]][folds == x])
-
-        for (j in 1:length(continuous_reduced_cv_sl_fits)) {
-            redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) continuous_reduced_cv_sl_fits[[j]][folds == x])
-
-            eval(parse(text = paste0(paste0("cv_", unique(continuous_nms_grid$outcome)[i], "_", unique(continuous_nms_grid$grp)[j]),
-                                     " <- vimp::cv_vim(Y = dat[, continuous_outcomes[i]],
-                                            f1 = full_lst,
-                                            f2 = redu_lst,
-                                            indx = which(pred_names %in% unlist(all_var_groups[grepl(continuous_grps[j], names(all_var_groups))])),
-                                            run_regression = FALSE,
-                                            alpha = 0.05,
-                                            type = 'r_squared',
-                                            folds = folds,
-                                            na.rm = TRUE,
-                                            scale = 'identity')")))
-        }
-        eval(parse(text = paste0("continuous_outcome_cv_vimp[[i]] <- merge_vim(", paste(paste0("cv_", continuous_nms_grid$outcome[i], "_", unique(continuous_nms_grid$grp)), collapse = ", "), ")")))
+    ## merge together
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst$conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", var_groups), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", var_groups), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst$marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", var_groups), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", var_groups), collapse = ", "), ")")))
+    ## individual variable importance
+    for (j in 1:length(var_inds)) {
+        this_var_name <- var_inds[j]
+        ## non-cv
+        indi_fit <- readRDS(paste0("fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
+        sub_folds <- sample(1:2, length(dat[, this_outcome_name]), replace = TRUE, prob = c(0.5, 0.5))
+        ## cv
+        indi_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
+        indi_cv_folds <- readRDS(paste0("cvfolds_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
+        indi_cv_lst <- make_cv_lists(indi_cv_folds, indi_cv_fit, geog_cv_fit)
+        ## get individual, non-cv vimp
+        eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = indi_fit, f2 = geog_fit, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')")))
+        ## get individual, cv vimp
+        eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = indi_cv_lst$full_lst, f2 = indi_cv_lst$redu_lst, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = indi_cv_lst$folds, na.rm = TRUE, scale = 'identity')")))
     }
-}
-## save them off
-saveRDS(continuous_outcome_vimp, "/home/slfits/continuous_outcome_vimp.rds")
-if (!no_cv) {
-    saveRDS(continuous_outcome_cv_vimp, "/home/slfits/continuous_outcome_cv_vimp.rds")
-}
-
-# for binary outcomes, do AUC (this only, for now)
-binary_outcomes <- all_outcome_lst[grepl("dichotomous.1", all_outcome_lst) | grepl("dichotomous", all_outcome_lst)]
-binary_grps <- unlist(lapply(strsplit(all_var_grp_lst[grepl("dichotomous", all_var_grp_lst)], "_", fixed = TRUE), function(x) tail(x, n = 1)))
-binary_outcome_vimp <- vector("list", length = length(binary_outcomes))
-binary_outcome_cv_vimp <- vector("list", length = length(binary_outcomes))
-binary_nms_grid <- expand.grid(outcome = binary_outcomes, grp = binary_grps)
-set.seed(474747)
-if (!reduce_outcomes) {
-    for (i in 1:length(binary_outcome_vimp)) {
-        ## make sub-folds for non-cv
-        sub_folds <- sample(1:2, length(dat[, binary_outcomes[i]]), replace = TRUE, prob = c(0.5, 0.5))
-
-        for (j in 1:length(binary_reduced_sl_fits)) {
-            eval(parse(text = paste0(paste0(unique(binary_nms_grid$outcome)[i], "_", unique(binary_nms_grid$grp)[j]),
-                                     " <- vimp::vim(Y = dat[, binary_outcomes[i]],
-                                            f1 = binary_sl_fits[[i]],
-                                            f2 = binary_reduced_sl_fits[[j]],
-                                            indx = which(pred_names %in% unlist(all_var_groups[grepl(binary_grps[j], names(all_var_groups))])),
-                                            run_regression = FALSE,
-                                            alpha = 0.05,
-                                            type = 'auc',
-                                            folds = sub_folds,
-                                            na.rm = TRUE,
-                                            scale = 'identity')")))
-        }
-        eval(parse(text = paste0("binary_outcome_vimp[[i]] <- merge_vim(", paste(paste0(binary_nms_grid$outcome[i], "_", unique(binary_nms_grid$grp)), collapse = ", "), ")")))
-        if (!no_cv) {
-            ## make a vector of folds
-            V <- length(binary_cv_sl_folds[[i]])
-            v_lst <- sapply(1:V, function(s) rep(s, length(binary_cv_sl_folds[[i]][[s]])))
-            joint_lst <- mapply(list, v_lst, binary_cv_sl_folds[[i]], SIMPLIFY = FALSE)
-            folds_mat <- do.call(rbind, lapply(joint_lst, function(x) cbind(x[[1]], x[[2]])))
-            folds <- folds_mat[order(folds_mat[, 2]), 1]
-            ## make a list of the outcome, fitted values
-            full_lst <- lapply(as.list(1:length(unique(folds))), function(x) binary_cv_sl_fits[[i]][folds == x])
-
-            for (j in 1:length(binary_reduced_cv_sl_fits)) {
-                redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) binary_reduced_cv_sl_fits[[j]][folds == x])
-
-                eval(parse(text = paste0(paste0("cv_", unique(binary_nms_grid$outcome)[i], "_", unique(binary_nms_grid$grp)[j]),
-                                         " <- vimp::cv_vim(Y = dat[, binary_outcomes[i]],
-                                                f1 = full_lst,
-                                                f2 = redu_lst,
-                                                indx = which(pred_names %in% unlist(all_var_groups[grepl(binary_grps[j], names(all_var_groups))])),
-                                                run_regression = FALSE,
-                                                alpha = 0.05,
-                                                type = 'auc',
-                                                folds = folds,
-                                                na.rm = TRUE,
-                                                scale = 'identity')")))
-            }
-            eval(parse(text = paste0("binary_outcome_cv_vimp[[i]] <- merge_vim(", paste(paste0("cv_", binary_nms_grid$outcome[i], "_", unique(binary_nms_grid$grp)), collapse = ", "), ")")))
-        }
-    }
-}
-## save them off
-if (!reduce_outcomes) {
-    saveRDS(binary_outcome_vimp, "/home/slfits/binary_outcome_vimp.rds")
-    if (!no_cv) {
-        saveRDS(binary_outcome_vimp, "/home/slfits/binary_outcome_cv_vimp.rds")
-    }
+    ## merge together
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst$individual <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", var_inds), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$individual <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", var_inds), collapse = ", "), ")")))
+    ## save them off
+    eval(parse(text = paste0("saveRDS(", this_outcome_name, "_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_vimp"), ".rds')")))
+    eval(parse(text = paste0("saveRDS(", this_outcome_name, "_cv_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_cv_vimp"), ".rds')")))
 }
