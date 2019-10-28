@@ -548,85 +548,175 @@ kable(dichot2_tab, caption = "Top 10 most important features for predicting mult
 
 # Population variable importance results
 
+We define the conditional population-level importance of a subgroup of features for predicting an outcome as the difference in population predictiveness between the best possible prediction function based on all available features versus all features except those under consideration. The marginal population-level importance of a subgroup of features is the difference in population predictiveness between the best possible prediction function based on the features under consideration plus geographic confounders versus only geographic confounders. We define predictiveness using R-squared for continuous outcomes (IC-50, IC-80, IIP) and using AUC for binary outcomes (Estimated sensitivity, Multiple sensitivity).
+
 ## IC-50
 
-```{r ic50groupvimp, fig.cap = "Group variable importance for predicting IC-50", fig.height = 10, fig.width = 20}
-## continuous_outcome_vimp_plots, continuous_outcome_cv_vimp_plots are both created in preamble
-ic50_grp_vimp_grob_lst <- continuous_outcome_vimp_plots[[1]]
-if (!no_cv) {
-    ic50_grp_vimp_grob_lst <- c(ic50_grp_vimp_grob_lst, continuous_outcome_cv_vimp_plots[[1]])
-}
-grid.arrange(grobs = ic50_grp_vimp_grob_lst, ncol = 2)
-```
+We show the population-level variable importance of groups of features in predicting IC-50 in Figure \@ref(fig:ic50groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
 
+```{r ic50groupvimp, fig.cap = "Group variable importance for predicting IC-50", fig.subcap = c("Conditional importance", "Marginal importance") fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
+if (no_cv) {
+    ic50_grp_vimp_grob_lst <- log10.pc.ic50_vimp_plots
+} else {
+    ic50_grp_vimp_grob_lst <- log10.pc.ic50_cv_vimp_plots
+}
+grid.arrange(grobs = c(ic50_grp_vimp_grob_lst$conditional, ic50_grob_vimp_lst$marginal), ncol = 2)
+```
+We show the individual-level variable importance for the top `r num_pop_import` variables in Figure \@ref(fig:ic50indivvimp). This importance is computed relative to the null model with geographic confounders only.
+
+```{r ic50indivvimp, fig.cap = "Individual variable importance for predicting IC-50", fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
+if (no_cv) {
+    ic50_grp_vimp_grob_lst <- log10.pc.ic50_vimp_plots
+} else {
+    ic50_grp_vimp_grob_lst <- log10.pc.ic50_cv_vimp_plots
+}
+grid.arrange(grobs = ic50_grp_vimp_grob_lst$individual, ncol = 1)
+```
 
 ## IC-80
 
-```{r ic80groupvimp, fig.cap = "Group variable importance for predicting IC-80", fig.height = 10, fig.width = 20}
-## continuous_outcome_vimp_plots, continuous_outcome_cv_vimp_plots are both created in preamble
+We show the population-level variable importance of groups of features in predicting IC-80 in Figure \@ref(fig:ic80groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
+
+```{r ic80groupvimp, fig.cap = "Group variable importance for predicting IC-80", fig.subcap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
 if (!reduce_outcomes) {
-    ic80_grp_vimp_grob_lst <- continuous_outcome_vimp_plots[[2]]
-    if (!no_cv) {
-        ic80_grp_vimp_grob_lst <- c(ic80_grp_vimp_grob_lst, continuous_outcome_cv_vimp_plots[[2]])
+    if (no_cv) {
+        ic80_grp_vimp_grob_lst <- log10.pc.ic80_vimp_plots
+    } else {
+        ic80_grp_vimp_grob_lst <- log10.pc.ic80_cv_vimp_plots
     }
-    grid.arrange(grobs = ic80_grp_vimp_grob_lst, ncol = 2)
+    grid.arrange(grobs = c(ic80_grp_vimp_grob_lst$conditional, ic80_grob_vimp_lst$marginal), ncol = 2)
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
 ```
+
+We show the individual-level variable importance for the top `r num_pop_import` variables in Figure \@ref(fig:ic80indivvimp). This importance is computed relative to the null model with geographic confounders only.
+
+```{r ic80indivvimp, fig.cap = "Individual variable importance for predicting IC-80", fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
+if (!reduce_outcomes) {
+    if (no_cv) {
+        ic80_grp_vimp_grob_lst <- log10.pc.ic80_vimp_plots
+    } else {
+        ic80_grp_vimp_grob_lst <- log10.pc.ic80_cv_vimp_plots
+    }
+    grid.arrange(grobs = ic80_grp_vimp_grob_lst$individual, ncol = 1)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+
 ## IIP
 
-```{r iipgroupvimp, fig.cap = "Group variable importance for predicting IIP", fig.height = 10, fig.width = 20}
-## continuous_outcome_vimp_plots, continuous_outcome_cv_vimp_plots are both created in preamble
+We show the population-level variable importance of groups of features in predicting IIP in Figure \@ref(fig:iipgroupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
+
+```{r iipgroupvimp, fig.cap = "Group variable importance for predicting IIP", fig.cap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
 if (!reduce_outcomes) {
-    iip_grp_vimp_grob_lst <- continuous_outcome_vimp_plots[[3]]
-    if (!no_cv) {
-        iip_grp_vimp_grob_lst <- c(iip_grp_vimp_grob_lst, continuous_outcome_cv_vimp_plots[[3]])
+    if (no_cv) {
+        iip_grp_vimp_grob_lst <- iip_vimp_plots
+    } else {
+        iip_grp_vimp_grob_lst <- iip_cv_vimp_plots
     }
-    grid.arrange(grobs = iip_grp_vimp_grob_lst, ncol = 2)
+    grid.arrange(grobs = c(iip_grp_vimp_grob_lst$conditional, iip_grob_vimp_lst$marginal), ncol = 2)
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
 ```
+
+We show the individual-level variable importance for the top `r num_pop_import` variables in Figure \@ref(fig:iipindivvimp). This importance is computed relative to the null model with geographic confounders only.
+
+```{r iipindivvimp, fig.cap = "Individual variable importance for predicting IIP", fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
+if (!reduce_outcomes) {
+    if (no_cv) {
+        iip_grp_vimp_grob_lst <- iip_vimp_plots
+    } else {
+        iip_grp_vimp_grob_lst <- iip_cv_vimp_plots
+    }
+    grid.arrange(grobs = iip_grp_vimp_grob_lst$individual, ncol = 1)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+
 ## Dichotomous sensitivity 1
 
-```{r dichot1groupvimp, fig.cap = "Group variable importance for predicting estimated sensitivity", fig.height = 10, fig.width = 20}
-## binary_outcome_vimp_plots, binary_outcome_cv_vimp_plots are both created in preamble
+We show the population-level variable importance of groups of features in predicting estimated sensitivity in Figure \@ref(fig:dichot1groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
+
+```{r dichot1groupvimp, fig.cap = "Group variable importance for predicting estimated sensitivity", fig.subcap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
 if (!reduce_outcomes) {
-    dichot1_grp_vimp_grob_lst <- binary_outcome_vimp_plots[[1]]
-    if (!no_cv) {
-        dichot1_grp_vimp_grob_lst <- c(dichot1_grp_vimp_grob_lst, binary_outcome_cv_vimp_plots[[1]])
+    if (no_cv) {
+        dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_vimp_plots
+    } else {
+        dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_cv_vimp_plots
     }
-    grid.arrange(grobs = dichot1_grp_vimp_grob_lst, ncol = 2)
+    grid.arrange(grobs = c(dichotomous.1_grp_vimp_grob_lst$conditional, dichotomous.1_grob_vimp_lst$marginal), ncol = 2)
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
 ```
+
+We show the individual-level variable importance for the top `r num_pop_import` variables in Figure \@ref(fig:dichot1indivvimp). This importance is computed relative to the null model with geographic confounders only.
+
+```{r dichot1indivvimp, fig.cap = "Individual variable importance for predicting estimated sensitivity", fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
+if (!reduce_outcomes) {
+    if (no_cv) {
+        dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_vimp_plots
+    } else {
+        dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_cv_vimp_plots
+    }
+    grid.arrange(grobs = dichotomous.1_grp_vimp_grob_lst$individual, ncol = 1)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+
 ## Dichotomous sensitivity 2
 
-```{r dichot2groupvimp, fig.cap = "Group variable importance for predicting estimated sensitivity", fig.height = 10, fig.width = 20}
-## binary_outcome_vimp_plots, binary_outcome_cv_vimp_plots are both created in preamble
+We show the population-level variable importance of groups of features in predicting multiple sensitivity in Figure \@ref(fig:dichot2groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
+
+```{r dichot2groupvimp, fig.cap = "Group variable importance for predicting multiple sensitivity", fig.subcap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
 if (!reduce_outcomes) {
-    dichot2_grp_vimp_grob_lst <- binary_outcome_vimp_plots[[2]]
-    if (!no_cv) {
-        dichot2_grp_vimp_grob_lst <- c(dichot2_grp_vimp_grob_lst, binary_outcome_cv_vimp_plots[[2]])
+    if (no_cv) {
+        dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_vimp_plots
+    } else {
+        dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_cv_vimp_plots
     }
-    grid.arrange(grobs = dichot2_grp_vimp_grob_lst, ncol = 2)
+    grid.arrange(grobs = c(dichotomous.2_grp_vimp_grob_lst$conditional, dichotomous.2_grob_vimp_lst$marginal), ncol = 2)
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
 ```
+
+We show the individual-level variable importance for the top `r num_pop_import` variables in Figure \@ref(fig:dichot2indivvimp). This importance is computed relative to the null model with geographic confounders only.
+
+```{r dichot2indivvimp, fig.cap = "Individual variable importance for predicting multiple sensitivity", fig.height = 10, fig.width = 20}
+## only report non-cv if no_cv
+if (!reduce_outcomes) {
+    if (no_cv) {
+        dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_vimp_plots
+    } else {
+        dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_cv_vimp_plots
+    }
+    grid.arrange(grobs = dichotomous.2_grp_vimp_grob_lst$individual, ncol = 1)
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+
 ## Variable group definitions
 
 Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for importance.
 
 ``` {r vimpGroupTab}
-source("/home/lib/variable_groups.R")
-non_pred_names <- c("pc.ic50", "pc.ic80", "iip",
-                    "dichotomous.1", "dichotomous.2",
-                    "seq.id.lanl","seq.id.catnap")
-pred_names <- colnames(dat)[!(colnames(dat) %in% non_pred_names)]
-all_var_groups <- get_variable_groups(dat, pred_names)
+## all_var_groups is created in preamble
 var_grps_chr_lst <- lapply(lapply(all_var_groups, function(x) strsplit(x, ".", fixed = TRUE)), function(x) do.call(c, lapply(x, function(y) paste0(y[!grepl("hxb2", y) & !grepl("mer", y)], collapse = "."))))
 grptab <- do.call(rbind, lapply(var_grps_chr_lst, function(x) paste0(x, collapse = ", ")))
 kable(grptab, col.names = "Variables",
