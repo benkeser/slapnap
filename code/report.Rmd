@@ -86,14 +86,51 @@ if (no_cv) {
 
 The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \@ref(tab:rsquaredtable). The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \@ref(tab:auctable).
 
-The estimated variable importance of the groups defined in Table \@ref(tab:vimpGroupTab) for predicting the continuous outcomes, with respect to the difference in nonparametric $R^2$, is shown in Figure \@ref(fig:groupVimpCont). The estimated variable importance of these groups for predicting the binary outcomes, with respect to the difference in nonparametric AUC, is shown in Figure \@ref(fig:groupVimpBin).
-
-CHANGE THESE TO TABLES WITH P-VALUES
-
-The estimated variable importance of individual features are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report.
+The estimated variable importance of individual features in the Super Learner are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report.
 
 ```{r combinedvarimpindividualfeatures}
-kable(imp_overall, caption = "Variable importance of individual features, defined by being label as 'important' for prediction of at least two of the outcomes considered; these outcomes are listed in the table.")
+kable(imp_overall, caption = "Variable importance of individual features in the Super Learner, defined by being label as 'important' for prediction of at least two of the outcomes considered; these outcomes are listed in the table.")
+```
+
+In Tables \@ref(tab:vimpgroupcond)--\@ref(tab:vimpindimarg), we display the groups of variables and individual variables with population variable importance statistically significantly greater than zero for each outcome. For the population variable importance of each group and individual feature for predicting each outcome, please refer to the outcomes' respective sections in Section \@ref(population-variable-importance-results).
+
+```{r vimpgroupcond}
+## vimp_summary_tbl created in preamble
+if (no_cv) {
+    print("No population variable importance table if CV is not used.")
+} else {
+    vimp_summary_cond <- vimp_summary_tbl %>%
+        filter(import_type == "Group: conditional") %>%
+        mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
+        select(est, cil, ciu, p_value, tab_outcome_name, group)
+    kable(vimp_summary_cond, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Conditional variable importance of groups relative to the remaining features that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+}
+```
+
+```{r vimpgroupmarg}
+## vimp_summary_tbl created in preamble
+if (no_cv) {
+    print("No population variable importance table if CV is not used.")
+} else {
+    vimp_summary_marg <- vimp_summary_tbl %>%
+        filter(import_type == "Group: marginal") %>%
+        mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
+        select(est, cil, ciu, p_value, tab_outcome_name, group)
+    kable(vimp_summary_marg, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of groups relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+}
+```
+
+```{r vimpgindimarg}
+## vimp_summary_tbl created in preamble
+if (no_cv) {
+    print("No population variable importance table if CV is not used.")
+} else {
+    vimp_summary_indi <- vimp_summary_tbl %>%
+        filter(import_type == "Individual: marginal") %>%
+        mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
+        select(est, cil, ciu, p_value, tab_outcome_name, group)
+    kable(vimp_summary_marg, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of individual features relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+}
 ```
 
 The distribution of amino acid at the important residues are shown for sensitive and resistant viruses in Figures \@ref(fig:logoPlot1) and \@ref(fig:logoPlot2).
@@ -510,28 +547,6 @@ kable(dichot2_tab, caption = "Top 10 most important features for predicting mult
 ```
 
 # Population variable importance results
-
-```{r groupVimpBin, fig.cap = "Group variable importance for binary outcomes", fig.height = 10, fig.width = 20}
-if (!reduce_outcomes) {
-    source("/home/lib/plot_one_vimp.R")
-    binary_outcome_vimp <- readRDS("/home/slfits/binary_outcome_vimp.rds")
-    x_lab <- expression(paste("Difference in ", AUC, sep = ""))
-    x_lim <- c(0, 1)
-    ## create a plot for each binary outcome
-    binary_outcome_vimp_plots <- lapply(binary_outcome_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab, x_lim = x_lim))
-    grob_lst <- binary_outcome_vimp_plots
-    if (!no_cv) {
-        x_lab_cv <- expression(paste("Difference in CV-", AUC, sep = ""))
-        binary_outcome_cv_vimp <- readRDS("/home/slfits/binary_outcome_cv_vimp.rds")
-        binary_outcome_cv_vimp_plots <- lapply(binary_outcome_cv_vimp, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = x_lab_cv, x_lim = x_lim))
-        grob_lst <- c(grob_lst, binary_outcome_cv_vimp_plots)
-    }
-    # do.call(grid.arrange, grob_lst)
-    grid.arrange(grobs = grob_lst, ncol = 2)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
 
 ## IC-50
 
