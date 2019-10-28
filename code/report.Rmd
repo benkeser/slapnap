@@ -100,7 +100,7 @@ if (no_cv) {
     print("No population variable importance table if CV is not used.")
 } else {
     vimp_summary_cond <- vimp_summary_tbl %>%
-        filter(import_type == "Group: conditional") %>%
+        filter(grepl("Group", import_type) & grepl("conditional", import_type)) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
     kable(vimp_summary_cond, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Conditional variable importance of groups relative to the remaining features that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
@@ -113,7 +113,7 @@ if (no_cv) {
     print("No population variable importance table if CV is not used.")
 } else {
     vimp_summary_marg <- vimp_summary_tbl %>%
-        filter(import_type == "Group: marginal") %>%
+        filter(grepl("Group", import_type) & grepl("marginal", import_type)) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
     kable(vimp_summary_marg, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of groups relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
@@ -126,17 +126,17 @@ if (no_cv) {
     print("No population variable importance table if CV is not used.")
 } else {
     vimp_summary_indi <- vimp_summary_tbl %>%
-        filter(import_type == "Individual: marginal") %>%
+        filter(grepl("Individual", import_type)) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
-    kable(vimp_summary_marg, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of individual features relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+    kable(vimp_summary_indi, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of individual features relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
 }
 ```
 
 The distribution of amino acid at the important residues are shown for sensitive and resistant viruses in Figures \@ref(fig:logoPlot1) and \@ref(fig:logoPlot2).
 
 ```{r logoPlot1, fig.cap = "Distribution of amino acids at important residues for estimated sensitive versus resistant viruses", fig.height = 12, fig.width = 10}
-source("plotting_functions.R")
+## plotting functions sourced in preamble
 if(!is.na(imp_overall$Variable[1])){
   all_imp_vars <- imp_overall$Variable
   imp_aa_vars <- imp_overall$Variable[grepl("hxb", imp_overall$Variable)]
@@ -148,7 +148,6 @@ if(!is.na(imp_overall$Variable[1])){
 ```
 
 ```{r logoPlot2, fig.cap = "Distribution of amino acids at important residues for multiply sensitive versus resistant viruses", fig.height = 12, fig.width = 10}
-source("plotting_functions.R")
 if(!is.na(imp_overall$Variable[1])){
   all_imp_vars <- imp_overall$Variable
   imp_aa_vars <- imp_overall$Variable[grepl("hxb", imp_overall$Variable)]
@@ -369,9 +368,14 @@ Table \@ref(tab:tableic50imp) shows the top 15 most important features according
 
 ```{r tableic50imp}
 # ic50_tab is created in preamble
-kable(ic50_tab, caption = "Top 10 most important features for predicting IC-50 and their importance ranks by each measure",
-      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
-      row.names = FALSE)
+if (dim(ic50_tab)[1] != 0) {
+    kable(ic50_tab, caption = "Top 10 most important features for predicting IC-50 and their importance ranks by each measure",
+          col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+          row.names = FALSE)
+} else {
+    print("No variables met the cutoff for importance.")
+}
+
 ```
 
 ## IC-80
@@ -412,9 +416,13 @@ Table \@ref(tab:tableic80imp) shows the top 15 most important features according
 
 ```{r tableic80imp}
 # ic80_tab is created in preamble
-kable(ic80_tab, caption = "Top 10 most important features for predicting IC-80 and their importance ranks by each measure",
-      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
-      row.names = FALSE)
+if (dim(ic80_tab)[1] != 0) {
+    kable(ic80_tab, caption = "Top 10 most important features for predicting IC-80 and their importance ranks by each measure",
+          col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+          row.names = FALSE)
+} else {
+    print("No variables met the cutoff for importance.")
+}
 ```
 
 ## IIP
@@ -455,9 +463,13 @@ Table \@ref(tab:tableiipimp) shows the top 15 most important features according 
 
 ```{r tableiipimp}
 # iip_tab is created in preamble
-kable(iip_tab, caption = "Top 10 most important features for predicting IIP and their importance ranks by each measure",
-      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
-      row.names = FALSE)
+if (dim(ic80_tab)[1] != 0) {
+    kable(iip_tab, caption = "Top 10 most important features for predicting IIP and their importance ranks by each measure",
+          col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+          row.names = FALSE)
+} else {
+    print("No variables met the cutoff for importance.")
+}
 ```
 
 
@@ -502,9 +514,13 @@ Table \@ref(tab:tabledichot1imp) shows the top 15 most important features accord
 
 ```{r tabledichot1imp}
 # dichot1 is created in preamble
-kable(dichot1_tab, caption = "Top 10 most important features for predicting estimated sensitivity and their importance ranks by each measure",
-      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
-      row.names = FALSE)
+if (dim(ic80_tab)[1] != 0) {
+    kable(dichot1_tab, caption = "Top 10 most important features for predicting estimated sensitivity and their importance ranks by each measure",
+          col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+          row.names = FALSE)
+} else {
+    print("No variables met the cutoff for importance.")
+}
 ```
 
 
@@ -541,9 +557,13 @@ Table \@ref(tab:tabledichot2imp) shows the top 15 most important features accord
 
 ```{r tabledichot2imp}
 # dichot2_tab is created in preamble
-kable(dichot2_tab, caption = "Top 10 most important features for predicting multiple sensitivity and their importance ranks by each measure",
-      col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
-      row.names = FALSE)
+if (dim(ic80_tab)[1] != 0) {
+    kable(dichot2_tab, caption = "Top 10 most important features for predicting multiple sensitivity and their importance ranks by each measure",
+          col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
+          row.names = FALSE)
+} else {
+    print("No variables met the cutoff for importance.")
+}
 ```
 
 # Population variable importance results
