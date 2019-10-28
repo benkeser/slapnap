@@ -62,16 +62,14 @@ get_vimp_options <- function(outcome_name) {
 }
 
 make_vimp_list <- function(var_groups, var_inds) {
-    lst <- list()
-    lst$conditional <- NULL
-    lst$marginal <- NULL
-    lst$individual <- NULL
+    list_names <- c("conditional", "marginal", "individual")
+    lst <- sapply(list_names, function(x) NULL, simplify = FALSE)
     return(lst)
 }
 
 make_cv_lists <- function(folds_lst, full_vec, redu_vec) {
     V <- length(folds_lst)
-    v_lst <- sapply(1:V, function(s) rep(s, length(folds_lst[[s]])))
+    v_lst <- sapply(1:V, function(s) rep(s, length(folds_lst[[s]])), simplify = FALSE)
     joint_lst <- mapply(list, v_lst, folds_lst, SIMPLIFY = FALSE)
     folds_mat <- do.call(rbind, lapply(joint_lst, function(x) cbind(x[[1]], x[[2]])))
     folds <- folds_mat[order(folds_mat[, 2]), 1]
@@ -92,48 +90,50 @@ for (i in 1:length(outcome_names)) {
     eval(parse(text = paste0(this_outcome_name, '_vimp_lst <- make_vimp_list(var_groups, var_inds)')))
     eval(parse(text = paste0(this_outcome_name, '_cv_vimp_lst <- make_vimp_list(var_groups, var_inds)')))
     ## load full fit corresponding to this outcome
-    full_fit <- readRDS(paste0("fitted_", this_outcome_name, ".rds"))
-    full_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, ".rds"))
+    full_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, ".rds"))
+    full_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, ".rds"))
+    full_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
     ## load geog-only fit corresponding to this outcome
-    geog_fit <- readRDS(paste0("fitted_", this_outcome_name, "_geog.rds"))
-    geog_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, "_geog.rds"))
+    geog_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_geog.rds"))
+    geog_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_geog.rds"))
+    geog_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, "_geog.rds"))
     ## group variable importance
     for (j in 1:length(var_groups)) {
         this_group_name <- names(var_groups)[j]
         ## non-cv
-        cond_fit <- readRDS(paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"))
-        marg_fit <- readRDS(paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
+        cond_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"))
+        marg_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
         sub_folds <- sample(1:2, length(dat[, this_outcome_name]), replace = TRUE, prob = c(0.5, 0.5))
         ## cv
-        cond_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"))
-        marg_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
-        cond_cv_folds <- readRDS(paste0("cvfolds_", this_outcome_name, "_minus_", this_group_name, ".rds"))
-        marg_cv_folds <- readRDS(paste0("cvfolds_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
-        cond_cv_lst <- make_cv_lists(cond_cv_folds, full_cv_fit, cond_cv_fit)
-        marg_cv_lst <- make_cv_lists(marg_cv_folds, marg_cv_fit, geog_cv_fit)
+        cond_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"))
+        marg_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
+        cond_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, "_minus_", this_group_name, ".rds"))
+        marg_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
+        cond_cv_lst <- make_cv_lists(full_cv_folds, full_cv_fit, cond_cv_fit)
+        marg_cv_lst <- make_cv_lists(geog_cv_folds, marg_cv_fit, geog_cv_fit)
         ## get conditional, non-cv vimp
-        eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = full_fit, f2 = cond_fit, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')")))
+        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = full_fit, f2 = cond_fit, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')"))))
         ## get marginal, non-cv vimp
-        eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = marg_fit, f2 = geog_fit, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')")))
+        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = marg_fit, f2 = geog_fit, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')"))))
         ## get conditional, cv vimp
-        eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = cond_cv_lst$full_lst, f2 = cond_cv_lst$redu_lst, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = cond_cv_lst$folds, na.rm = TRUE, scale = 'identity')")))
+        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_cond_", this_group_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = cond_cv_lst$full_lst, f2 = cond_cv_lst$redu_lst, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = cond_cv_lst$folds, na.rm = TRUE, scale = 'identity')"))))
         ## get marginal, cv vimp
-        eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = marg_cv_lst$full_lst, f2 = marg_cv_lst$redu_lst, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = marg_cv_lst$folds, na.rm = TRUE, scale = 'identity')")))
+        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_marg_", this_group_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = marg_cv_lst$full_lst, f2 = marg_cv_lst$redu_lst, indx = which(pred_names %in% var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = marg_cv_lst$folds, na.rm = TRUE, scale = 'identity')"))))
     }
     ## merge together
-    eval(parse(text = paste0(this_outcome_name, "_vimp_lst$conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", var_groups), collapse = ", "), ")")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", var_groups), collapse = ", "), ")")))
-    eval(parse(text = paste0(this_outcome_name, "_vimp_lst$marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", var_groups), collapse = ", "), ")")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", var_groups), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst$conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", names(var_groups)), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cv_cond_", names(var_groups)), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst$marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", names(var_groups)), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$marginal <- merge_vim(", paste(paste0(this_outcome_name, "_cv_marg_", names(var_groups)), collapse = ", "), ")")))
     ## individual variable importance
     for (j in 1:length(var_inds)) {
         this_var_name <- var_inds[j]
         ## non-cv
-        indi_fit <- readRDS(paste0("fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
+        indi_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
         sub_folds <- sample(1:2, length(dat[, this_outcome_name]), replace = TRUE, prob = c(0.5, 0.5))
         ## cv
-        indi_cv_fit <- readRDS(paste0("cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
-        indi_cv_folds <- readRDS(paste0("cvfolds_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
+        indi_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
+        indi_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
         indi_cv_lst <- make_cv_lists(indi_cv_folds, indi_cv_fit, geog_cv_fit)
         ## get individual, non-cv vimp
         eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = indi_fit, f2 = geog_fit, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')")))

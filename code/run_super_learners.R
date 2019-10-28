@@ -147,6 +147,9 @@ for (i in 1:length(outcome_names)) {
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
+    ## read in the full folds, for this group's cv folds
+    full_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
+    sl_opts$ctrl$validRows <- full_folds
     for (j in 1:length(var_groups)) {
         if (length(var_groups[j]) != 0) {
             this_group_name <- names(var_groups)[j]
@@ -164,6 +167,8 @@ for (i in 1:length(outcome_names)) {
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
+    full_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
+    sl_opts$ctrl$validRows <- full_folds
     for (j in 1:length(var_inds)) {
         this_var_name <- var_inds[j]
         ## fit SL of only this variable plus geographic confounders
@@ -178,5 +183,7 @@ for (i in 1:length(outcome_names)) {
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
+    full_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
+    sl_opts$ctrl$validRows <- full_folds
     sl_geog_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_geog.rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_geog.rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE)
 }
