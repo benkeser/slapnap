@@ -8,56 +8,78 @@
 ## @param lgnd_pos the legend position
 ## @param point_size the point size
 ## @param main_font_size the size of text
-plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20) {
-    ## get the variable importances
-    if (!is.null(vimp_obj$mat)) {
-        vimp_est <- vimp_obj$mat
-        vimp_est$group <- vimp_nice_rownames(vimp_obj)
-    } else {
-        vimp_est <- cbind(est = vimp_obj$est, se = vimp_obj$se, cil = vimp_obj$cil, ciu = vimp_obj$ciu)
-        print_s <- ifelse(length(vimp_obj$s) <= 10,
-                      paste(vimp_obj$s, collapse = ", "),
-                      paste(c(vimp_obj$s[1:10], "..."), collapse = ", "))
-        vimp_est$group <- paste("s = ", print_s, sep = "")
-    }
-    ## plot by ordered vimp measure
-    vimp_plot <- vimp_est %>%
-        arrange(desc(est)) %>%
-        ggplot(aes(x = est, y = group[order(est)])) +
-        geom_errorbarh(aes(xmin = cil, xmax = ciu)) +
-        geom_point(size = point_size) +
-        ggtitle(title) +
-        xlab(x_lab) +
-        ylab("Feature group") +
-        scale_x_continuous(breaks = round(seq(x_lim[1], x_lim[2], 0.1), 1),
-                       labels = as.character(round(seq(x_lim[1], x_lim[2], 0.1), 1)),
-                       limits = x_lim) +
-        theme(legend.position = lgnd_pos,
-              text = element_text(size = main_font_size),
-              axis.title = element_text(size = main_font_size))
+plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20, groups = NULL) {
+    if (!is.null(vimp_obj)) {
+        ## get the variable importances
+        if (!is.null(vimp_obj$mat)) {
+            vimp_est <- vimp_obj$mat
+            vimp_est$group <- vimp_nice_rownames(vimp_obj$mat$s, groups)
+        } else {
+            vimp_est <- cbind(est = vimp_obj$est, se = vimp_obj$se, cil = vimp_obj$cil, ciu = vimp_obj$ciu)
+            print_s <- ifelse(length(vimp_obj$s) <= 10,
+                          paste(vimp_obj$s, collapse = ", "),
+                          paste(c(vimp_obj$s[1:10], "..."), collapse = ", "))
+            vimp_est$group <- paste("s = ", print_s, sep = "")
+        }
+        ## plot by ordered vimp measure
+        vimp_plot <- vimp_est %>%
+            arrange(desc(est)) %>%
+            ggplot(aes(x = est, y = group[order(est)])) +
+            geom_errorbarh(aes(xmin = cil, xmax = ciu)) +
+            geom_point(size = point_size) +
+            ggtitle(title) +
+            xlab(x_lab) +
+            ylab("Feature group") +
+            scale_x_continuous(breaks = round(seq(x_lim[1], x_lim[2], 0.1), 1),
+                           labels = as.character(round(seq(x_lim[1], x_lim[2], 0.1), 1)),
+                           limits = x_lim) +
+            theme(legend.position = lgnd_pos,
+                  text = element_text(size = main_font_size),
+                  axis.title = element_text(size = main_font_size))
 
-    return(vimp_plot)
+        return(vimp_plot)
+    } else {
+        print("No variable importance estimates to plot.")
+    }
 }
 
-vimp_plot_name <- function(vimp_obj) {
-    row_nm <- vimp_obj$mat$print_name
-    tmp_string_init <- strsplit(row_nm, "_", fixed = TRUE)[[1]]
-    tmp_string <- paste0(tmp_string_init[-length(tmp_string_init)], collapse = "_")
-    if (grepl("iip", tmp_string)) {
+vimp_plot_name <- function(vimp_str) {
+    if (grepl("iip", vimp_str)) {
         plot_nm <- "IIP"
-    } else if (grepl("pc.ic50", tmp_string)) {
+    } else if (grepl("pc.ic50", vimp_str)) {
         plot_nm <- "IC-50"
-    } else if (grepl("pc.ic80", tmp_string)) {
+    } else if (grepl("pc.ic80", vimp_str)) {
         plot_nm <- "IC-80"
-    } else if (grepl("dichotomous.1", tmp_string)) {
+    } else if (grepl("dichotomous.1", vimp_str)) {
         plot_nm <- "Estimated sensitivity"
     } else {
         plot_nm <- "Multiple Sensitivity"
     }
     return(plot_nm)
 }
-
-vimp_nice_rownames <- function(vimp_obj) {
-    row_nm <- vimp_obj$mat$print_name
-    return(unlist(lapply(strsplit(row_nm, "_", fixed = TRUE), function(x) tail(x, n = 1))))
+vimp_nice_rownames <- function(s, groups) {
+    tmp_string <- paste(unlist(strsplit(s, ",", fixed = TRUE)), collapse = "|")
+    return(names(groups)[grepl(tmp_string, groups)])
 }
+# vimp_plot_name <- function(vimp_obj) {
+#     row_nm <- vimp_obj$mat$print_name
+#     tmp_string_init <- strsplit(row_nm, "_", fixed = TRUE)[[1]]
+#     tmp_string <- paste0(tmp_string_init[-length(tmp_string_init)], collapse = "_")
+#     if (grepl("iip", tmp_string)) {
+#         plot_nm <- "IIP"
+#     } else if (grepl("pc.ic50", tmp_string)) {
+#         plot_nm <- "IC-50"
+#     } else if (grepl("pc.ic80", tmp_string)) {
+#         plot_nm <- "IC-80"
+#     } else if (grepl("dichotomous.1", tmp_string)) {
+#         plot_nm <- "Estimated sensitivity"
+#     } else {
+#         plot_nm <- "Multiple Sensitivity"
+#     }
+#     return(plot_nm)
+# }
+#
+# vimp_nice_rownames <- function(vimp_obj) {
+#     row_nm <- vimp_obj$mat$print_name
+#     return(unlist(lapply(strsplit(row_nm, "_", fixed = TRUE), function(x) tail(x, n = 1))))
+# }
