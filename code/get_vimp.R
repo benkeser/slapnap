@@ -134,15 +134,15 @@ for (i in 1:length(outcome_names)) {
         ## cv
         indi_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
         indi_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
-        indi_cv_lst <- make_cv_lists(indi_cv_folds, indi_cv_fit, geog_cv_fit)
+        indi_cv_lst <- make_cv_lists(geog_cv_folds, indi_cv_fit, geog_cv_fit)
         ## get individual, non-cv vimp
-        eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = indi_fit, f2 = geog_fit, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')")))
+        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = indi_fit, f2 = geog_fit, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = sub_folds, na.rm = TRUE, scale = 'identity')"))))
         ## get individual, cv vimp
-        eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = indi_cv_lst$full_lst, f2 = indi_cv_lst$redu_lst, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = indi_cv_lst$folds, na.rm = TRUE, scale = 'identity')")))
+        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_marg_", this_var_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = indi_cv_lst$full_lst, f2 = indi_cv_lst$redu_lst, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = indi_cv_lst$folds, na.rm = TRUE, scale = 'identity')"))))
     }
     ## merge together
     eval(parse(text = paste0(this_outcome_name, "_vimp_lst$individual <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", var_inds), collapse = ", "), ")")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$individual <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", var_inds), collapse = ", "), ")")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$individual <- merge_vim(", paste(paste0(this_outcome_name, "_cv_marg_", var_inds), collapse = ", "), ")")))
     ## save them off
     eval(parse(text = paste0("saveRDS(", this_outcome_name, "_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_vimp"), ".rds')")))
     eval(parse(text = paste0("saveRDS(", this_outcome_name, "_cv_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_cv_vimp"), ".rds')")))
