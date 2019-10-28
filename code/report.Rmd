@@ -554,7 +554,7 @@ We define the conditional population-level importance of a subgroup of features 
 
 We show the population-level variable importance of groups of features in predicting IC-50 in Figure \@ref(fig:ic50groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
 
-```{r ic50groupvimp, fig.cap = "Group variable importance for predicting IC-50", fig.subcap = c("Conditional importance", "Marginal importance") fig.height = 10, fig.width = 20}
+```{r ic50groupvimp, fig.cap = "Group variable importance for predicting IC-50", fig.subcap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
 ## only report non-cv if no_cv
 if (no_cv) {
     ic50_grp_vimp_grob_lst <- log10.pc.ic50_vimp_plots
