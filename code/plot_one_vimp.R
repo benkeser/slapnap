@@ -8,7 +8,9 @@
 ## @param lgnd_pos the legend position
 ## @param point_size the point size
 ## @param main_font_size the size of text
-plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20, cv = FALSE) {
+## @param cv whether or not this is cv importance
+## @param num_plot the number of features to plot (in descending order)
+plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20, cv = FALSE, num_plot = 50) {
     if (!is.null(vimp_obj)) {
         ## get the variable importances
         if (!is.null(vimp_obj$mat)) {
@@ -24,6 +26,7 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
         ## plot by ordered vimp measure
         vimp_plot <- vimp_est %>%
             arrange(desc(est)) %>%
+            filter(row_number() <= num_plot) %>%
             ggplot(aes(x = est, y = group[order(est)])) +
             geom_errorbarh(aes(xmin = cil, xmax = ciu)) +
             geom_point(size = point_size) +
