@@ -8,12 +8,12 @@
 ## @param lgnd_pos the legend position
 ## @param point_size the point size
 ## @param main_font_size the size of text
-plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20, groups = NULL) {
+plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20, cv = FALSE) {
     if (!is.null(vimp_obj)) {
         ## get the variable importances
         if (!is.null(vimp_obj$mat)) {
             vimp_est <- vimp_obj$mat
-            vimp_est$group <- vimp_nice_rownames(vimp_obj$mat$s, groups)
+            vimp_est$group <- vimp_nice_rownames(vimp_obj, cv = cv)
         } else {
             vimp_est <- cbind(est = vimp_obj$est, se = vimp_obj$se, cil = vimp_obj$cil, ciu = vimp_obj$ciu)
             print_s <- ifelse(length(vimp_obj$s) <= 10,
@@ -57,9 +57,16 @@ vimp_plot_name <- function(vimp_str) {
     }
     return(plot_nm)
 }
-vimp_nice_rownames <- function(s, groups) {
-    tmp_string <- paste(unlist(strsplit(s, ",", fixed = TRUE)), collapse = "|")
-    return(names(groups)[grepl(tmp_string, groups)])
+vimp_nice_rownames <- function(vimp_obj, cv = FALSE) {
+    mat_s <- vimp_obj$mat$s
+    lst_s <- vimp_obj$s
+    indx_mat <- sapply(1:length(mat_s), function(x) which(mat_s[x] == lst_s))
+    paste_ind <- 3
+    if (cv) {
+        paste_ind <- 4
+    }
+    tmp_nms <- unlist(lapply(strsplit(names(lst_s), "_", fixed = TRUE), function(x) paste(x[paste_ind:length(x)], collapse = "_")))
+    return(tmp_nms[indx_mat])
 }
 # vimp_plot_name <- function(vimp_obj) {
 #     row_nm <- vimp_obj$mat$print_name

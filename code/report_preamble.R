@@ -26,7 +26,6 @@ no_cv <- Sys.getenv("no_cv") == TRUE
 
 
 source("/home/lib/plotting_functions.R")
-source("/home/lib/plot_one_vimp.R")
 # get NAbs names from ENV variable
 antibody_string <- Sys.getenv("Nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
@@ -138,6 +137,8 @@ imp_overall <- combine_importance(list(ic50_tab, ic80_tab, iip_tab, dichot1_tab,
 ## ----------------------------------------------------------------------------
 ## Population variable importance
 ## ----------------------------------------------------------------------------
+source("/home/lib/plot_one_vimp.R")
+source("/home/lib/variable_groups.R")
 # get names of outcomes
 all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
 # if reduce_outcomes, only run on ic50
@@ -155,7 +156,6 @@ if (reduce_groups) {
 } else {
     var_groups <- all_var_groups
 }
-V <- 10
 # if reduce_covs, only do individual imp on that number
 if (reduce_covs) {
     num_covs <- 10
@@ -164,12 +164,14 @@ if (reduce_covs) {
     num_covs <- length(pred_names) - length(all_geog_vars)
     var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 }
+## plotting things
 x_lab_continuous <- expression(paste("Difference in ", R^2, sep = ""))
 x_lim_continuous <- c(0, 1)
 x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
 x_lim_binary <- c(0, 1)
 ## read in importance results for each outcome, create a plot for each
 ## only return non-cv plots if cv = FALSE
+imp_nms <- list(var_groups, var_groups, var_inds)
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     if (grepl("dichot", this_outcome_name)) {
@@ -180,11 +182,18 @@ for (i in 1:length(outcome_names)) {
         this_x_lim <- x_lim_continuous
     }
     ## importance results
-    eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = /home/slfits/", this_outcome_name, "_vimp.rds")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = /home/slfits/", this_outcome_name, "_cv_vimp.rds")))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_vimp.rds')")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_cv_vimp.rds')")))
     ## make plots
-    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- lapply(", this_outcome_name, "_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = this_x_lab, x_lim = this_x_lim))")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- lapply(", this_outcome_name, "_cv_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(x), x_lab = this_x_lab, x_lim = this_x_lim))")))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- lapply(", this_outcome_name, "_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(this_outcome_name), x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE))")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- lapply(", this_outcome_name, "_cv_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(this_outcome_name), x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE))")))
 }
 
 ## make table for executive summary
+source("/home/lib/vimp_executive_summary_table.R")
+vimp_threshold <- 0.05
+if (no_cv) {
+    vimp_summary_tbl <- make_vimp_executive_summary_table(log10.pc.ic50_vimp_lst, log10.pc.ic80_vimp_lst, iip_vimp_lst, dichotomous.1_vimp_lst, dichotomous.2_vimp_lst, threshold = vimp_threshold, outcome_names = outcome_names, cv = FALSE)
+} else {
+    vimp_summary_tbl <- make_vimp_executive_summary_table(log10.pc.ic50_cv_vimp_lst, log10.pc.ic80_cv_vimp_lst, iip_cv_vimp_lst, dichotomous.1_cv_vimp_lst, dichotomous.2_cv_vimp_lst, threshold = vimp_threshold, outcome_names = outcome_names, cv = TRUE)
+}
