@@ -591,7 +591,12 @@ if (no_cv) {
 } else {
     ic50_grp_vimp_grob_lst <- log10.pc.ic50_cv_vimp_plots
 }
-grid.arrange(grobs = ic50_grp_vimp_grob_lst$individual, ncol = 1)
+if (is.character(ic50_grp_vimp_grob_lst$individual)) {
+    print(ic50_grp_vimp_grob_lst$individual)
+} else {
+    grid.arrange(grobs = list(ic50_grp_vimp_grob_lst$individual), ncol = 1)
+}
+
 ```
 
 ## IC-80
@@ -622,7 +627,11 @@ if (!reduce_outcomes) {
     } else {
         ic80_grp_vimp_grob_lst <- log10.pc.ic80_cv_vimp_plots
     }
-    grid.arrange(grobs = ic80_grp_vimp_grob_lst$individual, ncol = 1)
+    if (is.character(ic80_grp_vimp_grob_lst$individual)) {
+        print(ic80_grp_vimp_grob_lst$individual)
+    } else {
+        grid.arrange(grobs = list(ic80_grp_vimp_grob_lst$individual), ncol = 1)
+    }
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
@@ -656,7 +665,11 @@ if (!reduce_outcomes) {
     } else {
         iip_grp_vimp_grob_lst <- iip_cv_vimp_plots
     }
-    grid.arrange(grobs = iip_grp_vimp_grob_lst$individual, ncol = 1)
+    if (is.character(iip_grp_vimp_grob_lst$individual)) {
+        print(iip_grp_vimp_grob_lst$individual)
+    } else {
+        grid.arrange(grobs = list(iip_grp_vimp_grob_lst$individual), ncol = 1)
+    }
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
@@ -690,7 +703,11 @@ if (!reduce_outcomes) {
     } else {
         dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_cv_vimp_plots
     }
-    grid.arrange(grobs = dichotomous.1_grp_vimp_grob_lst$individual, ncol = 1)
+    if (is.character(dichotomous.1_grp_vimp_grob_lst$individual)) {
+        print(dichotomous.1_grp_vimp_grob_lst$individual)
+    } else {
+        grid.arrange(grobs = list(dichotomous.1_grp_vimp_grob_lst$individual), ncol = 1)
+    }
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
@@ -724,7 +741,11 @@ if (!reduce_outcomes) {
     } else {
         dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_cv_vimp_plots
     }
-    grid.arrange(grobs = dichotomous.2_grp_vimp_grob_lst$individual, ncol = 1)
+    if (is.character(dichotomous.2_grp_vimp_grob_lst$individual)) {
+        print(dichotomous.2_grp_vimp_grob_lst$individual)
+    } else {
+        grid.arrange(grobs = list(dichotomous.2_grp_vimp_grob_lst$individual), ncol = 1)
+    }
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
