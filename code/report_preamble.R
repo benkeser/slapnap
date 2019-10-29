@@ -139,7 +139,7 @@ imp_overall <- combine_importance(list(ic50_tab, ic80_tab, iip_tab, dichot1_tab,
 ## ----------------------------------------------------------------------------
 source("/home/lib/plot_one_vimp.R")
 source("/home/lib/variable_groups.R")
-num_pop_import <- 50  # the number of individual features to display in plots
+num_pop_import <- 20  # the number of individual features to display in plots
 # get names of outcomes
 all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
 # if reduce_outcomes, only run on ic50
@@ -186,8 +186,13 @@ for (i in 1:length(outcome_names)) {
     eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_vimp.rds')")))
     eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_cv_vimp.rds')")))
     ## make plots
-    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- lapply(", this_outcome_name, "_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(this_outcome_name), x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import))")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- lapply(", this_outcome_name, "_cv_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(this_outcome_name), x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import))")))
+    eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
+    eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
+    vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", names(current_vimp_lst))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+    # eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- lapply(", this_outcome_name, "_vimp_lst, function(x) plot_one_vimp(x, title = paste0(vimp_plot_name(this_outcome_name), ': ', names(x)), x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import))")))
+    # eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- lapply(", this_outcome_name, "_cv_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(this_outcome_name), x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import))")))
 }
 
 ## make table for executive summary

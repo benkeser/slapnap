@@ -3,6 +3,8 @@ title: 'SLAPNAP Report: `r format(strsplit(Sys.getenv("Nab"), split = ";")[[1]])
 author: "SLAPNAP Team"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
+header-includes:
+   - \usepackage{subfig}
 ---
 
 ```{r setup, include=FALSE}
@@ -92,7 +94,7 @@ The estimated variable importance of individual features in the Super Learner ar
 kable(imp_overall, caption = "Variable importance of individual features in the Super Learner, defined by being label as 'important' for prediction of at least two of the outcomes considered; these outcomes are listed in the table.")
 ```
 
-In Tables \@ref(tab:vimpgroupcond)--\@ref(tab:vimpindimarg), we display the groups of variables and individual variables with population variable importance statistically significantly greater than zero for each outcome. For the population variable importance of each group and individual feature for predicting each outcome, please refer to the outcomes' respective sections in Section \@ref(population-variable-importance-results).
+In Tables \@ref(tab:vimpgroupcond)--\@ref(tab:vimpindimarg), we display the groups of variables and the top `r num_pop_import` individual variables with population variable importance statistically significantly greater than zero at the `r vimp_threshold` level for each outcome. For the population variable importance of each group and individual feature for predicting each outcome, please refer to the outcomes' respective sections in Section \@ref(population-variable-importance-results). For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
 
 ```{r vimpgroupcond}
 ## vimp_summary_tbl created in preamble
@@ -103,7 +105,7 @@ if (no_cv) {
         filter(grepl("Group", import_type) & grepl("conditional", import_type)) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
-    kable(vimp_summary_cond, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Conditional variable importance of groups relative to the remaining features that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+    kable(vimp_summary_cond, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Conditional variable importance of groups relative to the remaining features that were deemed to have population importance statistically significantly different from zero at the `r vimp_threshold` level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
 }
 ```
 
@@ -116,20 +118,21 @@ if (no_cv) {
         filter(grepl("Group", import_type) & grepl("marginal", import_type)) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
-    kable(vimp_summary_marg, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of groups relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+    kable(vimp_summary_marg, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of groups relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero at the `r vimp_threshold` level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
 }
 ```
 
-```{r vimpgindimarg}
+```{r vimpindimarg}
 ## vimp_summary_tbl created in preamble
 if (no_cv) {
     print("No population variable importance table if CV is not used.")
 } else {
     vimp_summary_indi <- vimp_summary_tbl %>%
         filter(grepl("Individual", import_type)) %>%
+        filter(row_number() <= num_pop_import) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
-    kable(vimp_summary_indi, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of individual features relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+    kable(vimp_summary_indi, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of the top `r num_pop_import` individual features relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero at the `r vimp_threshold` level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
 }
 ```
 
@@ -312,7 +315,7 @@ this_library <- if(reduce_library){
 Description <- sapply(this_library, function(x){
 	eval(parse(text = paste0("descr_", x)))
 })
-knitr::kable(as.data.frame(Description),
+kable(as.data.frame(Description),
              caption = "Super learner library")
 ```
 
@@ -335,7 +338,7 @@ for(o in outcome_names){
 weight_table <- data.frame(Reduce(cbind, weight_list))
 colnames(weight_table) <- outcome_names
 row.names(weight_table) <- this_library
-knitr::kable(as.data.frame(weight_table), digits = 2,
+kable(as.data.frame(weight_table), digits = 2,
              caption = "Table of super learner weights for each outcome")
 ```
 
@@ -358,7 +361,7 @@ plot_cv_predictions(cvfit_ic50, outcome_name = "IC-50", log_axis = FALSE)
 
 Figure \@ref(fig:plotic50imp) shows an animated representation of the importance of individual features for predicting estimated IC-50. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
 
-```{r plotic50imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting IC50'}
+```{r plotic50imp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap="Animated importance of features for predicting IC50"}
 for(m in 1:50){
 	make_ml_import_plot(dat = dat, imp_df = imp_ic50, max_import = m)
 }
@@ -405,7 +408,7 @@ if (!reduce_outcomes) {
 
 Figure \@ref(fig:plotic80imp) shows an animated representation of the importance of individual features for predicting estimate IC-80. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
 
-```{r plotic80imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting IC-80'}
+```{r plotic80imp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap="Animated importance of features for predicting IC-80"}
 for(m in 1:50){
 	make_ml_import_plot(dat = dat, imp_df = imp_ic80, max_import = m)
 }
@@ -452,7 +455,7 @@ if (!reduce_outcomes) {
 
 Figure \@ref(fig:plotiipimp) shows an animated representation of the importance of individual features for predicting estimate IC-80. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
 
-```{r plotiipimp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting IIP'}
+```{r plotiipimp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap="Animated importance of features for predicting IIP"}
 for(m in 1:50){
 	make_ml_import_plot(dat = dat, imp_df = imp_iip, max_import = m)
 }
@@ -503,7 +506,7 @@ if (!reduce_outcomes) {
 
 Figure \@ref(fig:plotdichot1imp) shows an animated representation of the importance of individual features for predicting estimated sensitivity. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
 
-```{r plotdichot1imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting estimated sensitivity'}
+```{r plotdichot1imp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap="Animated importance of features for predicting estimated sensitivity"}
 for(m in 1:50){
 	make_ml_import_plot(dat = dat, imp_df = imp_dichot1, max_import = m)
 }
@@ -546,7 +549,7 @@ if (!reduce_outcomes) {
 
 Figure \@ref(fig:plotdichot2imp) shows an animated representation of the importance of individual features for predicting multiple sensitivity. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
 
-```{r plotdichot2imp, fig.show='animate', animation.hook=my_webm, interval=0.2, fig.width=8, aniopts='controls', fig.cap='Animated importance of features for predicting multiple sensitivity.'}
+```{r plotdichot2imp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap="Animated importance of features for predicting multiple sensitivity"}
 for(m in 1:50){
 	make_ml_import_plot(dat = dat, imp_df = imp_dichot2, max_import = m)
 }

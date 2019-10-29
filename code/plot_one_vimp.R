@@ -27,8 +27,8 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
         vimp_plot <- vimp_est %>%
             arrange(desc(est)) %>%
             filter(row_number() <= num_plot) %>%
-            ggplot(aes(x = est, y = group[order(est)])) +
-            geom_errorbarh(aes(xmin = cil, xmax = ciu)) +
+            ggplot(aes(x = est[order(est)], y = group[order(est)])) +
+            geom_errorbarh(aes(xmin = cil[order(est)], xmax = ciu[order(est)])) +
             geom_point(size = point_size) +
             ggtitle(title) +
             xlab(x_lab) +
