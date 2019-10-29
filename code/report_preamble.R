@@ -73,12 +73,11 @@ my_webm <- function (x, options) {
     opts = paste(sprintf("width=\"%s\"", options$out.width),
         sprintf("height=\"%s\"", options$out.height), opts)
     cap = knitr:::.img.cap(options, alt = TRUE)
-    if (cap != "")
-        cap = sprintf("<p>%s</p>", cap)
+    if (cap != "") cap = sprintf("<p>%s</p>", cap)
+    message(cap)
     sprintf("<video %s><source src=\"%s\" />%s</video>", trimws(opts),
         paste0(opts_knit$get("base.url"), mov.fname), cap)
 }
-knitr::opts_knit$set(animation.fun = my_webm)
 
 path.home <- "/home/slfits"
 path.home <- "/home/dat/analysis/"
