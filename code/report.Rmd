@@ -375,7 +375,6 @@ if (dim(ic50_tab)[1] != 0) {
 } else {
     print("No variables met the cutoff for importance.")
 }
-
 ```
 
 ## IC-80
@@ -581,7 +580,7 @@ if (no_cv) {
 } else {
     ic50_grp_vimp_grob_lst <- log10.pc.ic50_cv_vimp_plots
 }
-grid.arrange(grobs = c(ic50_grp_vimp_grob_lst$conditional, ic50_grp_vimp_grob_lst$marginal), ncol = 2)
+grid.arrange(grobs = list(ic50_grp_vimp_grob_lst$conditional, ic50_grp_vimp_grob_lst$marginal), ncol = 2)
 ```
 We show the individual-level variable importance for the top `r num_pop_import` variables in Figure \@ref(fig:ic50indivvimp). This importance is computed relative to the null model with geographic confounders only.
 
@@ -607,7 +606,7 @@ if (!reduce_outcomes) {
     } else {
         ic80_grp_vimp_grob_lst <- log10.pc.ic80_cv_vimp_plots
     }
-    grid.arrange(grobs = c(ic80_grp_vimp_grob_lst$conditional, ic80_grp_vimp_grob_lst$marginal), ncol = 2)
+    grid.arrange(grobs = list(ic80_grp_vimp_grob_lst$conditional, ic80_grp_vimp_grob_lst$marginal), ncol = 2)
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
@@ -641,7 +640,7 @@ if (!reduce_outcomes) {
     } else {
         iip_grp_vimp_grob_lst <- iip_cv_vimp_plots
     }
-    grid.arrange(grobs = c(iip_grp_vimp_grob_lst$conditional, iip_grp_vimp_grob_lst$marginal), ncol = 2)
+    grid.arrange(grobs = list(iip_grp_vimp_grob_lst$conditional, iip_grp_vimp_grob_lst$marginal), ncol = 2)
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
@@ -675,7 +674,7 @@ if (!reduce_outcomes) {
     } else {
         dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_cv_vimp_plots
     }
-    grid.arrange(grobs = c(dichotomous.1_grp_vimp_grob_lst$conditional, dichotomous.1_grp_vimp_grob_lst$marginal), ncol = 2)
+    grid.arrange(grobs = list(dichotomous.1_grp_vimp_grob_lst$conditional, dichotomous.1_grp_vimp_grob_lst$marginal), ncol = 2)
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
@@ -709,7 +708,7 @@ if (!reduce_outcomes) {
     } else {
         dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_cv_vimp_plots
     }
-    grid.arrange(grobs = c(dichotomous.2_grp_vimp_grob_lst$conditional, dichotomous.2_grp_vimp_grob_lst$marginal), ncol = 2)
+    grid.arrange(grobs = list(dichotomous.2_grp_vimp_grob_lst$conditional, dichotomous.2_grp_vimp_grob_lst$marginal), ncol = 2)
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
