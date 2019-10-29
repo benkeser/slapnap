@@ -78,6 +78,7 @@ my_webm <- function (x, options) {
     sprintf("<video %s><source src=\"%s\" />%s</video>", trimws(opts),
         paste0(opts_knit$get("base.url"), mov.fname), cap)
 }
+knitr::opts_knit$set(animation.fun = my_webm)
 
 path.home <- "/home/slfits"
 path.home <- "/home/dat/analysis/"
@@ -109,24 +110,24 @@ imp_dichot2 <- get_all_importance("dichotomous.2", binary_outcome = TRUE,
                                dir_loc = "/home/slfits/",
                                dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 
-
-ic50_tab <- get_importance_table(imp_ic50, max_features = 15)
+max_features <- 15
+ic50_tab <- get_importance_table(imp_ic50, max_features = max_features)
 direction_resis <- get_importance_resis(ic50_tab, dat = dat, which_outcome = "log10.pc.ic50")
 ic50_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
-ic80_tab <- get_importance_table(imp_ic80, max_features = 15)
+ic80_tab <- get_importance_table(imp_ic80, max_features = max_features)
 direction_resis <- get_importance_resis(ic80_tab, dat = dat, which_outcome = "log10.pc.ic80")
 ic80_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
-iip_tab <- get_importance_table(imp_iip, max_features = 15)
+iip_tab <- get_importance_table(imp_iip, max_features = max_features)
 direction_resis <- get_importance_resis(iip_tab, dat = dat, which_outcome = "iip")
 iip_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
-dichot1_tab <- get_importance_table(imp_dichot1, max_features = 15)
+dichot1_tab <- get_importance_table(imp_dichot1, max_features = max_features)
 direction_resis <- get_importance_resis(dichot1_tab, dat = dat, which_outcome = "dichotomous.1")
 dichot1_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
-dichot2_tab <- get_importance_table(imp_dichot2, max_features = 15)
+dichot2_tab <- get_importance_table(imp_dichot2, max_features = max_features)
 direction_resis <- get_importance_resis(dichot2_tab, dat = dat, which_outcome = "dichotomous.2")
 dichot2_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 

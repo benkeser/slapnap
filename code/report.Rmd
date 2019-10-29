@@ -11,7 +11,7 @@ header-includes:
 source("/home/lib/report_preamble.R")
 ```
 
-```{r load_cvfit_objects}
+```{r load-cvfit-objects}
 if (!no_cv) {
     cvfit_ic50 <- readRDS("/home/slfits/cvfit_log10.pc.ic50.rds")
     class(cvfit_ic50) <- "myCV.SuperLearner"
@@ -105,7 +105,7 @@ if (no_cv) {
         filter(grepl("Group", import_type) & grepl("conditional", import_type)) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
-    kable(vimp_summary_cond, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Conditional variable importance of groups relative to the remaining features that were deemed to have population importance statistically significantly different from zero at the `r vimp_threshold` level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+    kable(vimp_summary_cond, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = paste0("Conditional variable importance of groups relative to the remaining features that were deemed to have population importance statistically significantly different from zero at the ", vimp_threshold, " level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity)."))
 }
 ```
 
@@ -118,7 +118,7 @@ if (no_cv) {
         filter(grepl("Group", import_type) & grepl("marginal", import_type)) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
-    kable(vimp_summary_marg, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of groups relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero at the `r vimp_threshold` level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+    kable(vimp_summary_marg, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = paste0("Marginal variable importance of groups relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero at the ", vimp_threshold, " level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity)."))
 }
 ```
 
@@ -132,7 +132,7 @@ if (no_cv) {
         filter(row_number() <= num_pop_import) %>%
         mutate(tab_outcome_name = vimp_plot_name(outcome)) %>%
         select(est, cil, ciu, p_value, tab_outcome_name, group)
-    kable(vimp_summary_indi, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = "Marginal variable importance of the top `r num_pop_import` individual features relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero at the `r vimp_threshold` level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity).")
+    kable(vimp_summary_indi, col.names = c("Estimated variable importance", "Lower 95% CI", "Upper 95% CI", "p-value", "Outcome name", "Variable group"), caption = paste0("Marginal variable importance of the top ", num_pop_import, " individual features relative to the geographic confounders only that were deemed to have population importance statistically significantly different from zero at the ", vimp_threshold, " level for the specified outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity)."))
 }
 ```
 
@@ -347,8 +347,7 @@ kable(as.data.frame(weight_table), digits = 2,
 The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IC-50 in Figure \@ref(fig:plotic50).
 
 ```{r plotic50, fig.cap = "Cross-validated R-squared for estimated IC-50"}
-plot(cvfit_ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8, text_size = 9,
-     method = "method.CC_LS")
+plot(cvfit_ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8, text_size = 9, method = "method.CC_LS")
 # and get correlations
 cor_ic50 <- get_cor_pred_outcome(cvfit_ic50)
 ```
@@ -367,12 +366,12 @@ for(m in 1:50){
 }
 ```
 
-Table \@ref(tab:tableic50imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+Table \@ref(tab:tableic50imp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tableic50imp}
 # ic50_tab is created in preamble
 if (dim(ic50_tab)[1] != 0) {
-    kable(ic50_tab, caption = "Top 10 most important features for predicting IC-50 and their importance ranks by each measure",
+    kable(ic50_tab, caption = paste0("Top ", max_features, " most important features for predicting IC-50 and their importance ranks by each measure"),
           col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
           row.names = FALSE)
 } else {
@@ -386,13 +385,18 @@ The cross-validated performance of super learner (in terms of $R^2$) relative to
 
 ```{r plotic80, fig.cap = "Cross-validated R-squared for estimated IC-80"}
 if (!reduce_outcomes) {
-    plot(cvfit_ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 1, text_size = 9,
-         method = "method.CC_LS")
+    plot(cvfit_ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 1, text_size = 9, method = "method.CC_LS")
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+
+```{r computeic80cor}
+if (!reduce_outcomes) {
     # and get correlations
     cor_ic80 <- get_cor_pred_outcome(cvfit_ic80)
 } else {
     cor_ic80 <- NA
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
 ```
 
@@ -414,12 +418,12 @@ for(m in 1:50){
 }
 ```
 
-Table \@ref(tab:tableic80imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+Table \@ref(tab:tableic80imp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tableic80imp}
 # ic80_tab is created in preamble
 if (dim(ic80_tab)[1] != 0) {
-    kable(ic80_tab, caption = "Top 10 most important features for predicting IC-80 and their importance ranks by each measure",
+    kable(ic80_tab, caption = paste0("Top ", max_features, " most important features for predicting IC-80 and their importance ranks by each measure"),
           col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
           row.names = FALSE)
 } else {
@@ -435,11 +439,17 @@ The cross-validated performance of super learner (in terms of $R^2$) relative to
 if (!reduce_outcomes) {
     plot(cvfit_iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 1, text_size = 9,
          method = "method.CC_LS")
+} else {
+    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+}
+```
+
+```{r computeiipcor}
+if (!reduce_outcomes) {
     # and get correlations
     cor_iip <- get_cor_pred_outcome(cvfit_iip)
 } else {
     cor_iip <- NA
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
 ```
 
@@ -461,12 +471,12 @@ for(m in 1:50){
 }
 ```
 
-Table \@ref(tab:tableiipimp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+Table \@ref(tab:tableiipimp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tableiipimp}
 # iip_tab is created in preamble
 if (dim(iip_tab)[1] != 0) {
-    kable(iip_tab, caption = "Top 10 most important features for predicting IIP and their importance ranks by each measure",
+    kable(iip_tab, caption = paste0("Top ", max_features, " most important features for predicting IIP and their importance ranks by each measure"),
           col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
           row.names = FALSE)
 } else {
@@ -481,8 +491,7 @@ The cross-validated performance of super learner (in terms of AUC) relative to t
 
 ```{r plotdichot1, fig.cap = "Cross-validated AUC for predicting sensitivity based on estimated IC-50"}
 if (!reduce_outcomes) {
-    plot(cvfit_dichotomous.1, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9,
-         Rsquared = FALSE, method = "method.AUC")
+    plot(cvfit_dichotomous.1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9, Rsquared = FALSE, method = "method.AUC")
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
@@ -512,12 +521,12 @@ for(m in 1:50){
 }
 ```
 
-Table \@ref(tab:tabledichot1imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+Table \@ref(tab:tabledichot1imp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tabledichot1imp}
 # dichot1 is created in preamble
 if (dim(ic80_tab)[1] != 0) {
-    kable(dichot1_tab, caption = "Top 10 most important features for predicting estimated sensitivity and their importance ranks by each measure",
+    kable(dichot1_tab, caption = paste0("Top ", max_features, " most important features for predicting estimated sensitivity and their importance ranks by each measure"),
           col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
           row.names = FALSE)
 } else {
@@ -532,8 +541,7 @@ The cross-validated performance of super learner (in terms of AUC) relative to t
 
 ```{r plotdichot2, fig.cap = "Cross-validated AUC for predicting sensitivity based on sensitivity to individual NAbs"}
 if (!reduce_outcomes) {
-    plot(cvfit_dichotomous.2, main_title = "", xlim1 = 0.4, xlim2 = 1, text_size = 9,
-         Rsquared = FALSE, method = "method.AUC")
+    plot(cvfit_dichotomous.2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9, Rsquared = FALSE, method = "method.AUC")
 } else {
     print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
 }
@@ -555,12 +563,12 @@ for(m in 1:50){
 }
 ```
 
-Table \@ref(tab:tabledichot2imp) shows the top 15 most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+Table \@ref(tab:tabledichot2imp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
 
 ```{r tabledichot2imp}
 # dichot2_tab is created in preamble
 if (dim(dichot2_tab)[1] != 0) {
-    kable(dichot2_tab, caption = "Top 10 most important features for predicting multiple sensitivity and their importance ranks by each measure",
+    kable(dichot2_tab, caption = paste0("Top ", max_features, " most important features for predicting multiple sensitivity and their importance ranks by each measure"),
           col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"),
           row.names = FALSE)
 } else {

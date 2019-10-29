@@ -26,9 +26,10 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
         ## plot by ordered vimp measure
         vimp_plot <- vimp_est %>%
             arrange(desc(est)) %>%
+            mutate(ord_group = forcats::fct_reorder(group, est)) %>%
             filter(row_number() <= num_plot) %>%
-            ggplot(aes(x = est[order(est)], y = group[order(est)])) +
-            geom_errorbarh(aes(xmin = cil[order(est)], xmax = ciu[order(est)])) +
+            ggplot(aes(x = est, y = ord_group)) +
+            geom_errorbarh(aes(xmin = cil, xmax = ciu)) +
             geom_point(size = point_size) +
             ggtitle(title) +
             xlab(x_lab) +
