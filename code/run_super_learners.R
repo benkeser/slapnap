@@ -15,6 +15,7 @@
 library(SuperLearner)
 source("/home/lib/variable_groups.R")
 source("/home/lib/super_learner_libraries.R")
+source("/home/lib/utils.R")
 
 # attempt to read in environment variables
 reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
@@ -62,19 +63,7 @@ if (reduce_groups) {
     var_groups <- all_var_groups
 }
 V <- 10
-# determine SL options based on outcome name
-get_sl_options <- function(outcome_name) {
-    if (grepl("dichot", outcome_name)) {
-        sl_fam <- "binomial"
-        cv_ctrl_lst <- list(V = V, stratifyCV = TRUE)
-        sl_method <- "tmp_method.CC_nloglik"
-    } else {
-        sl_fam <- "gaussian"
-        cv_ctrl_lst <- list(V = V)
-        sl_method <- "tmp_method.CC_LS"
-    }
-    return(list(fam = sl_fam, ctrl = cv_ctrl_lst, method = sl_method))
-}
+
 # if reduce_covs, only do individual imp on that number
 if (reduce_covs) {
     num_covs <- 10
@@ -95,6 +84,8 @@ set.seed(123125)
 #' @param reduce_covs Flag to reduce the number of covariates under consideration
 #' @param save_full_object Flag for whether or not to save the full fitted object, or just the fitted values
 #' @param run_cv Whether or not to run the cv super learner
+#' @param outer_folds a set of outer folds for VIM hypothesis testing
+#' @param full_fit is it the full fit (TRUE) or a reduced fit (FALSE)?
 sl_one_outcome <- function(outcome_name,
                            pred_names,
                            save_dir = "/home/slfits/",
@@ -103,14 +94,23 @@ sl_one_outcome <- function(outcome_name,
                            reduce_covs = FALSE,
                            save_full_object = TRUE,
                            run_cv = TRUE,
+                           outer_folds = rep(1, length(dat[, outcome_name])),
+                           full_fit = TRUE,
                            ...){
-        pred <- dat[ , pred_names]
+        if (full_fit) {
+            outer_bool <- outer_folds == 1
+        } else {
+            outer_bool <- outer_folds == 2
+        }
+        newdat <- subset(dat, outer_bool)
+
+        pred <- newdat[ , pred_names]
 
         if(reduce_covs){
           pred <- pred[ , 1:num_covs]
         }
 
-        fit <- SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, ...)
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))
         }
@@ -136,7 +136,12 @@ sl_one_outcome <- function(outcome_name,
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
+    ## generate a set of outer folds for sample splitting for VIM hypothesis testing
+    outer_folds <- make_folds(dat[, this_outcome_name], V = 2, stratified = grepl("dichot", outcome_name))
+    saveRDS(outer_folds, file = paste0("/home/slfits/outer_folds_", this_outcome_name, ".rds"))
+    ## do the fitting
     sl_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv)
+    sl_split_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, outer_folds = outer_folds, full_fit = TRUE)
 }
 ## ----------------------------------------------------------------------------
 ## (2)+(3) run super learners for each outcome (unless reduce_outcomes = TRUE)
@@ -148,15 +153,14 @@ for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
     ## read in the full folds, for this group's cv folds
-    full_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
-    sl_opts$ctrl$validRows <- full_folds
+    outer_folds <- readRDS(paste0("/home/slfits/outer_folds_", this_outcome_name, ".rds"))
     for (j in 1:length(var_groups)) {
         if (length(var_groups[j]) != 0) {
             this_group_name <- names(var_groups)[j]
             ## fit based on removing group of interest
-            sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[!(pred_names %in% var_groups[[j]])], fit_name = paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
+            sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[!(pred_names %in% var_groups[[j]])], fit_name = paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE, outer_folds = outer_folds, full_fit = FALSE)
             ## fit based on only group of interest + geographic confounders
-            sl_fit_marginal_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_groups[[j]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE)
+            sl_fit_marginal_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_groups[[j]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE, outer_folds = outer_folds, full_fit = FALSE)
         }
     }
 }
@@ -167,12 +171,11 @@ for (i in 1:length(outcome_names)) {
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
-    full_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
-    sl_opts$ctrl$validRows <- full_folds
+    outer_folds <- readRDS(paste0("/home/slfits/outer_folds_", this_outcome_name, ".rds"))
     for (j in 1:length(var_inds)) {
         this_var_name <- var_inds[j]
         ## fit SL of only this variable plus geographic confounders
-        sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_inds[j]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE)
+        sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_inds[j]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE, outer_folds = outer_folds, full_fit = FALSE)
     }
 }
 
@@ -183,7 +186,6 @@ for (i in 1:length(outcome_names)) {
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name)
-    full_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
-    sl_opts$ctrl$validRows <- full_folds
-    sl_geog_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_geog.rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_geog.rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE)
+    outer_folds <- readRDS(paste0("/home/slfits/outer_folds_", this_outcome_name, ".rds"))
+    sl_geog_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_geog.rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_geog.rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE, outer_folds = outer_folds, full_fit = TRUE)
 }
