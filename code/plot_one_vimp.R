@@ -46,27 +46,6 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
         print("No variable importance estimates to plot.")
     }
 }
-
-vimp_plot_name <- function(vimp_str) {
-    plot_nms <- rep(NA, length(vimp_str))
-    plot_nms[grepl("iip", vimp_str)] <- "IIP"
-    plot_nms[grepl("pc.ic50", vimp_str)] <- "IC-50"
-    plot_nms[grepl("pc.ic80", vimp_str)] <- "IC-80"
-    plot_nms[grepl("dichotomous.1", vimp_str)] <- "Estimated sensitivity"
-    plot_nms[grepl("dichotomous.2", vimp_str)] <- "Multiple sensitivity"
-    return(plot_nms)
-}
-vimp_nice_rownames <- function(vimp_obj, cv = FALSE) {
-    mat_s <- vimp_obj$mat$s
-    lst_s <- vimp_obj$s
-    indx_mat <- sapply(1:length(mat_s), function(x) which(mat_s[x] == lst_s))
-    paste_ind <- 3
-    if (cv) {
-        paste_ind <- 4
-    }
-    tmp_nms <- unlist(lapply(strsplit(names(lst_s), "_", fixed = TRUE), function(x) paste(x[paste_ind:length(x)], collapse = "_")))
-    return(tmp_nms[indx_mat])
-}
 # vimp_plot_name <- function(vimp_obj) {
 #     row_nm <- vimp_obj$mat$print_name
 #     tmp_string_init <- strsplit(row_nm, "_", fixed = TRUE)[[1]]

@@ -22,7 +22,8 @@ reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
 reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
 reduce_library <- Sys.getenv("reduce_library") == "TRUE"
 reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
-no_cv <- Sys.getenv("no_cv") == TRUE
+no_cv <- Sys.getenv("no_cv") == "TRUE"
+run_indi_vimp <- Sys.getenv("run_indi_vimp") == "TRUE"
 
 
 source("/home/lib/plotting_functions.R")
@@ -185,14 +186,15 @@ for (i in 1:length(outcome_names)) {
     ## importance results
     eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_vimp.rds')")))
     eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_cv_vimp.rds')")))
+    eval(parse(text = paste0(this_outcome_name, "_outer_folds <- readRDS(file = '/home/slfits/", this_outcome_name, "_outer_folds.rds')")))
+    eval(parse(text = paste0("num_obs_full <- sum(", this_outcome_name, "_outer_folds == 1)")))
+    eval(parse(text = paste0("num_obs_red <- sum(", this_outcome_name, "_outer_folds == 2)")))
     ## make plots
     eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
     eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
     vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", names(current_vimp_lst))
     eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
     eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
-    # eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- lapply(", this_outcome_name, "_vimp_lst, function(x) plot_one_vimp(x, title = paste0(vimp_plot_name(this_outcome_name), ': ', names(x)), x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import))")))
-    # eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- lapply(", this_outcome_name, "_cv_vimp_lst, function(x) plot_one_vimp(x, title = vimp_plot_name(this_outcome_name), x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import))")))
 }
 
 ## make table for executive summary

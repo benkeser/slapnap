@@ -9,7 +9,7 @@ make_folds <- function(y, V, stratified = TRUE) {
     folds_1 <- sample(folds_1)
     folds_0 <- rep(seq_len(V), length = sum(y_0))
     folds_0 <- sample(folds_0)
-    folds <- vector("numeric", length(draw$y_cat))
+    folds <- vector("numeric", length(y))
     folds[y_1] <- folds_1
     folds[y_0] <- folds_0
   } else {
@@ -62,4 +62,32 @@ make_cv_lists <- function(folds_lst, full_vec, redu_vec) {
     full_lst <- lapply(as.list(1:length(unique(folds))), function(x) full_vec[folds == x])
     redu_lst <- lapply(as.list(1:length(unique(folds))), function(x) redu_vec[folds == x])
     return(list(folds = folds, full_lst = full_lst, redu_lst = redu_lst))
+}
+## Nice group names for vimp
+vimp_nice_group_names <- function(nm_vec) {
+    nice_names <- c("Cysteine counts", "Viral geometry", "Region-specific counts of PNG sites", "gp120 CD4 binding sites", "gp120 V2", "gp120 V3", "gp41 MPER")
+    reference_nm_vec <- c("cysteines", "geometry", "glyco", "gp120_cd4bs", "gp120_v2", "gp120_v3", "gp41_mper")
+    reference_positions <- apply(as.matrix(nm_vec), 1, function(x) grep(x, reference_nm_vec))
+    return(nice_names[reference_positions])
+}
+## nice plotting names
+vimp_plot_name <- function(vimp_str) {
+    plot_nms <- rep(NA, length(vimp_str))
+    plot_nms[grepl("iip", vimp_str)] <- "IIP"
+    plot_nms[grepl("pc.ic50", vimp_str)] <- "IC-50"
+    plot_nms[grepl("pc.ic80", vimp_str)] <- "IC-80"
+    plot_nms[grepl("dichotomous.1", vimp_str)] <- "Estimated sensitivity"
+    plot_nms[grepl("dichotomous.2", vimp_str)] <- "Multiple sensitivity"
+    return(plot_nms)
+}
+vimp_nice_rownames <- function(vimp_obj, cv = FALSE) {
+    mat_s <- vimp_obj$mat$s
+    lst_s <- vimp_obj$s
+    indx_mat <- sapply(1:length(mat_s), function(x) which(mat_s[x] == lst_s))
+    paste_ind <- 3
+    if (cv) {
+        paste_ind <- 4
+    }
+    tmp_nms <- unlist(lapply(strsplit(names(lst_s), "_", fixed = TRUE), function(x) paste(x[paste_ind:length(x)], collapse = "_")))
+    return(tmp_nms[indx_mat])
 }
