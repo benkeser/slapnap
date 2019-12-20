@@ -85,15 +85,15 @@ SL.ranger.imp <- function (Y, X, newX, family, obsWeights, num.trees = 500, mtry
     return(out)
 }
 SL.ranger.reg <- function(..., X, mtry = floor(sqrt(ncol(X)))){
-	SL.ranger.imp(..., mtry = mtry)
+	SL.ranger.imp(..., X = X, mtry = mtry)
 }
 
 SL.ranger.small <- function(..., X, mtry = floor(sqrt(ncol(X)) * 1/2)){
-	SL.ranger.imp(..., mtry = mtry)
+	SL.ranger.imp(..., X  = X, mtry = mtry)
 }
 
 SL.ranger.large <- function(..., X, mtry = floor(sqrt(ncol(X)) * 2)){
-	SL.ranger.imp(..., mtry = mtry)
+	SL.ranger.imp(..., X = X, mtry = mtry)
 }
 descr_SL.ranger.imp <- "random forest with mtry equal to "
 descr_SL.ranger.reg <- paste0(descr_SL.ranger.imp, "square root of number of predictors")
@@ -124,9 +124,9 @@ get_fold_id <- function(Y){
 
 
 # function to have more robust behavior in SL.glmnet
-SL.glmnet.mycv <- function (Y, X, newX, family, obsWeights, id, alpha = 1, nfolds = 5, 
+SL.glmnet.mycv <- function (Y, X, newX, family, obsWeights, id, alpha = 1, nfolds = 5,
     nlambda = 100, useMin = TRUE, loss = "deviance", ...) {
-    .SL.require("glmnet")
+    SuperLearner:::.SL.require("glmnet")
     if (!is.matrix(X)) {
         X <- model.matrix(~-1 + ., X)
         newX <- model.matrix(~-1 + ., newX)
@@ -134,11 +134,11 @@ SL.glmnet.mycv <- function (Y, X, newX, family, obsWeights, id, alpha = 1, nfold
     fold_id <- get_fold_id(Y)
     nfolds <- max(fold_id)
     if(nfolds != 0){
-        fitCV <- glmnet::cv.glmnet(x = X, y = Y, weights = obsWeights, 
-            lambda = NULL, type.measure = loss, nfolds = nfolds, 
-            family = family$family, alpha = alpha, nlambda = nlambda, 
+        fitCV <- glmnet::cv.glmnet(x = X, y = Y, weights = obsWeights,
+            lambda = NULL, type.measure = loss, nfolds = nfolds,
+            family = family$family, alpha = alpha, nlambda = nlambda,
             ...)
-        pred <- predict(fitCV, newx = newX, type = "response", s = ifelse(useMin, 
+        pred <- predict(fitCV, newx = newX, type = "response", s = ifelse(useMin,
             "lambda.min", "lambda.1se"))
         fit <- list(object = fitCV, useMin = useMin)
         class(fit) <- "SL.glmnet"

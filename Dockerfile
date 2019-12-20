@@ -46,6 +46,7 @@ RUN Rscript -e 'install.packages("xgboost", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ggseqlogo", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
 
 # make directories
 # lib contains R source files
@@ -72,6 +73,7 @@ RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz",
 COPY code/multi_ab_v4.Rlib /home/lib/multi_ab_v4.Rlib
 COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R
 COPY code/variable_groups.R /home/lib/variable_groups.R
+COPY code/utils.R /home/lib/utils.R
 COPY code/run_super_learners.R /home/lib/run_super_learners.R
 COPY code/get_vimp.R /home/lib/get_vimp.R
 COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R

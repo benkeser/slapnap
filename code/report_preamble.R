@@ -1,3 +1,6 @@
+## ----------------------------------------------------------------------------
+## Options and packages
+## ----------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
@@ -19,7 +22,8 @@ reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
 reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
 reduce_library <- Sys.getenv("reduce_library") == "TRUE"
 reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
-no_cv <- Sys.getenv("no_cv") == TRUE
+no_cv <- Sys.getenv("no_cv") == "TRUE"
+run_indi_vimp <- Sys.getenv("run_indi_vimp") == "TRUE"
 
 
 source("/home/lib/plotting_functions.R")
@@ -28,6 +32,9 @@ antibody_string <- Sys.getenv("Nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 n_ab <- length(antibodies)
 
+## ----------------------------------------------------------------------------
+## Read in the data, do some set-up
+## ----------------------------------------------------------------------------
 get_dat <- function(){
 	# load data
 	analysis_data_name <- list.files("/home/dat/analysis")
@@ -67,8 +74,8 @@ my_webm <- function (x, options) {
     opts = paste(sprintf("width=\"%s\"", options$out.width),
         sprintf("height=\"%s\"", options$out.height), opts)
     cap = knitr:::.img.cap(options, alt = TRUE)
-    if (cap != "")
-        cap = sprintf("<p>%s</p>", cap)
+    if (cap != "") cap = sprintf("<p>%s</p>", cap)
+    message(cap)
     sprintf("<video %s><source src=\"%s\" />%s</video>", trimws(opts),
         paste0(opts_knit$get("base.url"), mov.fname), cap)
 }
@@ -82,9 +89,10 @@ pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 source("/home/lib/ml_var_importance_measures.R")
 source("/home/lib/var_import_plot.R")
 
-
-
-# get importance measures
+## ----------------------------------------------------------------------------
+## Individual-level algorithm-specific importance
+## ----------------------------------------------------------------------------
+# get individual p-value-based importance measures; create tables
 col_idx <- geog_idx:ncol(dat)
 imp_ic50 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
                                dir_loc = "/home/slfits/",
@@ -102,24 +110,24 @@ imp_dichot2 <- get_all_importance("dichotomous.2", binary_outcome = TRUE,
                                dir_loc = "/home/slfits/",
                                dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
 
-
-ic50_tab <- get_importance_table(imp_ic50, max_features = 15)
+max_features <- 15
+ic50_tab <- get_importance_table(imp_ic50, max_features = max_features)
 direction_resis <- get_importance_resis(ic50_tab, dat = dat, which_outcome = "log10.pc.ic50")
 ic50_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
-ic80_tab <- get_importance_table(imp_ic80, max_features = 15)
+ic80_tab <- get_importance_table(imp_ic80, max_features = max_features)
 direction_resis <- get_importance_resis(ic80_tab, dat = dat, which_outcome = "log10.pc.ic80")
 ic80_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
-iip_tab <- get_importance_table(imp_iip, max_features = 15)
+iip_tab <- get_importance_table(imp_iip, max_features = max_features)
 direction_resis <- get_importance_resis(iip_tab, dat = dat, which_outcome = "iip")
 iip_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
-dichot1_tab <- get_importance_table(imp_dichot1, max_features = 15)
+dichot1_tab <- get_importance_table(imp_dichot1, max_features = max_features)
 direction_resis <- get_importance_resis(dichot1_tab, dat = dat, which_outcome = "dichotomous.1")
 dichot1_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
-dichot2_tab <- get_importance_table(imp_dichot2, max_features = 15)
+dichot2_tab <- get_importance_table(imp_dichot2, max_features = max_features)
 direction_resis <- get_importance_resis(dichot2_tab, dat = dat, which_outcome = "dichotomous.2")
 dichot2_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
 
@@ -127,3 +135,73 @@ imp_continuous <- combine_importance(list(ic50_tab, ic80_tab, iip_tab), out_name
 imp_dichot <- combine_importance(list(dichot1_tab, dichot2_tab), out_names = c("Estimated Sens.", "Multiple Sens."))
 imp_overall <- combine_importance(list(ic50_tab, ic80_tab, iip_tab, dichot1_tab, dichot2_tab))
 
+## ----------------------------------------------------------------------------
+## Population variable importance
+## ----------------------------------------------------------------------------
+source("/home/lib/plot_one_vimp.R")
+source("/home/lib/variable_groups.R")
+num_pop_import <- 20  # the number of individual features to display in plots
+# get names of outcomes
+all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
+# if reduce_outcomes, only run on ic50
+if (reduce_outcomes) {
+    outcome_names <- "log10.pc.ic50"
+} else {
+    outcome_names <- all_outcome_names
+}
+# get variable groups
+all_var_groups <- get_variable_groups(dat, pred_names)
+all_geog_vars <- pred_names[grepl("geog", pred_names)]
+# if reduce_groups, only run on the cd4 binding site
+if (reduce_groups) {
+    var_groups <- all_var_groups[1]
+} else {
+    var_groups <- all_var_groups
+}
+# if reduce_covs, only do individual imp on that number
+if (reduce_covs) {
+    num_covs <- 10
+    var_inds <- pred_names[!grepl("geog", pred_names)][1:(num_covs - length(all_geog_vars))]
+} else {
+    num_covs <- length(pred_names) - length(all_geog_vars)
+    var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
+}
+## plotting things
+x_lab_continuous <- expression(paste("Difference in ", R^2, sep = ""))
+x_lim_continuous <- c(0, 1)
+x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
+x_lim_binary <- c(0, 1)
+## read in importance results for each outcome, create a plot for each
+## only return non-cv plots if cv = FALSE
+imp_nms <- list(var_groups, var_groups, var_inds)
+for (i in 1:length(outcome_names)) {
+    this_outcome_name <- outcome_names[i]
+    if (grepl("dichot", this_outcome_name)) {
+        this_x_lab <- x_lab_binary
+        this_x_lim <- x_lim_binary
+    } else {
+        this_x_lab <- x_lab_continuous
+        this_x_lim <- x_lim_continuous
+    }
+    ## importance results
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_vimp.rds')")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_cv_vimp.rds')")))
+    eval(parse(text = paste0(this_outcome_name, "_outer_folds <- readRDS(file = '/home/slfits/", this_outcome_name, "_outer_folds.rds')")))
+    eval(parse(text = paste0("num_obs_full <- sum(", this_outcome_name, "_outer_folds == 1)")))
+    eval(parse(text = paste0("num_obs_red <- sum(", this_outcome_name, "_outer_folds == 2)")))
+    ## make plots
+    eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
+    eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
+    vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", names(current_vimp_lst))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+}
+
+## make table for executive summary
+source("/home/lib/vimp_executive_summary_table.R")
+vimp_threshold <- 0.05
+if (no_cv) {
+    vimp_summary_tbl <- make_vimp_executive_summary_table(log10.pc.ic50_vimp_lst, log10.pc.ic80_vimp_lst, iip_vimp_lst, dichotomous.1_vimp_lst, dichotomous.2_vimp_lst, threshold = vimp_threshold, outcome_names = outcome_names, cv = FALSE)
+} else {
+    vimp_summary_tbl <- make_vimp_executive_summary_table(log10.pc.ic50_cv_vimp_lst, log10.pc.ic80_cv_vimp_lst, iip_cv_vimp_lst, dichotomous.1_cv_vimp_lst, dichotomous.2_cv_vimp_lst, threshold = vimp_threshold, outcome_names = outcome_names, cv = TRUE)
+}

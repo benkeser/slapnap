@@ -1,12 +1,12 @@
-make_logo_plot <- function(data, 
-                           outcome_name = "ic50.censored", 
+make_logo_plot <- function(data,
+                           outcome_name = "ic50.censored",
                            aa_positions = NULL,
                            plot_gap = FALSE,
                            plot_zero = FALSE){
   y = unlist(data[outcome_name])
   X = data[ , grepl( "hxb2" , names( data ) ) ]
   X = X[ , !grepl( "sequon_actual" , names( X ) ) ]
-  
+
   aa_positions = unique(aa_positions)
   # if (!all(aa_positions %in% as.numeric(stringr::word(names(X),2,2,sep = '\\.')))){
   #   stop("aa_positions not in the data")
@@ -14,7 +14,7 @@ make_logo_plot <- function(data,
   # if (length(aa_positions) == 0){
   #   stop("aa_positions is empty")
   # }
-  
+
   aa_seq = c()
   # suppress NA warnings message
   tmp <- suppressWarnings(as.numeric(stringr::word(names(X),2,2,sep = '\\.')))
@@ -26,10 +26,10 @@ make_logo_plot <- function(data,
     aa_seq <- unique(c(aa_seq, names(X0)))
   }
   aa_seq <- sort(aa_seq)
-  
+
   frequency_table_y1 <- matrix(ncol = length(aa_positions), nrow=length(aa_seq),dimnames = list(aa_seq, aa_positions))
   frequency_table_y0 <- frequency_table_y1
-  
+
   for (position in 1:length(aa_positions)){
     # position = 1
     X0 = X[ , tmp == aa_positions[position]]
@@ -38,25 +38,25 @@ make_logo_plot <- function(data,
     X0_y0 = X0[!y,]
     X0_y1_colSums = colSums(X0_y1)
     X0_y0_colSums = colSums(X0_y0)
-    
+
     frequency_table_y1[,position] <- X0_y1_colSums[match(rownames(frequency_table_y1),names(X0_y1_colSums))]
-    
+
     frequency_table_y0[,position] <- X0_y0_colSums[match(rownames(frequency_table_y0),names(X0_y0_colSums))]
   }
-  
+
   frequency_table_y1[is.na(frequency_table_y1)] = 0
   frequency_table_y0[is.na(frequency_table_y0)] = 0
-  
+
   frequency_table_y1_plot = frequency_table_y1
   frequency_table_y0_plot = frequency_table_y0
-  
+
   if (!plot_gap){frequency_table_y1_plot = frequency_table_y1_plot[!rownames(frequency_table_y1_plot) == 'gap',];
   frequency_table_y0_plot = frequency_table_y0_plot[!rownames(frequency_table_y0_plot) == 'gap',];
   }
   if (!plot_zero){frequency_table_y1_plot = frequency_table_y1_plot[rowSums(frequency_table_y1_plot)>0,];
   frequency_table_y0_plot = frequency_table_y0_plot[rowSums(frequency_table_y0_plot)>0,];
   }
-  
+
   p1 = ggseqlogo::ggseqlogo( frequency_table_y1, method='prob', seq_type = "aa") + ggplot2::ylab(ifelse(outcome_name == "dichotomous.1", "Estimated resistant", "Multiply resistant") ) + ggplot2::theme(legend.position = 'none')
   p1$scales$scales[[1]] <- ggplot2::scale_x_continuous(breaks = 1:length(aa_positions),labels=aa_positions)
   p0 = ggseqlogo::ggseqlogo( frequency_table_y0, method='prob', seq_type = "aa") + ggplot2::ylab(ifelse(outcome_name == "dichotomous.1", "Estimated sensitive", "Multiply sensitive") )
@@ -67,7 +67,7 @@ make_logo_plot <- function(data,
 
 
 make_hist_plot <- function(dat, var_name, x_lab, y_lab){
-  ggplot(dat, aes_string(x = var_name)) + 
+  ggplot(dat, aes_string(x = var_name)) +
             geom_histogram(aes(y=..density..), colour="black", fill="white")+
             geom_density(alpha=.2, fill="#FF6666") +
             theme_bw() + xlab(x_lab) +
@@ -91,25 +91,25 @@ plot_cv_predictions <- function(cv_fit, outcome_name, log_axis = TRUE,
   for(v in seq_along(cv_fit$folds)){
     cv_folds[cv_fit$folds[[v]]] <- v
   }
-  cv_fold_palette <- RColorBrewer::brewer.pal(length(cv_fit$folds), "Set3")  
+  cv_fold_palette <- RColorBrewer::brewer.pal(length(cv_fit$folds), "Set3")
   if(!resid_scale){
     d <- data.frame(prediction = sl_pred, outcome = cv_fit$Y)
-    p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) + 
+    p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) +
       geom_point() + theme_bw() +
-      scale_color_manual(values = cv_fold_palette) + 
+      scale_color_manual(values = cv_fold_palette) +
       labs(x = "Cross-Validated SL prediction", y = outcome_name, col = "CV fold") +
-      geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5) + 
+      geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5) +
       annotate("text", -Inf, Inf, label = paste0("Pearson corr. = ", round(these_corr[1], 2), "\n",
-                                                 "Spearman corr. = ", round(these_corr[2], 2)), 
+                                                 "Spearman corr. = ", round(these_corr[2], 2)),
                hjust = -0.1, vjust = 1.1)
     if(log_axis){
       p <- p + scale_x_log10() + scale_y_log10()
     }
   }else{
     d <- data.frame(residual = resids, prediction = sl_pred)
-    p <- ggplot(d, aes(x = prediction, y = residual, color = factor(cv_folds))) + 
+    p <- ggplot(d, aes(x = prediction, y = residual, color = factor(cv_folds))) +
       geom_point() + theme_bw() +
-      scale_color_manual(values = cv_fold_palette) + 
+      scale_color_manual(values = cv_fold_palette) +
       labs(x = "Cross-Validated SL prediction", y = "Residual", col = "CV fold") +
       geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5)
   }
@@ -137,12 +137,12 @@ get_est_and_ci <- function(cv_fit, Rsquared = FALSE, constant = qnorm(0.975)){
   return(list(est = Mean[1], ci = c(Lower[1], Upper[1])))
 }
 
-plot_roc_curves <- function(cv_fit, topRank = 1, 
+plot_roc_curves <- function(cv_fit, topRank = 1,
                             cols = c(rgb(78, 103, 102, alpha = 255/2, maxColorValue = 255),
                                      rgb(90,177,187, alpha = 255/2, maxColorValue = 255),
                                      rgb(165, 200, 130, alpha = 255/2, maxColorValue = 255))) {
   class(cv_fit) <- "myCV.SuperLearner"
-  allAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm)) 
+  allAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm))
   allCandidates <- allAlgos[-(1:2), ] %>% arrange(-Ave)
   sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
 
@@ -156,23 +156,23 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
   roc.obj <- predict %>%
     group_by(algo) %>%
     nest() %>%
-    mutate(pred.obj = purrr::map(data, ~ prediction(.x$pred, .x$Y)), 
+    mutate(pred.obj = purrr::map(data, ~ prediction(.x$pred, .x$Y)),
            perf.obj = purrr::map(pred.obj, ~ performance(.x, "tpr", "fpr")),
-           roc.dat = purrr::map(perf.obj, ~ tibble(xval = .x@x.values[[1]], 
-                                                   yval = .x@y.values[[1]]))) 
+           roc.dat = purrr::map(perf.obj, ~ tibble(xval = .x@x.values[[1]],
+                                                   yval = .x@y.values[[1]])))
   roc.obj %>%
     unnest(roc.dat) %>%
     ggplot(aes(x=xval, y=yval, col=algo)) +
     geom_step(lwd=2) +
-    theme_bw() + 
+    theme_bw() +
     theme(legend.position = "top") +
-    scale_color_manual(values = cols) + 
-    labs(x = "Cross-Validated False Positive Rate", y = "Cross-Validated True Positive Rate", col = "Algorithm") 
+    scale_color_manual(values = cols) +
+    labs(x = "Cross-Validated False Positive Rate", y = "Cross-Validated True Positive Rate", col = "Algorithm")
 }
 
 plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, cols){
   class(cv_fit) <- "myCV.SuperLearner"
-  allAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm)) 
+  allAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm))
   allCandidates <- allAlgos[-(1:2), ] %>% arrange(-Ave)
   sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
 
@@ -186,19 +186,19 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, cols){
   predict %>%
   mutate(Sensitivity = if_else(Y==1, "Resistant", "Sensitive")) %>%
   filter(!is.na(Sensitivity)) %>%
-  ggplot(aes(x = Sensitivity, y = pred)) + 
+  ggplot(aes(x = Sensitivity, y = pred)) +
   facet_grid(. ~ algo) +
-  geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) + 
-  ylab(paste0("Predicted Probability of Resistance")) + xlab("") + 
-  scale_colour_manual(values = cols) + 
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) +
+  ylab(paste0("Predicted Probability of Resistance")) + xlab("") +
+  scale_colour_manual(values = cols) +
   theme_bw() + coord_cartesian(ylim=c(0,1)) +
-  theme(legend.position = "", strip.text.x = element_text(size = 10), 
+  theme(legend.position = "", strip.text.x = element_text(size = 10),
         text = element_text(size=12), axis.title = element_text(size=10))
 
 }
 
-summary.myCV.SuperLearner <- function (object, obsWeights = NULL, 
+summary.myCV.SuperLearner <- function (object, obsWeights = NULL,
                                        method = NULL, ...) {
     if ("env" %in% names(object)) {
         env = object$env
@@ -211,12 +211,12 @@ summary.myCV.SuperLearner <- function (object, obsWeights = NULL,
         method <- "method.NNLS"
       }
       else if (is.symbol(as.list(object$call)[["method"]])) {
-          method <- get(paste(as.list(object$call)[["method"]]), 
+          method <- get(paste(as.list(object$call)[["method"]]),
               envir = env)
       }
       else {
           method <- as.list(object$call)[["method"]]
-      }  
+      }
     }
     library.names <- object$libraryNames
     V <- object$V
@@ -233,50 +233,50 @@ summary.myCV.SuperLearner <- function (object, obsWeights = NULL,
     se.SL <- rep(NA, length = V)
     Risk.dSL <- rep(NA, length = V)
     se.dSL <- rep(NA, length = V)
-    Risk.library <- matrix(NA, nrow = length(library.names), 
+    Risk.library <- matrix(NA, nrow = length(library.names),
         ncol = V)
-    se.library <- matrix(NA, nrow = length(library.names), 
+    se.library <- matrix(NA, nrow = length(library.names),
         ncol = V)
     rownames(Risk.library) <- library.names
     if (method %in% c("method.NNLS", "method.NNLS2", "method.CC_LS")) {
         for (ii in seq_len(V)) {
-            Risk.SL[ii] <- mean(obsWeights[folds[[ii]]] * (Y[folds[[ii]]] - 
+            Risk.SL[ii] <- mean(obsWeights[folds[[ii]]] * (Y[folds[[ii]]] -
                 SL.predict[folds[[ii]]])^2)
-            Risk.dSL[ii] <- mean(obsWeights[folds[[ii]]] * (Y[folds[[ii]]] - 
+            Risk.dSL[ii] <- mean(obsWeights[folds[[ii]]] * (Y[folds[[ii]]] -
                 discreteSL.predict[folds[[ii]]])^2)
-            Risk.library[, ii] <- apply(library.predict[folds[[ii]], 
-                , drop = FALSE], 2, function(x) mean(obsWeights[folds[[ii]]] * 
+            Risk.library[, ii] <- apply(library.predict[folds[[ii]],
+                , drop = FALSE], 2, function(x) mean(obsWeights[folds[[ii]]] *
                 (Y[folds[[ii]]] - x)^2))
         }
         if_sl <- (Y - SL.predict)^2 - mean((Y - SL.predict)^2)
         if_dsl <- (Y - discreteSL.predict)^2 - mean((Y - discreteSL.predict)^2)
         if_library <- apply(library.predict, 2, function(x){ (Y - x)^2 - mean((Y - x)^2) })
         if_varY <- (Y - mean(Y))^2 - mean((Y - mean(Y))^2)
-        get_log_se <- function(if_risk, if_varY, risk, varY, 
+        get_log_se <- function(if_risk, if_varY, risk, varY,
                                n = length(if_risk)){
             grad <- matrix(c(1 / risk, - 1 /varY), nrow = 2)
             Sig <- cov(cbind(if_risk, if_varY))
             se_log <- t(grad) %*% Sig %*% grad
             return(se_log)
         }
-        
+
         se <- (1/sqrt(n)) * c(
           get_log_se(if_risk = if_sl, if_varY = if_varY, risk = mean(Risk.SL), varY = var(Y)),
           get_log_se(if_risk = if_dsl, if_varY = if_varY, risk = mean(Risk.dSL), varY = var(Y)),
-          mapply(if1 = split(if_library, col(if_library)), risk = split(Risk.library, row(Risk.library)), 
+          mapply(if1 = split(if_library, col(if_library)), risk = split(Risk.library, row(Risk.library)),
                  function(if1, risk){ get_log_se(if_risk = if1, if_varY = if_varY, risk = mean(risk), varY = var(Y))})
         )
     }
     else if (method %in% c("method.NNloglik", "method.CC_nloglik")) {
         for (ii in seq_len(V)) {
-            Risk.SL[ii] <- -mean(obsWeights[folds[[ii]]] * ifelse(Y[folds[[ii]]], 
+            Risk.SL[ii] <- -mean(obsWeights[folds[[ii]]] * ifelse(Y[folds[[ii]]],
                 log(SL.predict[folds[[ii]]]), log(1 - SL.predict[folds[[ii]]])))
-            Risk.dSL[ii] <- -mean(obsWeights[folds[[ii]]] * ifelse(Y[folds[[ii]]], 
-                log(discreteSL.predict[folds[[ii]]]), log(1 - 
+            Risk.dSL[ii] <- -mean(obsWeights[folds[[ii]]] * ifelse(Y[folds[[ii]]],
+                log(discreteSL.predict[folds[[ii]]]), log(1 -
                   discreteSL.predict[folds[[ii]]])))
-            Risk.library[, ii] <- apply(library.predict[folds[[ii]], 
+            Risk.library[, ii] <- apply(library.predict[folds[[ii]],
                 , drop = FALSE], 2, function(x) {
-                -mean(obsWeights[folds[[ii]]] * ifelse(Y[folds[[ii]]], 
+                -mean(obsWeights[folds[[ii]]] * ifelse(Y[folds[[ii]]],
                   log(x), log(1 - x)))
             })
         }
@@ -285,11 +285,11 @@ summary.myCV.SuperLearner <- function (object, obsWeights = NULL,
     else if (method %in% c("method.AUC")) {
         requireNamespace("cvAUC")
         for (ii in seq_len(V)) {
-            sl_auc <- cvAUC::ci.cvAUC(predictions = SL.predict[folds[[ii]]], 
+            sl_auc <- cvAUC::ci.cvAUC(predictions = SL.predict[folds[[ii]]],
                 labels = Y[folds[[ii]]], folds = NULL)
             Risk.SL[ii] <- sl_auc$cvAUC
             se.SL[ii] <- sl_auc$se
-            dsl_auc <- cvAUC::ci.cvAUC(predictions = discreteSL.predict[folds[[ii]]], 
+            dsl_auc <- cvAUC::ci.cvAUC(predictions = discreteSL.predict[folds[[ii]]],
                 labels = Y[folds[[ii]]], folds = NULL)
             Risk.dSL[ii] <- dsl_auc$cvAUC
             se.dSL[ii] <- dsl_auc$se
@@ -307,19 +307,19 @@ summary.myCV.SuperLearner <- function (object, obsWeights = NULL,
         stop("summary function not available for SuperLearner with loss function/method used")
     }
     if(method != "method.AUC"){
-      Table <- data.frame(Algorithm = c("Super Learner", "Discrete SL", 
-          library.names), Ave = c(1 - mean(Risk.SL)/var(Y), 1 - mean(Risk.dSL)/var(Y), 
-          apply(Risk.library, 1, function(x){ 1 - mean(x)/var(Y) })), log_se = se, Min = c(min(1 - Risk.SL/var(Y)), 
-          min(1 - Risk.dSL/var(Y)), apply(Risk.library, 1, function(x){ min(1 - mean(x)/var(Y))})), Max = c(max(1 - Risk.SL/var(Y)), 
-          max(1 - Risk.dSL/var(Y)), apply(Risk.library, 1, function(x){ max(1 - mean(x)/var(Y)) })))      
+      Table <- data.frame(Algorithm = c("Super Learner", "Discrete SL",
+          library.names), Ave = c(1 - mean(Risk.SL)/var(Y), 1 - mean(Risk.dSL)/var(Y),
+          apply(Risk.library, 1, function(x){ 1 - mean(x)/var(Y) })), log_se = se, Min = c(min(1 - Risk.SL/var(Y)),
+          min(1 - Risk.dSL/var(Y)), apply(Risk.library, 1, function(x){ min(1 - mean(x)/var(Y))})), Max = c(max(1 - Risk.SL/var(Y)),
+          max(1 - Risk.dSL/var(Y)), apply(Risk.library, 1, function(x){ max(1 - mean(x)/var(Y)) })))
     }else{
-      Table <- data.frame(Algorithm = c("Super Learner", "Discrete SL", 
-        library.names), Ave = c(mean(Risk.SL), mean(Risk.dSL), 
-        apply(Risk.library, 1, mean)), se = se, Min = c(min(Risk.SL), 
-        min(Risk.dSL), apply(Risk.library, 1, min)), Max = c(max(Risk.SL), 
+      Table <- data.frame(Algorithm = c("Super Learner", "Discrete SL",
+        library.names), Ave = c(mean(Risk.SL), mean(Risk.dSL),
+        apply(Risk.library, 1, mean)), se = se, Min = c(min(Risk.SL),
+        min(Risk.dSL), apply(Risk.library, 1, min)), Max = c(max(Risk.SL),
         max(Risk.dSL), apply(Risk.library, 1, max)))
     }
-    out <- list(call = object$call, method = method, V = V, Risk.SL = Risk.SL, 
+    out <- list(call = object$call, method = method, V = V, Risk.SL = Risk.SL,
           Risk.dSL = Risk.dSL, Risk.library = Risk.library, Table = Table)
     class(out) <- "summary.myCV.SuperLearner"
     return(out)
@@ -329,8 +329,8 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
                                     xlim1 = -0.025, xlim2 = 0.3, text_size = 10, Rsquared = TRUE,
     ...) {
     sumx <- summary(x, ...)
-    if (sort) 
-        sumx$Table$Algorithm <- reorder(sumx$Table$Algorithm, 
+    if (sort)
+        sumx$Table$Algorithm <- reorder(sumx$Table$Algorithm,
             sumx$Table$Ave)
     Mean <- sumx$Table$Ave
     if(Rsquared){
@@ -344,15 +344,15 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
       logit_se <- sqrt(se^2 * grad^2)
       Lower <- plogis(qlogis(Mean) - constant * logit_se); Upper <- plogis(qlogis(Mean) + constant * logit_se)
     }
-    assign("d", data.frame(Y = Mean, X = sumx$Table$Algorithm, 
+    assign("d", data.frame(Y = Mean, X = sumx$Table$Algorithm,
         Lower = Lower, Upper = Upper))
     if (package == "lattice") {
         .SL.require("lattice")
-        p <- lattice::dotplot(X ~ Y, data = d, xlim = c(min(d$Lower) - 
-            0.02, max(d$Upper) + 0.02), xlab = "V-fold CV Risk Estimate", 
+        p <- lattice::dotplot(X ~ Y, data = d, xlim = c(min(d$Lower) -
+            0.02, max(d$Upper) + 0.02), xlab = "V-fold CV Risk Estimate",
             ylab = "Method", panel = function(x, y) {
                 lattice::panel.xyplot(x, y, pch = 16, cex = 1)
-                lattice::panel.segments(d$Lower, y, d$Upper, 
+                lattice::panel.segments(d$Lower, y, d$Upper,
                   y, lty = 1)
             })
     }
@@ -363,16 +363,16 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
         "CV-AUC"
       }
         SuperLearner:::.SL.require("ggplot2")
-        p <- ggplot2::ggplot(d, ggplot2::aes_string(x = "X", 
+        p <- ggplot2::ggplot(d, ggplot2::aes_string(x = "X",
             y = "Y", ymin = "Lower", ymax = "Upper")) +
-            ggplot2::theme_bw() + 
-            ggplot2::geom_pointrange(size = 0.5) + 
-            ggplot2::coord_flip() + ggplot2::ylab(this_y_lab) + 
-            ggplot2::xlab("Method") + 
-            ggplot2::ggtitle(main_title) + 
+            ggplot2::theme_bw() +
+            ggplot2::geom_pointrange(size = 0.5) +
+            ggplot2::coord_flip() + ggplot2::ylab(this_y_lab) +
+            ggplot2::xlab("Method") +
+            ggplot2::ggtitle(main_title) +
             scale_y_continuous(limits=c(xlim1, xlim2), oob = scales::squish) +
-            ggplot2::theme(axis.text = element_text(size = text_size))   
-          }
+            ggplot2::theme(axis.text = element_text(size = text_size))
+    }
     return(p)
 }
 
@@ -380,7 +380,7 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
 # This code function creates correlation plots for the continuous outcomes
 # ---------------------------------------------------------------------------- #
 
-# TO DO: 
+# TO DO:
 # - create_forest_plots needs to be modified to accommodate that we are
 # using super learner instead of of cvma
 # - to discuss: show top 5 learners or super learner + top 3 or all?
@@ -392,18 +392,18 @@ create_corplots_CV_Validate = function(fit, outcome, covarX, plotFile, dataset, 
   if(validationType=="Validation"){
     new_pred <- predict(fit, newdata = covarX)
   }
-  
+
   if(validationType=="CV"){
     covarX = covarX[!is.na(outcome),]
     outcome = outcome[!is.na(outcome)]
-    
-    # make a list of validation data 
+
+    # make a list of validation data
     validDataList <- sapply(10:1, function(f){ return(covarX[fit$folds == f,,drop=FALSE]) }, simplify = FALSE)
     # call predict with inner = TRUE in a loop over this list; this might be slow because predict.cvma with inner = TRUE is currently predicting using ALL super learners
     predict_list <- lapply(validDataList, function(valid){
       predict(fit, newdata = valid, outer = FALSE)
     })
-    
+
     # put predictions into lists for plotting
     PredV_SLlist <- list()
     Ylist <- list()
@@ -411,16 +411,16 @@ create_corplots_CV_Validate = function(fit, outcome, covarX, plotFile, dataset, 
       PredV_SLlist[[i]] <- predict_list[[i]][[i]]$sl_pred # superlearner
       Ylist[[i]] <- outcome[fit$folds == (11-i)]
     }
-    
-    tbl_forPredProb_wide = as.data.frame(cbind(unlist(Ylist), unlist(PredV_SLlist))) 
+
+    tbl_forPredProb_wide = as.data.frame(cbind(unlist(Ylist), unlist(PredV_SLlist)))
     colnames(tbl_forPredProb_wide)[which(names(tbl_forPredProb_wide) == "V1")] <- "Y"
     colnames(tbl_forPredProb_wide)[which(names(tbl_forPredProb_wide) == "V2")] <- "SuperLearner"
   }
-  
-  
+
+
   if(dataset=="Dataset 1" & validationType=="CV"){
     pdf(plotFile, width = 20, height=20)
-    op<-par(no.readonly=TRUE) # save the default settings 
+    op<-par(no.readonly=TRUE) # save the default settings
     par(mfrow=c(2,2),cex.lab=2.8,cex.axis=2.2, mgp = c(4, 1.5, 0))
     par(mai=c(0.9,1.3,0.5,0.5))
     plot(tbl_forPredProb_wide$SuperLearner, tbl_forPredProb_wide$Y, xlab="SL predicted Y values",ylab="Y values", main="",cex=2, xlim=c(-2,2), ylim=c(-2,2))
@@ -428,7 +428,7 @@ create_corplots_CV_Validate = function(fit, outcome, covarX, plotFile, dataset, 
     text(x=1,y=-1.75,cex=2.5,paste("rho = ",round(cor(tbl_forPredProb_wide$SuperLearner, tbl_forPredProb_wide$Y, method="spearman"),3)))
     text(x = -2.6, y = 2.2, labels = "A", xpd = NA, cex=6, font=2)
   }
-  
+
   if(dataset=="Dataset 1" & validationType=="Validation"){
     par(mai=c(0.9,1.3,0.5,0.5))
     plot(new_pred$y_weight$sl_pred, outcome, xlab="SL predicted Y values",ylab="Y values", main="",cex=2, xlim=c(-2,2), ylim=c(-2,2))
@@ -436,7 +436,7 @@ create_corplots_CV_Validate = function(fit, outcome, covarX, plotFile, dataset, 
     text(x=1,y=-1.75,cex=2.5,paste("rho = ",round(cor(new_pred$y_weight$sl_pred, outcome, method="spearman"),3)))
     text(x = -2.6, y = 2.2, labels = "B", xpd = NA, cex=6, font=2)
   }
-  
+
   if(dataset=="Dataset 2" & validationType=="CV"){
     par(mai=c(0.9,1.3,0.5,0.5))
     plot(tbl_forPredProb_wide$SuperLearner, tbl_forPredProb_wide$Y, xlab="SL predicted Y values",ylab="Y values", main="",cex=2, xlim=c(-2,2), ylim=c(-2,2))
@@ -444,7 +444,7 @@ create_corplots_CV_Validate = function(fit, outcome, covarX, plotFile, dataset, 
     text(x=1,y=-1.75,cex=2.5,paste("rho = ",round(cor(tbl_forPredProb_wide$SuperLearner, tbl_forPredProb_wide$Y, method="spearman"),3)))
     text(x = -2.6, y = 2.2, labels = "C", xpd = NA, cex=6, font=2)
   }
-  
+
   if(dataset=="Dataset 2" & validationType=="Validation"){
     par(mai=c(0.9,1.3,0.5,0.5))
     plot(new_pred$y_weight$sl_pred, outcome, xlab="SL predicted Y values",ylab="Y values", main="",cex=2, xlim=c(-2,2), ylim=c(-2,2))
@@ -462,7 +462,7 @@ create_corplots_CV_Validate = function(fit, outcome, covarX, plotFile, dataset, 
 # This code function creates CV-ROC plots for the dichotomous outcomes
 # ---------------------------------------------------------------------------- #
 
-# TO DO: 
+# TO DO:
 # - create_CVROC_plots needs to be modified to accommodate that we are
 # using super learner instead of of cvma
 # - collapse all into single data set
@@ -478,17 +478,17 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
   ForestPlotDataset$CVAUC = as.numeric(ForestPlotDataset$CVAUC)
   ForestPlotDataset$Lower = as.numeric(ForestPlotDataset$Lower)
   ForestPlotDataset$Upper = as.numeric(ForestPlotDataset$Upper)
-  
+
   covarX = covarX[!is.na(outcome),]
   outcome = outcome[!is.na(outcome)]
-  
-  # make a list of validation data 
+
+  # make a list of validation data
   validDataList <- sapply(10:1, function(f){ return(covarX[fit$folds == f,,drop=FALSE]) }, simplify = FALSE)
   # call predict with inner = TRUE in a loop over this list; this might be slow because predict.cvma with inner = TRUE is currently predicting using ALL super learners
   predict_list <- lapply(validDataList, function(valid){
     predict(fit, newdata = valid, outer = FALSE)
   })
-  
+
   # put predictions into lists for plotting
   PredVbestlist <- PredV2list <- PredV3list <- PredV4list <- PredV5list <- PredV_SLlist <- list()
   Ylist <- list()
@@ -499,8 +499,8 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
     PredV_SLlist[[i]] <- predict_list[[i]][[i]]$sl_pred # superlearner
     Ylist[[i]] <- outcome[fit$folds == (11-i)]
   }
-  
-  tbl_forPredProb_wide = as.data.frame(cbind(unlist(Ylist), unlist(PredVbestlist), unlist(PredV2list), unlist(PredV3list), unlist(PredV_SLlist))) 
+
+  tbl_forPredProb_wide = as.data.frame(cbind(unlist(Ylist), unlist(PredVbestlist), unlist(PredV2list), unlist(PredV3list), unlist(PredV_SLlist)))
   colnames(tbl_forPredProb_wide)[which(names(tbl_forPredProb_wide) == "V1")] <- "Y"
   tbl_forPredProb_wide$Sensitivity = ifelse(tbl_forPredProb_wide$Y==1, "Resistant", "Sensitive")
   tbl_forPredProb_wide = tbl_forPredProb_wide %>% dplyr::select(Sensitivity, V2, V3, V4, V5)
@@ -510,7 +510,7 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
   colnames(tbl_forPredProb_wide)[which(names(tbl_forPredProb_wide) == "V5")] <- "SuperLearner"
   tbl_forPredProb = melt(tbl_forPredProb_wide, id.vars=c("Sensitivity"), variable.name="Model", value.name="y")
   tbl_forPredProb$Model = sub("_", "_\n", tbl_forPredProb$Model)
-  
+
   ## Data Set 1 plot data
   predBest <- prediction(PredVbestlist,Ylist)
   perfBest <- performance(predBest,"tpr","fpr")
@@ -522,18 +522,18 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
   # same for superlearner
   pred.sl <- prediction(PredV_SLlist,Ylist)
   perf.sl <- performance(pred.sl,"tpr","fpr")
-  
+
   if(dataset=="Dataset 1"){
     pdf(plotFile, width = 20, height=12)
-    op<-par(no.readonly=TRUE) #this is done to save the default settings 
+    op<-par(no.readonly=TRUE) #this is done to save the default settings
     par(mfrow=c(1,2),cex.lab=2.2,cex.axis=2.2, mgp=c(4, 1.5, 0))
     par(mai=c(1.2,1.3,0.5,0.5))
     par(xpd = T, mar = par()$mar + c(0,0,14,0))
-    plot(perfBest, lwd=3, avg="vertical",xlim=c(0,1),# main="ROC Curves for Best Vaccine Models", 
+    plot(perfBest, lwd=3, avg="vertical",xlim=c(0,1),# main="ROC Curves for Best Vaccine Models",
          col="orange",spread.estimate="stderror", legacy.axes = FALSE,show.spread.at= seq(0.09, 0.89, by=0.1),ylab="Cross-Validated True Positive Rate", cex=1.5) +
       plot(perf2, lwd=3, avg="vertical",xlim=c(0,1), col="red", legacy.axes = FALSE,add=T,spread.estimate="stderror")  +  #,spread.estimate="stderror")
-      plot(perf3, lwd=3, avg="vertical",xlim=c(0,1), col="cyan", legacy.axes = FALSE,add=T,spread.estimate="stderror")  + 
-      plot(perf.sl, lwd=3, avg="vertical",xlim=c(0,1), col="blue", legacy.axes = FALSE,add=T,spread.estimate="stderror") 
+      plot(perf3, lwd=3, avg="vertical",xlim=c(0,1), col="cyan", legacy.axes = FALSE,add=T,spread.estimate="stderror")  +
+      plot(perf.sl, lwd=3, avg="vertical",xlim=c(0,1), col="blue", legacy.axes = FALSE,add=T,spread.estimate="stderror")
     legend(-0.04, 1.43,
            title=expression(bold("Model (CV-AUC)")),
            c(paste("Best Learner: ",paste(ForestPlotDataset$Screen_Algorithm[1])," (",round(ForestPlotDataset$CVAUC[1],3),")",sep=""),
@@ -546,18 +546,18 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
            col=c("orange","red","green","blue"), cex=1.5, box.lty=0)
     text(x = -0.165, y = 1.45, labels = "A", xpd = NA, cex=4, font=2)
     par(xpd=F)
-    abline(a=0, b=1,col="grey") 
+    abline(a=0, b=1,col="grey")
     par(mar=c(5, 4, 4, 2) + 0.1)
   }
-  
+
   if(dataset=="Dataset 2"){
     par(mai=c(1.2,1.3,0.5,0.5))
     par(xpd = T, mar = par()$mar + c(0,0,14,0))
-    plot(perfBest, lwd=3, avg="vertical",xlim=c(0,1),# main="ROC Curves for Best Vaccine Models", 
+    plot(perfBest, lwd=3, avg="vertical",xlim=c(0,1),# main="ROC Curves for Best Vaccine Models",
          col="orange",spread.estimate="stderror", legacy.axes = FALSE,show.spread.at= seq(0.09, 0.89, by=0.1),ylab="Cross-Validated True Positive Rate") +
       plot(perf2, lwd=3, avg="vertical",xlim=c(0,1), col="red", legacy.axes = FALSE,add=T,spread.estimate="stderror")  +  #,spread.estimate="stderror")
-      plot(perf3, lwd=3, avg="vertical",xlim=c(0,1), col="cyan", legacy.axes = FALSE,add=T,spread.estimate="stderror")  + 
-      plot(perf.sl, lwd=3, avg="vertical",xlim=c(0,1), col="blue", legacy.axes = FALSE,add=T,spread.estimate="stderror") 
+      plot(perf3, lwd=3, avg="vertical",xlim=c(0,1), col="cyan", legacy.axes = FALSE,add=T,spread.estimate="stderror")  +
+      plot(perf.sl, lwd=3, avg="vertical",xlim=c(0,1), col="blue", legacy.axes = FALSE,add=T,spread.estimate="stderror")
     legend(-0.04, 1.43,
            title=expression(bold("Model (CV-AUC)")),
            c(paste("Best Learner: ",paste(ForestPlotDataset$Screen_Algorithm[1])," (",round(ForestPlotDataset$CVAUC[1],3),")",sep=""),
@@ -570,7 +570,7 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
            col=c("orange","red","green","blue"), cex=1.5, box.lty=0)
     text(x = -0.165, y = 1.45, labels = "B", xpd = NA, cex=4, font=2)
     par(xpd=F)
-    abline(a=0, b=1,col="grey") 
+    abline(a=0, b=1,col="grey")
     par(mar=c(5, 4, 4, 2) + 0.1)
     dev.off()
   }
@@ -579,7 +579,7 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
 
 
 # ---------------------------------------------------------------------------- #
-# This code function creates cross-validation forest plots for top 5 models plus SL 
+# This code function creates cross-validation forest plots for top 5 models plus SL
 # ---------------------------------------------------------------------------- #
 
 create_forest_plots = function(fit, outcome, covarX, outcome_type, dataset, outcomeName, ytitle, plotLabel, ymin, ymax, ...) {
@@ -597,26 +597,26 @@ create_forest_plots = function(fit, outcome, covarX, outcome_type, dataset, outc
     tab1_top5 <- rbind(tab1[1:6,])
   if(!"SuperLearner" %in% tab1[1:5,]$algo)
     tab1_top5 <- rbind(tab1[1:5,], tab1[tab1$algo=="SuperLearner"])
-  
+
   tab1_top5$screen.algo = as.character(tab1_top5$screen.algo)
   tab1_top5 = tab1_top5[,.(screen.algo, screen, algo, cv_measure, ci_low, ci_high)]
   tab1_top5 = tab1_top5[order(tab1_top5$cv_measure),]
   tab1_top5$screen.algo = as.factor(tab1_top5$screen.algo)
   tab1_top5$dataset = dataset
   tab1_top5$cv = paste0(format(round(tab1_top5$cv_measure,3), nsmall=3), " (", format(round(tab1_top5$ci_low,3), nsmall=3), ", ", format(round(tab1_top5$ci_high,3), nsmall=3), ")")
-  
+
   # Make this change to accomodate similar factor levels in case of slope outcomeName and dataset 2
   if(outcomeName=="ic80" & dataset=="Dataset 2"){
     tab1_top5$cv[1] = "0.143 (0.074, 0.205)"
   }
-  
+
   if(outcomeName=="slope" & dataset=="Dataset 2"){
     tab1_top5$cv[2] = "0.032 (-0.059, 0.114)"
     tab1_top5$cv[4] = "0.055 (-0.064, 0.160)"
   }
-  
+
   tab1_top5$cv = ordered(tab1_top5$cv, levels = tab1_top5$cv)
-  
+
   dat = tab1_top5[,c("dataset","algo","screen","cv")]
   dat$var = 1
   dat = melt(dat, id.vars="var")
@@ -633,37 +633,37 @@ create_forest_plots = function(fit, outcome, covarX, outcome_type, dataset, outc
     dat$V05 = rep(c(0,1,2,3),each=6)
   }
   dat$value = ifelse(dat$V05==0, "", dat$value)
-  
+
   p1=ggplot(dat, aes(x = V05, y = V0, label = format(value, nsmall = 1))) +
     geom_text(size=7.5, hjust=0.9, vjust=0.5) +
-    theme_bw() + 
-    theme(legend.position="", 
+    theme_bw() +
+    theme(legend.position="",
           axis.line=element_blank(),
           axis.text=element_blank(),
           text = element_text(size=35),
-          axis.title = element_blank(), 
+          axis.title = element_blank(),
           axis.ticks = element_blank(),
           plot.margin=unit(c(0,0,0,0),"cm"),
           panel.background=element_blank(),
           panel.border=element_blank(),
           panel.grid.major=element_blank(),
           panel.grid.minor=element_blank(),
-          plot.background=element_blank()) 
+          plot.background=element_blank())
 
   p2 = ggplot(tab1_top5, aes(x=cv, y=cv_measure, ymin=ci_low, ymax=ci_high)) +
     geom_pointrange(size=1, stat="identity", col="blue3") +
-    geom_errorbar(width=0.2, size=1, stat = "identity", col="blue3") + 
-    coord_flip(ylim=c(ymin, ymax)) +  
-    xlab("") + 
+    geom_errorbar(width=0.2, size=1, stat = "identity", col="blue3") +
+    coord_flip(ylim=c(ymin, ymax)) +
+    xlab("") +
     ylab(ytitle) +
-    theme_bw() + 
-    theme(legend.position="", 
+    theme_bw() +
+    theme(legend.position="",
           axis.text.y=element_blank(),
           text = element_text(size=35),
-          axis.title = element_text(size=25), 
+          axis.title = element_text(size=25),
           axis.title.x = element_text(margin = ggplot2::margin(t = 20, r = 0, b = 0, l = 0)),
           panel.grid.major = element_line("gray80"),
-          plot.margin=unit(c(2,0.5,0.5,0),"cm")) 
+          plot.margin=unit(c(2,0.5,0.5,0),"cm"))
 
   require(cowplot)
   one_row = plot_grid(p1, p2, ncol=2, align="h", labels=plotLabel, label_size=54)
@@ -676,12 +676,12 @@ create_forest_plots = function(fit, outcome, covarX, outcome_type, dataset, outc
 # This code function retrieves out of sample validation scores from fit
 # ---------------------------------------------------------------------------- #
 
-# TO DO: Not sure where this code is used. 
+# TO DO: Not sure where this code is used.
 
 dataprep_outValidate <- function(fit=fit, outcome, covarX, outcome_type, ...){
   covarX = covarX[!is.na(outcome),]
   outcome = outcome[!is.na(outcome)]
-  
+
   # Get validations of individual learners
   pred <- predict(fit, newdata = covarX)
   learner_pred <- pred[[1]]$learner_pred
@@ -696,7 +696,7 @@ dataprep_outValidate <- function(fit=fit, outcome, covarX, outcome_type, ...){
     }
     tab[j,] = c(attributes(learner_pred)$dimnames[[2]][j], out$cv_measure, out$ci_low, out$ci_high)
   }
-  
+
   # Get validations for SL
   sl_pred <- pred[[1]]$sl_pred
   if(outcome_type=="continuous"){
@@ -710,8 +710,8 @@ dataprep_outValidate <- function(fit=fit, outcome, covarX, outcome_type, ...){
   tab$cv_measure = as.numeric(tab$cv_measure)
   tab$ci_low = as.numeric(tab$ci_low)
   tab$ci_high = as.numeric(tab$ci_high)
-  
-  tab <- tab %>% dplyr::mutate(screen.algo=gsub(".skinny|screen.", "", screen.algo)) %>% 
+
+  tab <- tab %>% dplyr::mutate(screen.algo=gsub(".skinny|screen.", "", screen.algo)) %>%
     dplyr::mutate(screen=sapply(strsplit(screen.algo, "_"), `[`, 1)) %>%
     dplyr::mutate(algo=sapply(strsplit(screen.algo, "_"), `[`, 2)) %>%
     select(screen.algo, screen, algo, cv_measure, ci_low, ci_high) %>%
@@ -740,28 +740,28 @@ dataprep_outValidate <- function(fit=fit, outcome, covarX, outcome_type, ...){
 
 # TO DO: needs to be modified for SuperLearner objects
 dataprep <- function(fit=fit, ...){
-  tab <- summary(fit, "learners")[[1]] %>% mutate(SL_wrap = as.character(SL_wrap))  %>% 
-    dplyr::mutate(screen_algo=gsub(".skinny|screen.", "", SL_wrap)) %>% 
+  tab <- summary(fit, "learners")[[1]] %>% mutate(SL_wrap = as.character(SL_wrap))  %>%
+    dplyr::mutate(screen_algo=gsub(".skinny|screen.", "", SL_wrap)) %>%
     dplyr::mutate(screen=sapply(strsplit(screen_algo, "_"), `[`, 1)) %>%
     dplyr::mutate(algo=sapply(strsplit(screen_algo, "_"), `[`, 2)) %>%
     select(screen, algo, cv_measure, ci_low, ci_high)
-  tab[dim(tab)[1]+1,] = c(NA, NA, fit$cv_assoc$cv_measure, fit$cv_assoc$ci_low, fit$cv_assoc$ci_high) 
-  
+  tab[dim(tab)[1]+1,] = c(NA, NA, fit$cv_assoc$cv_measure, fit$cv_assoc$ci_low, fit$cv_assoc$ci_high)
+
   tab$algo = ifelse(tab$screen=="SL.mean", "SL.mean", tab$algo)
   tab$screen = ifelse(tab$algo=="SL.mean", "none", tab$screen)
-  
+
   tab$algo = ifelse(is.na(tab$algo), "SuperLearner", tab$algo)
   tab$screen = ifelse(tab$algo=="SuperLearner", "all", tab$screen)
-  
+
   tab$algo = as.character(tab$algo)
   tab$screen = as.character(tab$screen)
   tab = tab[order(tab$screen),]
-  
+
   tab$algo = factor(tab$algo, levels = c("SL.mean","SL.step.interaction","SL.step","SL.glm","SL.stumpboost","SL.naivebayes","SL.glmnet","SL.randomForest","SuperLearner"))
   tab$screen = factor(tab$screen, levels = c("none","all","geog.corP","geog.glmnet","geog.sbulk","geog.cys","geog.geom","geog.sequonCt",
                                              "geog.AAchGlyGP160","geog.AAchPNGS","geog.AAchCOVAR","geog.AAchGLYCO","geog.AAchESA",
                                              "geog.AAchCD4bs","geog.AAchVRC01","geog.st","geog"))
-  
+
   tab$screen.algo = interaction(tab$screen, tab$algo)
   tab$col = ifelse(tab$screen=="geog", "blue", "black")
   return(tab)
@@ -771,43 +771,43 @@ dataprep <- function(fit=fit, ...){
 # This code function creates forest plot for continuous Outcomes showing all algorithm screen combinations.
 # ---------------------------------------------------------------------------- #
 
-# TO DO: 
+# TO DO:
 # discuss - is this overkill to include in all reports?
 
 forestplot_allmodels_continuousOutcome <- function(data, datasetName, plotFile, plotymin, plotymax, ...){
-  
+
   data$dat = datasetName
   p = ggplot(data, aes(x=screen.algo, y=cv_measure, ymin=ci_low, ymax=ci_high)) +
     geom_pointrange(size=0, aes(colour = col)) +
-    geom_errorbar(width=0, size=0, aes(colour = col)) + 
+    geom_errorbar(width=0, size=0, aes(colour = col)) +
     coord_flip(ylim=c(plotymin, plotymax)) +  # flip coordinates (puts labels on y axis)
-    xlab("Screen") + 
-    theme_bw() + 
-    scale_y_continuous(breaks=seq(plotymin, plotymax, by=0.1), labels=seq(plotymin, plotymax, by=0.1)) 
-  
+    xlab("Screen") +
+    theme_bw() +
+    scale_y_continuous(breaks=seq(plotymin, plotymax, by=0.1), labels=seq(plotymin, plotymax, by=0.1))
+
   xticks = ggplot_build(p)$layout$panel_ranges[[1]]$y.labels
   xticks = sapply(strsplit(xticks,".SL"), `[`, 1)
   xticks = ifelse(xticks=="all.SuperLearner", "all", xticks)
-  
-  p = p + geom_rect(aes(xmin = -Inf, xmax = 1.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) + 
-    geom_rect(aes(xmin = 8.5, xmax = 15.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) + 
-    geom_rect(aes(xmin = 22.5, xmax = 38.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) + 
-    geom_rect(aes(xmin = 54.5, xmax = 70.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) + 
+
+  p = p + geom_rect(aes(xmin = -Inf, xmax = 1.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
+    geom_rect(aes(xmin = 8.5, xmax = 15.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
+    geom_rect(aes(xmin = 22.5, xmax = 38.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
+    geom_rect(aes(xmin = 54.5, xmax = 70.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
     geom_pointrange(size=2.5, aes(colour = col)) +
     geom_errorbar(width=0.5, size=3.5, aes(colour = col)) +
-    scale_color_manual(values=c("black","red")) + 
+    scale_color_manual(values=c("black","red")) +
     ylab("Point estimates and 95% CIs for CV-R2") +
     theme(legend.position="", axis.title = element_text(size=18), axis.text.x = element_text(size=45), axis.text.y = element_text(size=45),
           panel.background = element_blank(),
           axis.title.x = element_text(size=55, margin = ggplot2::margin(t = 20, r = 0, b = 0, l = 0)),
           axis.title.y = element_blank(), axis.ticks = element_blank(),
           panel.grid.major = element_line("gray90"),
-          plot.margin=unit(c(3,0.5,0.5,20),"cm")) + 
-    scale_x_discrete(labels=xticks) 
-  
+          plot.margin=unit(c(3,0.5,0.5,20),"cm")) +
+    scale_x_discrete(labels=xticks)
+
   algos = as.data.frame(table(data$algo)) %>% dplyr::filter(Freq!=0)
   algos = algos$Var1
-  
+
   pdf(plotFile, width = 50, height=50)
   print(p)
   grid.text("Algorithm", x = unit(0.08, "npc"), y = unit(0.992, "npc"), gp=gpar(fontsize=60, col="black", fontface="bold"))
@@ -837,7 +837,7 @@ forestplot_allmodels_continuousOutcome <- function(data, datasetName, plotFile, 
   #SL.mean
   grid.text(algos[length(algos)-7], x = unit(0.08, "npc"), y = unit(0.038, "npc"), gp=gpar(fontsize=48, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.04, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   dev.off()
 }
 
@@ -847,8 +847,8 @@ forestplot_allmodels_continuousOutcome <- function(data, datasetName, plotFile, 
 # ---------------------------------------------------------------------------- #
 
 getAlgos_withCoeffmorethan2percent <- function(fit=fit, writeFile, ...){
-  tab <- summary(fit, "superlearner")[[1]] %>% select(learner_names, sl_weight) %>% mutate(learner_names = as.character(learner_names))  %>% 
-    mutate(screen_algo=gsub(".skinny|screen.", "", learner_names)) %>% 
+  tab <- summary(fit, "superlearner")[[1]] %>% select(learner_names, sl_weight) %>% mutate(learner_names = as.character(learner_names))  %>%
+    mutate(screen_algo=gsub(".skinny|screen.", "", learner_names)) %>%
     select(screen_algo, sl_weight)
   tab <- tab[order(tab[,2], decreasing=TRUE), ]
   tab <- tab[tab[,2] > 0.02,]
@@ -861,44 +861,44 @@ getAlgos_withCoeffmorethan2percent <- function(fit=fit, writeFile, ...){
 # This code function creates forest plot for dichotomous (binary) Outcomes showing all algorithm screen combinations.
 # ---------------------------------------------------------------------------- #
 
-# TO DO: 
+# TO DO:
 # discuss - is this overkill to include in all reports?
 
 forestplot_allmodels_dichotomousOutcome <- function(data, datasetName, plotFile, plotymin, plotymax, ...){
-  
+
   data$dat = datasetName
   p = ggplot(data, aes(x=screen.algo, y=cv_measure, ymin=ci_low, ymax=ci_high)) +
     geom_pointrange(size=0, aes(colour = col)) +
-    geom_errorbar(width=0, size=0, aes(colour = col)) + 
-    coord_flip(ylim=c(plotymin, plotymax)) +  
-    xlab("Screen") + 
-    theme_bw() + 
-    scale_y_continuous(breaks=seq(plotymin, plotymax, by=0.1), labels=seq(plotymin, plotymax, by=0.1)) 
-  
+    geom_errorbar(width=0, size=0, aes(colour = col)) +
+    coord_flip(ylim=c(plotymin, plotymax)) +
+    xlab("Screen") +
+    theme_bw() +
+    scale_y_continuous(breaks=seq(plotymin, plotymax, by=0.1), labels=seq(plotymin, plotymax, by=0.1))
+
   xticks = ggplot_build(p)$layout$panel_ranges[[1]]$y.labels
   xticks = sapply(strsplit(xticks,".SL"), `[`, 1)
   xticks = ifelse(xticks=="all.SuperLearner", "all", xticks)
-  
-  p = p + geom_rect(aes(xmin = -Inf, xmax = 1.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) + 
-    geom_rect(aes(xmin = 8.5, xmax = 15.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) + 
-    geom_rect(aes(xmin = 22.5, xmax = 38.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) + 
-    geom_rect(aes(xmin = 54.5, xmax = 70.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) + 
+
+  p = p + geom_rect(aes(xmin = -Inf, xmax = 1.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
+    geom_rect(aes(xmin = 8.5, xmax = 15.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
+    geom_rect(aes(xmin = 22.5, xmax = 38.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
+    geom_rect(aes(xmin = 54.5, xmax = 70.5, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
     geom_rect(aes(xmin = 86.5, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "gray43", alpha = 0.006) +
     geom_pointrange(size=2.5, aes(colour = col)) +
     geom_errorbar(width=0.5, size=3.5, aes(colour = col)) +
-    scale_color_manual(values=c("black","red")) + 
+    scale_color_manual(values=c("black","red")) +
     ylab("Point estimates and 95% CIs for CV-AUC") +
     theme(legend.position="", axis.title = element_text(size=18), axis.text.x = element_text(size=45), axis.text.y = element_text(size=45),
           panel.background = element_blank(),
           axis.title.x = element_text(size=55, margin = ggplot2::margin(t = 20, r = 0, b = 0, l = 0)),
           axis.title.y = element_blank(), axis.ticks = element_blank(),
           panel.grid.major = element_line("gray90"),
-          plot.margin=unit(c(3,0.5,0.5,20),"cm")) + 
-    scale_x_discrete(labels=xticks) 
-  
+          plot.margin=unit(c(3,0.5,0.5,20),"cm")) +
+    scale_x_discrete(labels=xticks)
+
   algos = as.data.frame(table(data$algo)) %>% dplyr::filter(Freq!=0)
   algos = algos$Var1
-  
+
   pdf(plotFile, width = 50, height=60)
   print(p)
   grid.text("Algorithm", x = unit(0.08, "npc"), y = unit(0.992, "npc"), gp=gpar(fontsize=60, col="black", fontface="bold"))
@@ -907,39 +907,39 @@ forestplot_allmodels_dichotomousOutcome <- function(data, datasetName, plotFile,
   #sl
   grid.text(algos[length(algos)], x = unit(0.08, "npc"), y = unit(0.974, "npc"), gp=gpar(fontsize=50, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.976, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   #randomForest
   grid.text(algos[length(algos)-1], x = unit(0.08, "npc"), y = unit(0.89, "npc"), gp=gpar(fontsize=50, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.8005, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   #glment
   grid.text(algos[length(algos)-2], x = unit(0.08, "npc"), y = unit(0.71, "npc"), gp=gpar(fontsize=50, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.626, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   #naiveBayes
   grid.text("SL.naiveBayes", x = unit(0.08, "npc"), y = unit(0.53, "npc"), gp=gpar(fontsize=50, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.45, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   #stumpboost
   grid.text("SL.xgboost", x = unit(0.08, "npc"), y = unit(0.36, "npc"), gp=gpar(fontsize=50, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.275, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   #GLM
   grid.text(algos[length(algos)-5], x = unit(0.08, "npc"), y = unit(0.23, "npc"), gp=gpar(fontsize=50, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.199, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   #Step
   grid.text(algos[length(algos)-6], x = unit(0.08, "npc"), y = unit(0.155, "npc"), gp=gpar(fontsize=50, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.122, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   #step.interaction
   grid.text(algos[length(algos)-7], x = unit(0.08, "npc"), y = unit(0.075, "npc"), gp=gpar(fontsize=48, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.045, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   #Mean
   grid.text(algos[length(algos)-8], x = unit(0.08, "npc"), y = unit(0.032, "npc"), gp=gpar(fontsize=48, col="black", fontface="bold"))
   grid.text("____________________________________________", x = unit(0.06, "npc"), y = unit(0.034, "npc"), gp=gpar(fontsize=64, col="gray65"))
-  
+
   dev.off()
 }
 
@@ -949,34 +949,34 @@ forestplot_allmodels_dichotomousOutcome <- function(data, datasetName, plotFile,
 # ---------------------------------------------------------------------------- #
 
 getTOP10models <- function(tab, tab2, outcomeType, writeFile, ...){
-  
-  tab2 = as.data.table(tab2)  %>% dplyr::filter(abs(cv_measure)<100, abs(ci_low)<100, abs(ci_high)<100) %>% dplyr::mutate(Validated_R2num = cv_measure) %>% 
+
+  tab2 = as.data.table(tab2)  %>% dplyr::filter(abs(cv_measure)<100, abs(ci_low)<100, abs(ci_high)<100) %>% dplyr::mutate(Validated_R2num = cv_measure) %>%
     dplyr::mutate(Validated_R2=format(round(Validated_R2num, 3), nsmall=3), ci_low=format(round(ci_low, 3),nsmall=3), ci_high=format(round(ci_high, 3),nsmall=3)) %>%
-    dplyr::mutate(Validated_R2 = paste0(Validated_R2, " (", ci_low, ", ", ci_high, ")")) %>% dplyr::select(screen, algo, Validated_R2, Validated_R2num) 
-  
-  tab = as.data.table(tab)  %>% dplyr::filter(abs(cv_measure)<100, abs(ci_low)<100, abs(ci_high)<100) %>% dplyr::mutate(CV_R2num = cv_measure) %>% 
+    dplyr::mutate(Validated_R2 = paste0(Validated_R2, " (", ci_low, ", ", ci_high, ")")) %>% dplyr::select(screen, algo, Validated_R2, Validated_R2num)
+
+  tab = as.data.table(tab)  %>% dplyr::filter(abs(cv_measure)<100, abs(ci_low)<100, abs(ci_high)<100) %>% dplyr::mutate(CV_R2num = cv_measure) %>%
     dplyr::mutate(CV_R2=format(round(CV_R2num, 3), nsmall=3), ci_low=format(round(ci_low, 3),nsmall=3), ci_high=format(round(ci_high, 3),nsmall=3)) %>%
-    dplyr::mutate(CV_R2 = paste0(CV_R2, " (", ci_low, ", ", ci_high, ")")) %>% dplyr::select(screen, algo, CV_R2, CV_R2num) %>% 
+    dplyr::mutate(CV_R2 = paste0(CV_R2, " (", ci_low, ", ", ci_high, ")")) %>% dplyr::select(screen, algo, CV_R2, CV_R2num) %>%
     dplyr::full_join(tab2, by=c("screen", "algo")) %>% arrange(desc(CV_R2num))
-  
-  tabTop10 <- tab[1:10,] 
+
+  tabTop10 <- tab[1:10,]
   if("SuperLearner" %in% tabTop10$algo)
-    tabTop10 <- tab[1:11,] 
+    tabTop10 <- tab[1:11,]
   if(!"SuperLearner" %in% tabTop10$algo)
     tabTop10 <- rbind(tabTop10, tab[tab$algo=="SuperLearner",])
-  
-  
+
+
   tab2Top10 = tab %>% arrange(desc(Validated_R2num)) %>% top_n(10)
   if("SuperLearner" %in% tab2Top10$algo)
     tab2Top10 <- tab %>% arrange(desc(Validated_R2num)) %>% top_n(11)
   if(!"SuperLearner" %in% tab2Top10$algo)
     tab2Top10 <- rbind(tab2Top10, tab2Top10[tab2Top10$algo=="SuperLearner",])
-  
+
   tab = tabTop10 %>% dplyr::full_join(tab2Top10, by=c("screen", "algo", "CV_R2", "Validated_R2")) %>% arrange(desc(CV_R2num.x), desc(Validated_R2num.y)) %>%
     dplyr::select(screen, algo, CV_R2, Validated_R2)
-  
+
   tab$algo = ifelse(as.character(tab$algo)=="SL.stumpboost", "SL.xgboost", ifelse(as.character(tab$algo)=="SL.naivebayes", "SL.naiveBayes", as.character(tab$algo)))
-  
+
   if(outcomeType=="dichotomous")
     tab = tab %>% dplyr::rename(CV_AUC = CV_R2, Validated_AUC = Validated_R2)
   write.csv(tab, file=writeFile)
@@ -984,7 +984,7 @@ getTOP10models <- function(tab, tab2, outcomeType, writeFile, ...){
 
 
 # ---------------------------------------------------------------------------- #
-# This code function creates predicted probability plots 
+# This code function creates predicted probability plots
 # ---------------------------------------------------------------------------- #
 
 # TO DO: update for SuperLearner objects
@@ -1003,13 +1003,13 @@ predicted_Probability_plot_crossVal <- function(tab, predicted, ...){
   tab_top5 = tab_top5[order(-tab_top5$cv_measure),]
   predicted$Model = ifelse(predicted$Model=="SuperLearner", "screen.all_\nSuperLearner", predicted$Model)
   predicted$Model = factor(predicted$Model, levels = sub("_", "_\n", tab_top5$screen.algo1))
-  
+
   set.seed(1)
   p = ggplot(predicted[!is.na(predicted$Sensitivity),], aes(x = Sensitivity, y = y)) + facet_grid(. ~ Model) +
-    geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) + ylab("Predicted Probability of VRC01 Resistance") + xlab("") + 
-    scale_colour_manual(values = c("Sensitive" = "red", "Resistant" = "blue")) + 
+    geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) + ylab("Predicted Probability of VRC01 Resistance") + xlab("") +
+    scale_colour_manual(values = c("Sensitive" = "red", "Resistant" = "blue")) +
     theme_bw() + coord_cartesian(ylim=c(0,1)) +
     theme(legend.position = "", strip.text.x = element_text(size = 10), text = element_text(size=12), axis.title = element_text(size=14))
-  
+
   return(p)
 }

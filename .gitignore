@@ -1,6 +1,7 @@
 .DS_Store
 sandbox/*
 slfits/*
+dat/*
 
 2019*
 test/*

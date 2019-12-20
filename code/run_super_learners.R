@@ -1,11 +1,21 @@
 #! /usr/bin/env Rscript
 
-## run the super learners for all outcomes, pre-defined variable groups
+## run the super learners for all outcomes, pre-defined variable groups, and individual variables
+## this involves:
+##  (1) a regression of outcome on all features: for use as the "best possible outcome predictor"
+##  (2) a regression of outcome on reduced set of features (created by removing the pre-defined group of interest): for use in group variable importance, conditional on all other features being in the model
+##  (3) a regression of outcome on only pre-defined group + confounders: for use in group marginal feature importance
+##  (4) a regression of outcome on each individual feature + confounders: for use in individual-level marginal feature importance
+##  (5) a regression of outcome on only confounders: for use in individual-level marginal feature importance
 
+## ---------------------------------------------------------------------------
+## Set up args, variables, functions
+## ---------------------------------------------------------------------------
 # load libraries
 library(SuperLearner)
 source("/home/lib/variable_groups.R")
 source("/home/lib/super_learner_libraries.R")
+source("/home/lib/utils.R")
 
 # attempt to read in environment variables
 reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
@@ -15,6 +25,9 @@ reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
 
 # ~~~!~~~! add option to not do cross-val sl fitting !~~~!~~~ #
 no_cv <- Sys.getenv("no_cv") == "TRUE"
+
+## option to run individual-level vimp; defaults to FALSE
+run_indi_vimp <- Sys.getenv("run_indi_vimp") == "TRUE"
 
 # load data
 analysis_data_name <- list.files("/home/dat/analysis")
@@ -35,6 +48,33 @@ if(reduce_library){
 # get names of predictors
 geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
 pred_names <- colnames(dat)[geog_idx:ncol(dat)]
+# get names of outcomes
+all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
+# if reduce_outcomes, only run on ic50
+if (reduce_outcomes) {
+    outcome_names <- "log10.pc.ic50"
+} else {
+    outcome_names <- all_outcome_names
+}
+# get variable groups
+all_var_groups <- get_variable_groups(dat, pred_names)
+all_geog_vars <- pred_names[grepl("geog", pred_names)]
+# if reduce_groups, only run on the cd4 binding site
+if (reduce_groups) {
+    var_groups <- all_var_groups[1]
+} else {
+    var_groups <- all_var_groups
+}
+V <- 10
+
+# if reduce_covs, only do individual imp on that number
+if (reduce_covs) {
+    num_covs <- 10
+    var_inds <- pred_names[!grepl("geog", pred_names)][1:(num_covs - length(all_geog_vars))]
+} else {
+    num_covs <- length(pred_names) - length(all_geog_vars)
+    var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
+}
 
 set.seed(123125)
 
@@ -47,6 +87,8 @@ set.seed(123125)
 #' @param reduce_covs Flag to reduce the number of covariates under consideration
 #' @param save_full_object Flag for whether or not to save the full fitted object, or just the fitted values
 #' @param run_cv Whether or not to run the cv super learner
+#' @param outer_folds a set of outer folds for VIM hypothesis testing
+#' @param full_fit is it the full fit (TRUE) or a reduced fit (FALSE)?
 sl_one_outcome <- function(outcome_name,
                            pred_names,
                            save_dir = "/home/slfits/",
@@ -55,14 +97,23 @@ sl_one_outcome <- function(outcome_name,
                            reduce_covs = FALSE,
                            save_full_object = TRUE,
                            run_cv = TRUE,
+                           outer_folds = rep(1, length(dat[, outcome_name])),
+                           full_fit = TRUE,
                            ...){
-        pred <- dat[ , pred_names]
+        if (full_fit) {
+            outer_bool <- outer_folds == 1
+        } else {
+            outer_bool <- outer_folds == 2
+        }
+        newdat <- subset(dat, outer_bool)
+
+        pred <- newdat[ , pred_names]
 
         if(reduce_covs){
-          pred <- pred[ , 1:5]
+          pred <- pred[ , 1:num_covs]
         }
 
-        fit <- SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, ...)
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))
         }
@@ -82,221 +133,63 @@ sl_one_outcome <- function(outcome_name,
         return(invisible(NULL))
 }
 
-## run full super learner
-sl_ic50 <- sl_one_outcome(outcome_name = "log10.pc.ic50", #!!! change to log-scale
-                          pred_names = pred_names,
-                          family = "gaussian",
-                          SL.library = SL.library,
-                          cvControl = list(V = 10),
-                          method = "tmp_method.CC_LS",
-                          reduce_covs = reduce_covs,
-                          run_cv = !no_cv)
-
+## ----------------------------------------------------------------------------
+## (1) run full super learners for each outcome (unless reduce_outcomes = TRUE)
+## ----------------------------------------------------------------------------
+for (i in 1:length(outcome_names)) {
+    this_outcome_name <- outcome_names[i]
+    sl_opts <- get_sl_options(this_outcome_name)
+    ## generate a set of outer folds for sample splitting for VIM hypothesis testing
+    outer_folds <- make_folds(dat[, this_outcome_name], V = 2, stratified = grepl("dichot", this_outcome_name))
+    saveRDS(outer_folds, file = paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
+    ## do the fitting
+    sl_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv)
+    sl_split_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, outer_folds = outer_folds, full_fit = TRUE)
+}
+## ----------------------------------------------------------------------------
+## (2)+(3) run super learners for each outcome (unless reduce_outcomes = TRUE)
+##         on (2) reduced set of features defined by removing group of interest
+##         and (3) group of interest + geographic confounders
+## ----------------------------------------------------------------------------
 ## run super learners on pre-defined groups
-all_var_groups <- get_variable_groups(dat, pred_names)
-if (reduce_groups) {
-    this_name <- names(all_var_groups)[1]
-    sl_ic50_i <- sl_one_outcome(outcome_name = "log10.pc.ic50",
-                                    pred_names = pred_names[!(pred_names %in% all_var_groups[[1]])],
-                                    fit_name = paste0("fitted_pc.ic50_minus_", this_name, ".rds"),
-                                    cv_fit_name = paste0("cvfitted_pc.ic50_minus_", this_name, ".rds"),
-                                    family = "gaussian",
-                                    SL.library = SL.library,
-                                    cvControl = list(V = 10),
-                                    method = "tmp_method.CC_LS",
-                                    reduce_covs = reduce_covs,
-                                    run_cv = !no_cv,
-                                    save_full_object = FALSE)
-} else {
-    for (i in 1:length(all_var_groups)) {
-        if (length(all_var_groups[i]) == 0) {
-
-        } else {
-            this_name <- names(all_var_groups)[i]
-            sl_ic50_i <- sl_one_outcome(outcome_name = "log10.pc.ic50",
-                pred_names = pred_names[!(pred_names %in% all_var_groups[[i]])],
-                fit_name = paste0("fitted_pc.ic50_minus_", this_name, ".rds"),
-                cv_fit_name = paste0("cvfitted_pc.ic50_minus_", this_name, ".rds"),
-                family = "gaussian",
-                SL.library = SL.library,
-                cvControl = list(V = 10),
-                method = "tmp_method.CC_LS",
-                reduce_covs = reduce_covs,
-                run_cv = !no_cv,
-                save_full_object = FALSE)
+for (i in 1:length(outcome_names)) {
+    this_outcome_name <- outcome_names[i]
+    sl_opts <- get_sl_options(this_outcome_name)
+    ## read in the full folds, for this group's cv folds
+    outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
+    for (j in 1:length(var_groups)) {
+        if (length(var_groups[j]) != 0) {
+            this_group_name <- names(var_groups)[j]
+            ## fit based on removing group of interest
+            sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[!(pred_names %in% var_groups[[j]])], fit_name = paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE, outer_folds = outer_folds, full_fit = FALSE)
+            ## fit based on only group of interest + geographic confounders
+            sl_fit_marginal_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_groups[[j]]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = reduce_covs, run_cv = !no_cv, save_full_object = FALSE, outer_folds = outer_folds, full_fit = FALSE)
         }
     }
 }
-
-if(!reduce_outcomes){
-  sl_ic80 <- sl_one_outcome(outcome_name = "log10.pc.ic80",
-    pred_names = pred_names,
-    family = "gaussian",
-    SL.library = SL.library,
-    cvControl = list(V = 10),
-    method = "tmp_method.CC_LS",
-    reduce_covs = reduce_covs,
-    run_cv = !no_cv)
-    if (reduce_groups) {
-        this_name <- names(all_var_groups)[1]
-        sl_ic80_i <- sl_one_outcome(outcome_name = "log10.pc.ic80",
-            pred_names = pred_names[!(pred_names %in% all_var_groups[[1]])],
-            fit_name = paste0("fitted_pc.ic80_minus_", this_name, ".rds"),
-            cv_fit_name = paste0("cvfitted_pc.ic80_minus_", this_name, ".rds"),
-            family = "gaussian",
-            SL.library = SL.library,
-            cvControl = list(V = 10),
-            method = "tmp_method.CC_LS",
-            reduce_covs = reduce_covs,
-            run_cv = !no_cv,
-            save_full_object = FALSE)
-    } else {
-        for (i in 1:length(all_var_groups)) {
-            if (length(all_var_groups[i]) == 0) {
-
-            } else {
-            this_name <- names(all_var_groups)[i]
-            sl_ic80_i <- sl_one_outcome(outcome_name = "log10.pc.ic80",
-                pred_names = pred_names[!(pred_names %in% all_var_groups[[i]])],
-                fit_name = paste0("fitted_pc.ic80_minus_", this_name, ".rds"),
-                cv_fit_name = paste0("cvfitted_pc.ic80_minus_", this_name, ".rds"),
-                family = "gaussian",
-                SL.library = SL.library,
-                cvControl = list(V = 10),
-                method = "tmp_method.CC_LS",
-                reduce_covs = reduce_covs,
-                run_cv = !no_cv,
-                save_full_object = FALSE)
-            }
+## ----------------------------------------------------------------------------
+## (4) run super learners for each outcome (unless reduce_outcomes = TRUE)
+##     on each individual feature + confounders
+## ----------------------------------------------------------------------------
+if (run_indi_vimp) {
+    for (i in 1:length(outcome_names)) {
+        this_outcome_name <- outcome_names[i]
+        sl_opts <- get_sl_options(this_outcome_name)
+        outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
+        for (j in 1:length(var_inds)) {
+            this_var_name <- var_inds[j]
+            ## fit SL of only this variable plus geographic confounders
+            sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% var_inds[j]) | (pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE, outer_folds = outer_folds, full_fit = FALSE)
         }
     }
-
-  sl_iip <- sl_one_outcome(outcome_name = "iip",
-    pred_names = pred_names,
-    family = "gaussian",
-    SL.library = SL.library,
-    cvControl = list(V = 10),
-    reduce_covs = reduce_covs,
-    run_cv = !no_cv,
-    method = "tmp_method.CC_LS")
-  if (reduce_groups) {
-      this_name <- names(all_var_groups)[1]
-      sl_iip_i <- sl_one_outcome(outcome_name = "iip",
-          pred_names = pred_names[!(pred_names %in% all_var_groups[[1]])],
-          fit_name = paste0("fitted_iip_minus_", this_name, ".rds"),
-          cv_fit_name = paste0("cvfitted_iip_minus_", this_name, ".rds"),
-          family = "gaussian",
-          SL.library = SL.library,
-          cvControl = list(V = 10),
-          method = "tmp_method.CC_LS",
-          reduce_covs = reduce_covs,
-          run_cv = !no_cv,
-          save_full_object = FALSE)
-  } else {
-      for (i in 1:length(all_var_groups)) {
-            if (length(all_var_groups[i]) == 0) {
-
-            } else {
-                this_name <- names(all_var_groups)[i]
-                sl_iip_i <- sl_one_outcome(outcome_name = "iip",
-                    pred_names = pred_names[!(pred_names %in% all_var_groups[[i]])],
-                    fit_name = paste0("fitted_iip_minus_", this_name, ".rds"),
-                    cv_fit_name = paste0("cvfitted_iip_minus_", this_name, ".rds"),
-                    family = "gaussian",
-                    SL.library = SL.library,
-                    cvControl = list(V = 10),
-                    method = "tmp_method.CC_LS",
-                    reduce_covs = reduce_covs,
-                    run_cv = !no_cv,
-                    save_full_object = FALSE)
-            }
-        }
-  }
-  sl_dichotomous1 <- sl_one_outcome(outcome_name = "dichotomous.1",
-    pred_names = pred_names,
-    family = "binomial",
-    SL.library = SL.library,
-    cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
-                    stratifyCV = TRUE),
-    method = "tmp_method.CC_nloglik",
-    reduce_covs = reduce_covs,
-    run_cv = !no_cv)
-  if (reduce_groups) {
-      this_name <- names(all_var_groups)[1]
-      sl_dichotomous1_i <- sl_one_outcome(outcome_name = "dichotomous.1",
-          pred_names = pred_names[!(pred_names %in% all_var_groups[[1]])],
-          fit_name = paste0("fitted_dichotomous.1_minus_", this_name, ".rds"),
-          cv_fit_name = paste0("cvfitted_dichotomous.1_minus_", this_name, ".rds"),
-          family = "binomial",
-          SL.library = SL.library,
-          cvControl = list(V = 10, stratifyCV = TRUE),
-          method = "tmp_method.CC_nloglik",
-          reduce_covs = reduce_covs,
-          run_cv = !no_cv,
-          save_full_object = FALSE)
-  } else {
-      for (i in 1:length(all_var_groups)) {
-            if (length(all_var_groups[i]) == 0) {
-
-            } else {
-                this_name <- names(all_var_groups)[i]
-                sl_dichotomous1_i <- sl_one_outcome(outcome_name = "dichotomous.1",
-                    pred_names = pred_names[!(pred_names %in% all_var_groups[[i]])],
-                    fit_name = paste0("fitted_dichotomous.1_minus_", this_name, ".rds"),
-                    cv_fit_name = paste0("cvfitted_dichotomous.1_minus_", this_name, ".rds"),
-                    family = "binomial",
-                    SL.library = SL.library,
-                    cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
-                        stratifyCV = TRUE),
-                    method = "tmp_method.CC_nloglik",
-                    reduce_covs = reduce_covs,
-                    run_cv = !no_cv,
-                    save_full_object = FALSE)
-            }
-        }
-  }
-
-  sl_dichotomous2 <- sl_one_outcome(outcome_name = "dichotomous.2",
-    pred_names = pred_names,
-    family = "binomial",
-    SL.library = SL.library,
-    cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
-                stratifyCV = TRUE),
-    method = "tmp_method.CC_nloglik",
-    reduce_covs = reduce_covs,
-    run_cv = !no_cv)
-  if (reduce_groups) {
-      this_name <- names(all_var_groups)[1]
-      sl_dichotomous1_i <- sl_one_outcome(outcome_name = "dichotomous.2",
-          pred_names = pred_names[!(pred_names %in% all_var_groups[[1]])],
-          fit_name = paste0("fitted_dichotomous.2_minus_", this_name, ".rds"),
-          cv_fit_name = paste0("cvfitted_dichotomous.2_minus_", this_name, ".rds"),
-          family = "binomial",
-          SL.library = SL.library,
-          cvControl = list(V = 10, stratifyCV = TRUE),
-          method = "tmp_method.CC_nloglik",
-          reduce_covs = reduce_covs,
-          run_cv = !no_cv,
-          save_full_object = FALSE)
-  } else {
-      for (i in 1:length(all_var_groups)) {
-            if (length(all_var_groups[i]) == 0) {
-
-            } else {
-                this_name <- names(all_var_groups)[i]
-                sl_dichotomous2_i <- sl_one_outcome(outcome_name = "dichotomous.2",
-                    pred_names = pred_names[!(pred_names %in% all_var_groups[[i]])],
-                    fit_name = paste0("fitted_dichotomous.2_minus_", this_name, ".rds"),
-                    cv_fit_name = paste0("cvfitted_dichotomous.2_minus_", this_name, ".rds"),
-                    family = "binomial",
-                    SL.library = SL.library,
-                    cvControl = list(V = min(c(10, sum(dat$dichotomous.1))),
-                        stratifyCV = TRUE),
-                    method = "tmp_method.CC_nloglik",
-                    reduce_covs = reduce_covs,
-                    run_cv = !no_cv,
-                    save_full_object = FALSE)
-            }
-        }
-  }
+}
+## ----------------------------------------------------------------------------
+## (5) run super learners for each outcome (unless reduce_outcomes = TRUE)
+##     on only confounders
+## ----------------------------------------------------------------------------
+for (i in 1:length(outcome_names)) {
+    this_outcome_name <- outcome_names[i]
+    sl_opts <- get_sl_options(this_outcome_name)
+    outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
+    sl_geog_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)], fit_name = paste0("fitted_", this_outcome_name, "_geog.rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_geog.rds"), family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE, outer_folds = outer_folds, full_fit = TRUE)
 }
