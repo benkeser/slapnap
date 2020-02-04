@@ -1,5 +1,28 @@
 ## various utility functions
 
+## read in a system variable
+## use boolean for boolean options
+## use !boolean for semi-colon-separated list options
+get_sys_var <- function(option = "nab", boolean = FALSE){
+    read_string <- Sys.getenv(option)
+    if(boolean){
+        out <- read_string == "TRUE"
+    }else{
+        out <- strsplit(read_string, split = ";")[[1]]
+    }
+    return(out)
+}
+
+## read in permanent options
+get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf", 
+                                           "importance_grp", "importance_ind"),
+                               options_boolean = c(FALSE, FALSE, FALSE, TRUE, 
+                                                   TRUE, FALSE, FALSE)){
+    out <- mapply(option = options, boolean = options_boolean, 
+                  FUN = get_sys_var, SIMPLIFY = FALSE)
+    return(out)
+}
+
 ## make outer folds for VIM hypothesis test (based on sample splitting)
 make_folds <- function(y, V, stratified = TRUE) {
   if (stratified) {
@@ -28,13 +51,13 @@ get_cv_folds <- function(folds_lst) {
     return(folds)
 }
 ## determine SL options based on outcome name
-get_sl_options <- function(outcome_name) {
+get_sl_options <- function(outcome_name, V) {
     if (grepl("dichot", outcome_name)) {
-        sl_fam <- "binomial"
+        sl_fam <- binomial()
         cv_ctrl_lst <- list(V = V, stratifyCV = TRUE)
         sl_method <- "tmp_method.CC_nloglik"
     } else {
-        sl_fam <- "gaussian"
+        sl_fam <- gaussian()
         cv_ctrl_lst <- list(V = V)
         sl_method <- "tmp_method.CC_LS"
     }

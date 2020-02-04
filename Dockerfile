@@ -7,14 +7,60 @@ RUN apt-get clean && apt-get update && apt-get upgrade -y && apt-get install -y 
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
-# by default non short run mode
-# pass environment variable at run time to turn on short-
-# run mode
+#----------------- 
+# Temp options
+#----------------- 
+# eventually we will get rid of these options
 ENV reduce_covs=FALSE
 ENV reduce_outcomes=FALSE
 ENV reduce_library=FALSE
 ENV reduce_groups=FALSE
+ENV no_cv=FALSE
 
+#---------------------
+# Permanent options
+#---------------------
+# which antibody to analyze
+#   "VRC07-523-LS" is arbitrarily selected as default
+ENV nab="VRC07-523-LS"
+
+# which outcomes to include in the analysis
+ENV outcomes="ic50;ic80;iip;sens1;sens2"
+# which learners are included by default
+#  if more than a single algorithm is listed, then super learner is used
+#  if a single algorithm is listed, then the boolean `cvtune` variable can be used
+#  to determine if default tuning parameters are selected or if a small grid
+#  search is performed to select tuning parameters. 
+# 
+#  rf = random forest
+#  xgboost = eXtreme gradient boosting
+#  lasso = elastic net regression
+ENV learners="rf;xgboost;lasso"
+
+# should cv be used to select tuning parameters?
+#   if TRUE, then a small grid search is performed to select tuning parameters
+#   if FALSE, then the "default" tuning parameters of the respective R packages are used
+#   note: if more than one learner, then this option controls whether a single version of each
+#    algorithm is included in the super learner, or multiple.
+ENV cvtune="TRUE"
+
+# should cv be used to measure performance?
+#   if TRUE, then cross-validation is used to validate the performance of the prediction 
+#     algorithm in predicting the selected outcomes
+#   if FALSE, then the learner is trained on each outcome, but nothing more is performed
+ENV cvperf="TRUE"
+
+# what group-level importance measures should be computed?
+#   possible values are marg (for marginal) cond (for conditional) or none
+ENV importance_grp="marg;cond"
+# what individual-level importance measures should be computed?
+#   possible values are marg (for marginal) cond (for conditional) or none
+ENV importance_ind="marg;cond"
+
+
+#-----------------------
+# Installing software
+#-----------------------
 # make sure we have wget
 RUN apt-get install -y wget
 
@@ -80,9 +126,6 @@ COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R
 COPY code/plotting_functions.R /home/lib/plotting_functions.R
 
 RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
-
-# add option to avoid cv super learner fitting (for debugging)
-ENV no_cv=FALSE
 
 # copy report Rmd
 COPY code/report.Rmd /home/lib/report.Rmd
