@@ -1,5 +1,5 @@
 # boosted algorithms
-SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights, id, ntrees = 1000,
+SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, ntrees = 1000,
     max_depth = 4, shrinkage = 0.1, minobspernode = 10, params = list(),
     nthread = 1, verbose = 0, save_period = NULL, ...)
 {
@@ -57,7 +57,7 @@ descr_SL.xgboost6 <- paste0(descr_SL.xgboost, 6)
 descr_SL.xgboost8 <- paste0(descr_SL.xgboost, 8)
 
 # random forests
-SL.ranger.imp <- function (Y, X, newX, family, obsWeights, num.trees = 500, mtry = floor(sqrt(ncol(X))),
+SL.ranger.imp <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), num.trees = 500, mtry = floor(sqrt(ncol(X))),
     write.forest = TRUE, probability = family$family == "binomial",
     min.node.size = ifelse(family$family == "gaussian", 5, 1),
     replace = TRUE, sample.fraction = ifelse(replace, 1, 0.632),
@@ -124,7 +124,7 @@ get_fold_id <- function(Y){
 
 
 # function to have more robust behavior in SL.glmnet
-SL.glmnet.mycv <- function (Y, X, newX, family, obsWeights, id, alpha = 1, nfolds = 5,
+SL.glmnet.mycv <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, alpha = 1, nfolds = 5,
     nlambda = 100, useMin = TRUE, loss = "deviance", ...) {
     SuperLearner:::.SL.require("glmnet")
     if (!is.matrix(X)) {
@@ -173,13 +173,6 @@ descr_SL.glmnet.mycv <- "GLMNET with lambda selected by CV and alpha equal to 0"
 
 descr_SL.mean <- "intercept only regression"
 descr_SL.glm <- "main terms generalized linear model"
-
-default_library <- c("SL.mean","SL.xgboost2", "SL.xgboost4", "SL.xgboost6", "SL.xgboost8",
-                     "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large",
-                     "SL.glmnet.mycv", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
-
-# default_library_reduced <- c("SL.mean", "SL.glm")
-default_library_reduced <- c("SL.ranger.imp", "SL.glmnet", "SL.xgboost2")
 
 #' Temporary fix for convex combination method mean squared error
 #' Relative to existing implementation, we reduce the tolerance at which
@@ -347,4 +340,124 @@ tmp_method.CC_nloglik <- function ()
         return(out)
     }
     list(require = "nloptr", computeCoef = computeCoef, computePred = computePred)
+}
+
+# based on user-inputted options, make a vector describing the super learner library
+make_sl_library_vector <- function(opts){
+    default_library <- NULL
+    # check if rf is requested
+    if("rf" %in% opts$learners){
+      if(opts$cvtune){
+        default_library <- c(default_library, "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large")
+      }else{
+        default_library <- c(default_library, "SL.ranger.reg")
+      }
+    }
+    # check if xgboost is requested
+    if("xgboost" %in% opts$learners){
+      if(opts$cvtune){
+        default_library <- c(default_library, "SL.xgboost2", "SL.xgboost4", "SL.xgboost6", "SL.xgboost8")
+      }else{
+        default_library <- c(default_library, "SL.xgboost4")
+      }
+    }
+    # check if elastic net is requested
+    if("lasso" %in% opts$learners){
+      if(opts$cvtune){
+        default_library <- c(default_library, "SL.glmnet.mycv", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
+      }else{
+        default_library <- c(default_library, "SL.glmnet.mycv")
+      }
+    }
+    # if fitting a super learner, throw in SL.mean
+    if(length(opts$learners) > 1){
+      default_library <- c(default_library, "SL.mean")
+    }
+    return(default_library)
+}
+
+
+#' function to run super learner and cv super learner on a single outcome
+#' @param outcome_name String name of outcome
+#' @param pred_names Vector of string names of predictor variables
+#' @param opts List of options outputted by get_global_options()
+#' @param save_dir name of directory to save results to
+#' @param fit_name name of fits (defaults to fit_<outcome_name>.rds)
+#' @param cv_fit_name name of CV fits (defaults to cvfit_<outcome_name>.rds)
+#' @param save_full_object Flag for whether or not to save the full fitted object, or just the fitted values
+#' @param outer_folds a set of outer folds for VIM hypothesis testing
+#' @param full_fit is it the full fit (TRUE) or a reduced fit (FALSE)?
+#' @param outer_folds ~DB2BW: What's this guy doing?~
+sl_one_outcome <- function(outcome_name,
+                           pred_names,
+                           opts, 
+                           save_dir = "/home/slfits/",
+                           fit_name = paste0("fit_", outcome_name, ".rds"),
+                           cv_fit_name = paste0("cvfit_", outcome_name, ".rds"),
+                           save_full_object = TRUE,
+                           outer_folds = rep(1, length(dat[, outcome_name])),
+                           full_fit = TRUE,
+                           SL.library = "SL.mean",
+                           ...){
+  if (full_fit) {
+      outer_bool <- outer_folds == 1
+  } else {
+      outer_bool <- outer_folds == 2
+  }
+  newdat <- subset(dat, outer_bool)
+
+  pred <- newdat[ , pred_names]
+
+  # unless we do not want to tune using CV nor evaluate performance using CV, 
+  # we will make a call to super learner
+  if(!(opts$cvtune == FALSE & opts$cvperf == FALSE)){
+    fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+    if (save_full_object) {
+        saveRDS(fit, file = paste0(save_dir, fit_name))
+    }
+
+    if(length(opts$learners) > 1 | (length(opts$learners) == 1 & !opts$cvtune)){
+      # save super learner predictions
+      saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+      # save super learner weights
+      saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
+    }else if(length(opts$learners) == 1 & opts$cvtune){
+      # save CV-selected learner predictions
+      saveRDS(fit$library.predict[ , which.min(fit$cvRisk)], 
+              file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))            
+    }
+  }else{
+    # if we do not want to use any CV at all (i.e., just a single "default" learner is desired),
+    # then we will call directly the wrapper function. 
+    fit <- do.call(SL.library[1], args = c(list(...), list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
+    saveRDS(fit$pred, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+    # this will be an object with class native to what the individual learner is
+    # i.e., if rf is desired, it'll be ranger object
+    if (save_full_object) {
+        saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
+    }
+  }
+
+  if(length(opts$learners) == 1 & opts$cvtune & opts$cvperf){
+    # in this case, we want to report back only results for discrete super learner
+    # since we're trying to pick out e.g., the best single random forest fit
+    # note that if either opts$cvtune AND/OR opts$cvperf is FALSE then everything we need 
+    # will already be in the SuperLearner fit object.
+    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+    if (save_full_object) {
+        saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+    }
+    saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
+    saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
+  }else if(length(opts$learners) > 1 & opts$cvperf){
+    # if multiple learners, then we are fitting a super learner so need CV superlearner
+    # unless cvperf = FALSE
+    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+    if (save_full_object) {
+        saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+    }
+    saveRDS(cv_fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
+    saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
+  }
+  return(invisible(NULL))
 }
