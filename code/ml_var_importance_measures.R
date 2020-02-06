@@ -16,7 +16,7 @@ extract_importance <- function(fit_sl, data, outcome_name, ...){
 	best_glmnet <- names(fit_sl$cvRisk)[glmnet_fit_idx][min_glmnet_idx]
 
 	# idx of columns of Z matrix corresponding to best fit of each algo
-	col_Z_idx <- c(ranger_fit_idx[min_ranger_idx], xgboost_fit_idx[min_xgboost_idx], 
+	col_Z_idx <- c(ranger_fit_idx[min_ranger_idx], xgboost_fit_idx[min_xgboost_idx],
 	               glmnet_fit_idx[min_glmnet_idx])
 
 	# check that best one predicts better than chance
@@ -25,7 +25,7 @@ extract_importance <- function(fit_sl, data, outcome_name, ...){
 		V <- length(fit_sl$validRows)
 		cv_auc <- NULL
 		for(j in col_Z_idx){
-			split_Z <- vector(mode = "list", length = V)		
+			split_Z <- vector(mode = "list", length = V)
 			split_Y <- vector(mode = "list", length = V)
 			for(v in seq_len(V)){
 				split_Z[[v]] <- fit_sl$Z[fit_sl$validRows[[v]], j]
@@ -45,7 +45,7 @@ extract_importance <- function(fit_sl, data, outcome_name, ...){
 	}
 
 	# get importance of best ranger
-	
+
 		best_ranger_fit <- fit_sl$fitLibrary[[best_ranger]]$object
 		ranger_imp <- importance(best_ranger_fit)
 		ranger_imp_ranks <- rank(-ranger_imp)
@@ -184,7 +184,7 @@ combine_importance <- function(imp_list,
 	}else{
 		out <- data.frame(Variable = "None", Outcomes = "N/A")
 	}
-	
+
 	return(out)
 }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
