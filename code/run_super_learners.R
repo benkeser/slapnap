@@ -63,12 +63,14 @@ for (i in 1:length(outcome_names)) {
     sl_fit_i <- sl_one_outcome(dat = dat, outcome_name = this_outcome_name, pred_names = pred_names,
         family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
         method = sl_opts$method, opts = opts)
-    ## if conditional importance is desired, generate splits for VIM hypothesis testing and fit the full regression
-    if (("cond" %in% opts$importance_grp) | ("cond" %in% opts$importance_ind)) {
-        ## generate a set of outer folds for sample splitting for VIM hypothesis testing
+    ## if we need any type of importance, generate splits for VIM hypothesis testing
+    if (!((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
         outer_folds <- make_folds(dat[, this_outcome_name], V = 2, stratified = grepl("dichot", this_outcome_name))
         saveRDS(outer_folds, file = paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
-        sl_split_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names,
+    }
+    ## if conditional importance is desired, fit the full regression
+    if (("cond" %in% opts$importance_grp) | ("cond" %in% opts$importance_ind)) {
+        sl_split_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, fit_name = paste0("fitted_", this_outcome_name, "_for_vimp.rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_for_vimp.rds"),
             family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
             method = sl_opts$method,
             outer_folds = outer_folds, full_fit = TRUE, opts = opts)
@@ -97,8 +99,8 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
                 if ("cond" %in% opts$importance_grp) {
                     sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name,
                         pred_names = pred_names[!(pred_names %in% all_var_groups[[j]])],
-                        fit_name = paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"),
-                        cv_fit_name = paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"),
+                        fit_name = paste0("fitted_", this_outcome_name, "_conditional_", this_group_name, ".rds"),
+                        cv_fit_name = paste0("cvfitted_", this_outcome_name, "_conditional_", this_group_name, ".rds"),
                         family = sl_opts$fam, SL.library = SL.library,
                         cvControl = sl_opts$ctrl, method = sl_opts$method,
                         save_full_object = FALSE, outer_folds = outer_folds,
