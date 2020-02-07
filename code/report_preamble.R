@@ -1,5 +1,5 @@
 ## ----------------------------------------------------------------------------
-## Options and packages
+## Knitr options, packages, files
 ## ----------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
@@ -16,19 +16,24 @@ library(knitr)
 library(gridExtra)
 library(xgboost); library(ranger); library(glmnet)
 library(vimp)
-
-# attempt to read in environment variables
-reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
-reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
-reduce_library <- Sys.getenv("reduce_library") == "TRUE"
-reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
-no_cv <- Sys.getenv("no_cv") == "TRUE"
-run_indi_vimp <- Sys.getenv("run_indi_vimp") == "TRUE"
-
-
+source("/home/lib/variable_groups.R")
+source("/home/lib/super_learner_libraries.R")
+source("/home/lib/utils.R")
 source("/home/lib/plotting_functions.R")
+source("/home/lib/ml_var_importance_measures.R")
+source("/home/lib/var_import_plot.R")
+
+#---------------------
+# Permanent options
+#---------------------
+# read in options
+opts <- get_global_options()
+
+# --------------------
+# Antibodies
+# --------------------
 # get NAbs names from ENV variable
-antibody_string <- Sys.getenv("Nab")
+antibody_string <- Sys.getenv("nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 n_ab <- length(antibodies)
 
@@ -85,9 +90,6 @@ path.home <- "/home/dat/analysis/"
 
 geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
 pred_names <- colnames(dat)[geog_idx:ncol(dat)]
-
-source("/home/lib/ml_var_importance_measures.R")
-source("/home/lib/var_import_plot.R")
 
 ## ----------------------------------------------------------------------------
 ## Individual-level algorithm-specific importance
