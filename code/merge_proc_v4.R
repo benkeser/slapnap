@@ -11,7 +11,7 @@
 
 # here are our standard example cases:
 #   single antibody:  VRC07-523-LS
-#   double cocktail:  VRC07-523LS + PGT12.BIJ4141LS 
+#   double cocktail:  VRC07-523LS + PGT12.BIJ4141LS
 #   triple cocktail:  VRC07-523LS + PGT121.BIJ414LS + PGDM1400LS
 
 
@@ -34,11 +34,11 @@ library(seqinr)
 #antibodies <- "VRC07-523-LS"
 # antibodies <- c("VRC07-523-LS", "PGT121")
 #antibodies <- c("VRC07-523-LS", "PGT121", "PGDM1400")
-path.home <- "/home"
+path.home <- "/home/"
 
-# antibody names are passed to docker container at run time as 
+# antibody names are passed to docker container at run time as
 # environment variable Nab, which is a semicolon-separated list
-antibody_string <- Sys.getenv("Nab")
+antibody_string <- Sys.getenv("nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 
 
@@ -59,7 +59,7 @@ data.viruses <- read.table(file.path(path.data.catnap, "viruses.txt"), header=T,
 data.abs <- read.table(file.path(path.data.catnap, "abs.txt"), header=T, sep="\t", quote="\"")
 
 # source our function library
-source(file.path(path.lib, "multi_ab_v3.Rlib"))
+source(file.path(path.lib, "multi_ab_v4.Rlib"))
 
 # load and process virus info and sequences
 data.seq <- read.fasta(file.path(path.data.catnap, "virseqs_aa.fasta"), seqtype="AA")
@@ -70,7 +70,7 @@ country <- unlist(lapply(header.info, function(x) return(x[2])))
 year <- unlist(lapply(header.info, function(x) return(x[3])))
 seqname.db <- unlist(lapply(header.info, function(x) return(x[4])))
 
-# let's filter out outlier assay results(with IC50 of ">1") 
+# let's filter out outlier assay results(with IC50 of ">1")
 data.assay.reduced <- data.assay[data.assay$IC50 != ">1", ]
 
 # determine which sequences were assayed for all antibodies in the cocktail
@@ -161,36 +161,39 @@ for(ab.tmp in antibodies) {
   readouts <- data.frame(readouts, readouts.tmp)
 }
 
-# if we are prespecifying more than one antibody, then let's predict the 
+# if we are prespecifying more than one antibody, then let's predict the
 # combined outcomes
 if(length(antibodies) > 1) {
-
-  # use additive method to determine predicted combinations of IC50/IC80 
+  # use additive method to determine predicted combinations of IC50/IC80
   #(i.e., the "Quantitative 1" endpoint)
   readouts$pc.ic50 <- apply(readouts[, grep("ic50.imputed", names(readouts), fixed=T)], 1, wagh.additive.method)
-  readouts$log10.pc.ic50 <- log10(readouts$pc.ic50)
   readouts$pc.ic80 <- apply(readouts[, grep("ic80.imputed", names(readouts), fixed=T)], 1, wagh.additive.method)
-  readouts$log10.pc.ic80 <- log10(readouts$pc.ic80)
-
-  # calculate IIP(a.k.a. the "Quantitive 2" endpoint)
-  iip.c <- 10
-  iip.m <- log10(4) /(readouts$log10.pc.ic80 - readouts$log10.pc.ic50)
-  iip.f.c <-(iip.c ^ iip.m) /((readouts$pc.ic50 ^ iip.m) +(iip.c ^ iip.m))
-  iip.f.c[iip.f.c >= 1] <- 1 - .Machine$double.neg.eps
-  readouts$iip <- log10(1 - iip.f.c)
-
-  # derive the "Dichotomous 1" endpoint(i.e., is the PC IC50 higher than the
-  # sensitivity cutoff?)
-  sensitivity.threshold <- 1
-  readouts$dichotomous.1 <- as.numeric(readouts$pc.ic50 >= sensitivity.threshold)
-
-  # derive the "Dichotomous 2" endpoint(i.e., is the imputed IC50 greater than 
-  # the sensitivity threshold for at least two antibodies?)(the use of "two" 
-  # Abs is used whether or not we have a two-Ab cocktail, or three(or more)-Ab
-  # cocktail, etc., as per earlier discussion)
-  min.resistant.abs <- 2
-  readouts$dichotomous.2 <- as.numeric(rowSums(readouts[, grep("ic50.imputed", names(readouts), fixed=T)] >= sensitivity.threshold) >= min.resistant.abs)
+} else { # if only one antibody, define them as the single-ab version
+    readouts$pc.ic50 <- readouts[, grep("ic50.imputed", names(readouts), fixed = TRUE)]
+    readouts$log10.pc.ic50 <- log10(readouts$pc.ic50)
+    readouts$pc.ic80 <- readouts[, grep("ic80.imputed", names(readouts), fixed = TRUE)]
+    readouts$log10.pc.ic80 <- log10(readouts$pc.ic80)
 }
+readouts$log10.pc.ic50 <- log10(readouts$pc.ic50)
+readouts$log10.pc.ic80 <- log10(readouts$pc.ic80)
+# calculate IIP(a.k.a. the "Quantitive 2" endpoint)
+iip.c <- 10
+iip.m <- log10(4) /(readouts$log10.pc.ic80 - readouts$log10.pc.ic50)
+iip.f.c <-(iip.c ^ iip.m) /((readouts$pc.ic50 ^ iip.m) +(iip.c ^ iip.m))
+iip.f.c[iip.f.c >= 1] <- 1 - .Machine$double.neg.eps
+readouts$iip <- log10(1 - iip.f.c)
+
+# derive the "Dichotomous 1" endpoint(i.e., is the PC IC50 higher than the
+# sensitivity cutoff?)
+sensitivity.threshold <- 1
+readouts$dichotomous.1 <- as.numeric(readouts$pc.ic50 >= sensitivity.threshold)
+
+# derive the "Dichotomous 2" endpoint(i.e., is the imputed IC50 greater than
+# the sensitivity threshold for at least two antibodies?)(the use of "two"
+# Abs is used whether or not we have a two-Ab cocktail, or three(or more)-Ab
+# cocktail, etc., as per earlier discussion)
+min.resistant.abs <- ifelse(length(antibodies) > 1, 2, 1)
+readouts$dichotomous.2 <- as.numeric(apply(readouts[, grep("ic50.imputed", names(readouts), fixed=T), drop = FALSE] >= sensitivity.threshold, 1, sum) >= min.resistant.abs)
 
 
 # ---------------------------------------------------------------------------- #
@@ -243,5 +246,3 @@ write.csv(data.final, file=filename, row.names=F)
 # ---------------------------------------------------------------------------- #
 #                                    - 30 -
 # ---------------------------------------------------------------------------- #
-
-

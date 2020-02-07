@@ -378,6 +378,7 @@ make_sl_library_vector <- function(opts){
 
 
 #' function to run super learner and cv super learner on a single outcome
+#' @param dat the dataset
 #' @param outcome_name String name of outcome
 #' @param pred_names Vector of string names of predictor variables
 #' @param opts List of options outputted by get_global_options()
@@ -389,7 +390,7 @@ make_sl_library_vector <- function(opts){
 #' @param full_fit is it the full fit (TRUE) or a reduced fit (FALSE)?
 #' @param SL.library the library to pass to SuperLearner
 #' @param ... additional arguments to pass to individual algorithms or the SuperLearner
-sl_one_outcome <- function(outcome_name,
+sl_one_outcome <- function(dat, outcome_name,
                            pred_names,
                            opts,
                            save_dir = "/home/slfits/",
@@ -441,12 +442,12 @@ sl_one_outcome <- function(outcome_name,
     }
   }
 
-  if (length(opts$learners) == 1 & opts$cvtune & opts$cvperf){
+  if (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) {
     # in this case, we want to report back only results for discrete super learner
     # since we're trying to pick out e.g., the best single random forest fit
     # note that if either opts$cvtune AND/OR opts$cvperf is FALSE then everything we need
     # will already be in the SuperLearner fit object.
-    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
     }
@@ -455,7 +456,7 @@ sl_one_outcome <- function(outcome_name,
   } else if (length(opts$learners) > 1 & opts$cvperf) {
     # if multiple learners, then we are fitting a super learner so need CV superlearner
     # unless cvperf = FALSE
-    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
     }

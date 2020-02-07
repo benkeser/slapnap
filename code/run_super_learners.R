@@ -10,20 +10,11 @@
 ## Set up args, variables, functions
 ## ---------------------------------------------------------------------------
 # load libraries
-library(SuperLearner)
+library("SuperLearner")
+library("dplyr")
 source("/home/lib/variable_groups.R")
 source("/home/lib/super_learner_libraries.R")
 source("/home/lib/utils.R")
-
-#-----------------
-# Temp options
-#-----------------
-#~DB~ delete eventually
-# read in environment variables
-reduce_covs <- Sys.getenv("reduce_covs") == "TRUE"
-reduce_outcomes <- Sys.getenv("reduce_outcomes") == "TRUE"
-reduce_library <- Sys.getenv("reduce_library") == "TRUE"
-reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
 
 #---------------------
 # Permanent options
@@ -45,40 +36,42 @@ pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 
 # get names of outcomes
 outcome_names <- c(
-    ifelse("ic50" %in% opts$outcomes, "log10.pc.ic50", NULL),
-    ifelse("ic80" %in% opts$outcomes, "log10.pc.ic80", NULL),
-    ifelse("iip" %in% opts$outcomes, "iip", NULL),
-    ifelse("sens1" %in% opts$outcomes, "dichotomous.1", NULL),
-    ifelse("sens2" %in% opts$outcomes, "dichotomous.2", NULL)
-)
+    ifelse("ic50" %in% opts$outcomes, "log10.pc.ic50", NA),
+    ifelse("ic80" %in% opts$outcomes, "log10.pc.ic80", NA),
+    ifelse("iip" %in% opts$outcomes, "iip", NA),
+    ifelse("sens1" %in% opts$outcomes, "dichotomous.1", NA),
+    ifelse("sens2" %in% opts$outcomes, "dichotomous.2", NA)
+) %>% na.omit()
 
 # get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)
 all_geog_vars <- pred_names[grepl("geog", pred_names)]
+num_covs <- length(pred_names) - length(all_geog_vars)
+var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 
 # set number of CV folds
 V <- 5
 
 set.seed(123125)
 ## ----------------------------------------------------------------------------
-## (1) run full super learners for each outcome (unless reduce_outcomes = TRUE)
+## (1) run full super learners for each outcome specified in outcome_names
 ## ----------------------------------------------------------------------------
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name, V = V)
     ## do the fitting
-    sl_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names,
+    sl_fit_i <- sl_one_outcome(dat = dat, outcome_name = this_outcome_name, pred_names = pred_names,
         family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
-        method = sl_opts$method, reduce_covs = reduce_covs, opts = opts)
-        ## if conditional importance is desired, generate splits for VIM hypothesis testing and fit the full regression
-        if (("cond" %in% opts$importance_grp) | ("cond" %in% opts$importance_ind)) {
-            ## generate a set of outer folds for sample splitting for VIM hypothesis testing
-            outer_folds <- make_folds(dat[, this_outcome_name], V = 2, stratified = grepl("dichot", this_outcome_name))
-            saveRDS(outer_folds, file = paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
-            sl_split_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names,
-                family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
-                method = sl_opts$method, reduce_covs = reduce_covs,
-                outer_folds = outer_folds, full_fit = TRUE, opts = opts)
+        method = sl_opts$method, opts = opts)
+    ## if conditional importance is desired, generate splits for VIM hypothesis testing and fit the full regression
+    if (("cond" %in% opts$importance_grp) | ("cond" %in% opts$importance_ind)) {
+        ## generate a set of outer folds for sample splitting for VIM hypothesis testing
+        outer_folds <- make_folds(dat[, this_outcome_name], V = 2, stratified = grepl("dichot", this_outcome_name))
+        saveRDS(outer_folds, file = paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
+        sl_split_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names,
+            family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
+            method = sl_opts$method,
+            outer_folds = outer_folds, full_fit = TRUE, opts = opts)
     }
 }
 
@@ -97,13 +90,13 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
         sl_opts <- get_sl_options(this_outcome_name, V = V)
         ## read in the full folds, for this group's cv folds
         outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
-        for (j in 1:length(var_groups)) {
-            if (length(var_groups[j]) != 0) {
-                this_group_name <- names(var_groups)[j]
+        for (j in 1:length(all_var_groups)) {
+            if (length(all_var_groups[j]) != 0) {
+                this_group_name <- names(all_var_groups)[j]
                 ## fit based on removing group of interest
                 if ("cond" %in% opts$importance_grp) {
                     sl_fit_ij <- sl_one_outcome(outcome_name = this_outcome_name,
-                        pred_names = pred_names[!(pred_names %in% var_groups[[j]])],
+                        pred_names = pred_names[!(pred_names %in% all_var_groups[[j]])],
                         fit_name = paste0("fitted_", this_outcome_name, "_minus_", this_group_name, ".rds"),
                         cv_fit_name = paste0("cvfitted_", this_outcome_name, "_minus_", this_group_name, ".rds"),
                         family = sl_opts$fam, SL.library = SL.library,
@@ -114,7 +107,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
                 ## fit based on only group of interest + geographic confounders
                 if ("marg" %in% opts$importance_grp) {
                     sl_fit_marginal_ij <- sl_one_outcome(outcome_name = this_outcome_name,
-                        pred_names = pred_names[(pred_names %in% var_groups[[j]]) | (pred_names %in% all_geog_vars)],
+                        pred_names = pred_names[(pred_names %in% all_var_groups[[j]]) | (pred_names %in% all_geog_vars)],
                         fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"),
                         cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"),
                         family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
@@ -163,7 +156,7 @@ if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
                                             fit_name = paste0("fitted_", this_outcome_name, "_conditional_", this_var_name, ".rds"),
                                             cv_fit_name = paste0("cvfitted_", this_outcome_name, "_conditional_", this_var_name, ".rds"),
                                             family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
-                                            method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE,
+                                            method = sl_opts$method,  save_full_object = FALSE,
                                             outer_folds = outer_folds, full_fit = FALSE, opts = opts)
             }
             # if marginal, do glm of this + confounders
@@ -173,7 +166,7 @@ if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
                                             fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"),
                                             cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"),
                                             family = sl_opts$fam, SL.library = "SL.glm", cvControl = sl_opts$ctrl,
-                                            method = sl_opts$method, reduce_covs = FALSE, run_cv = !no_cv, save_full_object = FALSE,
+                                            method = sl_opts$method,  save_full_object = FALSE,
                                             outer_folds = outer_folds, full_fit = FALSE, opts = opts)
             }
         }
