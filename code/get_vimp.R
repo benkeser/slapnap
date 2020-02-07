@@ -9,6 +9,7 @@ library("SuperLearner")
 library("vimp")
 library("dplyr")
 source("/home/lib/variable_groups.R")
+source("/home/lib/super_learner_libraries.R")
 source("/home/lib/utils.R")
 
 #---------------------
@@ -53,7 +54,7 @@ V <- 5
 set.seed(474747)
 # if none of them, then don't run variable importance
 if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
-    # do nothing
+    print("Variable importance was not requested during this run. If you desire variable importance, please use the environment variables 'importance_grp' (for group importance) or 'importance_ind' (for individual-variable importance).")
 } else { # otherwise, do run variable importance
     for (i in 1:length(outcome_names)) {
         this_outcome_name <- outcome_names[i]
