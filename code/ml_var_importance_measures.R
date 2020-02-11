@@ -1,7 +1,7 @@
 # A function that extracts importance measures for each feature
 # from a fitted super learner object. We get the best fitting ranger, xgboost,
 # and LASSO model from the library and extract importance features from those.
-extract_importance <- function(fit_sl, data, outcome_name, ...){
+extract_importance <- function(fit_sl, data, outcome_name, opts, ...){
 	# find name of best fitting ranger model
 	ranger_fit_idx <- grep("SL.ranger", fit_sl$libraryNames)
 	xgboost_fit_idx <- grep("SL.xgboost", fit_sl$libraryNames)
@@ -109,7 +109,7 @@ get_all_importance <- function(outcome_name, binary_outcome,
                                dir_loc = "/home/slfits/",
                                max_rank_thresh = 1:50,
                                n_importance_measures = 1,
-                               dat, which_cols, reduce_covs){
+                               dat, which_cols, opts){
  	fit_sl <- readRDS(paste0(dir_loc, "fit_", outcome_name, ".rds"))
  	imp_df <- extract_importance(fit_sl, data = dat, outcome_name = outcome_name)
     imp_df$variable <- as.character(imp_df$variable)

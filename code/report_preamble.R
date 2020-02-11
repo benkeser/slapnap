@@ -88,51 +88,76 @@ my_webm <- function (x, options) {
 path.home <- "/home/slfits"
 path.home <- "/home/dat/analysis/"
 
+# get names of predictors
 geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
 pred_names <- colnames(dat)[geog_idx:ncol(dat)]
+
+# get names of outcomes
+outcome_names <- c(
+    ifelse("ic50" %in% opts$outcomes, "log10.pc.ic50", NA),
+    ifelse("ic80" %in% opts$outcomes, "log10.pc.ic80", NA),
+    ifelse("iip" %in% opts$outcomes, "iip", NA),
+    ifelse("sens1" %in% opts$outcomes, "dichotomous.1", NA),
+    ifelse("sens2" %in% opts$outcomes, "dichotomous.2", NA)
+) %>% na.omit()
+
+# get variable groups
+all_var_groups <- get_variable_groups(dat, pred_names)
+all_geog_vars <- pred_names[grepl("geog", pred_names)]
+num_covs <- length(pred_names) - length(all_geog_vars)
+var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 
 ## ----------------------------------------------------------------------------
 ## Individual-level algorithm-specific importance
 ## ----------------------------------------------------------------------------
 # get individual p-value-based importance measures; create tables
 col_idx <- geog_idx:ncol(dat)
-imp_ic50 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
-                               dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
-imp_ic80 <- get_all_importance("log10.pc.ic80", binary_outcome = FALSE,
-                               dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
-imp_iip <- get_all_importance("iip", binary_outcome = FALSE,
-                               dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
-imp_dichot1 <- get_all_importance("dichotomous.1", binary_outcome = TRUE,
-                               dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
-imp_dichot2 <- get_all_importance("dichotomous.2", binary_outcome = TRUE,
-                               dir_loc = "/home/slfits/",
-                               dat = dat, which_cols = col_idx, reduce_covs = reduce_covs)
-
 max_features <- 15
-ic50_tab <- get_importance_table(imp_ic50, max_features = max_features)
-direction_resis <- get_importance_resis(ic50_tab, dat = dat, which_outcome = "log10.pc.ic50")
-ic50_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
-
-ic80_tab <- get_importance_table(imp_ic80, max_features = max_features)
-direction_resis <- get_importance_resis(ic80_tab, dat = dat, which_outcome = "log10.pc.ic80")
-ic80_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
-
-iip_tab <- get_importance_table(imp_iip, max_features = max_features)
-direction_resis <- get_importance_resis(iip_tab, dat = dat, which_outcome = "iip")
-iip_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
-
-dichot1_tab <- get_importance_table(imp_dichot1, max_features = max_features)
-direction_resis <- get_importance_resis(dichot1_tab, dat = dat, which_outcome = "dichotomous.1")
-dichot1_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
-
-dichot2_tab <- get_importance_table(imp_dichot2, max_features = max_features)
-direction_resis <- get_importance_resis(dichot2_tab, dat = dat, which_outcome = "dichotomous.2")
-dichot2_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
-
+if ("log10.pc.ic50" %in% outcome_names) {
+    imp_ic50 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
+                                   dir_loc = "/home/slfits/",
+                                   dat = dat, which_cols = col_idx, opts = opts)
+   ic50_tab <- get_importance_table(imp_ic50, max_features = max_features)
+   direction_resis <- get_importance_resis(ic50_tab, dat = dat, which_outcome = "log10.pc.ic50")
+   ic50_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+}
+if ("log10.pc.ic80" %in% outcome_names) {
+    imp_ic80 <- get_all_importance("log10.pc.ic80", binary_outcome = FALSE,
+                                   dir_loc = "/home/slfits/",
+                                   dat = dat, which_cols = col_idx, opts = opts)
+   ic80_tab <- get_importance_table(imp_ic80, max_features = max_features)
+   direction_resis <- get_importance_resis(ic80_tab, dat = dat, which_outcome = "log10.pc.ic80")
+   ic80_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+}
+if ("iip" %in% outcome_names) {
+    imp_iip <- get_all_importance("iip", binary_outcome = FALSE,
+                                   dir_loc = "/home/slfits/",
+                                   dat = dat, which_cols = col_idx, opts = opts)
+   iip_tab <- get_importance_table(imp_iip, max_features = max_features)
+   direction_resis <- get_importance_resis(iip_tab, dat = dat, which_outcome = "iip")
+   iip_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+}
+if ("dichotomous.1" %in% outcome_names) {
+    imp_dichot1 <- get_all_importance("dichotomous.1", binary_outcome = TRUE,
+                                   dir_loc = "/home/slfits/",
+                                   dat = dat, which_cols = col_idx, opts = opts)
+   dichot1_tab <- get_importance_table(imp_dichot1, max_features = max_features)
+   direction_resis <- get_importance_resis(dichot1_tab, dat = dat, which_outcome = "dichotomous.1")
+   dichot1_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+}
+if ("dichotomous.2" %in% outcome_names) {
+    imp_dichot2 <- get_all_importance("dichotomous.2", binary_outcome = TRUE,
+                                   dir_loc = "/home/slfits/",
+                                   dat = dat, which_cols = col_idx, opts = opts)
+   dichot2_tab <- get_importance_table(imp_dichot2, max_features = max_features)
+   direction_resis <- get_importance_resis(dichot2_tab, dat = dat, which_outcome = "dichotomous.2")
+   dichot2_tab$direction <- ifelse(direction_resis, "Resistant", "Sensitive")
+}
+continuous_imp_lst <- list(
+    ifelse("log10.pc.ic50" %in% outcome_names, ic50_tab, NULL),
+    ifelse("log10.pc.ic80" %in% outcome_names, ic80_tab, NULL),
+    ifelse("iip" %in% outcome_names, iip_tab, NULL)
+)
 imp_continuous <- combine_importance(list(ic50_tab, ic80_tab, iip_tab), out_names = c("IC50", "IC80", "IIP"))
 imp_dichot <- combine_importance(list(dichot1_tab, dichot2_tab), out_names = c("Estimated Sens.", "Multiple Sens."))
 imp_overall <- combine_importance(list(ic50_tab, ic80_tab, iip_tab, dichot1_tab, dichot2_tab))
