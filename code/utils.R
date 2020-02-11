@@ -93,6 +93,11 @@ vimp_nice_group_names <- function(nm_vec) {
     reference_positions <- apply(as.matrix(nm_vec), 1, function(x) grep(x, reference_nm_vec))
     return(nice_names[reference_positions])
 }
+vimp_nice_ind_names <- function(nm_vec) {
+    no_hxb2 <- gsub("hxb2.", "", nm_vec)
+    no_1mer <- gsub(".1mer", "", nm_vec)
+    return(no_1mer)
+}
 ## nice plotting names
 vimp_plot_name <- function(vimp_str) {
     plot_nms <- rep(NA, length(vimp_str))

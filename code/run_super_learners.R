@@ -36,12 +36,12 @@ pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 
 # get names of outcomes
 outcome_names <- c(
-    ifelse("ic50" %in% opts$outcomes, "log10.pc.ic50", NA),
-    ifelse("ic80" %in% opts$outcomes, "log10.pc.ic80", NA),
-    ifelse("iip" %in% opts$outcomes, "iip", NA),
-    ifelse("sens1" %in% opts$outcomes, "dichotomous.1", NA),
-    ifelse("sens2" %in% opts$outcomes, "dichotomous.2", NA)
-) %>% na.omit()
+    switch("ic50" %in% opts$outcomes, "log10.pc.ic50", NULL),
+    switch("ic80" %in% opts$outcomes, "log10.pc.ic80", NULL),
+    switch("iip" %in% opts$outcomes, "iip", NULL),
+    switch("sens1" %in% opts$outcomes, "dichotomous.1", NULL),
+    switch("sens2" %in% opts$outcomes, "dichotomous.2", NULL)
+)
 
 # get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)

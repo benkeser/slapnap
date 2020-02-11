@@ -1,65 +1,98 @@
 ## make vimp table for executive summary
-make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_names = NULL, cv = FALSE, indi = FALSE) {
+make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_names = NULL, cv = FALSE, opts) {
     ## capture everything entered before threshold
     L <- list(...)
     ## combine together as a tibble for conditional, marginal, individual
-    output_tib_cond <- L[[1]]$conditional$mat
-    output_tib_marg <- L[[1]]$marginal$mat
-    output_tib_indi <- L[[1]]$individual$mat
-    output_tib_cond <- dplyr::bind_cols(output_tib_cond, outcome = rep(outcome_names[1], dim(output_tib_cond)[1]), group = vimp_nice_rownames(L[[1]]$conditional, cv = cv))
-    output_tib_marg <- dplyr::bind_cols(output_tib_marg, outcome = rep(outcome_names[1], dim(output_tib_marg)[1]), group = vimp_nice_rownames(L[[1]]$marginal, cv = cv))
-    if (indi) {
-        output_tib_indi <- dplyr::bind_cols(output_tib_indi, outcome = rep(outcome_names[1], dim(output_tib_indi)[1]), group = vimp_nice_rownames(L[[1]]$individual, cv = cv))
+    output_tib_grp_cond <- L[[1]]$grp_conditional$mat
+    output_tib_grp_marg <- L[[1]]$grp_marginal$mat
+    output_tib_ind_cond <- L[[1]]$ind_conditional$mat
+    output_tib_ind_marg <- L[[1]]$ind_marginal$mat
+    if ("cond" %in% opts$importance_grp) {
+        output_tib_grp_cond <- dplyr::bind_cols(output_tib_grp_cond, outcome = rep(outcome_names[1], dim(output_tib_grp_cond)[1]), group = vimp_nice_rownames(L[[1]]$grp_conditional, cv = cv))
     }
-
+    if ("marg" %in% opts$importance_grp) {
+        output_tib_grp_marg <- dplyr::bind_cols(output_tib_grp_marg, outcome = rep(outcome_names[1], dim(output_tib_grp_marg)[1]), group = vimp_nice_rownames(L[[1]]$grp_marginal, cv = cv))
+    }
+    if ("cond" %in% opts$importance_ind) {
+        output_tib_ind_cond <- dplyr::bind_cols(output_tib_ind_cond, outcome = rep(outcome_names[1], dim(output_tib_ind_cond)[1]), group = vimp_nice_rownames(L[[1]]$ind_conditional, cv = cv))
+    }
+    if ("marg" %in% opts$importance_ind) {
+        output_tib_ind_marg <- dplyr::bind_cols(output_tib_ind_marg, outcome = rep(outcome_names[1], dim(output_tib_ind_marg)[1]), group = vimp_nice_rownames(L[[1]]$ind_marginal, cv = cv))
+    }
     if (length(L) > 1) {
         for (i in 2:length(L)) {
-            output_tib_cond <- dplyr::bind_rows(output_tib_cond, dplyr::bind_cols(L[[i]]$conditional$mat, outcome = rep(outcome_names[i], dim(L[[i]]$conditional$mat)[1]), group = vimp_nice_rownames(L[[i]]$conditional, cv = cv)))
-            output_tib_marg <- dplyr::bind_rows(output_tib_marg, dplyr::bind_cols(L[[i]]$marginal$mat, outcome = rep(outcome_names[i], dim(L[[i]]$marginal$mat)[1]), group = vimp_nice_rownames(L[[i]]$marginal, cv = cv)))
-            if (!is.null(L[[i]]$individual) & indi) {
-                output_tib_indi <- dplyr::bind_rows(output_tib_indi, dplyr::bind_cols(L[[i]]$individual$mat, outcome = rep(outcome_names[i], dim(L[[i]]$individual$mat)[1]), group = vimp_nice_rownames(L[[1]]$individual, cv = cv)))
+            if (length(L[[i]]) == 0) {
+
+            } else {
+                if ("cond" %in% opts$importance_grp) {
+                    output_tib_grp_cond <- dplyr::bind_rows(output_tib_grp_cond, dplyr::bind_cols(L[[i]]$grp_conditional$mat, outcome = rep(outcome_names[i], dim(L[[i]]$grp_conditional$mat)[1]), group = vimp_nice_rownames(L[[i]]$grp_conditional, cv = cv)))
+                }
+                if ("marg" %in% opts$importance_grp) {
+                    output_tib_grp_marg <- dplyr::bind_rows(output_tib_grp_marg, dplyr::bind_cols(L[[i]]$grp_marginal$mat, outcome = rep(outcome_names[i], dim(L[[i]]$grp_marginal$mat)[1]), group = vimp_nice_rownames(L[[i]]$grp_marginal, cv = cv)))
+                }
+                if ("cond" %in% opts$importance_ind) {
+                    output_tib_ind_cond <- dplyr::bind_rows(output_tib_ind_cond, dplyr::bind_cols(L[[i]]$ind_conditional$mat, outcome = rep(outcome_names[i], dim(L[[i]]$ind_conditional$mat)[1]), group = vimp_nice_rownames(L[[i]]$ind_conditional, cv = cv)))
+                }
+                if ("marg" %in% opts$importance_ind) {
+                    output_tib_ind_marg <- dplyr::bind_rows(output_tib_ind_marg, dplyr::bind_cols(L[[i]]$ind_marginal$mat, outcome = rep(outcome_names[i], dim(L[[i]]$ind_marginal$mat)[1]), group = vimp_nice_rownames(L[[i]]$ind_marginal, cv = cv)))
+                }
             }
         }
     }
     ## determine the rankings of each group for each outcome
-    cond_tib_with_ranking <- output_tib_cond %>%
-        group_by(outcome) %>%
-        mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>% 
-        ungroup()
-    marg_tib_with_ranking <- output_tib_marg %>%
-        group_by(outcome) %>%
-        mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>% 
-        ungroup()
-    ## get tables with variable groups in the rows, outcome in the columns, and ranks in the cells
-    ## order by mean rank
-    cond_summary_tib <- cond_tib_with_ranking %>%
-        select(nice_outcome_name, nice_group_name, rank) %>%
-        group_by(nice_group_name) %>%
-        spread(key = nice_outcome_name, value = rank) %>% 
-        ungroup() %>% 
-        mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>% 
-        arrange(mn_rank)
-    marg_summary_tib <- marg_tib_with_ranking %>%
-        select(nice_outcome_name, nice_group_name, rank) %>%
-        group_by(nice_group_name) %>%
-        spread(key = nice_outcome_name, value = rank) %>% 
-        ungroup() %>% 
-        mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>% 
-        arrange(mn_rank)
-    if (indi) {
-        indi_tib_with_ranking <- output_tib_indi %>%
+    if ("cond" %in% opts$importance_grp) {
+        grp_cond_summary_tib <- output_tib_grp_cond %>%
             group_by(outcome) %>%
-            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group))
-        indi_summary_tib <- indi_tib_with_ranking %>%
+            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>%
+            ungroup() %>%
             select(nice_outcome_name, nice_group_name, rank) %>%
             group_by(nice_group_name) %>%
-            spread(key = nice_outcome_name, value = rank) %>% 
-            ungroup() %>% 
-            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>% 
+            spread(key = nice_outcome_name, value = rank) %>%
+            ungroup() %>%
+            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>%
             arrange(mn_rank)
-        output_lst <- list(cond = cond_summary_tib, marg = marg_summary_tib, indi = indi_summary_tib)
-    } else {
-        output_lst <- list(cond = cond_summary_tib, marg = marg_summary_tib, indi = NA)
     }
+    if ("marg" %in% opts$importance_grp) {
+        grp_marg_summary_tib <- output_tib_grp_marg %>%
+            group_by(outcome) %>%
+            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>%
+            ungroup() %>%
+            select(nice_outcome_name, nice_group_name, rank) %>%
+            group_by(nice_group_name) %>%
+            spread(key = nice_outcome_name, value = rank) %>%
+            ungroup() %>%
+            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>%
+            arrange(mn_rank)
+    }
+    if ("cond" %in% opts$importance_ind) {
+        ind_cond_summary_tib <- output_tib_ind_cond %>%
+            group_by(outcome) %>%
+            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_ind_names(group)) %>%
+            ungroup() %>%
+            select(nice_outcome_name, nice_group_name, rank) %>%
+            group_by(nice_group_name) %>%
+            spread(key = nice_outcome_name, value = rank) %>%
+            ungroup() %>%
+            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>%
+            arrange(mn_rank)
+    }
+    if ("marg" %in% opts$importance_ind) {
+        ind_marg_summary_tib <- output_tib_ind_marg %>%
+            group_by(outcome) %>%
+            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_ind_names(group)) %>%
+            ungroup() %>%
+            select(nice_outcome_name, nice_group_name, rank) %>%
+            group_by(nice_group_name) %>%
+            spread(key = nice_outcome_name, value = rank) %>%
+            ungroup() %>%
+            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>%
+            arrange(mn_rank)
+    }
+    output_lst <- list(
+        switch("cond" %in% opts$importance_grp, grp_cond_summary_tib, NULL),
+        switch("marg" %in% opts$importance_grp, grp_marg_summary_tib, NULL),
+        switch("cond" %in% opts$importance_ind, ind_cond_summary_tib, NULL),
+        switch("marg" %in% opts$importance_ind, ind_marg_summary_tib, NULL)
+    )
     return(output_lst)
 }
