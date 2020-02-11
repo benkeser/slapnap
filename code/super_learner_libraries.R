@@ -447,7 +447,7 @@ sl_one_outcome <- function(dat, outcome_name,
     # since we're trying to pick out e.g., the best single random forest fit
     # note that if either opts$cvtune AND/OR opts$cvperf is FALSE then everything we need
     # will already be in the SuperLearner fit object.
-    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+    cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
     }
@@ -456,7 +456,7 @@ sl_one_outcome <- function(dat, outcome_name,
   } else if (length(opts$learners) > 1 & opts$cvperf) {
     # if multiple learners, then we are fitting a super learner so need CV superlearner
     # unless cvperf = FALSE
-    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+    cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
     }

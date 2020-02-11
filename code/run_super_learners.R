@@ -145,7 +145,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
 if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
     for (i in 1:length(outcome_names)) {
         this_outcome_name <- outcome_names[i]
-        sl_opts <- get_sl_options(this_outcome_name)
+        sl_opts <- get_sl_options(this_outcome_name, V = V)
         outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
         for (j in 1:length(var_inds)) {
             this_var_name <- var_inds[j]
