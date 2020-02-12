@@ -25,8 +25,11 @@ reduce_groups <- Sys.getenv("reduce_groups") == "TRUE"
 no_cv <- Sys.getenv("no_cv") == "TRUE"
 run_indi_vimp <- Sys.getenv("run_indi_vimp") == "TRUE"
 
-
 source("/home/lib/plotting_functions.R")
+source("/home/lib/variable_groups.R")
+source("/home/lib/super_learner_libraries.R")
+source("/home/lib/utils.R")
+
 # get NAbs names from ENV variable
 antibody_string <- Sys.getenv("Nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]

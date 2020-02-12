@@ -412,6 +412,8 @@ sl_one_outcome <- function(outcome_name,
   # we will make a call to super learner
   if(!(opts$cvtune == FALSE & opts$cvperf == FALSE)){
     fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+    # since cv super learner saves this as output and we need some parsimony later...
+    fit$Y <- newdat[ , outcome_name]
     if (save_full_object) {
         saveRDS(fit, file = paste0(save_dir, fit_name))
     }

@@ -38,7 +38,7 @@ path.home <- "/home"
 
 # antibody names are passed to docker container at run time as 
 # environment variable Nab, which is a semicolon-separated list
-antibody_string <- Sys.getenv("Nab")
+antibody_string <- Sys.getenv("nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 
 
@@ -232,7 +232,7 @@ for (var.index in 1:ncol(data.final)) {
     filter.insertions[var.index] <- FALSE
   }
 }
-data.final <- data.final[filter.insertions, ]
+data.final <- data.final[ , filter.insertions]
 
 # name our outfile and save
 filename <- paste0("multiab_catnap_", paste(antibodies, collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")

@@ -41,7 +41,13 @@ opts <- get_global_options()
 # load data and subset to complete cases
 analysis_data_name <- list.files("/home/dat/analysis")
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
+nprevious <- length(dat[,1])
+saveRDS(nprevious, "/home/slfits/nprevious")
 dat <- dat[complete.cases(dat),]
+
+# save for report compilation later
+ncomplete <- length(dat[,1])
+saveRDS(ncomplete, "/home/slfits/ncomplete.rds")
 
 # make super learner library
 SL.library <- make_sl_library_vector(opts = opts)
@@ -54,12 +60,12 @@ pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 
 # get names of outcomes
 outcome_names <- c(
-  ifelse("ic50" %in% opts$outcomes, "log10.pc.ic50", NULL),
-  ifelse("ic80" %in% opts$outcomes, "log10.pc.ic80", NULL),
-  ifelse("iip" %in% opts$outcomes, "iip", NULL),
-  ifelse("sens1" %in% opts$outcomes, "dichotomous.1", NULL),
-  ifelse("sens2" %in% opts$outcomes, "dichotomous.2", NULL)
-)
+  if("ic50" %in% opts$outcomes){"log10.pc.ic50"},
+  if("ic80" %in% opts$outcomes){"log10.pc.ic80"},
+  if("iip" %in% opts$outcomes){"iip"},
+  if("sens1" %in% opts$outcomes){"dichotomous.1"},
+  if("sens2" %in% opts$outcomes){"dichotomous.2"}
+  )
 
 # get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)
@@ -81,12 +87,12 @@ for (i in 1:length(outcome_names)) {
     ## do the fitting
     sl_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, 
                                family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, 
-                               method = sl_opts$method, reduce_covs = reduce_covs, opts = opts)
-    #~DB2BW: Not sure where this gets used to know whether to flag it based on e.g., importance_grp~
-    sl_split_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, 
-                                     family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, 
-                                     method = sl_opts$method, reduce_covs = reduce_covs, 
-                                     outer_folds = outer_folds, full_fit = TRUE, opts = opts)
+                               method = sl_opts$method, opts = opts)
+    # #~DB2BW: Not sure where this gets used to know whether to flag it based on e.g., importance_grp~
+    # sl_split_fit_i <- sl_one_outcome(outcome_name = this_outcome_name, pred_names = pred_names, 
+    #                                  family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl, 
+    #                                  method = sl_opts$method, reduce_covs = reduce_covs, 
+    #                                  outer_folds = outer_folds, full_fit = TRUE, opts = opts)
 }
 
 #~DB2BW: I'm going to let you add appropriate flags here. You can use the opts object 
