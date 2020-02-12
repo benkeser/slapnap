@@ -13,30 +13,17 @@ library(ggplot2)
 library(grid)
 ```
 
-```{r load-cvfit-objects}
-if (opts$cvperf) {
-    cvfit_ic50 <- switch("log10.pc.ic50" %in% outcome_names, readRDS("/home/slfits/cvfit_log10.pc.ic50.rds"), NULL)
-    cvfit_ic80 <- switch("log10.pc.ic80" %in% outcome_names, readRDS("/home/slfits/cvfit_log10.pc.ic80.rds"), NULL)
-    cvfit_iip <- switch("iip" %in% outcome_names, readRDS("/home/slfits/cvfit_iip.rds"), NULL)
-    cvfit_dichotomous.1 <- switch("dichotomous.1" %in% outcome_names, readRDS("/home/slfits/cvfit_dichotomous.1.rds"), NULL)
-    cvfit_dichotomous.2 <- switch("dichotomous.2" %in% outcome_names, readRDS("/home/slfits/cvfit_dichotomous.2.rds"), NULL)
-} else {
-    cvfit_ic50 <- switch("log10.pc.ic50" %in% outcome_names, readRDS("/home/slfits/fit_log10.pc.ic50.rds"), NULL)
-    cvfit_ic80 <- switch("log10.pc.ic80" %in% outcome_names, readRDS("/home/slfits/fit_log10.pc.ic80.rds"), NULL)
-    cvfit_iip <- switch("iip" %in% outcome_names, readRDS("/home/slfits/fit_iip.rds"), NULL)
-    cvfit_dichotomous.1 <- switch("dichotomous.1" %in% outcome_names, readRDS("/home/slfits/fit_dichotomous.1.rds"), NULL)
-    cvfit_dichotomous.2 <- switch("dichotomous.2" %in% outcome_names, readRDS("/home/slfits/fit_dichotomous.2.rds"), NULL)
-}
-class(cvfit_ic50) <- switch("log10.pc.ic50" %in% outcome_names, "myCV.SuperLearner", "NULL")
-class(cvfit_ic80) <- switch("log10.pc.ic80" %in% outcome_names, "myCV.SuperLearner", "NULL")
-class(cvfit_iip) <- switch("iip" %in% outcome_names, "myCV.SuperLearner", "NULL")
-class(cvfit_dichotomous.1) <- switch("dichotomous.1" %in% outcome_names, "myCV.SuperLearner", "NULL")
-class(cvfit_dichotomous.2) <- switch("dichotomous.2" %in% outcome_names, "myCV.SuperLearner", "NULL")
-rslt_ic50 <- switch("log10.pc.ic50" %in% outcome_names, get_est_and_ci(cvfit_ic50, Rsquared = TRUE), rep(NA, 3))
-rslt_ic80 <- switch("log10.pc.ic80" %in% outcome_names, get_est_and_ci(cvfit_ic80, Rsquared = TRUE), rep(NA, 3))
-rslt_iip <- switch("iip" %in% outcome_names, get_est_and_ci(cvfit_iip, Rsquared = TRUE), rep(NA, 3))
-rslt_dichot1 <- switch("dichotomous.1" %in% outcome_names, get_est_and_ci(cvfit_dichotomous.1), rep(NA, 3))
-rslt_dichot2 <- switch("dichotomous.2" %in% outcome_names, get_est_and_ci(cvfit_dichotomous.2), rep(NA, 3))
+```{r, get_options}
+opts <- get_global_options() 
+any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
+any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
+# read in number of observations
+nprevious <- readRDS("/home/slfits/nprevious.rds")
+ncomplete <- readRDS("/home/slfits/ncomplete.rds")
+# read in data
+analysis_data_name <- list.files("/home/dat/analysis")
+dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
+dat <- dat[complete.cases(dat),]
 
 ```
 
@@ -44,93 +31,76 @@ rslt_dichot2 <- switch("dichotomous.2" %in% outcome_names, get_est_and_ci(cvfit_
 
 The NAbs studied in this analysis are `r antibodies`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)`. `r get_outcome_descriptions(opts)`
 
-```{r bools}
-any_continuous <- ("log10.pc.ic50" %in% outcomes) | ("log10.pc.ic80" %in% outcomes) | ("iip" %in% outcomes)
-any_dichotomous <- ("dichotomous.1" %in% outcomes) | ("dichotomous.2" %in% outcomes)
+Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
+
+`r if(!opts$cvperf) "<!--"`
+
+```{r}
+cv_outcomes <- get_cv_outcomes_tables(opts)
 ```
 
-```{r rsquaredtable, eval = any_continuous}
-if (!opts$cvperf) {
-    print("No R-squared table available if cv is not used.")
-} else {
-    rsqtab <- rbind(unlist(rslt_ic50), unlist(rslt_ic80), unlist(rslt_iip))
-    row.names(rsqtab) <- c(
-        switch("log10.pc.ic50" %in% outcome_names, "IC-50", NULL),
-        switch("log10.pc.ic80" %in% outcome_names, "IC-80", NULL),
-        switch("iip" %in% outcome_names, "IIP", NULL)
-    )
-    kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
-          digits = 3, row.names = TRUE,
-          caption = paste0("Estimates of cross-validated R-squared for super learner predictions of the three continuous-valued outcomes. We used the ", n_row_now, " observations with complete sequence data in these analyses."))
-}
+The predictive ability of the learner was assessed using cross-validation. 
+
+`r if(any_cont) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."` 
+
+```{r, rsquaredtable, eval = any_cont}
+cv_outcomes[[1]]
 ```
 
-```{r auctable, eval = any_dichotomous}
-if (!opts$cvperf) {
-    print("No AUC table available if cv is not used.")
-} else {
-    auctab <- rbind(unlist(rslt_dichot1), unlist(rslt_dichot2))
-    row.names(auctab) <- c(
-        switch("dichotomous.1" %in% outcome_names, "Estimated sensitivity", NULL),
-        switch("dichotomous.2" %in% outcome_names,  "Multiple sensitivity", NULL)
-    )
-    kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
-          digits = 3, row.names = TRUE,
-          caption = paste0("Estimates of cross-validated AUC for super learner predictions of the two dichotomous outcomes. We used the ", n_row_now, " observations with complete sequence data in these analyses."))
-    }
-}
+`r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."` 
+
+```{r, auctable, eval = any_cont}
+cv_outcomes[[2]]
 ```
 
-```{r printcontinuoustab, eval = any_continuous, results = 'asis'}
-cat("\n The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \@ref(tab:rsquaredtable).")
-```
-```{r printdichotomoustab, eval = any_dichotomous, results = 'asis'}
-cat("\n The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \@ref(tab:auctable)."}
-```
+`r if(opts$cvperf) "-->"`
 
-The estimated variable importance of individual features in the Super Learner are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the respective section of the report for each outcome.
-
+<!--
+The estimated variable importance of individual features in the Super Learner are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report.
 
 ```{r combinedvarimpindividualfeatures}
 kable(imp_overall, caption = paste0("Variable importance of individual features in the Super Learner, defined by being label as 'important' for prediction of at least two of the outcomes considered; these outcomes are listed in the table (n = ", n_row_now, " observations with complete sequence data)."))
 ```
 
-```{r describecondvimp, eval = "cond" %in% opts$importance_grp, results = 'asis'}
-cat("\n In Table \@ref(tab:vimpgroupcond), we display the groups of variables and their ranked conditional variable importance for predicting each outcome. This importance is defined as the population predictiveness of the group of features relative to the remaining features.")
-```
-```{r describemargvimp, eval = "marg" %in% opts$importance_grp, results = 'asis'}
-cat("\n In Table \@ref(tab:vimpgroupmarg), we display the groups of variables and their ranked marginal variable importance for predicting each outcome. This importance is defined as the population predictiveness of the group of features relative to the geographic confounders only.")
+In Tables \@ref(tab:vimpgroupcond) and \@ref(tab:vimpgroupmarg), we display the groups of variables and their ranked importance for predicting each outcome. The tables are ordered by decreasing mean ranking across outcomes. For the population variable importance of each group and individual feature for predicting each outcome, please refer to the outcomes' respective sections in Section \@ref(population-variable-importance-results). For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+
+```{r vimpindi, eval = run_indi_vimp}
+print(paste0("In Table \@ref(tab:vimpgroupindi), we display the ranked importance of individual features for predicting each outcome. Only the features with mean rank less than ", num_pop_import, " are displayed here."))
 ```
 
-```{r describevimptbl, eval = length(opts$importance_grp) > 0, results = 'asis'}
-cat("\n The table(s) are ordered by decreasing mean ranking across outcome(s). For the population variable importance of each group and individual feature for predicting each outcome, please refer to the respective subsection for each outcome in Section \@ref(population-variable-importance-results). For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).")
-```
-
-```{r vimpgroupcond, eval = "cond" %in% opts$importance_grp}
+```{r vimpgroupcond}
 ## vimp_summary_tbl created in preamble
-vimp_summary_cond <- vimp_summary_tbl$cond %>%
-    select(-mn_rank)
-kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = paste0("Ranked conditional variable importance of groups relative to the remaining features for each outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity). A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data.")
+if (no_cv) {
+    print("No population variable importance table if CV is not used.")
+} else {
+    vimp_summary_cond <- vimp_summary_tbl$cond %>%
+        select(-mn_rank)
+    kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = paste0("Ranked conditional variable importance of groups relative to the remaining features for each outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity). A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data.")
+}
 ```
 
-```{r vimpgroupmarg, eval = "marg" %in% opts$importance_grp}
+```{r vimpgroupmarg}
 ## vimp_summary_tbl created in preamble
-vimp_summary_marg <- vimp_summary_tbl$marg %>%
-    select(-mn_rank)
-kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = paste0("Ranked marginal variable importance of groups relative to the group of geographic confounders for each outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity). A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on the group of interest plus geographic confounders, we used the ", num_obs_red, " observations with complete sequence data; to estimate the prediction function based on geographic confounders only, we used the remaining ", num_obs_full, " observations with complete sequence data."))
+if (no_cv) {
+    print("No population variable importance table if CV is not used.")
+} else {
+    vimp_summary_marg <- vimp_summary_tbl$marg %>%
+        select(-mn_rank)
+    kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = paste0("Ranked marginal variable importance of groups relative to the group of geographic confounders for each outcome. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity). A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on the group of interest plus geographic confounders, we used the ", num_obs_red, " observations with complete sequence data; to estimate the prediction function based on geographic confounders only, we used the remaining ", num_obs_full, " observations with complete sequence data."))
+}
 ```
 
-# ```{r vimpindimarg, eval = run_indi_vimp}
-# ## vimp_summary_tbl created in preamble
-# if (no_cv) {
-#     print("No population variable importance table if CV is not used.")
-# } else {
-#     vimp_summary_indi <- vimp_summary_tbl$indi %>%
-#         filter(mn_rank < num_pop_import) %>%
-#         select(-mn_rank)
-#     kable(vimp_summary_indi, col.names = c("Feature", colnames(vimp_summary_indi)[-1]), caption = paste0("Ranked marginal variable importance of individual features relative to the geographic confounders. Only features that had an average ranking across outcomes of less than ", num_pop_import, " are displayed here. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity). A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on the feature of interest plus geographic confounders, we used the ", num_obs_red, " observations with complete sequence data; to estimate the prediction function based on geographic confounders only, we used the remaining ", num_obs_full, " observations with complete sequence data."))
-# }
-# ```
+```{r vimpindimarg, eval = run_indi_vimp}
+## vimp_summary_tbl created in preamble
+if (no_cv) {
+    print("No population variable importance table if CV is not used.")
+} else {
+    vimp_summary_indi <- vimp_summary_tbl$indi %>%
+        filter(mn_rank < num_pop_import) %>%
+        select(-mn_rank)
+    kable(vimp_summary_indi, col.names = c("Feature", colnames(vimp_summary_indi)[-1]), caption = paste0("Ranked marginal variable importance of individual features relative to the geographic confounders. Only features that had an average ranking across outcomes of less than ", num_pop_import, " are displayed here. Importance is measured via R^2 for continuous outcomes (IC-50, IC-80, IIP) and via AUC for binary outcomes (Estimated sensitivity, Multiple Sensitivity). A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on the feature of interest plus geographic confounders, we used the ", num_obs_red, " observations with complete sequence data; to estimate the prediction function based on geographic confounders only, we used the remaining ", num_obs_full, " observations with complete sequence data."))
+}
+```
 
 The distribution of amino acid at the important residues are shown for sensitive and resistant viruses in Figures \@ref(fig:logoPlot1) and \@ref(fig:logoPlot2).
 

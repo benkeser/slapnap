@@ -235,7 +235,7 @@ for (var.index in 1:ncol(data.final)) {
     filter.insertions[var.index] <- FALSE
   }
 }
-data.final <- data.final[filter.insertions, ]
+data.final <- data.final[ , filter.insertions]
 
 # name our outfile and save
 filename <- paste0("multiab_catnap_", paste(antibodies, collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
