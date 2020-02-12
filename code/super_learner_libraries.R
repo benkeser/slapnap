@@ -378,6 +378,7 @@ make_sl_library_vector <- function(opts){
 
 
 #' function to run super learner and cv super learner on a single outcome
+#' @param dat the dataset
 #' @param outcome_name String name of outcome
 #' @param pred_names Vector of string names of predictor variables
 #' @param opts List of options outputted by get_global_options()
@@ -387,10 +388,11 @@ make_sl_library_vector <- function(opts){
 #' @param save_full_object Flag for whether or not to save the full fitted object, or just the fitted values
 #' @param outer_folds a set of outer folds for VIM hypothesis testing
 #' @param full_fit is it the full fit (TRUE) or a reduced fit (FALSE)?
-#' @param outer_folds ~DB2BW: What's this guy doing?~
-sl_one_outcome <- function(outcome_name,
+#' @param SL.library the library to pass to SuperLearner
+#' @param ... additional arguments to pass to individual algorithms or the SuperLearner
+sl_one_outcome <- function(dat, outcome_name,
                            pred_names,
-                           opts, 
+                           opts,
                            save_dir = "/home/slfits/",
                            fit_name = paste0("fit_", outcome_name, ".rds"),
                            cv_fit_name = paste0("cvfit_", outcome_name, ".rds"),
@@ -408,9 +410,9 @@ sl_one_outcome <- function(outcome_name,
 
   pred <- newdat[ , pred_names]
 
-  # unless we do not want to tune using CV nor evaluate performance using CV, 
+  # unless we do not want to tune using CV nor evaluate performance using CV,
   # we will make a call to super learner
-  if(!(opts$cvtune == FALSE & opts$cvperf == FALSE)){
+  if (!(opts$cvtune == FALSE & opts$cvperf == FALSE)) {
     fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     # since cv super learner saves this as output and we need some parsimony later...
     fit$Y <- newdat[ , outcome_name]
@@ -418,19 +420,21 @@ sl_one_outcome <- function(outcome_name,
         saveRDS(fit, file = paste0(save_dir, fit_name))
     }
 
-    if(length(opts$learners) > 1 | (length(opts$learners) == 1 & !opts$cvtune)){
+    if(length(opts$learners) > 1 | (length(opts$learners) == 1 & !opts$cvtune)) {
       # save super learner predictions
       saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
       # save super learner weights
       saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
-    }else if(length(opts$learners) == 1 & opts$cvtune){
+    } else if(length(opts$learners) == 1 & opts$cvtune) {
       # save CV-selected learner predictions
-      saveRDS(fit$library.predict[ , which.min(fit$cvRisk)], 
-              file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))            
+      saveRDS(fit$library.predict[ , which.min(fit$cvRisk)],
+              file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+    } else {
+        # don't save anything
     }
-  }else{
+  } else {
     # if we do not want to use any CV at all (i.e., just a single "default" learner is desired),
-    # then we will call directly the wrapper function. 
+    # then we will call directly the wrapper function.
     fit <- do.call(SL.library[1], args = c(list(...), list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
     saveRDS(fit$pred, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
     # this will be an object with class native to what the individual learner is
@@ -440,26 +444,28 @@ sl_one_outcome <- function(outcome_name,
     }
   }
 
-  if(length(opts$learners) == 1 & opts$cvtune & opts$cvperf){
+  if (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) {
     # in this case, we want to report back only results for discrete super learner
     # since we're trying to pick out e.g., the best single random forest fit
-    # note that if either opts$cvtune AND/OR opts$cvperf is FALSE then everything we need 
+    # note that if either opts$cvtune AND/OR opts$cvperf is FALSE then everything we need
     # will already be in the SuperLearner fit object.
-    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+    cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
     }
     saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
     saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
-  }else if(length(opts$learners) > 1 & opts$cvperf){
+  } else if (length(opts$learners) > 1 & opts$cvperf) {
     # if multiple learners, then we are fitting a super learner so need CV superlearner
     # unless cvperf = FALSE
-    cv_fit <- CV.SuperLearner(Y = dat[ , outcome_name], X = pred, ...)
+    cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
     }
     saveRDS(cv_fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
     saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
-  }
+} else {
+    # do nothing
+}
   return(invisible(NULL))
 }

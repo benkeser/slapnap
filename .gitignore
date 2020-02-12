@@ -9,3 +9,5 @@ static_reports/*
 code/R-*
 code/*.tar.gz
 test_run.txt
+docs/*
+.Rproj.user

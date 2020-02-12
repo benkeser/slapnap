@@ -244,11 +244,11 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 }
 
 ## read in permanent options
-get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf", 
+get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf",
                                            "importance_grp", "importance_ind"),
-                               options_boolean = c(FALSE, FALSE, FALSE, TRUE, 
+                               options_boolean = c(FALSE, FALSE, FALSE, TRUE,
                                                    TRUE, FALSE, FALSE)){
-    out <- mapply(option = options, boolean = options_boolean, 
+    out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     return(out)
 }
@@ -304,7 +304,7 @@ get_vimp_options <- function(outcome_name) {
 }
 ## Make list of vimp objects
 make_vimp_list <- function(var_groups, var_inds) {
-    list_names <- c("conditional", "marginal", "individual")
+    list_names <- c("grp_conditional", "grp_marginal", "ind_conditional", "ind_marginal")
     lst <- sapply(list_names, function(x) NULL, simplify = FALSE)
     return(lst)
 }
@@ -322,6 +322,11 @@ vimp_nice_group_names <- function(nm_vec) {
     reference_nm_vec <- c("cysteines", "geometry", "glyco", "gp120_cd4bs", "gp120_v2", "gp120_v3", "gp41_mper")
     reference_positions <- apply(as.matrix(nm_vec), 1, function(x) grep(x, reference_nm_vec))
     return(nice_names[reference_positions])
+}
+vimp_nice_ind_names <- function(nm_vec) {
+    no_hxb2 <- gsub("hxb2.", "", nm_vec)
+    no_1mer <- gsub(".1mer", "", nm_vec)
+    return(no_1mer)
 }
 ## nice plotting names
 vimp_plot_name <- function(vimp_str) {
