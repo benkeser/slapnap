@@ -26,7 +26,7 @@ opts <- get_global_options()
 analysis_data_name <- list.files("/home/dat/analysis")
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
 nprevious <- length(dat[,1])
-saveRDS(nprevious, "/home/slfits/nprevious")
+saveRDS(nprevious, "/home/slfits/nprevious.rds")
 dat <- dat[complete.cases(dat),]
 
 # save for report compilation later

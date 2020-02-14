@@ -23,6 +23,8 @@ source("/home/lib/plotting_functions.R")
 source("/home/lib/ml_var_importance_measures.R")
 source("/home/lib/var_import_plot.R")
 source("/home/lib/vimp_executive_summary_table.R")
+source("/home/lib/plot_one_vimp.R")
+source("/home/lib/variable_groups.R")
 
 #---------------------
 # Permanent options
@@ -33,10 +35,6 @@ opts <- get_global_options()
 # --------------------
 # Antibodies
 # --------------------
-source("/home/lib/plotting_functions.R")
-source("/home/lib/variable_groups.R")
-source("/home/lib/super_learner_libraries.R")
-source("/home/lib/utils.R")
 # get NAbs names from ENV variable
 antibody_string <- Sys.getenv("nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
@@ -163,15 +161,17 @@ continuous_imp_lst <- list(
     switch("log10.pc.ic80" %in% outcome_names, ic80_tab, NULL),
     switch("iip" %in% outcome_names, iip_tab, NULL)
 )
-imp_continuous <- combine_importance(list(ic50_tab, ic80_tab, iip_tab), out_names = c("IC50", "IC80", "IIP"))
-imp_dichot <- combine_importance(list(dichot1_tab, dichot2_tab), out_names = c("Estimated Sens.", "Multiple Sens."))
-imp_overall <- combine_importance(list(ic50_tab, ic80_tab, iip_tab, dichot1_tab, dichot2_tab))
+dichot_imp_lst <- list(
+    switch("dichotomous.1" %in% outcome_names, dichot1_tab, NULL),
+    switch("dichotomous.2" %in% outcome_names, dichot2_tab, NULL)
+)
+imp_continuous <- combine_importance(continuous_imp_lst, out_names = c("IC50", "IC80", "IIP"))
+imp_dichot <- combine_importance(dichot_imp_lst, out_names = c("Estimated Sens.", "Multiple Sens."))
+imp_overall <- combine_importance(c(continuous_imp_lst, dichot_imp_lst))
 
 ## ----------------------------------------------------------------------------
 ## Population variable importance
 ## ----------------------------------------------------------------------------
-source("/home/lib/plot_one_vimp.R")
-source("/home/lib/variable_groups.R")
 num_pop_import <- 20  # the number of individual features to display in plots
 
 ## plotting things

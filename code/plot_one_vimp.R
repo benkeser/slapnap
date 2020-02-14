@@ -10,7 +10,7 @@
 ## @param main_font_size the size of text
 ## @param cv whether or not this is cv importance
 ## @param num_plot the number of features to plot (in descending order)
-plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20, cv = FALSE, num_plot = 50) {
+plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20, cv = FALSE, num_plot = 50, opts) {
     if (!is.null(vimp_obj)) {
         ## get the variable importances
         if (!is.null(vimp_obj$mat)) {
@@ -43,7 +43,7 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
 
         return(vimp_plot)
     } else {
-        print("No variable importance estimates to plot.")
+        return(NULL)
     }
 }
 # vimp_plot_name <- function(vimp_obj) {

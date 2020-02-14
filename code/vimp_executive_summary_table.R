@@ -89,10 +89,10 @@ make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_nam
             arrange(mn_rank)
     }
     output_lst <- list(
-        switch("cond" %in% opts$importance_grp, grp_cond_summary_tib, NULL),
-        switch("marg" %in% opts$importance_grp, grp_marg_summary_tib, NULL),
-        switch("cond" %in% opts$importance_ind, ind_cond_summary_tib, NULL),
-        switch("marg" %in% opts$importance_ind, ind_marg_summary_tib, NULL)
+        grp_cond = switch("cond" %in% opts$importance_grp, grp_cond_summary_tib, NULL),
+        grp_marg = switch("marg" %in% opts$importance_grp, grp_marg_summary_tib, NULL),
+        ind_cond = switch("cond" %in% opts$importance_ind, ind_cond_summary_tib, NULL),
+        ind_marg = switch("marg" %in% opts$importance_ind, ind_marg_summary_tib, NULL)
     )
     return(output_lst)
 }
