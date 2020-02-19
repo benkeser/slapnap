@@ -26,7 +26,7 @@ opts <- get_global_options()
 analysis_data_name <- list.files("/home/dat/analysis")
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
 nprevious <- length(dat[,1])
-saveRDS(nprevious, "/home/slfits/nprevious")
+saveRDS(nprevious, "/home/slfits/nprevious.rds")
 dat <- dat[complete.cases(dat),]
 
 # save for report compilation later
@@ -56,7 +56,7 @@ num_covs <- length(pred_names) - length(all_geog_vars)
 var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 
 # set number of CV folds
-V <- 5
+V <- 5 # move to user control?
 
 set.seed(123125)
 ## ----------------------------------------------------------------------------

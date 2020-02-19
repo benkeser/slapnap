@@ -38,23 +38,23 @@ SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length
     return(out)
 }
 
-SL.xgboost2 <- function(..., max_depth = 2){
+SL.xgboost.2 <- function(..., max_depth = 2){
 	SL.xgboost.corrected(..., max_depth = max_depth)
 }
-SL.xgboost4 <- function(..., max_depth = 4){
+SL.xgboost.4 <- function(..., max_depth = 4){
 	SL.xgboost.corrected(..., max_depth = max_depth)
 }
-SL.xgboost6 <- function(..., max_depth = 6){
+SL.xgboost.6 <- function(..., max_depth = 6){
 	SL.xgboost.corrected(..., max_depth = max_depth)
 }
-SL.xgboost8 <- function(..., max_depth = 8){
+SL.xgboost.8 <- function(..., max_depth = 8){
 	SL.xgboost.corrected(..., max_depth = max_depth)
 }
 descr_SL.xgboost <- "boosted regression trees with maximum depth of "
-descr_SL.xgboost2 <- paste0(descr_SL.xgboost, 2)
-descr_SL.xgboost4 <- paste0(descr_SL.xgboost, 4)
-descr_SL.xgboost6 <- paste0(descr_SL.xgboost, 6)
-descr_SL.xgboost8 <- paste0(descr_SL.xgboost, 8)
+descr_SL.xgboost.2 <- paste0(descr_SL.xgboost, 2)
+descr_SL.xgboost.4 <- paste0(descr_SL.xgboost, 4)
+descr_SL.xgboost.6 <- paste0(descr_SL.xgboost, 6)
+descr_SL.xgboost.8 <- paste0(descr_SL.xgboost, 8)
 
 # random forests
 SL.ranger.imp <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), num.trees = 500, mtry = floor(sqrt(ncol(X))),
@@ -124,7 +124,7 @@ get_fold_id <- function(Y){
 
 
 # function to have more robust behavior in SL.glmnet
-SL.glmnet.mycv <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, alpha = 1, nfolds = 5,
+SL.glmnet.0 <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, alpha = 1, nfolds = 5,
     nlambda = 100, useMin = TRUE, loss = "deviance", ...) {
     SuperLearner:::.SL.require("glmnet")
     if (!is.matrix(X)) {
@@ -156,20 +156,20 @@ SL.glmnet.mycv <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), 
 
 # lasso
 SL.glmnet.50 <- function(..., alpha = 0.5){
-	SL.glmnet.mycv(..., alpha = alpha)
+	SL.glmnet.0(..., alpha = alpha)
 }
 SL.glmnet.25 <- function(..., alpha = 0.25){
-	SL.glmnet.mycv(..., alpha = alpha)
+	SL.glmnet.0(..., alpha = alpha)
 }
 SL.glmnet.75 <- function(..., alpha = 0.75){
-	SL.glmnet.mycv(..., alpha = alpha)
+	SL.glmnet.0(..., alpha = alpha)
 }
 
-descr_SL.glmnet <- "GLMNET with lambda selected by 5-fold CV and alpha equal to "
+descr_SL.glmnet <- "Elastic net with lambda selected by 5-fold CV and alpha equal to "
 descr_SL.glmnet.50 <- paste0(descr_SL.glmnet, "0.5")
 descr_SL.glmnet.25 <- paste0(descr_SL.glmnet, "0.25")
 descr_SL.glmnet.75 <- paste0(descr_SL.glmnet, "0.75")
-descr_SL.glmnet.mycv <- "GLMNET with lambda selected by CV and alpha equal to 0"
+descr_SL.glmnet.0 <- "Elastic net with lambda selected by CV and alpha equal to 0"
 
 descr_SL.mean <- "intercept only regression"
 descr_SL.glm <- "main terms generalized linear model"
@@ -356,17 +356,17 @@ make_sl_library_vector <- function(opts){
     # check if xgboost is requested
     if("xgboost" %in% opts$learners){
       if(opts$cvtune){
-        default_library <- c(default_library, "SL.xgboost2", "SL.xgboost4", "SL.xgboost6", "SL.xgboost8")
+        default_library <- c(default_library, "SL.xgboost.2", "SL.xgboost.4", "SL.xgboost.6", "SL.xgboost.8")
       }else{
-        default_library <- c(default_library, "SL.xgboost4")
+        default_library <- c(default_library, "SL.xgboost.4")
       }
     }
     # check if elastic net is requested
     if("lasso" %in% opts$learners){
       if(opts$cvtune){
-        default_library <- c(default_library, "SL.glmnet.mycv", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
+        default_library <- c(default_library, "SL.glmnet.0", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
       }else{
-        default_library <- c(default_library, "SL.glmnet.mycv")
+        default_library <- c(default_library, "SL.glmnet.0")
       }
     }
     # if fitting a super learner, throw in SL.mean

@@ -75,24 +75,35 @@ make_hist_plot <- function(dat, var_name, x_lab, y_lab){
             ylab(y_lab)
 }
 
-get_cor_pred_outcome <- function(cv_fit){
-  c1 <- cor(cv_fit$SL.predict, cv_fit$Y)
-  c2 <- cor(cv_fit$SL.predict, cv_fit$Y, method = "spearman")
+get_cor_pred_outcome <- function(prediction, outcome){
+  c1 <- cor(prediction, outcome)
+  c2 <- cor(prediction, outcome, method = "spearman")
   return(c(c1, c2))
 }
 
-plot_cv_predictions <- function(cv_fit, outcome_name, log_axis = TRUE,
+plot_cv_predictions <- function(cv_fit, 
+                                outcome_name, log_axis = TRUE,
                                 zoom = FALSE, zoom_lim = c(0,10),
-                                resid_scale = FALSE){
-  # get super learner predictions or residuals
-  sl_pred <- cv_fit$SL.predict
-  resids <- cv_fit$Y - cv_fit$SL.predict
-  cv_folds <- rep(NA, length(sl_pred))
-  these_corr <- get_cor_pred_outcome(cv_fit)
-  for(v in seq_along(cv_fit$folds)){
-    cv_folds[cv_fit$folds[[v]]] <- v
+                                resid_scale = FALSE){  
+  if("SuperLearner" %in% class(cv_fit)){
+    sl_pred <- as.numeric(cv_fit$Z)
+    cv_folds <- rep(NA, length(sl_pred))
+    for(v in seq_along(cv_fit$validRows)){
+      cv_folds[cv_fit$folds[[v]]] <- v
+    }
+  }else{
+    sl_pred <- cv_fit$SL.predict
+    cv_folds <- rep(NA, length(sl_pred))
+    for(v in seq_along(cv_fit$folds)){
+      cv_folds[cv_fit$folds[[v]]] <- v
+    }
   }
-  cv_fold_palette <- RColorBrewer::brewer.pal(length(cv_fit$folds), "Set3")
+  
+  # get super learner predictions or residuals
+  resids <- cv_fit$Y - sl_pred
+  these_corr <- get_cor_pred_outcome(prediction = sl_pred, outcome = cv_fit$Y)
+
+  cv_fold_palette <- RColorBrewer::brewer.pal(max(cv_folds), "Set3")
   if(!resid_scale){
     d <- data.frame(prediction = sl_pred, outcome = cv_fit$Y)
     p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) +
@@ -140,18 +151,37 @@ get_est_and_ci <- function(idx, fit_list, Rsquared = FALSE, constant = qnorm(0.9
 plot_roc_curves <- function(cv_fit, topRank = 1,
                             cols = c(rgb(78, 103, 102, alpha = 255/2, maxColorValue = 255),
                                      rgb(90,177,187, alpha = 255/2, maxColorValue = 255),
-                                     rgb(165, 200, 130, alpha = 255/2, maxColorValue = 255))) {
-  class(cv_fit) <- "myCV.SuperLearner"
-  allAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm))
-  allCandidates <- allAlgos[-(1:2), ] %>% arrange(-Ave)
-  sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
+                                     rgb(165, 200, 130, alpha = 255/2, maxColorValue = 255)),
+                            opts) {
+  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = as.character(Algorithm))
+  
+  # if CV.super learner then top two rows will be super learner and DSL
+  if(length(opts$learners) > 1){
+    # if super learner show ROC for SL, DSL, and top topRank algorithms
+    allCandidates <- allAlgos[-(1:2), ] %>% arrange(-Ave)
+    sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
 
-  predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
-    bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
-    bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Super Learner"))) %>%
-    bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y"))) %>%
-    gather("algo", "pred", -Y) %>%
-    filter(algo %in% sortedAlgos$Algorithm[1:(2+topRank)])
+    predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
+      bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
+      bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Super Learner"))) %>%
+      bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y"))) %>%
+      gather("algo", "pred", -Y) %>%
+      filter(algo %in% sortedAlgos$Algorithm[1:(2+topRank)])
+  }else{
+    if("SuperLearner" %in% class(cv_fit)){
+      # if here, then just one algo, so just show curve for one algo
+      predict <- cv_fit[["Z"]][,1] %>% as.data.frame() %>% 
+      bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
+      predict$algo <- cv_fit$libraryNames[1]
+      colnames(predict)[1] <- "pred"
+    }else{
+      # if here, then just want to show discrete super learner curve
+      predict <- bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
+      bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
+      predict$algo <- "Discrete SL"
+      colnames(predict)[1] <- "pred"
+    }
+  }
 
   roc.obj <- predict %>%
     group_by(algo) %>%
@@ -170,32 +200,64 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
     labs(x = "Cross-Validated False Positive Rate", y = "Cross-Validated True Positive Rate", col = "Algorithm")
 }
 
-plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, cols){
-  class(cv_fit) <- "myCV.SuperLearner"
-  allAlgos <- summary(cv_fit, method = "method.AUC")$Table %>% mutate(Algorithm = as.character(Algorithm))
-  allCandidates <- allAlgos[-(1:2), ] %>% arrange(-Ave)
-  sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
+plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
+  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = as.character(Algorithm))
 
-  predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
-    bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
-    bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Super Learner"))) %>%
-    bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y"))) %>%
-    gather("algo", "pred", -Y) %>%
-    filter(algo %in% sortedAlgos$Algorithm[1:(2+topRank)])
+  # if CV.super learner then top two rows will be super learner and DSL
+  if(length(opts$learners) > 1){
+    # if super learner show ROC for SL, DSL, and top topRank algorithms
+    allCandidates <- allAlgos[-(1:2), ] %>% arrange(-Ave)
+    sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
 
+    predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
+      bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
+      bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Super Learner"))) %>%
+      bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y"))) %>%
+      gather("algo", "pred", -Y) %>%
+      filter(algo %in% sortedAlgos$Algorithm[1:(2+topRank)])
+    cv_folds <- rep(NA, length(cv_fit$Y))
+    for(v in seq_along(cv_fit$folds)){
+      cv_folds[cv_fit$folds[[v]]] <- v
+    }
+    predict$cv_folds <- rep(cv_folds, 3)
+  }else{
+    if("SuperLearner" %in% class(cv_fit)){
+      # if here, then just one algo, so just show curve for one algo
+      predict <- cv_fit[["Z"]][,1] %>% as.data.frame() %>% 
+      bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
+      predict$algo <- cv_fit$libraryNames[1]
+      colnames(predict)[1] <- "pred"
+      cv_folds <- rep(NA, length(cv_fit$Y))
+      for(v in seq_along(cv_fit$validRows)){
+        cv_folds[cv_fit$folds[[v]]] <- v
+      }
+      predict$cv_folds <- cv_folds
+    }else{
+      # if here, then just want to show discrete super learner curve
+      predict <- bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
+      bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
+      predict$algo <- "Discrete SL"
+      colnames(predict)[1] <- "pred"
+      cv_folds <- rep(NA, length(cv_fit$Y))
+      for(v in seq_along(cv_fit$folds)){
+        cv_folds[cv_fit$folds[[v]]] <- v
+      }
+      predict$cv_folds <- cv_folds  
+    }
+  }
+
+  cv_fold_palette <- RColorBrewer::brewer.pal(max(cv_folds), "Set3")
   predict %>%
   mutate(Sensitivity = if_else(Y==1, "Resistant", "Sensitive")) %>%
   filter(!is.na(Sensitivity)) %>%
-  ggplot(aes(x = Sensitivity, y = pred)) +
+  ggplot(aes(x = Sensitivity, y = pred, color = factor(cv_folds))) +
   facet_grid(. ~ algo) +
   geom_boxplot(outlier.shape = NA) +
   geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) +
   ylab(paste0("Predicted Probability of Resistance")) + xlab("") +
-  scale_colour_manual(values = cols) +
   theme_bw() + coord_cartesian(ylim=c(0,1)) +
   theme(legend.position = "", strip.text.x = element_text(size = 10),
         text = element_text(size=12), axis.title = element_text(size=10))
-
 }
 
 # this function takes as input a fitted object EITHER of class SuperLearner OR
