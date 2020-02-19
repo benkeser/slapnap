@@ -76,9 +76,9 @@ get_learner_descriptions <- function(opts){
 # given options and n_row_now (for captions) load appropriate SuperLearner/
 # CV.SuperLearner fits and create a list of CV results for all continuous
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
-# each entry in the output list is a kable that should be properly labeled.
-get_cv_outcomes_tables <- function(opts){
-    fit_list_out <- load_cv_fits(opts)
+
+# each entry in the output list is a kable that should be properly labeled. 
+get_cv_outcomes_tables <- function(fit_list){
     fit_list <- fit_list_out$out
     V <- fit_list_out$V
     n_row_now <- fit_list_out$n_row_now
@@ -138,7 +138,8 @@ load_cv_fits <- function(opts){
             if(all_outcomes[i] %in% opts$outcomes){
                 ct <- ct + 1
                 out_list[[ct]] <- readRDS(paste0("/home/slfits/fit_", all_file_labels[i], ".rds"))
-                class(out_list[[ct]]) <- c(class(out_list[[ct]]), "myCV.SuperLearner")
+                class(out_list[[ct]]) <- c("myCV.SuperLearner", class(out_list[[ct]]))
+                names(out_list)[ct] <- all_outcomes[i]
             }
         }
     }else{
@@ -147,7 +148,8 @@ load_cv_fits <- function(opts){
             if(all_outcomes[i] %in% opts$outcomes){
                 ct <- ct + 1
                 out_list[[ct]] <- readRDS(paste0("/home/slfits/cvfit_", all_file_labels[i], ".rds"))
-                class(out_list[[ct]]) <- c(class(out_list[[ct]]), "myCV.SuperLearner")
+                class(out_list[[ct]]) <- c("myCV.SuperLearner", class(out_list[[ct]]))
+                names(out_list)[ct] <- all_outcomes[i]
             }
         }
     }

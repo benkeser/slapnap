@@ -8,22 +8,33 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-source("/home/lib/report_preamble.R")
+in_container <- TRUE
+if(in_container){
+  code_dir <- "/home/lib/"
+  slfits_dir <- "/home/slfits/"
+  data_dir <- "/home/dat/"
+}else{
+  code_dir <- "~/Dropbox/Emory/AMP/slapnap/code/"
+  slfits_dir <- "~/Dropbox/Emory/AMP/slapnap/slfits/"
+  data_fit <- "~/Dropbox/Emory/AMP/slapnap/data/"
+}
+source(paste0(code_dir, "report_preamble.R"))
 library(ggplot2)
 library(grid)
 ```
 
-```{r, get_options}
-opts <- get_global_options()
+```{r get_options}
+opts <- get_global_options() 
 any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
 any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
 # read in number of observations
-nprevious <- readRDS("/home/slfits/nprevious.rds")
-ncomplete <- readRDS("/home/slfits/ncomplete.rds")
+nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
+ncomplete <- readRDS(paste0(slfits_dir, "ncomplete.rds"))
 # read in data
-analysis_data_name <- list.files("/home/dat/analysis")
-dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
+analysis_data_name <- list.files(paste0(data_dir, "analysis"))
+dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 dat <- dat[complete.cases(dat),]
+
 # make nice outcome names
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
 all_labels <- c("IC-50", "IC-80", "IIP", "Estimated", "Multiple")
@@ -40,30 +51,50 @@ bin_nms <- nice_outcomes[bin_idx]
 
 # Executive summary
 
-The NAbs studied in this analysis are `r antibodies`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of neutralization sensitivity: `r get_comma_sep_outcomes(opts)`. `r get_outcome_descriptions(opts)`
+The NAbs studied in this analysis are `r paste0(antibodies, collapse = ", ")`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)`. `r get_outcome_descriptions(opts)`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
 
-<!-- If we did cv performance checking, then print the next section; otherwise, don't -->
+The specific `r ifelse(length(opts$learners) > 1 | opts$cvtune == TRUE, "algorithms", "algorithm")` used in learning process `r ifelse(length(opts$learners) == 1 | opts$cvtune == TRUE, "are", "is")` described in Table \@ref(tab:sllibtab).
+
+```{r sllibtab}
+source("/home/lib/super_learner_libraries.R")
+this_library <- make_sl_library_vector(opts)
+Description <- sapply(this_library, function(x){
+  eval(parse(text = paste0("descr_", x)))
+})
+Description <- data.frame(Label = names(Description), Description = Description)
+row.names(Description) <- NULL
+kable(as.data.frame(Description), col.names = c("Label", "Description"),
+             caption = ifelse(length(opts$learners) == 1, 
+                              "Algorithms used in the analysis",
+                              "Algorithms used in the super learner library"))
+```
+
+`r if(length(opts$learners) == 1) "-->"`
+
 `r if(!opts$cvperf) "<!--"`
 
 ```{r}
-cv_outcomes <- get_cv_outcomes_tables(opts)
+fit_list_out <- load_cv_fits(opts)
+cv_outcomes <- get_cv_outcomes_tables(fit_list_out)
 ```
 
-The predictive ability of the learner was assessed using cross-validation.
+The predictive ability of the learner was assessed using cross-validation. `r if(any_cont) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."` `r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."` 
 
-`r if(any_cont) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."`
+```{r rsquaredtable, eval = any_cont}
+get_cv_outcomes_tables(fit_list_out)[[1]]
+```
 
-```{r, rsquaredtable, eval = any_cont}
-cv_outcomes[[1]]
+```{r auctable, eval = any_cont}
+# apparently no way around calling this function multiple times
+# otherwise the labeling messes up
+get_cv_outcomes_tables(fit_list_out)[[2]]
 ```
 
 `r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
 
-```{r, auctable, eval = any_cont}
-cv_outcomes[[2]]
-```
+`r if(!("ic50" %in% opts$outcomes)) "<!--"`
 
 `r if(!opts$cvperf) "-->"`
 
@@ -105,57 +136,14 @@ kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_m
 
 <!--
 The estimated variable importance of individual features in the Super Learner are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report.
-
-The distribution of amino acid at the important residues are shown for sensitive and resistant viruses in Figures \@ref(fig:logoPlot1) and \@ref(fig:logoPlot2).
-
-```{r logoPlot1, fig.cap = paste0("Distribution of amino acids at important residues for estimated sensitive versus resistant viruses (n = ", n_row_now, " observations with complete sequence data)."), fig.height = 12, fig.width = 10}
-## plotting functions sourced in preamble
-if(!is.na(imp_overall$Variable[1])){
-  all_imp_vars <- imp_overall$Variable
-  imp_aa_vars <- imp_overall$Variable[grepl("hxb", imp_overall$Variable)]
-  aa_positions <- sort(as.numeric(stringr::word(imp_aa_vars, 2 , 2, sep = '\\.')))
-  make_logo_plot(data = dat, outcome_name = "dichotomous.1", aa_positions = aa_positions)
-}else{
-  print("No features qualified as important for predicting multiple outcomes")
-}
-# a note on the logo plots: some features with very small frequencies will be suppressed from plot making it erroneously look
-# like there are features that have no variation that are "important"
-```
-
-```{r logoPlot2, fig.cap = paste0("Distribution of amino acids at important residues for multiply sensitive versus resistant viruses (n = ", n_row_now, " observations with complete sequence data)."), fig.height = 12, fig.width = 10}
-if(!is.na(imp_overall$Variable[1])){
-  all_imp_vars <- imp_overall$Variable
-  imp_aa_vars <- imp_overall$Variable[grepl("hxb", imp_overall$Variable)]
-  aa_positions <- sort(as.numeric(stringr::word(imp_aa_vars, 2 , 2, sep = '\\.')))
-  make_logo_plot(data = dat, outcome_name = "dichotomous.2", aa_positions = aa_positions)
-}else{
-  print("No features qualified as important for predicting multiple outcomes")
-}
-```
-
-# Summarize output for each endpoint.
-# Endpoint
-## Summary of outcomes
-## Summary of learner
-##   if super learner, provide weights, relative performance of algorithms
-##   if one algo with cvtune, show relative performance of each algorithm
-## Variable importance
-### Biological importance
-###   to be filled in by BW
-### Predictive importance
-##   if super learner, show the animation and describe how importance computed
-##   if one algo, show algo specific importance (importance plot for rf/xgboost, coefficient table for elastic net)
-
--->
-
-<!-- If we estimated for IC-50, print the next section -->
-`r if(!("ic50" %in% opts$outcomes)) "<!--"`
-
+=======
 # Results for IC-50
 
 ## Descriptive statistics
 
-`r if("ic50" %in% opts$outcomes & length(opts$nab) > 1) "Histograms of IC-50 for each individual neutralizing antibody are shown in Figure \\@ref(fig:histic50). Related summary measures are shown in \\@ref(tab:tableic50)."`
+`r if(length(opts$nab) == 1) "<!--"`
+
+Histograms of IC-50 for each individual neutralizing antibody are shown in Figure \@ref(fig:histic50). Related summary measures are shown in Table \@ref(tab:tableic50)
 
 ```{r, histic50, eval = ("ic50" %in% opts$outcomes), fig.cap = paste0("Distribution of IC-50 values (n = ", ncomplete, ") for each neutralizing antibody."), fig.height=5}
 ic50_descr <- get_individual_nab_summaries("ic50", opts, dat)
@@ -164,14 +152,80 @@ do.call(grid.arrange, ic50_descr$hist)
 
 ```{r, tableic50, eval = ("ic50" %in% opts$outcomes)}
 ic50_table <- Reduce(rbind, ic50_descr$summary)
-row.names(ic50_table) <- c(paste0("IC-50 ", opts$nab))
+row.names(ic50_table) <- c(paste0("IC-50 ", opts$nab))                           
 kable(ic50_table, row.names = TRUE, digits = 3,
       caption = paste0("Summary statistics of IC-50 values for individual NAbs (n = ", ncomplete, " observations with complete sequence data)."))
 ```
 
+`r if(length(opts$nab) == 1) "-->"`
+
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-50 for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic50). 
+
+```{r makecapic50}
+ic50_figcap <- if(length(opts$nab) == 1){
+  paste0("Histogram of IC-50 for the selected neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+}else{
+  paste0("Histogram of estimated IC-50 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+}
+```
+
+```{r histcombnic50, fig.cap = ic50_figcap}
+combn_hist <- list()
+combn_hist[[1]] <- make_hist_plot(dat, "pc.ic50", "IC-50", "Density")
+combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic50", bquote(log[10]~"(IC-50)"), "")
+do.call(grid.arrange, combn_hist)
+```
+
+`r if(length(opts$learners) == 1) "<!--"`
+
+## Super learner results
+
+The weights assigned to each algorithm for Super Learner predicting IC-50 are shown in Table \@ref(tab:ic50superlearnerweighttable). 
+
+```{r ic50superlearnerweighttable}
+weights_ic50 <- readRDS(paste0("/home/slfits/slweights_fit_log10.pc.ic50.rds"))
+weight_table <- data.frame(Learner = this_library, Weight = weights_ic50)
+row.names(weight_table) <- NULL
+# row.names(weight_table) <- this_library # will be defined in executive summary chunk
+kable(as.data.frame(weight_table), digits = 2,
+             caption = paste0("Table of super learner weights for IC-50 (n = ", ncomplete, " observations with complete sequence data)."))
+```
+
+`r if(length(opts$learners) == 1) "-->"`
+
 `r if(!opts$cvperf) "<!--"`
 
+<!-- If we estimated for IC-50, print the next section -->
+`r if(!("ic50" %in% opts$outcomes)) "<!--"`
+
 ## Predictive performance
+
+`r if(length(opts$learners) == 1 & !opts$cvtune) "<!--"`
+
+`r if(length(opts$learners) == 1) "<!--"`
+
+The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IC-50 are shown in Figure \@ref(fig:plotic50). 
+
+`r if(length(opts$learners) == 1) "-->"`
+
+`r if(length(opts$learners) > 1) "<!--"`
+
+The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic50). 
+
+`r if(length(opts$learners) > 1) "-->"`
+
+```{r plotic50, fig.cap = paste0("Cross-validated R-squared for estimated IC-50 (", ncomplete, " observations with complete sequence data)")}
+plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8, 
+     text_size = 9, method = "method.CC_LS", opts = opts)
+```
+
+`r if(length(opts$learners) == 1 & !opts$cvtune) "-->"`
+
+Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC-50 plotted against observed values of IC-50, colored by cross-validation fold. 
+
+```{r plotic50predversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IC-50 plotted against actual IC-50 values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
+plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_axis = FALSE)
+```
 
 `r if(!opts$cvperf) "-->"`
 
@@ -184,619 +238,355 @@ kable(ic50_table, row.names = TRUE, digits = 3,
 `r if(!("ic50" %in% opts$outcomes)) "-->"`
 
 <!-- If we estimated for IC-80, print the next section -->
+
 `r if(!("ic80" %in% opts$outcomes)) "<!--"`
 
-`r if(!("ic80" %in% opts$outcomes)) "-->"`
+# Results for IC-80
 
-<!-- If we estimated for IIP, print the next section -->
-`r if(!("iip" %in% opts$outcomes)) "<!--"`
+## Descriptive statistics
 
-`r if(!("iip" %in% opts$outcomes)) "-->"`
+`r if(length(opts$nab) == 1) "<!--"`
 
-<!-- If we estimated for Estimated Sensitivity, print the next section -->
-`r if(!("sens1" %in% opts$outcomes)) "<!--"`
+Histograms of IC-80 for each individual neutralizing antibody are shown in Figure \@ref(fig:histic80). Related summary measures are shown in \@ref(tab:tableic80)
 
-`r if(!("sens1" %in% opts$outcomes)) "-->"`
-
-<!-- If we estimated for Multiple Sensitivity, print the next section -->
-`r if(!("sens2" %in% opts$outcomes)) "<!--"`
-
-`r if(!("sens2" %in% opts$outcomes)) "-->"`
-
-
-
-# Summary of endpoints
-
-Histograms of IC-50 and IC-80 for each individual NAb are shown in Figure \@ref(fig:histic50) and Figure \@ref(fig:histic80), respectively. Related summaries are shown in Table \@ref(tab:tableic50) and Table \@ref(tab:tableic80).
-
-Histograms for the predicted IC-50 an IC-80 based on the additive model are shown in Figure \@ref(fig:histcombn), a histogram of the predicted IIP is shown in Figure \@ref(fig:histiip), and related summaries are shown in Table \@ref(tab:combntable). The distribution of the two binary sensitivity measures is shown in Figure \@ref(fig:dichot).
-
-```{r histic50, fig.cap = paste0("Histogram of IC50 values for individual NAbs (n = ", n_row_now, " observations with complete sequence data)."), fig.height=5}
-
+```{r, histic80, eval = ("ic80" %in% opts$outcomes), fig.cap = paste0("Distribution of IC-80 values (n = ", ncomplete, ") for each neutralizing antibody."), fig.height=5}
+ic80_descr <- get_individual_nab_summaries("ic80", opts, dat)
+do.call(grid.arrange, ic80_descr$hist)
 ```
 
-```{r tableic50}
-ic50_table <- Reduce(rbind, i50_summ_tab)
-row.names(ic50_table) <- c(paste0("IC-50 ", antibodies),
-                           paste0("log(IC-50 ", antibodies,")"))[c(rbind(1:n_ab, (n_ab+1):(2*n_ab)))]
-kable(ic50_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC-50 values for individual NAbs (n = ", n_row_now, " observations with complete sequence data)."))
-```
-
-```{r histic80, fig.cap = paste0("Histogram of IC80 values for individual NAbs (n = ", n_row_now, " observations with complete sequence data).")}
-ic80_hist <- list()
-i80_summ_tab <- list()
-ct <- 0
-for(i in seq_len(n_ab)){
-	ct <- ct + 1
-	this_name <- gsub("-", ".", paste0(antibodies[i], ".ic80.imputed"))
-	ic80_hist[[ct]] <- make_hist_plot(dat, var_name = this_name,
-	                                  x_lab = paste0("IC-80 ", antibodies[i]),
-	                                  y_lab = "Density")
-	i80_summ_tab[[ct]] <- summary(dat[, this_name])[1:6] # to ignore NA columns
-	ct <- ct+1
- 	dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
- 	ic80_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name),
-	                                  x_lab = bquote(log[10]~"(IC-80 "~.(antibodies[i])~")"),
-	                                  y_lab = "")
- 	i80_summ_tab[[ct]] <- summary(dat[, paste0("log10_",this_name)])[1:6]
-}
-do.call(grid.arrange, ic80_hist)
-```
-
-```{r tableic80}
-ic80_table <- Reduce(rbind, i80_summ_tab)
-row.names(ic80_table) <- c(paste0("IC-80 ", antibodies),
-                           paste0("log(IC-80 ", antibodies,")"))[c(rbind(1:n_ab, (n_ab+1):(2*n_ab)))]
+```{r, tableic80, eval = ("ic80" %in% opts$outcomes)}
+ic80_table <- Reduce(rbind, ic80_descr$summary)
+row.names(ic80_table) <- c(paste0("IC-80 ", opts$nab))                           
 kable(ic80_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC-80 values for individual NAbs (n = ", n_row_now, " observations with complete sequence data)."))
+      caption = paste0("Summary statistics of IC-80 values for individual NAbs (n = ", ncomplete, " observations with complete sequence data)."))
 ```
 
+`r if(length(opts$nab) == 1) "-->"`
 
-```{r histcombn, fig.cap = paste0("Histogram of estimated IC50 and IC80 for combined NAbs. Top row = original scale; bottom row = log10 scale (n = ", n_row_now, " observations with complete sequence data).")}
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-80 for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic80). 
+
+```{r makecapic80}
+ic80_figcap <- if(length(opts$nab) == 1){
+  paste0("Histogram of IC-80 for the selected neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+}else{
+  paste0("Histogram of estimated IC-80 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+}
+```
+
+```{r histcombnic80, fig.cap = ic80_figcap}
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat, "pc.ic50", "Estimated IC-50", "Density")
-combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic50", bquote(log[10]~"(estimated IC-50)"), "")
-combn_hist[[3]] <- make_hist_plot(dat, "pc.ic80", "Estimated IC-80", "Density")
-combn_hist[[4]] <- make_hist_plot(dat, "log10.pc.ic80", bquote(log[10]~"(estimated IC-80)"), "")
+combn_hist[[1]] <- make_hist_plot(dat, "pc.ic80", "IC-80", "Density")
+combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic80", bquote(log[10]~"(IC-80)"), "")
 do.call(grid.arrange, combn_hist)
 ```
 
-```{r histiip, fig.cap = paste0("Estimated IIP for combined NAbs (n = ", n_row_now, " observations with complete sequence data).")}
-iip_hist <- list()
-iip_hist[[1]] <- make_hist_plot(dat, "iip", "Estimated IIP", "Density")
-# dat$log10.iip <- log10(dat$iip)
-# iip_hist[[2]] <- make_hist_plot(dat, "log10.iip", bquote(log[10]~"(estimated IIP)"), "")
-do.call(grid.arrange, iip_hist)
-```
+`r if(length(opts$learners) == 1) "<!--"`
 
-```{r combntable}
-# make a table of ic50 80 and iip for combined NAbs
-combn_table <- rbind(
-  summary(dat$pc.ic50)[1:6],
-  summary(dat$log10.pc.ic50)[1:6],
-  summary(dat$pc.ic80)[1:6],
-  summary(dat$log10.pc.ic80)[1:6],
-  summary(dat$iip)[1:6]
-)
-row.names(combn_table) <- c(
-  "Estimated IC-50", "log(estimated IC-50)", "Estimated IC-80", "log(estimated IC-80)", "IIP"
-)
-kable(combn_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summaries of combined NAb endpoints (n = ", n_row_now, " observations with complete sequence data)."))
-```
+## Super learner results
 
-```{r dichot, fig.cap = paste0("Distribution of binary sensitivity outcomes. Estimated indicates whether the estimated IC-50 falls above a sensitivity threshold. Multiple indicates whether at least two individual NAbs fall above a sensitivity threshold (n = ", n_row_now, " observations with complete sequence data).")}
-n <- n_row_now
-# make a stacked data set for easy use of geom_bar
-dichot_dat <- data.frame(
-  Outcome_type = c("Estimated", "Estimated", "Multiple", "Multiple"),
-  Outcome = rep(c("Resistant", "Sensitive"), 2),
-  value = 100*c(mean(dat$dichotomous.1), 1 - mean(dat$dichotomous.1),
-            mean(dat$dichotomous.2), 1 - mean(dat$dichotomous.2))
-)
-trans_fill <- c(
-  rgb(30, 21, 42, alpha = 255/2, maxColorValue = 255),
-  rgb(78, 103, 102, alpha = 255/2, maxColorValue = 255),
-  rgb(90,177,187, alpha = 255/2, maxColorValue = 255),
-  rgb(165, 200, 130, alpha = 255/2, maxColorValue = 255),
-  rgb(247, 221, 114, alpha = 255/2, maxColorValue = 255)
-)
+The weights assigned to each algorithm for Super Learner predicting IC-80 are shown in Table \@ref(tab:ic80superlearnerweighttable). 
 
-fill <- c(
-  rgb(30, 21, 42, maxColorValue = 255),
-  rgb(78, 103, 102, maxColorValue = 255),
-  rgb(90,177,187, maxColorValue = 255),
-  rgb(165, 200, 130, maxColorValue = 255),
-  rgb(247, 221, 114, maxColorValue = 255)
-)
-
-ggplot(dichot_dat, aes(y = value, x = factor(Outcome_type), fill = factor(Outcome))) +
-	geom_bar(position = "fill", stat = "identity") +
-	scale_fill_manual(values = fill[c(2,4)]) +
-	theme_bw() +
-	labs(fill = "") +
-	xlab("Sensitivity Measure") +
-	geom_text(data = dichot_dat, aes(y = value, label = paste0(round(value, 2), "%"), stat = "identity"),
-	          position = position_fill(vjust = 0.5))
-```
-
-
-# Super learner prediction results
-
-```{r}
-# get a fresh data set
-dat <- get_dat()$dat
-```
-
-A super learner was fit to each outcome. For continuous outcomes, super learner weights were chosen to optimize estimated 10-fold cross-validated MSE; for binary outcomes, weights were chosen to optimize a 10-fold negative log-likelihood risk estimate. The algorithms used in the super learner are shown in Table \@ref(tab:superlearnerlibrarytable).
-
-```{r superlearnerlibrarytable}
-source("/home/lib/super_learner_libraries.R")
-library_table <- data.frame()
-this_library <- if(reduce_library){
-	default_library_reduced
-}else{
-	default_library
-}
-Description <- sapply(this_library, function(x){
-	eval(parse(text = paste0("descr_", x)))
-})
-kable(as.data.frame(Description),
-             caption = "Super learner library")
-```
-
-The weights assigned to each algorithm for each outcome are shown in Table \@ref{tab:superlearnerweighttable}. Cross-validated risks for each outcome are shown in the following subsections.
-
-```{r superlearnerweighttable}
-# load super learner fits
-outcome_names <- if(!reduce_outcomes){
-	c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
-}else{
-	c("log10.pc.ic50")
-}
-weight_list <- vector(mode = "list", length = length(outcome_names))
-ct <- 0
-for(o in outcome_names){
-	ct <- ct + 1
-	fit_name <- paste0("fit_", o, ".rds")
-	weight_list[[ct]] <- readRDS(paste0("/home/slfits/slweights_", fit_name))
-}
-weight_table <- data.frame(Reduce(cbind, weight_list))
-colnames(weight_table) <- outcome_names
-row.names(weight_table) <- this_library
+```{r ic80superlearnerweighttable}
+weights_ic80 <- readRDS(paste0("/home/slfits/slweights_fit_log10.pc.ic80.rds"))
+weight_table <- data.frame(Learner = this_library, Weight = weights_ic80)
+row.names(weight_table) <- NULL
+# row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for each outcome (n = ", n_row_now, " observations with complete sequence data)."))
+             caption = paste0("Table of super learner weights for IC-80 (n = ", ncomplete, " observations with complete sequence data)."))
 ```
 
-## IC-50
+`r if(length(opts$learners) == 1) "-->"`
 
-The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IC-50 in Figure \@ref(fig:plotic50).
+`r if(!opts$cvperf) "<!--"`
 
-```{r plotic50, fig.cap = paste0("Cross-validated R-squared for estimated IC-50. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-plot(cvfit_ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8, text_size = 9, method = "method.CC_LS")
-# and get correlations
-cor_ic50 <- get_cor_pred_outcome(cvfit_ic50)
+## Predictive performance
+
+`r if(length(opts$learners) == 1 & !opts$cvtune) "<!--"`
+
+`r if(length(opts$learners) == 1) "<!--"`
+
+The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IC-80 are shown in Figure \@ref(fig:plotic80). 
+
+`r if(length(opts$learners) == 1) "-->"`
+
+`r if(length(opts$learners) > 1) "<!--"`
+
+The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic80). 
+
+`r if(length(opts$learners) > 1) "-->"`
+
+```{r plotic80, fig.cap = paste0("Cross-validated R-squared for estimated IC-80 (", ncomplete, " observations with complete sequence data)")}
+plot(fit_list_out$out$ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8, 
+     text_size = 9, method = "method.CC_LS", opts = opts)
 ```
 
-Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions made by the super learner plotted against outcomes. The Pearson correlation between predictions and true outcomes was `r round(cor_ic50[1], 3)`; the Spearman correlation was `r round(cor_ic50[2], 3)`.
+`r if(length(opts$learners) == 1 & !opts$cvtune) "-->"`
 
-```{r plotic50predversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IC-50 plotted against actual IC-50 values. Colors correspond to different cross-validation folds. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-plot_cv_predictions(cvfit_ic50, outcome_name = "IC-50", log_axis = FALSE)
+Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of IC-80 plotted against observed values of IC-80, colored by cross-validation fold. 
+
+```{r plotic80predversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IC-80 plotted against actual IC-80 values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
+plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_axis = FALSE)
 ```
 
-Figure \@ref(fig:plotic50imp) shows an animated representation of the importance of individual features for predicting estimated IC-50. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
+`r if(!opts$cvperf) "-->"`
 
-```{r plotic50imp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap= paste0("Animated importance of features for predicting IC-50. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-for(m in 1:50){
-	make_ml_import_plot(dat = dat, imp_df = imp_ic50, max_import = m)
+## Variable importance
+
+### Biological importance
+
+### Predictive importance
+
+`r if(!("ic80" %in% opts$outcomes)) "-->"`
+
+
+`r if(!("iip" %in% opts$outcomes)) "<!--"`
+
+# Results for IIP
+
+## Descriptive statistics
+
+A summary of the distribution of IIP for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombniip). 
+
+```{r makecapiip}
+iip_figcap <- if(length(opts$nab) == 1){
+  paste0("Histogram of IIP for the selected neutralizing antibody (n = ", ncomplete, " observations with complete sequence data).")
+}else{
+  paste0("Histogram of estimated IIP for the combined neutralizing antibodies (n = ", ncomplete, " observations with complete sequence data).")
 }
 ```
 
-Table \@ref(tab:tableic50imp) shows the top `r max_features` most important features in the Super Learner according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+```{r histcombniip, fig.cap = iip_figcap}
+combn_hist[[1]] <- make_hist_plot(dat, "iip", "IIP", "Density")
+do.call(grid.arrange, combn_hist)
+```
 
-```{r tableic50imp}
-# ic50_tab is created in preamble
-if (dim(ic50_tab)[1] != 0) {
-    kable(ic50_tab, caption = paste0("Top ", max_features, " most important features for predicting IC-50 and their importance ranks by each measure. We used the ", n_row_now, " observations with complete sequence data in this analysis."), col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"), row.names = FALSE)
-} else {
-    print("No variables met the cutoff for importance.")
+`r if(length(opts$learners) == 1) "<!--"`
+
+## Super learner results
+
+The weights assigned to each algorithm for Super Learner predicting IC-50 are shown in Table \@ref(tab:ic50superlearnerweighttable). 
+
+```{r iipsuperlearnerweighttable}
+weights_iip <- readRDS(paste0("/home/slfits/slweights_fit_iip.rds"))
+weight_table <- data.frame(Learner = this_library, Weight = weights_iip)
+row.names(weight_table) <- NULL
+# row.names(weight_table) <- this_library # will be defined in executive summary chunk
+kable(as.data.frame(weight_table), digits = 2,
+             caption = paste0("Table of super learner weights for IIP (n = ", ncomplete, " observations with complete sequence data)."))
+```
+
+`r if(length(opts$learners) == 1) "-->"`
+
+`r if(!opts$cvperf) "<!--"`
+
+## Predictive performance
+
+`r if(length(opts$learners) == 1 & !opts$cvtune) "<!--"`
+
+`r if(length(opts$learners) == 1) "<!--"`
+
+The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IIP are shown in Figure \@ref(fig:plotiip). 
+
+`r if(length(opts$learners) == 1) "-->"`
+
+`r if(length(opts$learners) > 1) "<!--"`
+
+The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotiip). 
+
+`r if(length(opts$learners) > 1) "-->"`
+
+```{r plotiip, fig.cap = paste0("Cross-validated R-squared for estimated IIP (", ncomplete, " observations with complete sequence data)")}
+plot(fit_list_out$out$iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 0.8, 
+     text_size = 9, method = "method.CC_LS", opts = opts)
+```
+
+`r if(length(opts$learners) == 1 & !opts$cvtune) "-->"`
+
+Figure \@ref(fig:plotiippredversusoutcomes) shows cross-validated predictions of IIP plotted against observed values of IIP, colored by cross-validation fold. 
+
+```{r plotiippredversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IIP plotted against actual IIP values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
+plot_cv_predictions(cv_fit = fit_list_out$out$iip, outcome_name = "IIP", log_axis = FALSE)
+```
+
+`r if(!opts$cvperf) "-->"`
+
+## Variable importance
+
+### Biological importance
+
+### Predictive importance
+
+`r if(!("iip" %in% opts$outcomes)) "-->"`
+
+
+
+`r if(!("sens1" %in% opts$outcomes)) "<!--"`
+
+# Results for estimated sensitivity
+
+## Descriptive statistics
+
+Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive. 
+
+`r if(length(opts$learners) == 1) "<!--"`
+
+## Super learner results
+
+The weights assigned to each algorithm for Super Learner predicting estimated sensitivity are shown in Table \@ref(tab:sens1superlearnerweighttable). 
+
+```{r sens1superlearnerweighttable, eval = "sens1" %in% opts$outcomes}
+weights_sens1 <- readRDS(paste0("/home/slfits/slweights_fit_dichotomous.1.rds"))
+weight_table <- data.frame(Learner = this_library, Weight = weights_sens1)
+row.names(weight_table) <- NULL
+# row.names(weight_table) <- this_library # will be defined in executive summary chunk
+kable(as.data.frame(weight_table), digits = 2,
+             caption = paste0("Table of super learner weights for estimated sensitivity (n = ", ncomplete, " observations with complete sequence data)."))
+```
+
+`r if(length(opts$learners) == 1) "-->"`
+
+`r if(!opts$cvperf) "<!--"`
+
+## Predictive performance
+
+`r if(length(opts$learners) == 1 & "sens1" %in% opts$outcomes) "<!--"`
+
+The cross-validated performance of super learner, as measured by area under the ROC curve, in predicting estimated sensitivity relative to other candidate algorithms is shown  in Figure \@ref(fig:plotdichot1). Figure \@ref(fig:rocdichot1) shows cross-validated ROC curves for this endpoint.
+
+`r if(length(opts$learners) == 1 & "sens1" %in% opts$outcomes) "-->"`
+
+`r if((length(opts$learners) > 1 | !opts$cvtune) & "sens1" %in% opts$outcomes) "<!--"`
+
+The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1). 
+
+```{r plotdichot1, fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated IC-50 (n = ", ncomplete, "observations with complete sequence data)."), eval = "sens1" %in% opts$outcomes}
+plot(fit_list_out$out$sens1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9, 
+     Rsquared = FALSE, method = "method.AUC", opts = opts)
+```
+
+`r if((length(opts$learners) > 1 | !opts$cvtune) & "sens1" %in% opts$outcomes) "-->"`
+
+Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting estimated sensitivity. 
+
+```{r roccap1, eval = "sens1" %in% opts$outcomes}
+roc_cap <- if(length(opts$learners) > 1){
+  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting estimated sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+}else if(!opts$cvtune){
+  paste0("Cross-validated ROC curve for the specified learner for predicting estimated sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+}else{
+  paste0("Cross-validated ROC curve for the learner (with tuning parameters selected via cross-validation) for predicting estimated sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+}
+
+predprob_cap <- if(length(opts$learners) > 1){
+  paste0("Cross-validated predicted probabilities of estimated resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+}else if(!opts$cvtune){
+  paste0("Cross-validated predicted probabilities of estimated resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+}else{
+  paste0("Cross-validated predicted probabilities of estimated resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
 }
 ```
 
-## IC-80
+```{r rocdichot1, fig.cap = roc_cap, eval = "sens1" %in% opts$outcomes}
+plot_roc_curves(fit_list_out$out$sens1, opts = opts)
+```
 
-The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IC-80 in Figure \@ref(fig:plotic80).
+```{r predprob1, fig.cap = predprob_cap, eval = "sens1" %in% opts$outcomes}
+plot_predicted_prob_boxplots(cvfit_dichotomous.1, opts = opts)
+```
 
-```{r plotic80, fig.cap = paste0("Cross-validated R-squared for estimated IC-80. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot(cvfit_ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 1, text_size = 9, method = "method.CC_LS")
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
+`r if(!opts$cvperf) "-->"`
+
+## Variable importance
+
+### Biological importance
+
+### Predictive importance
+
+`r if(!("sens1" %in% opts$outcomes)) "-->"`
+
+
+`r if(!("sens2" %in% opts$outcomes)) "<!--"`
+
+# Results for multiple sensitivity
+
+## Descriptive statistics
+
+Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive. 
+
+## Super learner results
+
+The weights assigned to each algorithm for Super Learner predicting estimated sensitivity are shown in Table \@ref(tab:sens2superlearnerweighttable)\. 
+
+```{r sens2superlearnerweighttable}
+weights_sens2 <- readRDS(paste0("/home/slfits/slweights_fit_dichotomous.2.rds"))
+weight_table <- data.frame(Learner = this_library, Weight = weights_sens2)
+row.names(weight_table) <- NULL
+# row.names(weight_table) <- this_library # will be defined in executive summary chunk
+kable(as.data.frame(weight_table), digits = 2,
+             caption = paste0("Table of super learner weights for multiple sensitivity (n = ", ncomplete, " observations with complete sequence data)."))
+```
+
+`r if(length(opts$learners) == 1) "-->"`
+
+`r if(!opts$cvperf) "<!--"`
+
+## Predictive performance
+
+`r if(length(opts$learners) == 1 & !opts$cvtune) "<!--"`
+
+`r if(length(opts$learners) == 1) "<!--"`
+
+The cross-validated performance of super learner, as measured by area under the ROC curve, in predicting multiple sensitivity relative to other candidate algorithms is shown  in Figure \@ref(fig:plotdichot2). Figure \@ref(fig:rocdichot2) shows cross-validated ROC curves for this endpoint.
+
+`r if(length(opts$learners) == 1) "-->"`
+
+`r if(length(opts$learners) > 1) "<!--"`
+
+The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2). 
+
+```{r plotdichot2, fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete, "observations with complete sequence data).")}
+plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9, 
+     Rsquared = FALSE, method = "method.AUC", opts = opts)
+```
+
+`r if(length(opts$learners) > 1) "-->"`
+
+Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting estimated sensitivity. 
+
+```{r roccap2}
+roc_cap <- if(length(opts$learners) > 1){
+  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+}else if(!opts$cvtune){
+  paste0("Cross-validated ROC curve for the specified learner for predicting multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+}else{
+  paste0("Cross-validated ROC curve for the learner (with tuning parameters selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+}
+
+predprob_cap <- if(length(opts$learners) > 1){
+  paste0("Cross-validated predicted probabilities of multiple resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+}else if(!opts$cvtune){
+  paste0("Cross-validated predicted probabilities of multiple resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+}else{
+  paste0("Cross-validated predicted probabilities of multiple resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
 }
 ```
 
-```{r computeic80cor}
-if (!reduce_outcomes) {
-    # and get correlations
-    cor_ic80 <- get_cor_pred_outcome(cvfit_ic80)
-} else {
-    cor_ic80 <- NA
-}
+```{r rocdichot2, fig.cap = roc_cap}
+plot_roc_curves(fit_list_out$out$sens2, opts = opts)
 ```
 
-Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions made by the super learner plotted against outcomes. The Pearson correlation between predictions and true outcomes was `r round(cor_ic80[1], 3)`; the Spearman correlation was `r round(cor_ic80[2], 3)`.
-
-```{r plotic80predversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IC-80 plotted against actual IC-80 values. Colors correspond to different cross-validation folds. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot_cv_predictions(cvfit_ic80, outcome_name = "IC-80", log_axis = FALSE)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
+```{r predprob2, fig.cap = predprob_cap}
+plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts)
 ```
 
-Figure \@ref(fig:plotic80imp) shows an animated representation of the importance of individual features for predicting estimate IC-80. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
+`r if(length(opts$learners) == 1 & !opts$cvtune) "-->"`
 
-```{r plotic80imp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap=paste0("Animated importance of features for predicting IC-80. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-for(m in 1:50){
-	make_ml_import_plot(dat = dat, imp_df = imp_ic80, max_import = m)
-}
-```
+`r if(!opts$cvperf) "-->"`
 
-Table \@ref(tab:tableic80imp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
+## Variable importance
 
-```{r tableic80imp}
-# ic80_tab is created in preamble
-if (dim(ic80_tab)[1] != 0) {
-    kable(ic80_tab, caption = paste0("Top ", max_features, " most important features for predicting IC-80 and their importance ranks by each measure. We used the ", n_row_now, " observations with complete sequence data in this analysis."), col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"), row.names = FALSE)
-} else {
-    print("No variables met the cutoff for importance.")
-}
-```
+### Biological importance
 
-## IIP
+### Predictive importance
 
-The cross-validated performance of super learner (in terms of $R^2$) relative to the discrete super learner and candidate algorithms are shown for IIP in Figure \@ref(fig:plotiip).
-
-```{r plotiip, fig.cap = paste0("Cross-validated R-squared for estimated IIP. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot(cvfit_iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 1, text_size = 9,
-         method = "method.CC_LS")
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-```{r computeiipcor}
-if (!reduce_outcomes) {
-    # and get correlations
-    cor_iip <- get_cor_pred_outcome(cvfit_iip)
-} else {
-    cor_iip <- NA
-}
-```
-
-Figure \@ref(fig:plotiippredversusoutcomes) shows cross-validated predictions made by the super learner plotted against outcomes. The Pearson correlation between predictions and true outcomes was `r round(cor_iip[1], 3)`; the Spearman correlation was `r round(cor_iip[2], 3)`.
-
-```{r plotiippredversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IIP plotted against actual IIP values. Colors correspond to different cross-validation folds. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot_cv_predictions(cvfit_iip, outcome_name = "IIP", log_axis = FALSE)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-Figure \@ref(fig:plotiipimp) shows an animated representation of the importance of individual features for predicting estimate IC-80. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
-
-```{r plotiipimp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap=paste0("Animated importance of features for predicting IIP. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-for(m in 1:50){
-	make_ml_import_plot(dat = dat, imp_df = imp_iip, max_import = m)
-}
-```
-
-Table \@ref(tab:tableiipimp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
-
-```{r tableiipimp}
-# iip_tab is created in preamble
-if (dim(iip_tab)[1] != 0) {
-    kable(iip_tab, caption = paste0("Top ", max_features, " most important features for predicting IIP and their importance ranks by each measure. We used the ", n_row_now, " observations with complete sequence data in this analysis."), col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"), row.names = FALSE)
-} else {
-    print("No variables met the cutoff for importance.")
-}
-```
-
-
-## Dichotomous sensitivity 1
-
-The cross-validated performance of super learner (in terms of AUC) relative to the discrete super learner and candidate algorithms are shown for the first dichotomous endpoint (estimated IC-50 above sensitivity threshold) in Figure \@ref(fig:plotdichot1). Figure \@ref(fig:rocdichot1) shows cross-validated ROC curves for this endpoint.
-
-```{r plotdichot1, fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated IC-50. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot(cvfit_dichotomous.1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9, Rsquared = FALSE, method = "method.AUC")
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-```{r rocdichot1, fig.cap = paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting sensitivity based on estimated IC-50. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot_roc_curves(cvfit_dichotomous.1)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-```{r predprob1, fig.cap = paste0("Predicted probabilities for resistant and sensitive viruses for the super learner, discrete super learner, and single best performing algorithm. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot_predicted_prob_boxplots(cvfit_dichotomous.1, cols = trans_fill[c(2,4)])
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-Figure \@ref(fig:plotdichot1imp) shows an animated representation of the importance of individual features for predicting estimated sensitivity. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
-
-```{r plotdichot1imp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap=paste0("Animated importance of features for predicting estimated sensitivity. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-for(m in 1:50){
-	make_ml_import_plot(dat = dat, imp_df = imp_dichot1, max_import = m)
-}
-```
-
-Table \@ref(tab:tabledichot1imp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
-
-```{r tabledichot1imp}
-# dichot1 is created in preamble
-if (dim(ic80_tab)[1] != 0) {
-    kable(dichot1_tab, caption = paste0("Top ", max_features, " most important features for predicting estimated sensitivity and their importance ranks by each measure. We used the ", n_row_now, " observations with complete sequence data in this analysis."), col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"), row.names = FALSE)
-} else {
-    print("No variables met the cutoff for importance.")
-}
-```
-
-
-## Dichotomous sensitivity 2
-
-The cross-validated performance of super learner (in terms of AUC) relative to the discrete super learner and candidate algorithms are shown for the second dichotomous endpoint (each individual IC-50 above threshold) in Figure \@ref(fig:plotdichot2). Figure \@ref(fig:rocdichot2) shows cross-validated ROC curves for this endpoint.
-
-```{r plotdichot2, fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on sensitivity to individual NAbs. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot(cvfit_dichotomous.2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9, Rsquared = FALSE, method = "method.AUC")
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-```{r rocdichot2, fig.cap = paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting sensitivity based on sensitivity to individual NAbs. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-if (!reduce_outcomes) {
-    plot_roc_curves(cvfit_dichotomous.2)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-Figure \@ref(fig:plotdichot2imp) shows an animated representation of the importance of individual features for predicting multiple sensitivity. To qualify as a top $x$ most important feature, the feature must satisfy two requirements: (1) it must have a Holm-adjusted p-value $<0.05$ in a model adjusting for geographic region; (2) it must be ranked as at least the $x$-th most important feature by one of the learning approaches (boosting, random forests, or LASSO). The animation visualizes the sequence in which features enter the set of important features by this definition.
-
-```{r plotdichot2imp, fig.show="animate", animation.hook=my_webm, interval=0.2, fig.width=8, aniopts="controls", fig.cap=paste0("Animated importance of features for predicting multiple sensitivity. We used the ", n_row_now, " observations with complete sequence data in this analysis.")}
-for(m in 1:50){
-	make_ml_import_plot(dat = dat, imp_df = imp_dichot2, max_import = m)
-}
-```
-
-Table \@ref(tab:tabledichot2imp) shows the top `r max_features` most important features according to the two criteria described above. A feature is labeled "Sensitive" ("Resistant") if an increase in the value of that feature results in a lower (higher) value of the outcome.
-
-```{r tabledichot2imp}
-# dichot2_tab is created in preamble
-if (dim(dichot2_tab)[1] != 0) {
-    kable(dichot2_tab, caption = paste0("Top ", max_features, " most important features for predicting multiple sensitivity and their importance ranks by each measure. We used the ", n_row_now, " observations with complete sequence data in this analysis."), col.names = c("Variable", "XGBOOST", "RF", "LASSO", "Adj. p-value", "Direction"), row.names = FALSE)
-} else {
-    print("No variables met the cutoff for importance.")
-}
-```
-
-# Population variable importance results
-
-We define the conditional population-level importance of a subgroup of features for predicting an outcome as the difference in population predictiveness between the best possible prediction function based on all available features versus all features except those under consideration. The marginal population-level importance of a subgroup of features is the difference in population predictiveness between the best possible prediction function based on the features under consideration plus geographic confounders versus only geographic confounders. We define predictiveness using R-squared for continuous outcomes (IC-50, IC-80, IIP) and using AUC for binary outcomes (Estimated sensitivity, Multiple sensitivity).
-
-## IC-50
-
-We show the population-level variable importance of groups of features in predicting IC-50 in Figure \@ref(fig:ic50groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
-
-```{r ic50groupvimp, fig.cap = paste0("Group variable importance for predicting IC-50. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
-## only report non-cv if no_cv
-if (no_cv) {
-    ic50_grp_vimp_grob_lst <- log10.pc.ic50_vimp_plots
-} else {
-    ic50_grp_vimp_grob_lst <- log10.pc.ic50_cv_vimp_plots
-}
-grid.arrange(grobs = list(ic50_grp_vimp_grob_lst$conditional, ic50_grp_vimp_grob_lst$marginal), ncol = 2)
-```
-
-```{r ic50indivimp, eval = run_indi_vimp}
-print(paste0("We show the individual-level variable importance for the top ",  num_pop_import, " variables in Figure \@ref(fig:ic50indivvimp). This importance is computed relative to the null model with geographic confounders only.")
-```
-
-```{r ic50indivvimp, fig.cap = paste0("Individual variable importance for predicting IC-50. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.height = 10, fig.width = 20, eval = run_indi_vimp}
-## only report non-cv if no_cv
-if (no_cv) {
-    ic50_grp_vimp_grob_lst <- log10.pc.ic50_vimp_plots
-} else {
-    ic50_grp_vimp_grob_lst <- log10.pc.ic50_cv_vimp_plots
-}
-if (is.character(ic50_grp_vimp_grob_lst$individual)) {
-    print(ic50_grp_vimp_grob_lst$individual)
-} else {
-    grid.arrange(grobs = list(ic50_grp_vimp_grob_lst$individual), ncol = 1)
-}
-
-```
-
-## IC-80
-
-We show the population-level variable importance of groups of features in predicting IC-80 in Figure \@ref(fig:ic80groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
-
-```{r ic80groupvimp, fig.cap = paste0("Group variable importance for predicting IC-80. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
-## only report non-cv if no_cv
-if (!reduce_outcomes) {
-    if (no_cv) {
-        ic80_grp_vimp_grob_lst <- log10.pc.ic80_vimp_plots
-    } else {
-        ic80_grp_vimp_grob_lst <- log10.pc.ic80_cv_vimp_plots
-    }
-    grid.arrange(grobs = list(ic80_grp_vimp_grob_lst$conditional, ic80_grp_vimp_grob_lst$marginal), ncol = 2)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-```{r ic80indivimp, eval = run_indi_vimp}
-print(paste0("We show the individual-level variable importance for the top ", num_pop_import, " variables in Figure \@ref(fig:ic80indivvimp). This importance is computed relative to the null model with geographic confounders only."))
-
-```{r ic80indivvimp, fig.cap = paste0("Individual variable importance for predicting IC-80. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.height = 10, fig.width = 20, eval = run_indi_vimp}
-## only report non-cv if no_cv
-if (!reduce_outcomes) {
-    if (no_cv) {
-        ic80_grp_vimp_grob_lst <- log10.pc.ic80_vimp_plots
-    } else {
-        ic80_grp_vimp_grob_lst <- log10.pc.ic80_cv_vimp_plots
-    }
-    if (is.character(ic80_grp_vimp_grob_lst$individual)) {
-        print(ic80_grp_vimp_grob_lst$individual)
-    } else {
-        grid.arrange(grobs = list(ic80_grp_vimp_grob_lst$individual), ncol = 1)
-    }
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-## IIP
-
-We show the population-level variable importance of groups of features in predicting IIP in Figure \@ref(fig:iipgroupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
-
-```{r iipgroupvimp, fig.cap = paste0("Group variable importance for predicting IIP. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.cap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
-## only report non-cv if no_cv
-if (!reduce_outcomes) {
-    if (no_cv) {
-        iip_grp_vimp_grob_lst <- iip_vimp_plots
-    } else {
-        iip_grp_vimp_grob_lst <- iip_cv_vimp_plots
-    }
-    grid.arrange(grobs = list(iip_grp_vimp_grob_lst$conditional, iip_grp_vimp_grob_lst$marginal), ncol = 2)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-```{r iipindivimp, eval = run_indi_vimp}
-print(paste0("We show the individual-level variable importance for the top ", num_pop_import, " variables in Figure \@ref(fig:iipindivvimp). This importance is computed relative to the null model with geographic confounders only."))
-
-```{r iipindivvimp, fig.cap = paste0("Individual variable importance for predicting IIP. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.height = 10, fig.width = 20, eval = run_indi_vimp}
-## only report non-cv if no_cv
-if (!reduce_outcomes) {
-    if (no_cv) {
-        iip_grp_vimp_grob_lst <- iip_vimp_plots
-    } else {
-        iip_grp_vimp_grob_lst <- iip_cv_vimp_plots
-    }
-    if (is.character(iip_grp_vimp_grob_lst$individual)) {
-        print(iip_grp_vimp_grob_lst$individual)
-    } else {
-        grid.arrange(grobs = list(iip_grp_vimp_grob_lst$individual), ncol = 1)
-    }
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-## Dichotomous sensitivity 1
-
-We show the population-level variable importance of groups of features in predicting estimated sensitivity in Figure \@ref(fig:dichot1groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
-
-```{r dichot1groupvimp, fig.cap = paste0("Group variable importance for predicting estimated sensitivity. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
-## only report non-cv if no_cv
-if (!reduce_outcomes) {
-    if (no_cv) {
-        dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_vimp_plots
-    } else {
-        dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_cv_vimp_plots
-    }
-    grid.arrange(grobs = list(dichotomous.1_grp_vimp_grob_lst$conditional, dichotomous.1_grp_vimp_grob_lst$marginal), ncol = 2)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-```{r dichot1indivimp, eval = run_indi_vimp}
-print(paste0("We show the individual-level variable importance for the top ", num_pop_import, " variables in Figure \@ref(fig:dichot1indivvimp). This importance is computed relative to the null model with geographic confounders only."))
-```
-
-```{r dichot1indivvimp, fig.cap = paste0("Individual variable importance for predicting estimated sensitivity. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.height = 10, fig.width = 20, eval = run_indi_vimp}
-## only report non-cv if no_cv
-if (!reduce_outcomes) {
-    if (no_cv) {
-        dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_vimp_plots
-    } else {
-        dichotomous.1_grp_vimp_grob_lst <- dichotomous.1_cv_vimp_plots
-    }
-    if (is.character(dichotomous.1_grp_vimp_grob_lst$individual)) {
-        print(dichotomous.1_grp_vimp_grob_lst$individual)
-    } else {
-        grid.arrange(grobs = list(dichotomous.1_grp_vimp_grob_lst$individual), ncol = 1)
-    }
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-## Dichotomous sensitivity 2
-
-We show the population-level variable importance of groups of features in predicting multiple sensitivity in Figure \@ref(fig:dichot2groupvimp). The left-hand plot shows the conditional importance of the group relative to all other groups. The right-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only.
-
-```{r dichot2groupvimp, fig.cap = paste0("Group variable importance for predicting multiple sensitivity. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Conditional importance", "Marginal importance"), fig.height = 10, fig.width = 20}
-## only report non-cv if no_cv
-if (!reduce_outcomes) {
-    if (no_cv) {
-        dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_vimp_plots
-    } else {
-        dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_cv_vimp_plots
-    }
-    grid.arrange(grobs = list(dichotomous.2_grp_vimp_grob_lst$conditional, dichotomous.2_grp_vimp_grob_lst$marginal), ncol = 2)
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-```{r dichot2indivimp, eval = run_indi_vimp}
-print(paste0("We show the individual-level variable importance for the top ", num_pop_import, " variables in Figure \@ref(fig:dichot2indivvimp). This importance is computed relative to the null model with geographic confounders only."))
-```
-
-```{r dichot2indivvimp, fig.cap = paste0("Individual variable importance for predicting multiple sensitivity. We used the ", n_row_now, " observations with complete sequence data in this analysis. To estimate the prediction functions based on geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.height = 10, fig.width = 20, eval = run_indi_vimp}
-## only report non-cv if no_cv
-if (!reduce_outcomes) {
-    if (no_cv) {
-        dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_vimp_plots
-    } else {
-        dichotomous.2_grp_vimp_grob_lst <- dichotomous.2_cv_vimp_plots
-    }
-    if (is.character(dichotomous.2_grp_vimp_grob_lst$individual)) {
-        print(dichotomous.2_grp_vimp_grob_lst$individual)
-    } else {
-        grid.arrange(grobs = list(dichotomous.2_grp_vimp_grob_lst$individual), ncol = 1)
-    }
-} else {
-    print("Only results for IC-50 are shown, since reduce_outcomes = TRUE.")
-}
-```
-
-## Variable group definitions
-
-Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for importance.
-
-``` {r vimpGroupTab}
-## all_var_groups is created in preamble
-var_grps_chr_lst <- lapply(lapply(all_var_groups, function(x) strsplit(x, ".", fixed = TRUE)), function(x) do.call(c, lapply(x, function(y) paste0(y[!grepl("hxb2", y) & !grepl("mer", y)], collapse = "."))))
-grptab <- do.call(rbind, lapply(var_grps_chr_lst, function(x) paste0(x, collapse = ", ")))
-kable(grptab, col.names = "Variables",
-      digits = 3, row.names = TRUE,
-      caption = "Individual variables within each variable group.")
-```
+`r if(!("sens2" %in% opts$outcomes)) "-->"`
