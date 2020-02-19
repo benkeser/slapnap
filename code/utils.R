@@ -1,6 +1,6 @@
 ## various utility functions
 
-# for a given outcome make a panel histogram of the individual 
+# for a given outcome make a panel histogram of the individual
 # nabs and a summary table
 get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
     out_hist <- list()
@@ -29,7 +29,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
         out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name),
                                           x_lab = bquote(log[10]~"(IC-50 "~.(opts$nab[i])~")"),
-                                          y_lab = "")        
+                                          y_lab = "")
     }
     return(list(hist = out_hist, summary = out_summary))
 }
@@ -44,8 +44,8 @@ get_learner_descriptions <- function(opts){
         }else if(opts$learners == "lasso"){
             "elastic net regression"
         }
-        tmp <- paste(learner_label, 
-                     ifelse(opts$cvtune, 
+        tmp <- paste(learner_label,
+                     ifelse(opts$cvtune,
                             "with tuning parameters selected using a limited grid search and cross-validation.",
                             "with tuning parameters set to their 'default' values."))
     }else{
@@ -76,6 +76,7 @@ get_learner_descriptions <- function(opts){
 # given options and n_row_now (for captions) load appropriate SuperLearner/
 # CV.SuperLearner fits and create a list of CV results for all continuous
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
+
 # each entry in the output list is a kable that should be properly labeled. 
 get_cv_outcomes_tables <- function(fit_list){
     fit_list <- fit_list_out$out
@@ -102,7 +103,7 @@ get_cv_outcomes_tables <- function(fit_list){
         rsq_kab <- kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = paste0("Estimates of ", V, "-fold cross-validated R-squared for super learner predictions ",
-                               "of the three continuous-valued outcomes (n = ", n_row_now, 
+                               "of the three continuous-valued outcomes (n = ", n_row_now,
                                " observations with complete sequence data)."))
     }
     # now format dichotomous outcomes table
@@ -116,7 +117,7 @@ get_cv_outcomes_tables <- function(fit_list){
         auc_kab <- kable(auctab, col.names = c("CVAUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = paste0("Estimates of ", V, "-fold cross-validated R-squared for super learner predictions ",
-                               "of the three continuous-valued outcomes (n = ", n_row_now, 
+                               "of the three continuous-valued outcomes (n = ", n_row_now,
                                " observations with complete sequence data)."))
     }
     return(list(r2 = rsq_kab, auc = auc_kab))
@@ -180,7 +181,7 @@ get_outcome_descriptions <- function(opts){
             tmp1_5 <- ifelse((ic50_pres & ic80_pres) | iip_pres, "were ", "was ")
             tmp2 <- paste0("computed based on the additive model of Wagh et al. (2016); ",
                            "for $J$ antibodies, it is computed as \\[ \\mbox{predicted IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
-                           " where $\\mbox{IC}_j$ denotes the measured ", 
+                           " where $\\mbox{IC}_j$ denotes the measured ",
                            paste0(ifelse(ic50_pres, "IC-50 ", ""),
                                   ifelse(ic50_pres & ic80_pres, "or ", ""),
                                   ifelse(ic80_pres, "IC-80 ", ""), collapse = ""),
@@ -201,7 +202,7 @@ get_outcome_descriptions <- function(opts){
         if(sens2_pres){
             tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC50 $> 1$ for at least two antibodies.")
         }
-    }else{
+    } else {
         if(iip_pres){
             tmp <- paste0("IIP is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{IC-50}^m + 10^m} \ , \\]",

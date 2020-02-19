@@ -34,6 +34,19 @@ ncomplete <- readRDS(paste0(slfits_dir, "ncomplete.rds"))
 analysis_data_name <- list.files(paste0(data_dir, "analysis"))
 dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 dat <- dat[complete.cases(dat),]
+
+# make nice outcome names
+all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
+all_labels <- c("IC-50", "IC-80", "IIP", "Estimated", "Multiple")
+nice_outcomes <- opts$outcomes
+for(i in seq_along(all_outcomes)){
+    nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
+}
+# now format continuous outcomes table
+cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
+bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
+cont_nms <- nice_outcomes[cont_idx]
+bin_nms <- nice_outcomes[bin_idx]
 ```
 
 # Executive summary
@@ -79,10 +92,51 @@ get_cv_outcomes_tables(fit_list_out)[[1]]
 get_cv_outcomes_tables(fit_list_out)[[2]]
 ```
 
-`r if(!opts$cvperf) "-->"`
+`r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
 
 `r if(!("ic50" %in% opts$outcomes)) "<!--"`
 
+`r if(!opts$cvperf) "-->"`
+
+<!-- If we did conditional group variable importance, print the next section -->
+`r if (!("cond" %in% opts$importance_grp)) "<!--"`
+In Table \@ref(tab:vimpgrpcond), we display the groups of variables and their ranked conditional population variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+
+```{r vimpgrpcond, eval = "cond" %in% opts$importance_grp}
+## vimp_summary_tbl created in preamble
+vimp_summary_cond <- vimp_summary_tbl$grp_cond %>%
+    select(-mn_rank)
+correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
+cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "R^2", paste0("R^2 for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
+bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
+correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
+## make the table
+kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = paste0("Ranked conditional variable importance of groups relative to the remaining features for predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data."))
+```
+
+`r if (!("cond" %in% opts$importance_grp)) "-->"`
+
+<!-- If we did marginal group variable importance, print the next section -->
+`r if (!("marg" %in% opts$importance_grp)) "<!--"`
+In Table \@ref(tab:vimpgrpmarg), we display the groups of variables and their ranked marginal population variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+
+```{r vimpgrpmarg, eval = "marg" %in% opts$importance_grp}
+## vimp_summary_tbl created in preamble
+vimp_summary_marg <- vimp_summary_tbl$grp_marg %>%
+    select(-mn_rank)
+correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
+cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "R^2", paste0("R^2 for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
+bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
+correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
+## make the table
+kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = paste0("Ranked marginal variable importance of groups relative to the group of geographic confounders predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data."))
+```
+
+`r if (!("marg" %in% opts$importance_grp)) "-->"`
+
+<!--
+The estimated variable importance of individual features in the Super Learner are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report.
+=======
 # Results for IC-50
 
 ## Descriptive statistics
@@ -141,6 +195,9 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if(!opts$cvperf) "<!--"`
 
+<!-- If we estimated for IC-50, print the next section -->
+`r if(!("ic50" %in% opts$outcomes)) "<!--"`
+
 ## Predictive performance
 
 `r if(length(opts$learners) == 1 & !opts$cvtune) "<!--"`
@@ -180,10 +237,9 @@ plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_
 
 `r if(!("ic50" %in% opts$outcomes)) "-->"`
 
-
+<!-- If we estimated for IC-80, print the next section -->
 
 `r if(!("ic80" %in% opts$outcomes)) "<!--"`
-
 
 # Results for IC-80
 
