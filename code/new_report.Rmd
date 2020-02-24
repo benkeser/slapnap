@@ -9,22 +9,35 @@ header-includes:
 
 ```{r setup, include=FALSE}
 in_container <- TRUE
-if(in_container){
+david_computer <- TRUE
+if (in_container) {
   code_dir <- "/home/lib/"
   slfits_dir <- "/home/slfits/"
   data_dir <- "/home/dat/"
-}else{
-  code_dir <- "~/Dropbox/Emory/AMP/slapnap/code/"
-  slfits_dir <- "~/Dropbox/Emory/AMP/slapnap/slfits/"
-  data_fit <- "~/Dropbox/Emory/AMP/slapnap/data/"
+} else {
+    if (david_computer) {
+        code_dir <- "~/Dropbox/Emory/AMP/slapnap/code/"
+        slfits_dir <- "~/Dropbox/Emory/AMP/slapnap/slfits/"
+        data_dir <- "~/Dropbox/Emory/AMP/slapnap/data/"
+    } else {
+        opts <- list(nab = "VRC07-523-LS", outcomes = "ic50",
+                     learners = "xgboost", cvtune = TRUE, cvperf = TRUE,
+                     importance_grp = "marg", importance_ind = "marg")
+        code_dir <- "~/Documents/Papers/slapnap/code/"
+        slfits_dir <- "~/Documents/Papers/slapnap/sandbox/slfits/"
+        data_dir <- "~/Documents/Papers/slapnap/sandbox/data/"
+    }
+
 }
-source(paste0(code_dir, "report_preamble.R"))
+source(paste0(code_dir, "report_preamble.R"), local = TRUE)
 library(ggplot2)
 library(grid)
 ```
 
 ```{r get_options}
-opts <- get_global_options() 
+if (in_container) {
+  opts <- get_global_options()
+}
 any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
 any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
 # read in number of observations
@@ -58,7 +71,7 @@ Prediction of each outcome was performed using `r get_learner_descriptions(opts)
 The specific `r ifelse(length(opts$learners) > 1 | opts$cvtune == TRUE, "algorithms", "algorithm")` used in learning process `r ifelse(length(opts$learners) == 1 | opts$cvtune == TRUE, "are", "is")` described in Table \@ref(tab:sllibtab).
 
 ```{r sllibtab}
-source("/home/lib/super_learner_libraries.R")
+source(paste0(code_dir, "super_learner_libraries.R"))
 this_library <- make_sl_library_vector(opts)
 Description <- sapply(this_library, function(x){
   eval(parse(text = paste0("descr_", x)))
@@ -66,59 +79,38 @@ Description <- sapply(this_library, function(x){
 Description <- data.frame(Label = names(Description), Description = Description)
 row.names(Description) <- NULL
 kable(as.data.frame(Description), col.names = c("Label", "Description"),
-             caption = ifelse(length(opts$learners) == 1, 
+             caption = ifelse(length(opts$learners) == 1,
                               "Algorithms used in the analysis",
                               "Algorithms used in the super learner library"))
 ```
 
-`r if(length(opts$learners) == 1) "-->"`
-
+<!-- If we did cross-validated performance, print out cv performance metrics -->
 `r if(!opts$cvperf) "<!--"`
 
 ```{r}
-fit_list_out <- load_cv_fits(opts)
+fit_list_out <- load_cv_fits(opts, slfits_dir)
 cv_outcomes <- get_cv_outcomes_tables(fit_list_out)
 ```
 
-The predictive ability of the learner was assessed using cross-validation. `r if(any_cont) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."` `r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."` 
+The predictive ability of the learner was assessed using cross-validation. `r if(any_cont) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."` `r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
 
 ```{r rsquaredtable, eval = any_cont}
 get_cv_outcomes_tables(fit_list_out)[[1]]
 ```
 
-```{r auctable, eval = any_cont}
+```{r auctable, eval = any_dich}
 # apparently no way around calling this function multiple times
 # otherwise the labeling messes up
 get_cv_outcomes_tables(fit_list_out)[[2]]
 ```
 
 `r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
-
-`r if(!("ic50" %in% opts$outcomes)) "<!--"`
-
+<!-- Close of cv performance section -->
 `r if(!opts$cvperf) "-->"`
-
-<!-- If we did conditional group variable importance, print the next section -->
-`r if (!("cond" %in% opts$importance_grp)) "<!--"`
-In Table \@ref(tab:vimpgrpcond), we display the groups of variables and their ranked conditional population variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
-
-```{r vimpgrpcond, eval = "cond" %in% opts$importance_grp}
-## vimp_summary_tbl created in preamble
-vimp_summary_cond <- vimp_summary_tbl$grp_cond %>%
-    select(-mn_rank)
-correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
-cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "R^2", paste0("R^2 for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
-bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
-correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
-## make the table
-kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = paste0("Ranked conditional variable importance of groups relative to the remaining features for predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data."))
-```
-
-`r if (!("cond" %in% opts$importance_grp)) "-->"`
 
 <!-- If we did marginal group variable importance, print the next section -->
 `r if (!("marg" %in% opts$importance_grp)) "<!--"`
-In Table \@ref(tab:vimpgrpmarg), we display the groups of variables and their ranked marginal population variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+We define the marginal population-level importance of a subgroup of features as the difference in population predictiveness between the best possible prediction function based on the features under consideration plus geographic confounders versus only geographic confounders. In Table \@ref(tab:vimpgrpmarg), we display the groups of variables and their ranked marginal population variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
 
 ```{r vimpgrpmarg, eval = "marg" %in% opts$importance_grp}
 ## vimp_summary_tbl created in preamble
@@ -131,19 +123,37 @@ correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ife
 ## make the table
 kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = paste0("Ranked marginal variable importance of groups relative to the group of geographic confounders predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data."))
 ```
-
+<!-- Close off marginal vimp section -->
 `r if (!("marg" %in% opts$importance_grp)) "-->"`
 
-<!--
-The estimated variable importance of individual features in the Super Learner are shown in Table \@ref(tab:combinedvarimpindividualfeatures). These are features that were deemed important for prediction of at least two of the outcomes. For features associated with each outcome, please refer to the outcomes' respective sections of the report.
-=======
+<!-- If we did conditional group variable importance, print the next section -->
+`r if (!("cond" %in% opts$importance_grp)) "<!--"`
+We define the conditional population-level importance of a subgroup of features for predicting an outcome as the difference in population predictiveness between the best possible prediction function based on all available features versus all features except those under consideration. In Table \@ref(tab:vimpgrpcond), we display the groups of variables and their ranked conditional population variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+
+```{r vimpgrpcond, eval = "cond" %in% opts$importance_grp}
+## vimp_summary_tbl created in preamble
+vimp_summary_cond <- vimp_summary_tbl$grp_cond %>%
+    select(-mn_rank)
+correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
+cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "R^2", paste0("R^2 for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
+bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
+correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
+## make the table
+kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = paste0("Ranked conditional variable importance of groups relative to the remaining features for predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data."))
+```
+<!-- close off conditional vimp section -->
+`r if (!("cond" %in% opts$importance_grp)) "-->"`
+
+<!-- If we estimated for IC-50, print the next section -->
+`r if(!("ic50" %in% opts$outcomes)) "<!--"`
+
 # Results for IC-50
 
 ## Descriptive statistics
 
 `r if(length(opts$nab) == 1) "<!--"`
 
-Histograms of IC-50 for each individual neutralizing antibody are shown in Figure \@ref(fig:histic50). Related summary measures are shown in Table \@ref(tab:tableic50)
+Histograms of IC-50 for each individual neutralizing antibody are shown in Figure \@ref(fig:histic50). Related summary measures are shown in \@ref(tab:tableic50)
 
 ```{r, histic50, eval = ("ic50" %in% opts$outcomes), fig.cap = paste0("Distribution of IC-50 values (n = ", ncomplete, ") for each neutralizing antibody."), fig.height=5}
 ic50_descr <- get_individual_nab_summaries("ic50", opts, dat)
@@ -152,14 +162,14 @@ do.call(grid.arrange, ic50_descr$hist)
 
 ```{r, tableic50, eval = ("ic50" %in% opts$outcomes)}
 ic50_table <- Reduce(rbind, ic50_descr$summary)
-row.names(ic50_table) <- c(paste0("IC-50 ", opts$nab))                           
+row.names(ic50_table) <- c(paste0("IC-50 ", opts$nab))
 kable(ic50_table, row.names = TRUE, digits = 3,
       caption = paste0("Summary statistics of IC-50 values for individual NAbs (n = ", ncomplete, " observations with complete sequence data)."))
 ```
-
+<!-- close off multiple nabs section -->
 `r if(length(opts$nab) == 1) "-->"`
 
-A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-50 for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic50). 
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-50 for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic50).
 
 ```{r makecapic50}
 ic50_figcap <- if(length(opts$nab) == 1){
@@ -176,27 +186,26 @@ combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic50", bquote(log[10]~"(IC-50)"
 do.call(grid.arrange, combn_hist)
 ```
 
+<!-- if we used multiple learners, describe the SL -->
 `r if(length(opts$learners) == 1) "<!--"`
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting IC-50 are shown in Table \@ref(tab:ic50superlearnerweighttable). 
+The weights assigned to each algorithm for Super Learner predicting IC-50 are shown in Table \@ref(tab:ic50superlearnerweighttable).
 
 ```{r ic50superlearnerweighttable}
-weights_ic50 <- readRDS(paste0("/home/slfits/slweights_fit_log10.pc.ic50.rds"))
+weights_ic50 <- readRDS(paste0(slfits_dir, "slweights_fit_log10.pc.ic50.rds"))
 weight_table <- data.frame(Learner = this_library, Weight = weights_ic50)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
              caption = paste0("Table of super learner weights for IC-50 (n = ", ncomplete, " observations with complete sequence data)."))
 ```
-
+<!-- close off the SL description section -->
 `r if(length(opts$learners) == 1) "-->"`
 
+<!-- if we used CV to estimate SL performance, describe -->
 `r if(!opts$cvperf) "<!--"`
-
-<!-- If we estimated for IC-50, print the next section -->
-`r if(!("ic50" %in% opts$outcomes)) "<!--"`
 
 ## Predictive performance
 
@@ -204,41 +213,90 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if(length(opts$learners) == 1) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IC-50 are shown in Figure \@ref(fig:plotic50). 
+The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IC-50 are shown in Figure \@ref(fig:plotic50).
 
 `r if(length(opts$learners) == 1) "-->"`
 
 `r if(length(opts$learners) > 1) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic50). 
+The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic50).
 
 `r if(length(opts$learners) > 1) "-->"`
 
 ```{r plotic50, fig.cap = paste0("Cross-validated R-squared for estimated IC-50 (", ncomplete, " observations with complete sequence data)")}
-plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8, 
+plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 ```
 
 `r if(length(opts$learners) == 1 & !opts$cvtune) "-->"`
 
-Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC-50 plotted against observed values of IC-50, colored by cross-validation fold. 
+Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC-50 plotted against observed values of IC-50, colored by cross-validation fold.
 
 ```{r plotic50predversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IC-50 plotted against actual IC-50 values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_axis = FALSE)
 ```
-
+<!-- close off cv performance section -->
 `r if(!opts$cvperf) "-->"`
 
 ## Variable importance
 
+<!-- If we did any population vimp, print it -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "<!--"`
+
 ### Biological importance
+
+<!-- If we did group vimp, print it -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "<!--"`
+
+We show the population-level variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting IC-50 in Figure \@ref(fig:ic50groupvimp). Importance is defined using the difference in R-squared values.
+`r if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The left-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the group relative to all other groups."`
+`r if (("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "The plot shows the marginal importance of the group relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The plot shows the conditional importance of the group relative to all other groups."`
+
+```{r ic50groupvimp, fig.cap = paste0("Group variable importance for predicting IC-50. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
+    ic50_grp_vimp_grob_lst <- list(switch(opts$cvperf, log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_cv_vimp_plots$grp_marginal), switch(opts$cvperf, log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional))
+} else if ("marg" %in% opts$importance_grp) {
+  ic50_grp_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_cv_vimp_plots$grp_marginal)
+} else {
+  ic50_grp_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional)
+}
+grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+```
+<!-- close off group importance section -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "-->"`
+
+<!-- If we did individual vimp, print it -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "<!--"`
+
+We show the population-level variable importance of individual features in predicting IC-50 in Figure \@ref(fig:ic50indivimp). Importance is defined using the difference in R-squared values.
+`r if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The left-hand plot shows the marginal importance of the feature relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the feature relative to all other features."`
+`r if (("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "The plot shows the marginal importance of the feature relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The plot shows the conditional importance of the feature relative to all other features."`
+
+```{r ic50indivimp, fig.cap = paste0("Individual variable importance for predicting IC-50. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature of interest) and the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
+    ic50_ind_vimp_grob_lst <- list(switch(opts$cvperf, log10.pc.ic50_vimp_plots$ind_marginal, log10.pc.ic50_cv_vimp_plots$ind_marginal), switch(opts$cvperf, log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional))
+} else if ("marg" %in% opts$importance_ind) {
+  ic50_ind_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic50_vimp_plots$ind_marginal, log10.pc.ic50_cv_vimp_plots$ind_marginal)
+} else {
+  ic50_ind_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional)
+}
+grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+```
+<!-- Close off the individual vimp section -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "-->"`
+
+<!-- close off the population variable importance section -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "-->"`
 
 ### Predictive importance
 
+<!-- close off the IC-50 section -->
 `r if(!("ic50" %in% opts$outcomes)) "-->"`
 
-<!-- If we estimated for IC-80, print the next section -->
 
+<!-- If we estimated for IC-80, print the next section -->
 `r if(!("ic80" %in% opts$outcomes)) "<!--"`
 
 # Results for IC-80
@@ -256,14 +314,14 @@ do.call(grid.arrange, ic80_descr$hist)
 
 ```{r, tableic80, eval = ("ic80" %in% opts$outcomes)}
 ic80_table <- Reduce(rbind, ic80_descr$summary)
-row.names(ic80_table) <- c(paste0("IC-80 ", opts$nab))                           
+row.names(ic80_table) <- c(paste0("IC-80 ", opts$nab))
 kable(ic80_table, row.names = TRUE, digits = 3,
       caption = paste0("Summary statistics of IC-80 values for individual NAbs (n = ", ncomplete, " observations with complete sequence data)."))
 ```
-
+<!-- close off multiple nab section -->
 `r if(length(opts$nab) == 1) "-->"`
 
-A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-80 for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic80). 
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-80 for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic80).
 
 ```{r makecapic80}
 ic80_figcap <- if(length(opts$nab) == 1){
@@ -284,17 +342,17 @@ do.call(grid.arrange, combn_hist)
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting IC-80 are shown in Table \@ref(tab:ic80superlearnerweighttable). 
+The weights assigned to each algorithm for Super Learner predicting IC-80 are shown in Table \@ref(tab:ic80superlearnerweighttable).
 
 ```{r ic80superlearnerweighttable}
-weights_ic80 <- readRDS(paste0("/home/slfits/slweights_fit_log10.pc.ic80.rds"))
+weights_ic80 <- readRDS(paste0(slfits_dir, "slweights_fit_log10.pc.ic80.rds"))
 weight_table <- data.frame(Learner = this_library, Weight = weights_ic80)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
              caption = paste0("Table of super learner weights for IC-80 (n = ", ncomplete, " observations with complete sequence data)."))
 ```
-
+<!-- close off sl section -->
 `r if(length(opts$learners) == 1) "-->"`
 
 `r if(!opts$cvperf) "<!--"`
@@ -305,47 +363,96 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if(length(opts$learners) == 1) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IC-80 are shown in Figure \@ref(fig:plotic80). 
+The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IC-80 are shown in Figure \@ref(fig:plotic80).
 
 `r if(length(opts$learners) == 1) "-->"`
 
 `r if(length(opts$learners) > 1) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic80). 
+The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic80).
 
 `r if(length(opts$learners) > 1) "-->"`
 
 ```{r plotic80, fig.cap = paste0("Cross-validated R-squared for estimated IC-80 (", ncomplete, " observations with complete sequence data)")}
-plot(fit_list_out$out$ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8, 
+plot(fit_list_out$out$ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 ```
 
 `r if(length(opts$learners) == 1 & !opts$cvtune) "-->"`
 
-Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of IC-80 plotted against observed values of IC-80, colored by cross-validation fold. 
+Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of IC-80 plotted against observed values of IC-80, colored by cross-validation fold.
 
 ```{r plotic80predversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IC-80 plotted against actual IC-80 values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_axis = FALSE)
 ```
-
+<!-- close off cv perf section -->
 `r if(!opts$cvperf) "-->"`
 
 ## Variable importance
 
+<!-- If we did any population vimp, print it -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "<!--"`
+
 ### Biological importance
+
+<!-- If we did group vimp, print it -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "<!--"`
+
+We show the population-level variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting IC-80 in Figure \@ref(fig:ic80groupvimp). Importance is defined using the difference in R-squared values.
+`r if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The left-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the group relative to all other groups."`
+`r if (("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "The plot shows the marginal importance of the group relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The plot shows the conditional importance of the group relative to all other groups."`
+
+```{r ic80groupvimp, fig.cap = paste0("Group variable importance for predicting IC-80. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
+    ic80_grp_vimp_grob_lst <- list(switch(opts$cvperf, log10.pc.ic80_vimp_plots$grp_marginal, log10.pc.ic80_cv_vimp_plots$grp_marginal), switch(opts$cvperf, log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional))
+} else if ("marg" %in% opts$importance_grp) {
+  ic80_grp_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic80_vimp_plots$grp_marginal, log10.pc.ic80_cv_vimp_plots$grp_marginal)
+} else {
+  ic80_grp_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional)
+}
+grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+```
+<!-- close off group importance section -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "-->"`
+
+<!-- If we did individual vimp, print it -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "<!--"`
+
+We show the population-level variable importance of individual features in predicting IC-80 in Figure \@ref(fig:ic80indivimp). Importance is defined using the difference in R-squared values.
+`r if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The left-hand plot shows the marginal importance of the feature relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the feature relative to all other features."`
+`r if (("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "The plot shows the marginal importance of the feature relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The plot shows the conditional importance of the feature relative to all other features."`
+
+```{r ic80indivimp, fig.cap = paste0("Individual variable importance for predicting IC-80. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature of interest) and the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
+    ic80_ind_vimp_grob_lst <- list(switch(opts$cvperf, log10.pc.ic80_vimp_plots$ind_marginal, log10.pc.ic80_cv_vimp_plots$ind_marginal), switch(opts$cvperf, log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional))
+} else if ("marg" %in% opts$importance_ind) {
+  ic80_ind_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic80_vimp_plots$ind_marginal, log10.pc.ic80_cv_vimp_plots$ind_marginal)
+} else {
+  ic80_ind_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional)
+}
+grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+```
+<!-- Close off the individual vimp section -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "-->"`
+
+<!-- close off the population variable importance section -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "-->"`
 
 ### Predictive importance
 
+<!-- close off IC-80 section -->
 `r if(!("ic80" %in% opts$outcomes)) "-->"`
 
-
+<!-- IIP section -->
 `r if(!("iip" %in% opts$outcomes)) "<!--"`
 
 # Results for IIP
 
 ## Descriptive statistics
 
-A summary of the distribution of IIP for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombniip). 
+A summary of the distribution of IIP for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombniip).
 
 ```{r makecapiip}
 iip_figcap <- if(length(opts$nab) == 1){
@@ -364,10 +471,10 @@ do.call(grid.arrange, combn_hist)
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting IC-50 are shown in Table \@ref(tab:ic50superlearnerweighttable). 
+The weights assigned to each algorithm for Super Learner predicting IIP are shown in Table \@ref(tab:iipsuperlearnerweighttable).
 
 ```{r iipsuperlearnerweighttable}
-weights_iip <- readRDS(paste0("/home/slfits/slweights_fit_iip.rds"))
+weights_iip <- readRDS(paste0(slfits_dir, "slweights_fit_iip.rds"))
 weight_table <- data.frame(Learner = this_library, Weight = weights_iip)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
@@ -385,57 +492,105 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if(length(opts$learners) == 1) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IIP are shown in Figure \@ref(fig:plotiip). 
+The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IIP are shown in Figure \@ref(fig:plotiip).
 
 `r if(length(opts$learners) == 1) "-->"`
 
 `r if(length(opts$learners) > 1) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotiip). 
+The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotiip).
 
 `r if(length(opts$learners) > 1) "-->"`
 
 ```{r plotiip, fig.cap = paste0("Cross-validated R-squared for estimated IIP (", ncomplete, " observations with complete sequence data)")}
-plot(fit_list_out$out$iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 0.8, 
+plot(fit_list_out$out$iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 ```
 
 `r if(length(opts$learners) == 1 & !opts$cvtune) "-->"`
 
-Figure \@ref(fig:plotiippredversusoutcomes) shows cross-validated predictions of IIP plotted against observed values of IIP, colored by cross-validation fold. 
+Figure \@ref(fig:plotiippredversusoutcomes) shows cross-validated predictions of IIP plotted against observed values of IIP, colored by cross-validation fold.
 
 ```{r plotiippredversusoutcomes, fig.cap = paste0("Cross-validated super learner predicted IIP plotted against actual IIP values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$iip, outcome_name = "IIP", log_axis = FALSE)
 ```
-
+<!-- close off cv perf section -->
 `r if(!opts$cvperf) "-->"`
 
 ## Variable importance
 
+<!-- If we did any population vimp, print it -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "<!--"`
+
 ### Biological importance
+
+<!-- If we did group vimp, print it -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "<!--"`
+
+We show the population-level variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting IIP in Figure \@ref(fig:iipgroupvimp). Importance is defined using the difference in R-squared values.
+`r if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The left-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the group relative to all other groups."`
+`r if (("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "The plot shows the marginal importance of the group relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The plot shows the conditional importance of the group relative to all other groups."`
+
+```{r iipgroupvimp, fig.cap = paste0("Group variable importance for predicting IIP. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
+    iip_grp_vimp_grob_lst <- list(switch(opts$cvperf, iip_vimp_plots$grp_marginal, iip_cv_vimp_plots$grp_marginal), switch(opts$cvperf, iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional))
+} else if ("marg" %in% opts$importance_grp) {
+  iip_grp_vimp_grob_lst <- switch(opts$cvperf, iip_vimp_plots$grp_marginal, iip_cv_vimp_plots$grp_marginal)
+} else {
+  iip_grp_vimp_grob_lst <- switch(opts$cvperf, iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional)
+}
+grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+```
+<!-- close off group importance section -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "-->"`
+
+<!-- If we did individual vimp, print it -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "<!--"`
+
+We show the population-level variable importance of individual features in predicting IIP in Figure \@ref(fig:iipindivimp). Importance is defined using the difference in R-squared values.
+`r if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The left-hand plot shows the marginal importance of the feature relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the feature relative to all other features."`
+`r if (("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "The plot shows the marginal importance of the feature relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The plot shows the conditional importance of the feature relative to all other features."`
+
+```{r iipindivimp, fig.cap = paste0("Individual variable importance for predicting IIP. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature of interest) and the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
+    iip_ind_vimp_grob_lst <- list(switch(opts$cvperf, iip_vimp_plots$ind_marginal, iip_cv_vimp_plots$ind_marginal), switch(opts$cvperf, iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional))
+} else if ("marg" %in% opts$importance_ind) {
+  iip_ind_vimp_grob_lst <- switch(opts$cvperf, iip_vimp_plots$ind_marginal, iip_cv_vimp_plots$ind_marginal)
+} else {
+  iip_ind_vimp_grob_lst <- switch(opts$cvperf, iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional)
+}
+grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+```
+<!-- Close off the individual vimp section -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "-->"`
+
+<!-- close off the population variable importance section -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "-->"`
 
 ### Predictive importance
 
+<!-- end IIP section -->
 `r if(!("iip" %in% opts$outcomes)) "-->"`
 
-
-
+<!-- estimated sensitivity -->
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
 
 # Results for estimated sensitivity
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive. 
+Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive.
 
 `r if(length(opts$learners) == 1) "<!--"`
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting estimated sensitivity are shown in Table \@ref(tab:sens1superlearnerweighttable). 
+The weights assigned to each algorithm for Super Learner predicting estimated sensitivity are shown in Table \@ref(tab:sens1superlearnerweighttable).
 
 ```{r sens1superlearnerweighttable, eval = "sens1" %in% opts$outcomes}
-weights_sens1 <- readRDS(paste0("/home/slfits/slweights_fit_dichotomous.1.rds"))
+weights_sens1 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.1.rds"))
 weight_table <- data.frame(Learner = this_library, Weight = weights_sens1)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
@@ -457,16 +612,16 @@ The cross-validated performance of super learner, as measured by area under the 
 
 `r if((length(opts$learners) > 1 | !opts$cvtune) & "sens1" %in% opts$outcomes) "<!--"`
 
-The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1). 
+The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
-```{r plotdichot1, fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated IC-50 (n = ", ncomplete, "observations with complete sequence data)."), eval = "sens1" %in% opts$outcomes}
-plot(fit_list_out$out$sens1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9, 
+```{r plotdichot1, fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated sensitivity (n = ", ncomplete, "observations with complete sequence data)."), eval = "sens1" %in% opts$outcomes}
+plot(fit_list_out$out$sens1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 ```
 
 `r if((length(opts$learners) > 1 | !opts$cvtune) & "sens1" %in% opts$outcomes) "-->"`
 
-Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting estimated sensitivity. 
+Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting estimated sensitivity.
 
 ```{r roccap1, eval = "sens1" %in% opts$outcomes}
 roc_cap <- if(length(opts$learners) > 1){
@@ -493,32 +648,81 @@ plot_roc_curves(fit_list_out$out$sens1, opts = opts)
 ```{r predprob1, fig.cap = predprob_cap, eval = "sens1" %in% opts$outcomes}
 plot_predicted_prob_boxplots(cvfit_dichotomous.1, opts = opts)
 ```
-
+<!-- end cv performance section -->
 `r if(!opts$cvperf) "-->"`
 
 ## Variable importance
 
+<!-- If we did any population vimp, print it -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "<!--"`
+
 ### Biological importance
+
+<!-- If we did group vimp, print it -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "<!--"`
+
+We show the population-level variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting estimated sensitivity in Figure \@ref(fig:sens1groupvimp). Importance is defined using the difference in AUCs.
+`r if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The left-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the group relative to all other groups."`
+`r if (("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "The plot shows the marginal importance of the group relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The plot shows the conditional importance of the group relative to all other groups."`
+
+```{r sens1groupvimp, fig.cap = paste0("Group variable importance for predicting estimated sensitivity. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
+    sens1_grp_vimp_grob_lst <- list(switch(opts$cvperf, dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal), switch(opts$cvperf, dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional))
+} else if ("marg" %in% opts$importance_grp) {
+  sens1_grp_vimp_grob_lst <- switch(opts$cvperf, dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal)
+} else {
+  sens1_grp_vimp_grob_lst <- switch(opts$cvperf, dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional)
+}
+grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+```
+<!-- close off group importance section -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "-->"`
+
+<!-- If we did individual vimp, print it -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "<!--"`
+
+We show the population-level variable importance of individual features in predicting estimated sensitivity in Figure \@ref(fig:sems1indivimp). Importance is defined using the difference in AUCs.
+`r if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The left-hand plot shows the marginal importance of the feature relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the feature relative to all other features."`
+`r if (("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "The plot shows the marginal importance of the feature relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The plot shows the conditional importance of the feature relative to all other features."`
+
+```{r sens1indivimp, fig.cap = paste0("Individual variable importance for predicting estimated sensitivity. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature of interest) and the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
+    sens1_ind_vimp_grob_lst <- list(switch(opts$cvperf, dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal), switch(opts$cvperf, dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional))
+} else if ("marg" %in% opts$importance_ind) {
+  sens1_ind_vimp_grob_lst <- switch(opts$cvperf, dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal)
+} else {
+  sens1_ind_vimp_grob_lst <- switch(opts$cvperf, dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional)
+}
+grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+```
+<!-- Close off the individual vimp section -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "-->"`
+
+<!-- close off the population variable importance section -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "-->"`
 
 ### Predictive importance
 
+<!-- close off estimated sensitivity section -->
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 
-
+<!-- multiple sensitivity section -->
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
 
 # Results for multiple sensitivity
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive. 
+Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive.
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting estimated sensitivity are shown in Table \@ref(tab:sens2superlearnerweighttable)\. 
+The weights assigned to each algorithm for Super Learner predicting multiple sensitivity are shown in Table \@ref(tab:sens2superlearnerweighttable)\.
 
 ```{r sens2superlearnerweighttable}
-weights_sens2 <- readRDS(paste0("/home/slfits/slweights_fit_dichotomous.2.rds"))
+weights_sens2 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.2.rds"))
 weight_table <- data.frame(Learner = this_library, Weight = weights_sens2)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
@@ -528,6 +732,7 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if(length(opts$learners) == 1) "-->"`
 
+<!-- cv performance section -->
 `r if(!opts$cvperf) "<!--"`
 
 ## Predictive performance
@@ -542,16 +747,16 @@ The cross-validated performance of super learner, as measured by area under the 
 
 `r if(length(opts$learners) > 1) "<!--"`
 
-The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2). 
+The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2).
 
 ```{r plotdichot2, fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete, "observations with complete sequence data).")}
-plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9, 
+plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 ```
 
 `r if(length(opts$learners) > 1) "-->"`
 
-Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting estimated sensitivity. 
+Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting multiple sensitivity.
 
 ```{r roccap2}
 roc_cap <- if(length(opts$learners) > 1){
@@ -581,12 +786,62 @@ plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts)
 
 `r if(length(opts$learners) == 1 & !opts$cvtune) "-->"`
 
+<!-- end cv performance section -->
 `r if(!opts$cvperf) "-->"`
 
 ## Variable importance
 
+<!-- If we did any population vimp, print it -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "<!--"`
+
 ### Biological importance
+
+<!-- If we did group vimp, print it -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "<!--"`
+
+We show the population-level variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting multiple sensitivity in Figure \@ref(fig:sens2groupvimp). Importance is defined using the difference in AUCs.
+`r if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The left-hand plot shows the marginal importance of the group relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the group relative to all other groups."`
+`r if (("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "The plot shows the marginal importance of the group relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) "The plot shows the conditional importance of the group relative to all other groups."`
+
+```{r sens2groupvimp, fig.cap = paste0("Group variable importance for predicting multiple sensitivity. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature group of interest) and the feature group of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
+    sens2_grp_vimp_grob_lst <- list(switch(opts$cvperf, dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal), switch(opts$cvperf, dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional))
+} else if ("marg" %in% opts$importance_grp) {
+  sens2_grp_vimp_grob_lst <- switch(opts$cvperf, dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal)
+} else {
+  sens2_grp_vimp_grob_lst <- switch(opts$cvperf, dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional)
+}
+grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+```
+<!-- close off group importance section -->
+`r if (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) "-->"`
+
+<!-- If we did individual vimp, print it -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "<!--"`
+
+We show the population-level variable importance of individual features in predicting multiple sensitivity in Figure \@ref(fig:sens2indivimp). Importance is defined using the difference in AUCs.
+`r if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The left-hand plot shows the marginal importance of the feature relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the feature relative to all other features."`
+`r if (("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "The plot shows the marginal importance of the feature relative to the null model with geographic confounders only."`
+`r if (!("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) "The plot shows the conditional importance of the feature relative to all other features."`
+
+```{r sens2indivimp, fig.cap = paste0("Individual variable importance for predicting multiple sensitivity. We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the feature of interest) and the feature of interest plus geographic confounders, we used the remaining ", num_obs_red, "observations."), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
+    sens2_ind_vimp_grob_lst <- list(switch(opts$cvperf, dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal), switch(opts$cvperf, dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional))
+} else if ("marg" %in% opts$importance_ind) {
+  sens2_ind_vimp_grob_lst <- switch(opts$cvperf, dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal)
+} else {
+  sens2_ind_vimp_grob_lst <- switch(opts$cvperf, dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional)
+}
+grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+```
+<!-- Close off the individual vimp section -->
+`r if (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) "-->"`
+
+<!-- close off the population variable importance section -->
+`r if ((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0)) "-->"`
 
 ### Predictive importance
 
+<!-- end multiple sensitivity section -->
 `r if(!("sens2" %in% opts$outcomes)) "-->"`

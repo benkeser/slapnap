@@ -43,7 +43,7 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
 
         return(vimp_plot)
     } else {
-        return(NULL)
+        return(grob(NULL))
     }
 }
 # vimp_plot_name <- function(vimp_obj) {
