@@ -78,7 +78,7 @@ get_learner_descriptions <- function(opts){
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
 
 # each entry in the output list is a kable that should be properly labeled.
-get_cv_outcomes_tables <- function(fit_list){
+get_cv_outcomes_tables <- function(fit_list, opts){
     fit_list <- fit_list_out$out
     V <- fit_list_out$V
     n_row_now <- fit_list_out$n_row_now
