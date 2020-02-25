@@ -16,21 +16,26 @@ library(knitr)
 library(gridExtra)
 library(xgboost); library(ranger); library(glmnet)
 library(vimp)
-source("/home/lib/variable_groups.R")
-source("/home/lib/super_learner_libraries.R")
-source("/home/lib/utils.R")
-source("/home/lib/plotting_functions.R")
-source("/home/lib/ml_var_importance_measures.R")
-source("/home/lib/var_import_plot.R")
-source("/home/lib/vimp_executive_summary_table.R")
-source("/home/lib/plot_one_vimp.R")
-source("/home/lib/variable_groups.R")
+# code_dir, slfits_dir, data_dir specified in new_report.Rmd
+source(paste0(code_dir, "variable_groups.R"))
+source(paste0(code_dir, "super_learner_libraries.R"))
+source(paste0(code_dir, "utils.R"))
+source(paste0(code_dir, "plotting_functions.R"))
+source(paste0(code_dir, "ml_var_importance_measures.R"))
+source(paste0(code_dir, "var_import_plot.R"))
+source(paste0(code_dir, "vimp_executive_summary_table.R"))
+source(paste0(code_dir, "plot_one_vimp.R"))
+source(paste0(code_dir, "variable_groups.R"))
 
 #---------------------
 # Permanent options
 #---------------------
 # read in options
-opts <- get_global_options()
+if (in_container) {
+  opts <- get_global_options()
+} else {
+
+}
 
 # --------------------
 # Antibodies
@@ -45,8 +50,8 @@ n_ab <- length(antibodies)
 ## ----------------------------------------------------------------------------
 get_dat <- function(){
 	# load data
-	analysis_data_name <- list.files("/home/dat/analysis")
-	dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
+	analysis_data_name <- list.files(paste0(data_dir, "analysis"))
+	dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 
 	# check missing values
 	n_row_prev <- nrow(dat)
@@ -118,7 +123,7 @@ col_idx <- geog_idx:ncol(dat)
 max_features <- 15
 if ("log10.pc.ic50" %in% outcome_names) {
     imp_ic50 <- get_all_importance("log10.pc.ic50", binary_outcome = FALSE,
-                                   dir_loc = "/home/slfits/",
+                                   dir_loc = slfits_dir,
                                    dat = dat, which_cols = col_idx, opts = opts)
    ic50_tab <- get_importance_table(imp_ic50, max_features = max_features)
    direction_resis <- get_importance_resis(ic50_tab, dat = dat, which_outcome = "log10.pc.ic50")
@@ -126,7 +131,7 @@ if ("log10.pc.ic50" %in% outcome_names) {
 }
 if ("log10.pc.ic80" %in% outcome_names) {
     imp_ic80 <- get_all_importance("log10.pc.ic80", binary_outcome = FALSE,
-                                   dir_loc = "/home/slfits/",
+                                   dir_loc = slfits_dir,
                                    dat = dat, which_cols = col_idx, opts = opts)
    ic80_tab <- get_importance_table(imp_ic80, max_features = max_features)
    direction_resis <- get_importance_resis(ic80_tab, dat = dat, which_outcome = "log10.pc.ic80")
@@ -134,7 +139,7 @@ if ("log10.pc.ic80" %in% outcome_names) {
 }
 if ("iip" %in% outcome_names) {
     imp_iip <- get_all_importance("iip", binary_outcome = FALSE,
-                                   dir_loc = "/home/slfits/",
+                                   dir_loc = slfits_dir,
                                    dat = dat, which_cols = col_idx, opts = opts)
    iip_tab <- get_importance_table(imp_iip, max_features = max_features)
    direction_resis <- get_importance_resis(iip_tab, dat = dat, which_outcome = "iip")
@@ -142,7 +147,7 @@ if ("iip" %in% outcome_names) {
 }
 if ("dichotomous.1" %in% outcome_names) {
     imp_dichot1 <- get_all_importance("dichotomous.1", binary_outcome = TRUE,
-                                   dir_loc = "/home/slfits/",
+                                   dir_loc = slfits_dir,
                                    dat = dat, which_cols = col_idx, opts = opts)
    dichot1_tab <- get_importance_table(imp_dichot1, max_features = max_features)
    direction_resis <- get_importance_resis(dichot1_tab, dat = dat, which_outcome = "dichotomous.1")
@@ -150,7 +155,7 @@ if ("dichotomous.1" %in% outcome_names) {
 }
 if ("dichotomous.2" %in% outcome_names) {
     imp_dichot2 <- get_all_importance("dichotomous.2", binary_outcome = TRUE,
-                                   dir_loc = "/home/slfits/",
+                                   dir_loc = slfits_dir,
                                    dat = dat, which_cols = col_idx, opts = opts)
    dichot2_tab <- get_importance_table(imp_dichot2, max_features = max_features)
    direction_resis <- get_importance_resis(dichot2_tab, dat = dat, which_outcome = "dichotomous.2")
@@ -176,9 +181,9 @@ num_pop_import <- 20  # the number of individual features to display in plots
 
 ## plotting things
 x_lab_continuous <- expression(paste("Difference in ", R^2, sep = ""))
-x_lim_continuous <- c(0, 1)
+x_lim_continuous <- c(0, 1.2)
 x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
-x_lim_binary <- c(0, 1)
+x_lim_binary <- c(0, 1.2)
 ## read in importance results for each outcome, create a plot for each
 ## only return non-cv plots if cv = FALSE
 imp_nms <- list(all_var_groups, all_var_groups, var_inds)
@@ -192,15 +197,15 @@ for (i in 1:length(outcome_names)) {
         this_x_lim <- x_lim_continuous
     }
     ## importance results
-    eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_vimp.rds')")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = '/home/slfits/", this_outcome_name, "_cv_vimp.rds')")))
-    eval(parse(text = paste0(this_outcome_name, "_outer_folds <- readRDS(file = '/home/slfits/", this_outcome_name, "_outer_folds.rds')")))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_vimp.rds'))")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_cv_vimp.rds'))")))
+    eval(parse(text = paste0(this_outcome_name, "_outer_folds <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_outer_folds.rds'))")))
     eval(parse(text = paste0("num_obs_full <- sum(", this_outcome_name, "_outer_folds == 1)")))
     eval(parse(text = paste0("num_obs_red <- sum(", this_outcome_name, "_outer_folds == 2)")))
     ## make plots
     eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
     eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
-    vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", names(current_vimp_lst))
+    vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", unlist(lapply(as.list(names(current_vimp_lst)), vimp_plot_type)))
     eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
     eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
 }

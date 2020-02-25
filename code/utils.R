@@ -77,8 +77,8 @@ get_learner_descriptions <- function(opts){
 # CV.SuperLearner fits and create a list of CV results for all continuous
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
 
-# each entry in the output list is a kable that should be properly labeled. 
-get_cv_outcomes_tables <- function(fit_list){
+# each entry in the output list is a kable that should be properly labeled.
+get_cv_outcomes_tables <- function(fit_list, opts){
     fit_list <- fit_list_out$out
     V <- fit_list_out$V
     n_row_now <- fit_list_out$n_row_now
@@ -125,7 +125,7 @@ get_cv_outcomes_tables <- function(fit_list){
 
 # load cv_fits for given set of opts, needed since the naming convention
 # is different if length(opts$learners) == 1 and opts$cvtune == FALSE
-load_cv_fits <- function(opts){
+load_cv_fits <- function(opts, code_dir){
     if(!opts$cvtune & !opts$cvperf){
         stop("no cross-validated fit for these options")
     }
@@ -137,7 +137,7 @@ load_cv_fits <- function(opts){
         for(i in seq_along(all_outcomes)){
             if(all_outcomes[i] %in% opts$outcomes){
                 ct <- ct + 1
-                out_list[[ct]] <- readRDS(paste0("/home/slfits/fit_", all_file_labels[i], ".rds"))
+                out_list[[ct]] <- readRDS(paste0(code_dir, "fit_", all_file_labels[i], ".rds"))
                 class(out_list[[ct]]) <- c("myCV.SuperLearner", class(out_list[[ct]]))
                 names(out_list)[ct] <- all_outcomes[i]
             }
@@ -147,7 +147,7 @@ load_cv_fits <- function(opts){
         for(i in seq_along(all_outcomes)){
             if(all_outcomes[i] %in% opts$outcomes){
                 ct <- ct + 1
-                out_list[[ct]] <- readRDS(paste0("/home/slfits/cvfit_", all_file_labels[i], ".rds"))
+                out_list[[ct]] <- readRDS(paste0(code_dir, "cvfit_", all_file_labels[i], ".rds"))
                 class(out_list[[ct]]) <- c("myCV.SuperLearner", class(out_list[[ct]]))
                 names(out_list)[ct] <- all_outcomes[i]
             }
@@ -339,6 +339,14 @@ vimp_plot_name <- function(vimp_str) {
     plot_nms[grepl("dichotomous.1", vimp_str)] <- "Estimated sensitivity"
     plot_nms[grepl("dichotomous.2", vimp_str)] <- "Multiple sensitivity"
     return(plot_nms)
+}
+vimp_plot_type <- function(str) {
+    grp_nm <- rev(unlist(strsplit(str, "_", fixed = TRUE)))
+    nice_grp <- gsub("grp", "Group Variable Importance", grp_nm)
+    nice_grp_ind <- gsub("ind", "Individual Variable Importance", nice_grp)
+    nice_grp_ind_marg <- gsub("marginal", "Marginal ", nice_grp_ind)
+    nice_grp_ind_marg_cond <- gsub("conditional", "Conditional ", nice_grp_ind_marg)
+    return(paste(nice_grp_ind_marg_cond, collapse = ""))
 }
 vimp_nice_rownames <- function(vimp_obj, cv = FALSE) {
     mat_s <- vimp_obj$mat$s
