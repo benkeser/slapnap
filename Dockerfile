@@ -51,11 +51,12 @@ ENV cvtune="TRUE"
 ENV cvperf="TRUE"
 
 # what group-level importance measures should be computed?
-#   possible values are marg (for marginal) cond (for conditional) or none
+#   possible values are marg (for marginal) cond (for conditional) or none (input "")
 ENV importance_grp="marg;cond"
 # what individual-level importance measures should be computed?
-#   possible values are marg (for marginal) cond (for conditional) or none
-ENV importance_ind="marg;cond"
+#   possible values are marg (for marginal), cond (for conditional), pred (for ML-specific
+#   predictive importance), or none (input "")
+ENV importance_ind="marg;cond;pred"
 
 
 #-----------------------
