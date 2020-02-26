@@ -131,24 +131,36 @@ SL.glmnet.0 <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id,
         X <- model.matrix(~-1 + ., X)
         newX <- model.matrix(~-1 + ., newX)
     }
-    fold_id <- get_fold_id(Y)
-    nfolds <- max(fold_id)
-    if(nfolds != 0){
-        fitCV <- glmnet::cv.glmnet(x = X, y = Y, weights = obsWeights,
-            lambda = NULL, type.measure = loss, nfolds = nfolds,
-            family = family$family, alpha = alpha, nlambda = nlambda,
-            ...)
-        pred <- predict(fitCV, newx = newX, type = "response", s = ifelse(useMin,
-            "lambda.min", "lambda.1se"))
-        fit <- list(object = fitCV, useMin = useMin)
-        class(fit) <- "SL.glmnet"
+    
+    if(family$family == "binomial"){
+        fold_id <- get_fold_id(Y)
+        nfolds <- max(fold_id)
+        if(nfolds != 0){
+            fitCV <- glmnet::cv.glmnet(x = X, y = Y, weights = obsWeights,
+                lambda = NULL, type.measure = loss, nfolds = nfolds,
+                foldid = fold_id, family = family$family, alpha = alpha, nlambda = nlambda,
+                ...)
+            pred <- predict(fitCV, newx = newX, type = "response", s = ifelse(useMin,
+                "lambda.min", "lambda.1se"))
+            fit <- list(object = fitCV, useMin = useMin)
+            class(fit) <- "SL.glmnet"
+        }else{
+            # if fewer than 3 cases, just use mean
+            meanY <- weighted.mean(Y, w = obsWeights)
+            pred <- rep.int(meanY, times = nrow(newX))
+            fit <- list(object = meanY)
+            out <- list(pred = pred, fit = fit)
+            class(fit) <- c("SL.mean")
+        }
     }else{
-        # if fewer than 3 cases, just use mean
-        meanY <- weighted.mean(Y, w = obsWeights)
-        pred <- rep.int(meanY, times = nrow(newX))
-        fit <- list(object = meanY)
-        out <- list(pred = pred, fit = fit)
-        class(out$fit) <- c("SL.mean")
+        fitCV <- glmnet::cv.glmnet(x = X, y = Y, weights = obsWeights,
+                lambda = NULL, type.measure = loss, nfolds = nfolds,
+                family = family$family, alpha = alpha, nlambda = nlambda,
+                ...)
+            pred <- predict(fitCV, newx = newX, type = "response", s = ifelse(useMin,
+                "lambda.min", "lambda.1se"))
+            fit <- list(object = fitCV, useMin = useMin)
+            class(fit) <- "SL.glmnet"
     }
     out <- list(pred = pred, fit = fit)
     return(out)
