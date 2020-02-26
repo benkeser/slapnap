@@ -1,4 +1,46 @@
 ## various utility functions
+#' @param opts options
+#' @param imp_df importance data.frame
+#' @param n_ft number of features shown
+get_importance_text <- function(opts, imp_df, n_ft = 20){
+    algo_with_highest_wt <- imp_df$algo[1]
+
+    # check if super learner
+    is_sl <- length(opts$learners > 1)
+    # check if tuning parameters varied
+    is_tuned <- opts$cvtune
+
+    # if random forest
+    if(!is_sl & "rf" %in% opts$learners){
+        text_out <- paste0("Specifically, random forest variable permutation-based variable importance measures were computed and the top ", n_ft, " features are shown. The permutation-based importance measures the decrease in predictive accuracy when making out-of-bag predictions and randomly permuting a given feature from its original values.")
+        if(is_tuned){
+            text_out <- paste0(text_out, " These measures are shown for the choice of tuning parameters with the best model fit, as chosen by cross-validation.")
+        }
+    }else if(!is_sl & "xgboost" %in% opts$learners){
+        text_out <- paste0("Specifically, xgboost gain importance measures were computed and the top ", n_ft, " features are shown. Gain measures the improvement in accuracy brought by a given feature to the tree branches on which it appears. The essential idea is that before adding a split on a given feature to the branch, there may be some observations that were poorly predicted, while after adding an additional split on this feature, and each resultant branch is more accurate. Gain measures this change in accuracy.")
+        if(is_tuned){
+            text_out <- paste0(text_out, " These measures are shown for the choice of tuning parameters with the best model fit, as chosen by cross-validation.")
+        }
+    }else if(!is_sl & "lasso" %in% opts$learners){
+        text_out <- paste0("Specifically, lasso variable importance is taken to be the magnitude of the coefficient for the model with $lambda$ chosen via cross-validation, and the top ", n_ft, " are shown.")
+        if(is_tuned){
+            text_out <- paste0(text_out, " These ranks are shown for the choice of alpha that resulted in the best model fit, as chosen by cross-validation.")
+        }
+        text_out <- paste0(text_out, " Overall, there were ", sum(abs(imp_df$value) > 0), " features that had non-zero coefficient in the final fit.")
+    }else{
+        text_out <- "Specifically, the algorithm with the largest weight in the super learner ensemble was selected and associated variable importance metrics for this algorithm are shown."
+        text_out <- paste0(text_out, " In this case, the highest weight was assigned to a ", algo_with_highest_wt, " algorithm, and thus the variable importance measures presented correspond to ")
+        if(algo_with_highest_wt == "rf"){
+            text_out <- paste0(text_out, "random forest variable permutation-based variable importance measures were computed and are shown by their rank. The permutation-based importance measures the decrease in predictive accuracy when making out-of-bag predictions and randomly permuting a given feature from its original values.")
+        }else if(algo_with_highest_wt == "lasso"){
+            text_out <- paste0(text_out, "the magnitude of the coefficient for the model with $lambda$ chosen via cross-validation.")
+            text_out <- paste0(text_out, " Overall, there were ", sum(abs(imp_df$value) > 0), " features that had non-zero coefficient in the final lasso fit.")
+        }else if(algo_with_highest_wt == "xgboost"){
+            text_out <- paste0(text_out, "xgboost gain importance measures were computed and are shown by their rank. Gain measures the improvement in accuracy brought by a given feature to the tree branches on which it appears. The essential idea is that before adding a split on a given feature to the branch, there may be some observations that are poorly predicted, while after adding an additional split on this feature, and each resultant branch is more accurate. Gain measures this change in accuracy.")
+        }
+    }
+    return(text_out)
+}
 
 # for a given outcome make a panel histogram of the individual
 # nabs and a summary table

@@ -1,115 +1,53 @@
 # A function that extracts importance measures for each feature
 # from a fitted super learner object. We get the best fitting ranger, xgboost,
 # and LASSO model from the library and extract importance features from those.
-#' @param fit_sl the fitted regression function. If opts$learners is a single learner (e.g., xgboost), then this is an object with class equal to the class of that learner. If opts$learners has multiple learners, then this is a SuperLearner object.
+#' @param fit_sl the fitted regression function. If opts$learners is a single learner (e.g., xgboost), 
+#' then this is an object with class equal to the class of that learner. If opts$learners has multiple learners, 
+#' then this is a SuperLearner object.
 #' @param data the dataset
 #' @param outcome_name the outcome of interest
 #' @param opts the options
 #' @param ... other args
-extract_importance <- function(fit_sl, data, outcome_name, opts, ...){
-    if (!(opts$cvtune == FALSE & opts$cvperf == FALSE)) {
-        # find name of best fitting ranger model
-    	ranger_fit_idx <- grep("SL.ranger", fit_sl$libraryNames)
-    	xgboost_fit_idx <- grep("SL.xgboost", fit_sl$libraryNames)
-    	glmnet_fit_idx <- grep("SL.glmnet", fit_sl$libraryNames)
-
-    	# best of each algorithm
-    	min_ranger_idx <- which.min(fit_sl$cvRisk[ranger_fit_idx])
-    	best_ranger <- names(fit_sl$cvRisk)[ranger_fit_idx][min_ranger_idx]
-    	min_xgboost_idx <- which.min(fit_sl$cvRisk[xgboost_fit_idx])
-    	best_xgboost <- names(fit_sl$cvRisk)[xgboost_fit_idx][min_xgboost_idx]
-    	min_glmnet_idx <- which.min(fit_sl$cvRisk[glmnet_fit_idx])
-    	best_glmnet <- names(fit_sl$cvRisk)[glmnet_fit_idx][min_glmnet_idx]
-
-    	# idx of columns of Z matrix corresponding to best fit of each algo
-    	col_Z_idx <- c(ranger_fit_idx[min_ranger_idx], xgboost_fit_idx[min_xgboost_idx],
-    	               glmnet_fit_idx[min_glmnet_idx])
-
-    	# check that best one predicts better than chance
-    	if (grepl("dichotomous", outcome_name)) {
-    		# compute CV-AUC for each algorithm
-    		V <- length(fit_sl$validRows)
-    		cv_auc <- NULL
-    		for(j in col_Z_idx){
-    			split_Z <- vector(mode = "list", length = V)
-    			split_Y <- vector(mode = "list", length = V)
-    			for(v in seq_len(V)){
-    				split_Z[[v]] <- fit_sl$Z[fit_sl$validRows[[v]], j]
-    				split_Y[[v]] <- data[fit_sl$validRows[[v]], outcome_name]
-    			}
-    			this_cv_auc <- cvAUC::cvAUC(predictions = split_Z, labels = split_Y)$cvAUC
-    			cv_auc <- c(cv_auc, this_cv_auc)
-    		}
-    		include_ranger <- cv_auc[1] > 0.5
-    		include_xgboost <- cv_auc[2] > 0.5
-    		include_glmnet <- cv_auc[3] > 0.5
-    	} else {
-    		# compute CV-R^2 for each algorithm
-    		include_ranger <- 1 - fit_sl$cvRisk[ranger_fit_idx][min_ranger_idx]/var(data[,outcome_name]) > 0
-    		include_xgboost <- 1 - fit_sl$cvRisk[xgboost_fit_idx][min_xgboost_idx]/var(data[,outcome_name]) > 0
-    		include_glmnet <- 1 - fit_sl$cvRisk[glmnet_fit_idx][min_glmnet_idx]/var(data[,outcome_name]) > 0
-    	}
-        if ("ranger" %in% opts$learners) {
-            # get importance of best ranger
-            best_ranger_fit <- fit_sl$fitLibrary[[best_ranger]]$object
-        	ranger_imp <- importance(best_ranger_fit)
-        	ranger_imp_ranks <- rank(-ranger_imp)
-        	if (!include_ranger) {
-        		# replace ranks with Inf
-        		ranger_imp_ranks <- rep(Inf, length(ranger_imp_ranks))
-        	}
-            ranger_imp_dt <- data.frame(variable = names(ranger_imp), rank = ranger_imp_ranks)
-        } else {
-            ranger_imp_ranks <- rep(NA, length(fit_sl$varNames))
-            ranger_imp_dt <- data.frame(variable = fit_sl$varNames, rank = ranger_imp_ranks)
-        }
-        if ("xgboost" %in% opts$learners) {
-            # get importance of best xgboost
-        	best_xgboost_fit <- fit_sl$fitLibrary[[best_xgboost]]$object
-        	xgboost_imp_dt_init <- xgb.importance(model = best_xgboost_fit)
-        	colnames(xgboost_imp_dt_init)[1] <- "variable"
-        	xgboost_imp_dt_init$rank <- seq_len(nrow(xgboost_imp_dt_init))
-        	if(!include_xgboost){
-        		xgboost_imp_dt_init$rank <- rep(Inf, length(xgboost_imp_dt$rank))
-        	}
-            xgboost_imp_dt <- data.frame(variable = xgboost_imp_dt_init$variable, rank = xgboost_imp_dt_init$rank)
-        } else {
-            xgboost_imp_dt <- data.frame(variable = fit_sl$varNames, rank = rep(NA, length(fit_sl$varNames)))
-        }
-        if ("glmnet" %in% opts$learners) {
-            # get importance of best glmnet
-        	best_glmnet_fit <- fit_sl$fitLibrary[[best_glmnet]]$object
-        	glmnet_coef <- best_glmnet_fit$glmnet.fit$beta[, which(best_glmnet_fit$lambda == best_glmnet_fit$lambda.min)]
-        	glmnet_imp_rank <- rank(-abs(glmnet_coef))
-        	if(!include_glmnet){
-        		glmnet_imp_rank <- rep(Inf, length(glmnet_imp_rank))
-        	}
-            glmnet_imp_dt <- data.frame(variable = names(glmnet_coef), rank = glmnet_imp_rank)
-        } else {
-            glmnet_imp_dt <- data.frame(variable = fit_sl$varNames, rank = rep(NA, length(fit_sl$varNames)))
-        }
-        # make a data frame to hold results
-        imp_df_init <- dplyr::right_join(xgboost_imp_dt, ranger_imp_dt, by = "variable") %>%
-            dplyr::left_join(glmnet_imp_dt, by = "variable")
-    	colnames(imp_df_init) <- c("variable", "xgboost_rank", "rf_rank", "glmnet_rank")
-        imp_df <- imp_df_init %>%
-            select_if(function(x){!all(is.na(x))})
-    } else { # we only fit a single, "default" learner
-        if (opts$learners == "xgboost") {
-            xgboost_imp_dt_init <- xgb.importance(model = fit_sl)
-            colnames(xgboost_imp_dt_init)[1] <- "variable"
-            xgboost_imp_dt_init$rank <- seq_len(nrow(xgboost_imp_dt_init))
-            imp_df <- data.frame(variable = xgboost_imp_dt_init$variable, rank = xgboost_imp_dt_init$rank)
-        } else if (opts$learners == "rf") {
-            ranger_imp <- importance(fit_sl)
-            imp_df <- data.frame(variable = names(ranger_imp), rank = rank(-ranger_imp))
-        } else { # it's glmnet
-            glmnet_coef <- fit_sl$glmnet.fit$beta[, which(fit_sl$lambda == fit_sl$lambda.min)]
-            glmnet_imp_rank <- rank(-abs(glmnet_coef))
-            imp_df <- data.frame(variable = names(glmnet_coef), rank = glmnet_imp_rank)
-        }
+extract_importance <- function(fit_sl, opts, ...){
+    if(length(opts$learners) > 1 | (length(opts$learners) == 1 & !opts$cvtune & opts$cvperf)){
+        # find index of one with highest weight
+        biggest_weight_idx <- which.max(fit_sl$coef)
+        fit_object <- fit_sl$fitLibrary[[biggest_weight_idx]]$object
+    }else if(length(opts$learners) == 1 & opts$cvtune){
+        # find best fit
+        best_fit_idx <- which.min(fit_sl$cvRisk)
+        fit_object <- fit_sl$fitLibrary[[best_fit_idx]]$object
+    }else if(length(opts$learners) == 1 & !opts$cvtune & !opts$cvperf){
+        fit_object <- fit_sl$object
     }
-	return(imp_df)
+
+    if ("ranger" %in% class(fit_object)) {
+        # get importance of best ranger
+    	ranger_imp <- importance(fit_object)
+    	ranger_imp_ranks <- rank(-ranger_imp)
+        imp_dt <- data.frame(algo = "rf", Feature = names(ranger_imp), 
+                             rank = ranger_imp_ranks, 
+                             Importance = ranger_imp)
+    } 
+    if ("xgboost" %in% class(fit_object)) {
+        # get importance of best xgboost
+    	xgboost_imp_dt_init <- xgb.importance(model = fit_object)
+    	colnames(xgboost_imp_dt_init)[1] <- "Feature"
+    	xgboost_imp_dt_init$rank <- seq_len(nrow(xgboost_imp_dt_init))
+        imp_dt <- data.frame(algo = "xgboost", Feature = xgboost_imp_dt_init$Feature, 
+                             rank = xgboost_imp_dt_init$rank,
+                             Importance = xgboost_imp_dt_init$Feature)
+    } 
+    if ("cv.glmnet" %in% class(fit_object)) {
+        # get importance of best glmnet
+    	glmnet_coef <- fit_object$glmnet.fit$beta[, which(fit_object$lambda == fit_object$lambda.min)]
+    	glmnet_imp_rank <- rank(-abs(glmnet_coef))
+        imp_dt <- data.frame(algo = "lasso", Feature = names(glmnet_coef), 
+                             rank = glmnet_imp_rank,
+                             Importance = glmnet_coef)
+    }
+    row.names(imp_dt) <- NULL
+	return(imp_dt[order(imp_dt$rank), ])
 }
 
 # Function to compute univariate measures of variable importance
