@@ -7,16 +7,6 @@ RUN apt-get clean && apt-get update && apt-get upgrade -y && apt-get install -y 
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
-#----------------- 
-# Temp options
-#----------------- 
-# eventually we will get rid of these options
-ENV reduce_covs=FALSE
-ENV reduce_outcomes=FALSE
-ENV reduce_library=FALSE
-ENV reduce_groups=FALSE
-ENV no_cv=FALSE
-
 #---------------------
 # Permanent options
 #---------------------
@@ -101,7 +91,7 @@ RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
 # dat/catnap contains original catnap data
 # dat/analysis contains analysis data
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
-RUN mkdir /home/slfits
+RUN mkdir /home/slfits /home/output
 
 # install ffmpeg for animating figures
 RUN apt-get update

@@ -8,7 +8,7 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-in_container <- FALSE
+in_container <- TRUE
 david_computer <- FALSE
 if (in_container) {
   code_dir <- "/home/lib/"
