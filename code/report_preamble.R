@@ -115,3 +115,8 @@ all_var_groups <- get_variable_groups(dat, pred_names)
 all_geog_vars <- pred_names[grepl("geog", pred_names)]
 num_covs <- length(pred_names) - length(all_geog_vars)
 var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
+
+## get biological importance
+if (!(opts$importance_grp == "") | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
+    source(paste0(code_dir, "biological_importance.R"), local = TRUE)
+}

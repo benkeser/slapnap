@@ -12,3 +12,4 @@ test_run.txt
 docs/*
 .Rproj.user
 *.Rproj
+*.html

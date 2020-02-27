@@ -3,6 +3,9 @@
 #' @param imp_df importance data.frame
 #' @param n_ft number of features shown
 get_importance_text <- function(opts, imp_df, n_ft = 20){
+    if (missing(imp_df)) {
+        return("")
+    }
     algo_with_highest_wt <- imp_df$algo[1]
 
     # check if super learner
@@ -40,6 +43,57 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
         }
     }
     return(text_out)
+}
+
+# get biological importance text
+#' @param opts options
+#' @param grp whether or not this is a group description
+#' @return character vector with importance text
+get_biological_importance_plot_description <- function(opts, grp = TRUE) {
+    if (grp) {
+        these_opts <- opts$importance_grp
+        this_text <- "group"
+    } else {
+        these_opts <- opts$importance_ind
+        this_text <- "feature"
+    }
+    if (("marg" %in% these_opts) & ("cond" %in% these_opts)) {
+        return(paste0("The left-hand plot shows the marginal importance of the ", this_text, " relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
+    } else if ("marg" %in% opts$importance_grp) {
+        return(paste0("The plot shows the marginal importance of the ", this_text, " relative to the null model with geographic confounders only."))
+    } else {
+        return(paste0("The plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
+    }
+}
+# return figure caption
+#' @param ncomplete number of complete cases
+#' @param num_obs_full number of obs used in the "full" regression
+#' @param num_obs_red number of obs used in the "reduced" regression
+#' @param outcome the outcome (e.g., "ic50")
+#' @param grp whether or not this is group importance
+biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE) {
+    outcome_text <- if (outcome == "ic50") {
+        "IC-50"
+    } else if (outcome == "ic80") {
+        "IC-80"
+    } else if (outcome == "iip") {
+        "IIP"
+    } else if (outcome == "sens1") {
+        "estimated sensitivity"
+    } else if (outcome == "sens2") {
+        "multiple sensitivity"
+    } else {
+        ""
+    }
+    if (grp) {
+        outer_descr <- "Group"
+        inner_descr <- "feature group"
+    } else {
+        outer_descr <- "Individual"
+        inner_descr <- "feature"
+    }
+    cap <- paste0(outer_descr, " variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders, we used the remaining ", num_obs_red, " observations.")
+    return(cap)
 }
 
 # for a given outcome make a panel histogram of the individual

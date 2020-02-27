@@ -1,8 +1,8 @@
 # A function that extracts importance measures for each feature
 # from a fitted super learner object. We get the best fitting ranger, xgboost,
 # and LASSO model from the library and extract importance features from those.
-#' @param fit_sl the fitted regression function. If opts$learners is a single learner (e.g., xgboost), 
-#' then this is an object with class equal to the class of that learner. If opts$learners has multiple learners, 
+#' @param fit_sl the fitted regression function. If opts$learners is a single learner (e.g., xgboost),
+#' then this is an object with class equal to the class of that learner. If opts$learners has multiple learners,
 #' then this is a SuperLearner object.
 #' @param data the dataset
 #' @param outcome_name the outcome of interest
@@ -25,24 +25,24 @@ extract_importance <- function(fit_sl, opts, ...){
         # get importance of best ranger
     	ranger_imp <- importance(fit_object)
     	ranger_imp_ranks <- rank(-ranger_imp)
-        imp_dt <- data.frame(algo = "rf", Feature = names(ranger_imp), 
-                             rank = ranger_imp_ranks, 
+        imp_dt <- data.frame(algo = "rf", Feature = names(ranger_imp),
+                             rank = ranger_imp_ranks,
                              Importance = ranger_imp)
-    } 
-    if ("xgboost" %in% class(fit_object)) {
+    }
+    if (("xgboost" %in% class(fit_object)) | ("xgb.Booster" %in% class(fit_object))) {
         # get importance of best xgboost
     	xgboost_imp_dt_init <- xgb.importance(model = fit_object)
     	colnames(xgboost_imp_dt_init)[1] <- "Feature"
     	xgboost_imp_dt_init$rank <- seq_len(nrow(xgboost_imp_dt_init))
-        imp_dt <- data.frame(algo = "xgboost", Feature = xgboost_imp_dt_init$Feature, 
+        imp_dt <- data.frame(algo = "xgboost", Feature = xgboost_imp_dt_init$Feature,
                              rank = xgboost_imp_dt_init$rank,
                              Importance = xgboost_imp_dt_init$Feature)
-    } 
+    }
     if ("cv.glmnet" %in% class(fit_object)) {
         # get importance of best glmnet
     	glmnet_coef <- fit_object$glmnet.fit$beta[, which(fit_object$lambda == fit_object$lambda.min)]
     	glmnet_imp_rank <- rank(-abs(glmnet_coef))
-        imp_dt <- data.frame(algo = "lasso", Feature = names(glmnet_coef), 
+        imp_dt <- data.frame(algo = "lasso", Feature = names(glmnet_coef),
                              rank = glmnet_imp_rank,
                              Importance = glmnet_coef)
     }
