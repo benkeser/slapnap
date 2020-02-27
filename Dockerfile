@@ -48,6 +48,9 @@ ENV importance_grp="marg;cond"
 #   predictive importance), or none (input "")
 ENV importance_ind="marg;cond;pred"
 
+# set the name of the saved report
+#  if set to "", then will default to report_[_-separated list of nabs]_[date].html
+ENV report_name=""
 
 #-----------------------
 # Installing software
