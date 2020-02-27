@@ -3,6 +3,9 @@
 #' @param imp_df importance data.frame
 #' @param n_ft number of features shown
 get_importance_text <- function(opts, imp_df, n_ft = 20){
+    if (missing(imp_df)) {
+        return("")
+    }
     algo_with_highest_wt <- imp_df$algo[1]
 
     # check if super learner
