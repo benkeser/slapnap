@@ -18,7 +18,7 @@ shiny::validate(
 # check the outcome
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
 shiny::validate(
-    shiny::need(opts$outcomes, "Please enter at least one outcome (one of 'ic50', 'ic80', 'iip', 'sens1', 'sens2') or a semicolon-separated list of outcomes (e.g., 'ic50;ic80')."),
+    shiny::need(opts$outcomes, "Please enter at least one outcome (one of 'ic50', 'ic80', 'iip', 'sens1', 'sens2') or a semicolon-separated list of outcomes (e.g., 'ic50;ic80').")
 )
 shiny::validate(
     shiny::need(opts$outcomes != '', "Please enter at least one outcome (one of 'ic50', 'ic80', 'iip', 'sens1', 'sens2') or a semicolon-separated list of outcomes (e.g., 'ic50;ic80')."),
@@ -42,15 +42,12 @@ shiny::validate(
 all_importance_grp <- c("marg", "cond")
 all_importance_ind <- c("marg", "cond")
 shiny::validate(
-    shiny::need(opts$importance_grp, "Please enter either a semicolon-separated list of supported group importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('')."),
-    shiny::need(opts$importance_ind, "Please enter either a semicolon-separated list of supported individual importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('')."),
-    shiny::need(length(setdiff(opts$importance_grp, all_importance_grp)) == 0, "Please enter either a semicolon-separated list of supported group importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('')."),
-    shiny::need(length(setdiff(opts$importance_ind, all_importance_ind)) == 0, "Please enter either a semicolon-separated list of supported individual importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('').")
+    shiny::need(length(setdiff(opts$importance_grp, all_importance_grp)) == 0 | opts$importance_grp == "", "Please enter either a semicolon-separated list of supported group importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('')."),
+    shiny::need(length(setdiff(opts$importance_ind, all_importance_ind)) == 0 | opts$importance_ind == "", "Please enter either a semicolon-separated list of supported individual importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('').")
 )
 # check report name
 shiny::validate(
-    shiny::need(opts$report_name, "Please either enter a desired name for your report or a blank string ('')."),
-    shiny::need(grepl(".html", opts$report_name), "Please save your report as a .html file.")
+    shiny::need(grepl(".html", opts$report_name) | opts$report_name == "", "Please either enter a desired name for your report (with the file extension .html) or a blank string ('').")
 )
 # check return object calls
 shiny::validate(
