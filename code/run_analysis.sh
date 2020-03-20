@@ -1,8 +1,12 @@
-#!/bin/bash 
+#!/bin/bash
 
 #-----------------------------------------------------
 # This script is executed as entry point to container
 #-----------------------------------------------------
+
+# make sure that user-specified options match what we expect to see
+printf "Checking options \n"
+/home/lib/check_opts.R
 
 # run script to build analytic data set
 printf "Building analytic data set from CATNAP database \n"

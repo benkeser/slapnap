@@ -59,10 +59,12 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
     }
     if (("marg" %in% these_opts) & ("cond" %in% these_opts)) {
         return(paste0("The left-hand plot shows the marginal importance of the ", this_text, " relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
-    } else if ("marg" %in% opts$importance_grp) {
+    } else if ("marg" %in% these_opts) {
         return(paste0("The plot shows the marginal importance of the ", this_text, " relative to the null model with geographic confounders only."))
-    } else {
+    } else if ("cond" %in% these_opts){
         return(paste0("The plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
+    } else {
+        return("")
     }
 }
 # return figure caption
