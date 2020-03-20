@@ -343,9 +343,9 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 
 ## read in permanent options
 get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf",
-                                           "importance_grp", "importance_ind"),
+                                           "importance_grp", "importance_ind", "report_name", "return_full_sl_obj", "return_analysis_dataset"),
                                options_boolean = c(FALSE, FALSE, FALSE, TRUE,
-                                                   TRUE, FALSE, FALSE)){
+                                                   TRUE, FALSE, FALSE, FALSE, TRUE, TRUE)){
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     return(out)

@@ -20,8 +20,8 @@ ENV outcomes="ic50;ic80;iip;sens1;sens2"
 #  if more than a single algorithm is listed, then super learner is used
 #  if a single algorithm is listed, then the boolean `cvtune` variable can be used
 #  to determine if default tuning parameters are selected or if a small grid
-#  search is performed to select tuning parameters. 
-# 
+#  search is performed to select tuning parameters.
+#
 #  rf = random forest
 #  xgboost = eXtreme gradient boosting
 #  lasso = elastic net regression
@@ -35,7 +35,7 @@ ENV learners="rf;xgboost;lasso"
 ENV cvtune="TRUE"
 
 # should cv be used to measure performance?
-#   if TRUE, then cross-validation is used to validate the performance of the prediction 
+#   if TRUE, then cross-validation is used to validate the performance of the prediction
 #     algorithm in predicting the selected outcomes
 #   if FALSE, then the learner is trained on each outcome, but nothing more is performed
 ENV cvperf="TRUE"
@@ -51,6 +51,12 @@ ENV importance_ind="marg;cond;pred"
 # set the name of the saved report
 #  if set to "", then will default to report_[_-separated list of nabs]_[date].html
 ENV report_name=""
+
+# output to save in addition to the report
+#  if set to "TRUE", save the full regression object (the single learner if only one learner was specified, otherwise a SuperLearner object)
+ENV return_full_sl_obj="FALSE"
+#  if set to "TRUE", save the analysis dataset
+ENV return_analysis_dataset="FALSE"
 
 #-----------------------
 # Installing software
