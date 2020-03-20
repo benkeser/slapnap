@@ -93,6 +93,7 @@ RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ggseqlogo", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 
 # make directories
 # lib contains R source files
