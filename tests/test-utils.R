@@ -7,6 +7,7 @@ library("tibble")
 
 source("code/utils.R")
 source("code/super_learner_libraries.R")
+source("code/plotting_functions.R")
 
 # set up general test opts
 opts <- list()
@@ -108,8 +109,20 @@ test_that("Biological importance figure caption works", {
     expect_match(biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = FALSE), "Individual")
 })
 
+# generate some test data
+set.seed(4747)
+x <- replicate(10, rnorm(100, 0, 1))
+y <- rbinom(100, 1, exp(x)/(1+exp(x)))
+dat <- data.frame(dichotomous.1 = y, x)
+dat_continuous <- data.frame(VRC07.523.LS.ic50.imputed = rnorm(100, 0, 1), x)
+opts_dichot1 <- opts
+opts_dichot1$outcomes <- "sens1"
+opts_ic50 <- opts
+opts_ic50$outcomes <- "ic50"
 test_that("Individual nab summaries work", {
-
+    nab_summ <- get_individual_nab_summaries(outcome = "ic50", opts = opts_ic50, dat = dat_continuous)
+    expect_equal(length(nab_summ$hist[[1]]$labels), 4)
+    expect_equal(length(nab_summ$summary[[1]]), 7)
 })
 
 test_that("Learner descriptions work", {
@@ -118,21 +131,14 @@ test_that("Learner descriptions work", {
     expect_match(get_learner_descriptions(opts), "a super learner ensemble of several")
 })
 
-# generate some test data
-set.seed(4747)
-x <- replicate(10, rnorm(100, 0, 1))
-y <- rbinom(100, 1, exp(x)/(1+exp(x)))
-dat <- data.frame(dichot1 = y, x)
-sl_fit <- sl_one_outcome(dat, outcome_name = "dichot1", pred_names = paste0("X", 1:10), opts = opts, save_dir = "tests/", family = binomial(), SL.library = "SL.glmnet.0", cvControl = list(V = 5), method = "tmp_method.CC_nloglik")
-sl_fit <- readRDS("tests/fit_dichot1.rds")
-sl_fitted <- readRDS("tests/fitted_dichot1.rds")
+sl_fit <- sl_one_outcome(dat, outcome_name = "dichotomous.1", pred_names = paste0("X", 1:10), opts = opts, save_dir = "tests/", family = binomial(), SL.library = "SL.glmnet.0", cvControl = list(V = 5), method = "tmp_method.CC_nloglik")
+sl_fit <- readRDS("tests/fit_dichotomous.1.rds")
+sl_fitted <- readRDS("tests/fitted_dichotomous.1.rds")
 test_that("Run SL works", {
-    expect_equal(sl_fit$coef, 1)
+    expect_equal(as.numeric(sl_fit$coef), 1)
 })
 
-opts_dichot1 <- opts
-opts_dichot1$outcomes <- "dichot1"
-sl_fit_lst <- load_cv_fits(opts, "tests/")
+sl_fit_lst <- load_cv_fits(opts_dichot1, "tests/")
 test_that("CV outcome tables works", {
     expect_equal(length(sl_fit_lst$out), 1)
     cv_outcome_tbl_lst <- get_cv_outcomes_tables(sl_fit_lst, opts_dichot1)
@@ -140,7 +146,7 @@ test_that("CV outcome tables works", {
     expect_output(print(cv_outcome_tbl_lst$auc), "CVAUC")
 })
 
-test_that("Outcome descriptions work") {
+test_that("Outcome descriptions work", {
     expect_match(get_outcome_descriptions(opts), "IIP is calculated as")
     expect_match(get_outcome_descriptions(opts), "Estimated sensitivity is defined by")
     expect_match(get_outcome_descriptions(opts), "Since only one antibody was specified for this analysis")
@@ -149,7 +155,7 @@ test_that("Outcome descriptions work") {
     expect_match(get_outcome_descriptions(opts_2nab), "Predicted IC-50")
     expect_match(get_outcome_descriptions(opts_2nab), "additive model of Wagh et al")
     expect_match(get_outcome_descriptions(opts_2nab), "Multiple sensitivity is defined as the binary indicator of")
-}
+})
 
 test_that("Comma separated outcomes works", {
     expect_equal(get_comma_sep_outcomes(opts), "IC-50, IC-80, IIP, estimated sensitivity, multiple sensitivity.")
@@ -178,8 +184,8 @@ test_that("SL opts work", {
     expect_equal(cont_opts$fam, gaussian())
 })
 test_that("VIM options work", {
-    expect_match(get_vimp_options("ic50"), "r_squared")
-    expect_match(get_vimp_options("dichot.1"), "auc")
+    expect_match(get_vimp_options("ic50")$vimp_measure, "r_squared")
+    expect_match(get_vimp_options("dichot.1")$vimp_measure, "auc")
 })
 test_that("VIM list creation works", {
     folds_lst <- list(sample(1:5, 100, replace = TRUE), sample(1:5, 100, replace = TRUE))
