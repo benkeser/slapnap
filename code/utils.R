@@ -335,10 +335,13 @@ get_comma_sep_outcomes <- function(opts){
 ## use !boolean for semi-colon-separated list options
 get_sys_var <- function(option = "nab", boolean = FALSE){
     read_string <- Sys.getenv(option)
-    if(boolean){
+    if (boolean) {
         out <- read_string == "TRUE"
-    }else{
+    } else {
         out <- strsplit(read_string, split = ";")[[1]]
+        if (length(out) == 0) {
+            out <- ""
+        }
     }
     return(out)
 }
