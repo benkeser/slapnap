@@ -95,7 +95,7 @@ RUN Rscript -e 'install.packages("ggseqlogo", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("tibble", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")''
+RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
 
 # make directories
 # lib contains R source files
