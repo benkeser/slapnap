@@ -127,11 +127,12 @@ COPY code/run_super_learners.R /home/lib/run_super_learners.R
 COPY code/get_vimp.R /home/lib/get_vimp.R
 COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R
 COPY code/plotting_functions.R /home/lib/plotting_functions.R
+COPY code/check_opts.R /home/lib/check_opts.R
 
-RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
+RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R /home/lib/check_opts.R
 
 # copy report Rmd
-COPY code/report.Rmd /home/lib/report.Rmd
+COPY code/new_report.Rmd /home/lib/new_report.Rmd
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
 RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R
