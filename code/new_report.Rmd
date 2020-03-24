@@ -77,7 +77,7 @@ The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r 
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
 
-The specific `r ifelse(length(opts$learners) > 1 | opts$cvtune == TRUE, "algorithms", "algorithm")` used in learning process `r ifelse(length(opts$learners) == 1 | opts$cvtune == TRUE, "are", "is")` described in Table \@ref(tab:sllibtab).
+The specific `r ifelse(length(opts$learners) > 1 | opts$cvtune == TRUE, "algorithms", "algorithm")` used in learning process `r ifelse(length(opts$learners) > 1 | opts$cvtune == TRUE, "are", "is")` described in Table \@ref(tab:sllibtab).
 
 ```{r sllibtab}
 source(paste0(code_dir, "super_learner_libraries.R"))
