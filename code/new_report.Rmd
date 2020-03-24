@@ -73,7 +73,7 @@ bin_nms <- nice_outcomes[bin_idx]
 
 # Executive summary
 
-The NAbs studied in this analysis are `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)`
+The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r ifelse(length(opts$nab) > 1, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
 
@@ -347,7 +347,7 @@ ic80_descr <- get_individual_nab_summaries("ic80", opts, dat)
 do.call(grid.arrange, ic80_descr$hist)
 ```
 
-```{r, tableic80, eval = ("ic80" %in% opts$outcomes) & (length(opts$nab > 1))}
+```{r, tableic80, eval = ("ic80" %in% opts$outcomes) & (length(opts$nab) > 1)}
 ic80_table <- Reduce(rbind, ic80_descr$summary)
 row.names(ic80_table) <- c(paste0("IC-80 ", opts$nab))
 kable(ic80_table, row.names = TRUE, digits = 3,
