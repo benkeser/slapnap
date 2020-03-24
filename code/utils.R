@@ -176,10 +176,10 @@ get_learner_descriptions <- function(opts){
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
 
 # each entry in the output list is a kable that should be properly labeled.
-get_cv_outcomes_tables <- function(fit_list, opts){
-    fit_list <- fit_list$out
-    V <- fit_list$V
-    n_row_now <- fit_list$n_row_now
+get_cv_outcomes_tables <- function(fit_list_out, opts){
+    fit_list <- fit_list_out$out
+    V <- fit_list_out$V
+    n_row_now <- fit_list_out$n_row_now
     table_list <- lapply(fit_list, summary.myCV.SuperLearner, opts = opts)
 
     # re-label
@@ -200,7 +200,7 @@ get_cv_outcomes_tables <- function(fit_list, opts){
         row.names(rsqtab) <- tmp[cont_idx]
         rsq_kab <- knitr::kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated R-squared for super learner predictions ",
+              caption = paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions ",
                                "of the three continuous-valued outcomes (n = ", n_row_now,
                                " observations with complete sequence data)."))
     }
@@ -214,7 +214,7 @@ get_cv_outcomes_tables <- function(fit_list, opts){
         row.names(auctab) <- tmp[dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CVAUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated R-squared for super learner predictions ",
+              caption = paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions ",
                                "of the three continuous-valued outcomes (n = ", n_row_now,
                                " observations with complete sequence data)."))
     }

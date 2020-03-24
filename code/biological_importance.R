@@ -31,8 +31,8 @@ for (i in 1:length(outcome_names)) {
     eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
     eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
     vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", unlist(lapply(as.list(names(current_vimp_lst)), vimp_plot_type)))
-    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
 }
 
 ## make table for executive summary

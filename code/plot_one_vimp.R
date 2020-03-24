@@ -10,7 +10,7 @@
 ## @param main_font_size the size of text
 ## @param cv whether or not this is cv importance
 ## @param num_plot the number of features to plot (in descending order)
-plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 1), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), point_size = 5, main_font_size = 20, cv = FALSE, num_plot = 50, opts) {
+plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, max(vimp_obj$mat$ciu) + 0.2), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), cv = FALSE, num_plot = 50, opts) {
     if (!is.null(vimp_obj)) {
         ## get the variable importances
         if (!is.null(vimp_obj$mat)) {
@@ -30,16 +30,14 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
             filter(row_number() <= num_plot) %>%
             ggplot(aes(x = est, y = ord_group)) +
             geom_errorbarh(aes(xmin = cil, xmax = ciu)) +
-            geom_point(size = point_size) +
+            geom_point() +
             ggtitle(title) +
             xlab(x_lab) +
             ylab("Feature group") +
             scale_x_continuous(breaks = round(seq(x_lim[1], x_lim[2], 0.1), 1),
                            labels = as.character(round(seq(x_lim[1], x_lim[2], 0.1), 1)),
                            limits = x_lim) +
-            theme(legend.position = lgnd_pos,
-                  text = element_text(size = main_font_size),
-                  axis.title = element_text(size = main_font_size))
+            theme(legend.position = lgnd_pos)
 
         return(vimp_plot)
     } else {
