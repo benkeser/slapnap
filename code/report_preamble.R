@@ -117,6 +117,7 @@ outcome_names <- c(
     switch("sens1" %in% opts$outcomes, "dichotomous.1", NULL),
     switch("sens2" %in% opts$outcomes, "dichotomous.2", NULL)
 )
+all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
 
 # get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)

@@ -184,7 +184,7 @@ get_cv_outcomes_tables <- function(fit_list_out, opts){
 
     # re-label
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-    all_labels <- c("IC-50", "IC-80", "IIP", "Estimated", "Multiple")
+    all_labels <- c("IC-50", "IC-80", "IIP", "Estimated sensitivity", "Multiple sensitivity")
     tmp <- opts$outcomes
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
@@ -201,7 +201,7 @@ get_cv_outcomes_tables <- function(fit_list_out, opts){
         rsq_kab <- knitr::kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions ",
-                               "of the three continuous-valued outcomes (n = ", n_row_now,
+                               "of the continuous-valued outcome(s) (n = ", n_row_now,
                                " observations with complete sequence data)."))
     }
     # now format dichotomous outcomes table
@@ -214,8 +214,8 @@ get_cv_outcomes_tables <- function(fit_list_out, opts){
         row.names(auctab) <- tmp[dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CVAUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions ",
-                               "of the three continuous-valued outcomes (n = ", n_row_now,
+              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions ",
+                               "of the binary-valued outcome(s) (n = ", n_row_now,
                                " observations with complete sequence data)."))
     }
     return(list(r2 = rsq_kab, auc = auc_kab))
