@@ -12,7 +12,7 @@ Rscript tests/test-utils.R
 # Single nAb, single outcome, single learner
 # ------------------------------------------
 # no cv, no vimp, ic50
-sudo docker run -v ~/Projects/VIDD/hvtn/slapnap/sandbox:/home/ \
+sudo docker run \
     -v ~/Projects/VIDD/hvtn/slapnap/sandbox/dat/analysis:/home/dat/analysis/ \
     -v ~/Projects/VIDD/hvtn/slapnap/code:/home/lib/ \
     -v ~/Projects/VIDD/hvtn/slapnap/sandbox/slfits_ic50_nocv_novimp:/home/slfits/ \

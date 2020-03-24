@@ -450,7 +450,16 @@ sl_one_outcome <- function(dat, outcome_name,
   } else {
     # if we do not want to use any CV at all (i.e., just a single "default" learner is desired),
     # then we will call directly the wrapper function.
-    fit <- do.call(SL.library[1], args = c(list(...), list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
+    L <- list(...)
+    # note that it is the first instance of the first listed learner
+    if (opts$learners[1] == "rf") {
+        this_learner <- SL.library[grepl("ranger", SL.library)][1]
+    } else if (opts$learners[1] == "lasso") {
+        this_learner <- SL.library[grepl("glmnet", SL.library)][1]
+    } else {
+        this_learner <- SL.library[grepl("xgboost", SL.library)][1]
+    }
+    fit <- do.call(this_learner, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
     saveRDS(fit$pred, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
     # this will be an object with class native to what the individual learner is
     # i.e., if rf is desired, it'll be ranger object

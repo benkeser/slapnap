@@ -2,7 +2,9 @@
 FROM ubuntu:latest
 
 # update libraries
-RUN apt-get clean && apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https
+RUN apt-get clean && apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y apt-transport-https
 
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -128,6 +130,7 @@ COPY code/get_vimp.R /home/lib/get_vimp.R
 COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R
 COPY code/plotting_functions.R /home/lib/plotting_functions.R
 COPY code/check_opts.R /home/lib/check_opts.R
+COPY code/check_opts_functions.R /home/lib/check_opts_functions.R
 
 RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R /home/lib/check_opts.R
 

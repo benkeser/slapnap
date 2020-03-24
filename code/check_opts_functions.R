@@ -1,6 +1,6 @@
 #! /usr/bin/env Rscript
 library("shiny")
-source("code/utils.R")
+source("/home/lib/utils.R")
 
 # check nab
 check_opts_nab <- function(nab_str) {

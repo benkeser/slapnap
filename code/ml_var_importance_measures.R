@@ -9,21 +9,25 @@
 #' @param opts the options
 #' @param ... other args
 extract_importance <- function(fit_sl, opts, ...){
-    if(length(opts$learners) > 1 | (length(opts$learners) == 1 & !opts$cvtune & opts$cvperf)){
+    if (length(opts$learners) > 1 & (opts$cvperf & opts$cvtune)) {
         # find index of one with highest weight
         biggest_weight_idx <- which.max(fit_sl$coef)
         fit_object <- fit_sl$fitLibrary[[biggest_weight_idx]]$object
-    }else if(length(opts$learners) == 1 & opts$cvtune){
+    } else if (length(opts$learners) > 1 & !(opts$cvperf & opts$cvtune)) {
+        fit_object <- fit_sl
+    } else if (length(opts$learners) == 1 & opts$cvtune) {
         # find best fit
         best_fit_idx <- which.min(fit_sl$cvRisk)
         fit_object <- fit_sl$fitLibrary[[best_fit_idx]]$object
-    }else if(length(opts$learners) == 1 & !opts$cvtune & !opts$cvperf){
-        fit_object <- fit_sl$object
+    } else if (length(opts$learners) == 1 & opts$cvperf) {
+        fit_object <- fit_sl$fitLibrary[[1]]$object
+    } else {
+        fit_object <- fit_sl
     }
 
     if ("ranger" %in% class(fit_object)) {
         # get importance of best ranger
-    	ranger_imp <- importance(fit_object)
+    	ranger_imp <- ranger::importance(fit_object)
     	ranger_imp_ranks <- rank(-ranger_imp)
         imp_dt <- data.frame(algo = "rf", Feature = names(ranger_imp),
                              rank = ranger_imp_ranks,

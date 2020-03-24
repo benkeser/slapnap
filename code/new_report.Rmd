@@ -92,8 +92,10 @@ kable(as.data.frame(Description), col.names = c("Label", "Description"),
 `r if(!opts$cvperf) "<!--"`
 
 ```{r}
-fit_list_out <- load_cv_fits(opts, slfits_dir)
-cv_outcomes <- get_cv_outcomes_tables(fit_list_out, opts)
+if (opts$cvperf) {
+    fit_list_out <- load_cv_fits(opts, slfits_dir)
+    cv_outcomes <- get_cv_outcomes_tables(fit_list_out, opts)
+}
 ```
 
 The predictive ability of the learner was assessed using cross-validation. `r if(any_cont & opts$cvperf) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."` `r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
