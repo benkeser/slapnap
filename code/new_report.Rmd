@@ -520,6 +520,7 @@ iip_figcap <- if(length(opts$nab) == 1){
 ```
 
 ```{r histcombniip, eval = "iip" %in% opts$outcomes, fig.cap = iip_figcap}
+combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat, "iip", "IIP", "Density")
 do.call(grid.arrange, combn_hist)
 ```
