@@ -656,7 +656,7 @@ kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive.
+Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive.
 
 `r if (!("sens1" %in% opts$outcomes)) "-->"`
 
@@ -815,7 +815,7 @@ kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALS
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive.
+Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive.
 
 `r if (!("sens2" %in% opts$outcomes)) "-->"`
 
