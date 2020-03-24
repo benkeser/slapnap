@@ -40,6 +40,42 @@ sudo docker run \
     -e report_name="VRC07-523-LS_ic50_nocv_novimp" \
     slapnap
 
+# no cv, no vimp, ic80
+sudo docker run \
+    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+    -v $local_dir/code:/home/lib/ \
+    -v $local_dir/sandbox/slfits_ic80_nocv_novimp:/home/slfits/ \
+    -v $local_dir/sandbox/output:/home/output/ \
+    -e nab="VRC07-523-LS" \
+    -e outcomes="ic80" \
+    -e learners="lasso" \
+    -e cvtune="FALSE" \
+    -e cvperf="FALSE" \
+    -e importance_grp="" \
+    -e importance_ind="" \
+    -e return_full_sl_obj="FALSE" \
+    -e return_analysis_dataset="FALSE" \
+    -e report_name="VRC07-523-LS_ic80_nocv_novimp" \
+    slapnap
+
+# no cv, no vimp, iip
+sudo docker run \
+    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+    -v $local_dir/code:/home/lib/ \
+    -v $local_dir/sandbox/slfits_iip_nocv_novimp:/home/slfits/ \
+    -v $local_dir/sandbox/output:/home/output/ \
+    -e nab="VRC07-523-LS" \
+    -e outcomes="iip" \
+    -e learners="lasso" \
+    -e cvtune="FALSE" \
+    -e cvperf="FALSE" \
+    -e importance_grp="" \
+    -e importance_ind="" \
+    -e return_full_sl_obj="FALSE" \
+    -e return_analysis_dataset="FALSE" \
+    -e report_name="VRC07-523-LS_iip_nocv_novimp" \
+    slapnap
+
 # no cv, no vimp, sens1
 sudo docker run \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
@@ -56,6 +92,24 @@ sudo docker run \
     -e return_full_sl_obj="FALSE" \
     -e return_analysis_dataset="FALSE" \
     -e report_name="VRC07-523-LS_sens1_nocv_novimp" \
+    slapnap
+
+# no cv, no vimp, sens2
+sudo docker run \
+    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+    -v $local_dir/code:/home/lib/ \
+    -v $local_dir/sandbox/slfits_sens2_nocv_novimp:/home/slfits/ \
+    -v $local_dir/sandbox/output:/home/output/ \
+    -e nab="VRC07-523-LS" \
+    -e outcomes="sens2" \
+    -e learners="lasso" \
+    -e cvtune="FALSE" \
+    -e cvperf="FALSE" \
+    -e importance_grp="" \
+    -e importance_ind="" \
+    -e return_full_sl_obj="FALSE" \
+    -e return_analysis_dataset="FALSE" \
+    -e report_name="VRC07-523-LS_sens2_nocv_novimp" \
     slapnap
 
 # no cv, vimp, ic50
