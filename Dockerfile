@@ -118,8 +118,8 @@ RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/
 RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
 # copy R package (only until new version gets to GitHub)
-COPY vimp_2.0.0.tar.gz /home/lib/vimp_2.0.0.tar.gz
-RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz", type = "source", repos = NULL))'
+COPY vimp_2.0.1.tar.gz /home/lib/vimp_2.0.1.tar.gz
+RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.1.tar.gz", type = "source", repos = NULL))'
 # copy R scripts to do data pull and make executable
 COPY code/multi_ab_v4.Rlib /home/lib/multi_ab_v4.Rlib
 COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R

@@ -728,7 +728,7 @@ plot_roc_curves(fit_list_out$out$sens1, opts = opts)
 ```
 
 ```{r predprob1, fig.cap = predprob_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf)}
-plot_predicted_prob_boxplots(cvfit_dichotomous.1, opts = opts)
+plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts)
 ```
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf) "-->"`
@@ -794,14 +794,14 @@ grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importanc
 ### Predictive importance
 
 ```{r get-pred-imp-sens1, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
-fit_sens1 <- readRDS(paste0(slfits_dir, "fit_sens1.rds")
+fit_sens1 <- readRDS(paste0(slfits_dir, "fit_dichotomous.1.rds"))
 imp_sens1 <- extract_importance(fit_sens1, opts)
 ```
 
 Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_sens1), "")`
 
 ```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
-kable(sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
+kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting estimated sensitivity as measured by their algorithm-specific importance."))
 ```
 
@@ -953,14 +953,14 @@ grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importanc
 ### Predictive importance
 
 ```{r get-pred-imp-sens2, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
-fit_sens2 <- readRDS(paste0(slfits_dir, "fit_sens2.rds")
+fit_sens2 <- readRDS(paste0(slfits_dir, "fit_dichotomous.2.rds"))
 imp_sens2 <- extract_importance(fit_sens2, opts)
 ```
 
 Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_sens2), "")`
 
 ```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
-kable(sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
+kable(imp_sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting multiple sensitivity as measured by their algorithm-specific importance."))
 ```
 `r if(!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`

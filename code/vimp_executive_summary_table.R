@@ -7,17 +7,21 @@ make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_nam
     output_tib_grp_marg <- L[[1]]$grp_marginal$mat
     output_tib_ind_cond <- L[[1]]$ind_conditional$mat
     output_tib_ind_marg <- L[[1]]$ind_marginal$mat
-    if ("cond" %in% opts$importance_grp) {
-        output_tib_grp_cond <- dplyr::bind_cols(output_tib_grp_cond, outcome = rep(outcome_names[1], dim(output_tib_grp_cond)[1]), group = vimp_nice_rownames(L[[1]]$grp_conditional, cv = cv))
-    }
-    if ("marg" %in% opts$importance_grp) {
-        output_tib_grp_marg <- dplyr::bind_cols(output_tib_grp_marg, outcome = rep(outcome_names[1], dim(output_tib_grp_marg)[1]), group = vimp_nice_rownames(L[[1]]$grp_marginal, cv = cv))
-    }
-    if ("cond" %in% opts$importance_ind) {
-        output_tib_ind_cond <- dplyr::bind_cols(output_tib_ind_cond, outcome = rep(outcome_names[1], dim(output_tib_ind_cond)[1]), group = vimp_nice_rownames(L[[1]]$ind_conditional, cv = cv))
-    }
-    if ("marg" %in% opts$importance_ind) {
-        output_tib_ind_marg <- dplyr::bind_cols(output_tib_ind_marg, outcome = rep(outcome_names[1], dim(output_tib_ind_marg)[1]), group = vimp_nice_rownames(L[[1]]$ind_marginal, cv = cv))
+    if (length(L[[1]]) == 0) {
+
+    } else {
+        if ("cond" %in% opts$importance_grp) {
+            output_tib_grp_cond <- dplyr::bind_cols(output_tib_grp_cond, outcome = rep(outcome_names[1], dim(output_tib_grp_cond)[1]), group = vimp_nice_rownames(L[[1]]$grp_conditional, cv = cv))
+        }
+        if ("marg" %in% opts$importance_grp) {
+            output_tib_grp_marg <- dplyr::bind_cols(output_tib_grp_marg, outcome = rep(outcome_names[1], dim(output_tib_grp_marg)[1]), group = vimp_nice_rownames(L[[1]]$grp_marginal, cv = cv))
+        }
+        if ("cond" %in% opts$importance_ind) {
+            output_tib_ind_cond <- dplyr::bind_cols(output_tib_ind_cond, outcome = rep(outcome_names[1], dim(output_tib_ind_cond)[1]), group = vimp_nice_rownames(L[[1]]$ind_conditional, cv = cv))
+        }
+        if ("marg" %in% opts$importance_ind) {
+            output_tib_ind_marg <- dplyr::bind_cols(output_tib_ind_marg, outcome = rep(outcome_names[1], dim(output_tib_ind_marg)[1]), group = vimp_nice_rownames(L[[1]]$ind_marginal, cv = cv))
+        }
     }
     if (length(L) > 1) {
         for (i in 2:length(L)) {
