@@ -117,7 +117,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         ct <- ct + 1
         this_name <- gsub("-", ".", paste0(opts$nab[i], ".ic50.imputed"))
         out_hist[[ct]] <- make_hist_plot(dat, var_name = this_name,
-                                          x_lab = paste0(outcome_label, opts$nab[i]),
+                                          x_lab = paste0(outcome_label," ", opts$nab[i]),
                                           y_lab = "Density")
         tmp_sum <- summary(dat[, this_name])[1:6] # to ignore NA columns
         tmp_sum <- c(tmp_sum[1:3], 10^mean(log10(dat[, this_name])), tmp_sum[4:6])
