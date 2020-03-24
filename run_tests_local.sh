@@ -76,7 +76,7 @@ sudo docker run \
     -e report_name="VRC07-523-LS_ic50_nocv_vimp" \
     slapnap
 
-# cv, vimp, ic50
+# cv, vimp, ic50 (~ 20 minutes)
 sudo docker run \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
     -v $local_dir/code:/home/lib/ \
@@ -92,6 +92,23 @@ sudo docker run \
     -e return_full_sl_obj="FALSE" \
     -e return_analysis_dataset="FALSE" \
     -e report_name="VRC07-523-LS_ic50_cv_vimp" \
+    slapnap
+
+sudo docker run \
+    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+    -v $local_dir/code:/home/lib/ \
+    -v $local_dir/sandbox/slfits_sens1_cv_vimp:/home/slfits/ \
+    -v $local_dir/sandbox/output:/home/output/ \
+    -e nab="VRC07-523-LS" \
+    -e outcomes="sens1" \
+    -e learners="lasso" \
+    -e cvtune="TRUE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="marg" \
+    -e importance_ind="pred" \
+    -e return_full_sl_obj="FALSE" \
+    -e return_analysis_dataset="FALSE" \
+    -e report_name="VRC07-523-LS_sens1_cv_vimp" \
     slapnap
 
 # ------------------------------------------
