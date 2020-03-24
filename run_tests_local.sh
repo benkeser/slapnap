@@ -148,6 +148,7 @@ sudo docker run \
     -e report_name="VRC07-523-LS_ic50_cv_vimp" \
     slapnap
 
+# cv, vimp, sens1 (~ 20 minutes)
 sudo docker run \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
     -v $local_dir/code:/home/lib/ \
