@@ -42,7 +42,7 @@ check_opts_cvperf <- function(cvperf_str) {
 check_opts_vimp <- function(grp_str, ind_str, all_grp, all_ind) {
     shiny::validate(
         shiny::need(length(setdiff(grp_str, all_grp)) == 0 | grp_str == "", "Please enter either a semicolon-separated list of supported group importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('')."),
-        shiny::need(length(setdiff(ind_str, all_ind)) == 0 | ind_str == "", "Please enter either a semicolon-separated list of supported individual importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('').")
+        shiny::need(length(setdiff(ind_str, all_ind)) == 0 | ind_str == "", "Please enter either a semicolon-separated list of supported individual importance types (i.e., 'marg', 'cond', 'pred', or, e.g., 'marg;cond;pred') or an empty string ('').")
     )
 }
 # check object returns

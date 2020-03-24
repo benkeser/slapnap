@@ -26,7 +26,7 @@ check_opts_cvtune(opts$cvtune)
 check_opts_cvperf(opts$cvperf)
 # check importance
 all_importance_grp <- c("marg", "cond")
-all_importance_ind <- c("marg", "cond")
+all_importance_ind <- c("marg", "cond", "pred")
 check_opts_vimp(opts$importance_grp, opts$importance_ind, all_importance_grp, all_importance_ind)
 # check return object calls
 check_opts_returns(opts$return_full_sl_obj, opts$return_analysis_dataset)

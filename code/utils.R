@@ -25,7 +25,7 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
             text_out <- paste0(text_out, " These measures are shown for the choice of tuning parameters with the best model fit, as chosen by cross-validation.")
         }
     }else if(!is_sl & "lasso" %in% opts$learners){
-        text_out <- paste0("Specifically, lasso variable importance is taken to be the magnitude of the coefficient for the model with $lambda$ chosen via cross-validation, and the top ", n_ft, " are shown.")
+        text_out <- paste0("Specifically, lasso variable importance is taken to be the magnitude of the coefficient for the model with $\\lambda$ chosen via cross-validation, and the top ", n_ft, " are shown.")
         if(is_tuned){
             text_out <- paste0(text_out, " These ranks are shown for the choice of alpha that resulted in the best model fit, as chosen by cross-validation.")
         }
@@ -36,7 +36,7 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
         if(algo_with_highest_wt == "rf"){
             text_out <- paste0(text_out, "random forest variable permutation-based variable importance measures were computed and are shown by their rank. The permutation-based importance measures the decrease in predictive accuracy when making out-of-bag predictions and randomly permuting a given feature from its original values.")
         }else if(algo_with_highest_wt == "lasso"){
-            text_out <- paste0(text_out, "the magnitude of the coefficient for the model with $lambda$ chosen via cross-validation.")
+            text_out <- paste0(text_out, "the magnitude of the coefficient for the model with $\\lambda$ chosen via cross-validation.")
             text_out <- paste0(text_out, " Overall, there were ", sum(abs(imp_df$Importance) > 0), " features that had non-zero coefficient in the final lasso fit.")
         }else if(algo_with_highest_wt == "xgboost"){
             text_out <- paste0(text_out, "xgboost gain importance measures were computed and are shown by their rank. Gain measures the improvement in accuracy brought by a given feature to the tree branches on which it appears. The essential idea is that before adding a split on a given feature to the branch, there may be some observations that are poorly predicted, while after adding an additional split on this feature, and each resultant branch is more accurate. Gain measures this change in accuracy.")
@@ -295,10 +295,10 @@ get_outcome_descriptions <- function(opts){
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 $> 1$.")
+            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 > 1.")
         }
         if(sens2_pres){
-            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC50 $> 1$ for at least two antibodies.")
+            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC50 > 1 for at least two antibodies.")
         }
     } else {
         if(iip_pres){
@@ -309,7 +309,7 @@ get_outcome_descriptions <- function(opts){
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres | sens2_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that IC-50 $> 1$.")
+            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that IC-50 > 1.")
         }
         if(sens2_pres){
             tmp_text <- c(tmp_text, "Since only one antibody was specified for this analysis, multiple sensitivity is the same as estimated sensitivity.")
