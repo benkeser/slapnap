@@ -358,31 +358,43 @@ tmp_method.CC_nloglik <- function ()
 make_sl_library_vector <- function(opts){
     default_library <- NULL
     # check if rf is requested
-    if("rf" %in% opts$learners){
-      if(opts$cvtune){
+    if ("rf" %in% opts$learners) {
+      if (opts$cvtune) {
         default_library <- c(default_library, "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large")
-      }else{
-        default_library <- c(default_library, "SL.ranger.reg")
+      } else {
+        if ((opts$learners[1] == "rf") & !opts$cvperf) {
+            default_library <- "SL.ranger.reg"
+        } else {
+            default_library <- c(default_library, "SL.ranger.reg")
+        }
       }
     }
     # check if xgboost is requested
     if("xgboost" %in% opts$learners){
-      if(opts$cvtune){
+      if (opts$cvtune) {
         default_library <- c(default_library, "SL.xgboost.2", "SL.xgboost.4", "SL.xgboost.6", "SL.xgboost.8")
-      }else{
-        default_library <- c(default_library, "SL.xgboost.4")
+      } else {
+        if ((opts$learners[1] == "xgboost") & !opts$cvperf) {
+            default_library <- "SL.xgboost.4"
+        } else {
+            default_library <- c(default_library, "SL.xgboost.4")
+        }
       }
     }
     # check if elastic net is requested
     if("lasso" %in% opts$learners){
-      if(opts$cvtune){
+      if (opts$cvtune) {
         default_library <- c(default_library, "SL.glmnet.0", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
-      }else{
-        default_library <- c(default_library, "SL.glmnet.0")
+      } else {
+        if ((opts$learners[1] == "lasso") & !opts$cvperf) {
+            default_library <- "SL.glmnet.0"
+        } else {
+            default_library <- c(default_library, "SL.glmnet.0")
+        }
       }
     }
     # if fitting a super learner, throw in SL.mean
-    if(length(opts$learners) > 1){
+    if(length(opts$learners) > 1 & opts$cvtune & opts$cvperf){
       default_library <- c(default_library, "SL.mean")
     }
     return(default_library)
