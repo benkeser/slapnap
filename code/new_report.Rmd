@@ -47,7 +47,13 @@ any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
 nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
 ncomplete <- readRDS(paste0(slfits_dir, "ncomplete.rds"))
 # read in data
-analysis_data_name <- list.files(paste0(data_dir, "analysis"))
+analysis_data_names <- list.files("/home/dat/analysis")
+# if more than one analysis dataset, use the most recent one
+if (length(analysis_data_names) > 1) {
+    analysis_data_name <- analysis_data_names[length(analysis_data_names)]
+} else {
+    analysis_data_name <- analysis_data_names
+}
 dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 dat <- dat[complete.cases(dat),]
 

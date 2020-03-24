@@ -51,7 +51,13 @@ n_ab <- length(antibodies)
 ## ----------------------------------------------------------------------------
 get_dat <- function(){
 	# load data
-	analysis_data_name <- list.files(paste0(data_dir, "analysis"))
+    analysis_data_names <- list.files("/home/dat/analysis")
+    # if more than one analysis dataset, use the most recent one
+    if (length(analysis_data_names) > 1) {
+        analysis_data_name <- analysis_data_names[length(analysis_data_names)]
+    } else {
+        analysis_data_name <- analysis_data_names
+    }
 	dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 
 	# check missing values
