@@ -223,7 +223,7 @@ sudo docker run \
     -e report_name="VRC07-523-LS;PGT121_ic50_nocv_vimp" \
     slapnap
 
-# cv, vimp
+# cv, vimp (~ 30 min)
 sudo docker run \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
     -v $local_dir/code:/home/lib/ \
