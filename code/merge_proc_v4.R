@@ -34,7 +34,7 @@ library(seqinr)
 #antibodies <- "VRC07-523-LS"
 # antibodies <- c("VRC07-523-LS", "PGT121")
 #antibodies <- c("VRC07-523-LS", "PGT121", "PGDM1400")
-path.home <- "/home/"
+path.home <- "/home"
 
 # antibody names are passed to docker container at run time as
 # environment variable Nab, which is a semicolon-separated list

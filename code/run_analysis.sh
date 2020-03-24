@@ -25,5 +25,5 @@ printf "Compiling results using R Markdown \n"
 /home/lib/render_report.R
 
 # run script
-printf "Cleaning up"
+printf "Cleaning up \n"
 rm -rf /home/out/*_files

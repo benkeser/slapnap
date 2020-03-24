@@ -45,12 +45,6 @@ check_opts_vimp <- function(grp_str, ind_str, all_grp, all_ind) {
         shiny::need(length(setdiff(ind_str, all_ind)) == 0 | ind_str == "", "Please enter either a semicolon-separated list of supported individual importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('').")
     )
 }
-# check report name
-check_opts_report_name <- function(report_name) {
-    shiny::validate(
-        shiny::need(grepl(".html", report_name, fixed = TRUE) | report_name == "", "Please either enter a desired name for your report (with the file extension .html) or a blank string ('').")
-    )
-}
 # check object returns
 check_opts_returns <- function(sl_obj, dataset) {
     shiny::validate(

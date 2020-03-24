@@ -1,5 +1,5 @@
 ---
-title: 'SLAPNAP Report: `r format(strsplit(Sys.getenv("Nab"), split = ";")[[1]])`'
+title: 'SLAPNAP Report: `r format(strsplit(Sys.getenv("nab"), split = ";")[[1]])`'
 author: "SLAPNAP Team"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
@@ -265,11 +265,11 @@ plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_
 ```
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "-->"`
 
-`r if (!("ic50" %in% opts$outcomes)) "<!--"`
+`r if (!("ic50" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 
 ## Variable importance
 
-`r if (!("ic50" %in% opts$outcomes)) "-->"`
+`r if (!("ic50" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 `r if (!("ic50" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
@@ -318,14 +318,14 @@ grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = length(opts$importance
 
 ### Predictive importance
 
-```{r get-pred-imp-ic50}
+```{r get-pred-imp-ic50, eval = ("ic50" %in% opts$outcomes) & ("pred" %in% opts$importance_ind)}
 fit_ic50 <- readRDS(paste0(slfits_dir, "fit_log10.pc.ic50.rds"))
 imp_ic50 <- extract_importance(fit_ic50, opts)
 ```
 
-Table \@ref(tab:ic50-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic50" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_ic50), "")`
+Table \@ref(tab:ic50-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_ic50), "")`
 
-```{r ic50-imp-table, eval = "ic50" %in% opts$outcomes}
+```{r ic50-imp-table, eval = "ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting IC-50 as measured by their algorithm-specific importance."))
 ```
@@ -430,11 +430,11 @@ plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("ic80" %in% opts$outcomes)) "<!--"`
+`r if (!("ic80" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 
 ## Variable importance
 
-`r if (!("ic80" %in% opts$outcomes)) "-->"`
+`r if (!("ic80" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -489,14 +489,14 @@ grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = length(opts$importance
 `r if (!("ic80" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "<!--"`
 ### Predictive importance
 
-```{r get-pred-imp-ic80, eval = "ic80" %in% opts$outcomes}
+```{r get-pred-imp-ic80, eval = "ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 fit_ic80 <- readRDS(paste0(slfits_dir, "fit_log10.pc.ic80.rds"))
 imp_ic80 <- extract_importance(fit_ic80, opts)
 ```
 
-Table \@ref(tab:ic80-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic80" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_ic80), "")`
+Table \@ref(tab:ic80-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_ic80), "")`
 
-```{r ic80-imp-table, eval = "ic80" %in% opts$outcomes}
+```{r ic80-imp-table, eval = "ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic80[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting IC-80 as measured by their algorithm-specific importance."))
 ```
@@ -576,10 +576,10 @@ plot_cv_predictions(cv_fit = fit_list_out$out$iip, outcome_name = "IIP", log_axi
 ```
 `r if (!("iip" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("iip" %in% opts$outcomes)) "<!--"`
+`r if (!("iip" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 ## Variable importance
 
-`r if (!("iip" %in% opts$outcomes)) "-->"`
+`r if (!("iip" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -635,14 +635,14 @@ grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = length(opts$importance_
 
 ### Predictive importance
 
-```{r get-pred-imp-iip, eval = "iip" %in% opts$outcomes}
+```{r get-pred-imp-iip, eval = "iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 fit_iip <- readRDS(paste0(slfits_dir, "fit_log10.pc.iip.rds"))
 imp_iip <- extract_importance(fit_iip, opts)
 ```
 
-Table \@ref(tab:iip-imp-table) shows the top `r n_imp_ft` features. `r ifelse("iip" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_iip), "")`
+Table \@ref(tab:iip-imp-table) shows the top `r n_imp_ft` features. `r ifelse("iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_iip), "")`
 
-```{r iip-imp-table, eval = "iip" %in% opts$outcomes}
+```{r iip-imp-table, eval = "iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting IIP as measured by their algorithm-specific importance."))
 ```
@@ -733,11 +733,11 @@ plot_predicted_prob_boxplots(cvfit_dichotomous.1, opts = opts)
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes)) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 
 ## Variable importance
 
-`r if (!("sens1" %in% opts$outcomes)) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -793,14 +793,14 @@ grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importanc
 
 ### Predictive importance
 
-```{r get-pred-imp-sens1, eval = "sens1" %in% opts$outcomes}
+```{r get-pred-imp-sens1, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 fit_sens1 <- readRDS(paste0(slfits_dir, "fit_sens1.rds")
 imp_sens1 <- extract_importance(fit_sens1, opts)
 ```
 
-Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens1" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_sens1), "")`
+Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_sens1), "")`
 
-```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes}
+```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting estimated sensitivity as measured by their algorithm-specific importance."))
 ```
@@ -892,12 +892,12 @@ plot_roc_curves(fit_list_out$out$sens2, opts = opts)
 plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts)
 ```
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes)) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 ## Variable importance
 
-`r if (!("sens2" %in% opts$outcomes)) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -952,14 +952,14 @@ grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importanc
 `r if (!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "<!--"`
 ### Predictive importance
 
-```{r get-pred-imp-sens2, eval = "sens2" %in% opts$outcomes}
+```{r get-pred-imp-sens2, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 fit_sens2 <- readRDS(paste0(slfits_dir, "fit_sens2.rds")
 imp_sens2 <- extract_importance(fit_sens2, opts)
 ```
 
-Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens2" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_sens2), "")`
+Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_sens2), "")`
 
-```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes}
+```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting multiple sensitivity as measured by their algorithm-specific importance."))
 ```
