@@ -73,7 +73,7 @@ bin_nms <- nice_outcomes[bin_idx]
 
 # Executive summary
 
-The NAbs studied in this analysis are `r paste0(antibodies, collapse = ", ")`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)`
+The NAbs studied in this analysis are `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
 
