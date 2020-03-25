@@ -134,7 +134,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
 
 get_learner_descriptions <- function(opts){
 
-    if(length(opts$learners) == 1 | !(opts$cvtune)){
+    if(length(opts$learners) == 1){
         learner_label <- if(opts$learners[1] == "rf"){
             "random forest"
         }else if(opts$learners[1] == "xgboost"){
@@ -167,7 +167,7 @@ get_learner_descriptions <- function(opts){
             }
             lib_label <- paste0(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "elastic net regression", ifelse(opts$cvtune, "s with varied tuning parameters", "")))
         }
-        tmp <- paste0("a super learner ensemble of ", lib_label, ".")
+        tmp <- paste0("a super learner ensemble of ", lib_label, " and intercept-only regression.")
     }
     return(tmp)
 }
