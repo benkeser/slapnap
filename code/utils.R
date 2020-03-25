@@ -9,7 +9,7 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
     algo_with_highest_wt <- imp_df$algo[1]
 
     # check if super learner
-    is_sl <- length(opts$learners) > 1
+    is_sl <- (length(opts$learners) > 1) | (opts$cvtune | opts$cvperf)
     # check if tuning parameters varied
     is_tuned <- opts$cvtune
 
@@ -134,19 +134,19 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
 
 get_learner_descriptions <- function(opts){
 
-    if(length(opts$learners) == 1){
-        learner_label <- if(opts$learners == "rf"){
+    if(length(opts$learners) == 1 | !(opts$cvtune)){
+        learner_label <- if(opts$learners[1] == "rf"){
             "random forest"
-        }else if(opts$learners == "xgboost"){
+        }else if(opts$learners[1] == "xgboost"){
             "extreme gradient boosting"
-        }else if(opts$learners == "lasso"){
+        }else if(opts$learners[1] == "lasso"){
             "elastic net regression"
         }
         tmp <- paste(learner_label,
                      ifelse(opts$cvtune,
                             "with tuning parameters selected using a limited grid search and cross-validation.",
                             "with tuning parameters set to their 'default' values."))
-    }else{
+    } else {
         lib_label <- NULL
         if("rf" %in% opts$learners){
             lib_label <- c(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "random forest", ifelse(opts$cvtune, "s with varied tuning parameters", "")))

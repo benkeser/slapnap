@@ -280,6 +280,24 @@ sudo docker run \
     -e report_name="VRC07-523-LS;PGT121_iip_nocv_novimp_multilearn" \
     slapnap
 
+# cv, no vimp
+sudo docker run \
+    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+    -v $local_dir/code:/home/lib/ \
+    -v $local_dir/sandbox/slfits_multinab_multilearner_ic50_cv_novimp:/home/slfits/ \
+    -v $local_dir/sandbox/output:/home/output/ \
+    -e nab="VRC07-523-LS;PGT121" \
+    -e outcomes="ic50" \
+    -e learners="lasso;rf" \
+    -e cvtune="TRUE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="" \
+    -e importance_ind="" \
+    -e return_full_sl_obj="FALSE" \
+    -e return_analysis_dataset="FALSE" \
+    -e report_name="VRC07-523-LS;PGT121_ic50_cv_novimp_multilearn" \
+    slapnap
+
 # no cv, vimp
 sudo docker run \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
@@ -299,19 +317,19 @@ sudo docker run \
     slapnap
 
 # cv, vimp
-sudo docker run \
-    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
-    -v $local_dir/code:/home/lib/ \
-    -v $local_dir/sandbox/slfits_multinab_multilearner_ic50_cv_vimp:/home/slfits/ \
-    -v $local_dir/sandbox/output:/home/output/ \
-    -e nab="VRC07-523-LS;PGT121" \
-    -e outcomes="ic50" \
-    -e learners="lasso;rf" \
-    -e cvtune="TRUE" \
-    -e cvperf="TRUE" \
-    -e importance_grp="marg" \
-    -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
-    -e report_name="VRC07-523-LS;PGT121_ic50_cv_vimp_multilearn" \
-    slapnap
+# sudo docker run \
+#     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+#     -v $local_dir/code:/home/lib/ \
+#     -v $local_dir/sandbox/slfits_multinab_multilearner_ic50_cv_vimp:/home/slfits/ \
+#     -v $local_dir/sandbox/output:/home/output/ \
+#     -e nab="VRC07-523-LS;PGT121" \
+#     -e outcomes="ic50" \
+#     -e learners="lasso;rf" \
+#     -e cvtune="TRUE" \
+#     -e cvperf="TRUE" \
+#     -e importance_grp="marg" \
+#     -e importance_ind="pred" \
+#     -e return_full_sl_obj="FALSE" \
+#     -e return_analysis_dataset="FALSE" \
+#     -e report_name="VRC07-523-LS;PGT121_ic50_cv_vimp_multilearn" \
+#     slapnap
