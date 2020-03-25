@@ -362,7 +362,7 @@ make_sl_library_vector <- function(opts){
       if (opts$cvtune) {
         default_library <- c(default_library, "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large")
       } else {
-        if ((opts$learners[1] == "rf") & !opts$cvperf) {
+        if (length(opts$learners) == 1) {
             default_library <- "SL.ranger.reg"
         } else {
             default_library <- c(default_library, "SL.ranger.reg")
@@ -374,7 +374,7 @@ make_sl_library_vector <- function(opts){
       if (opts$cvtune) {
         default_library <- c(default_library, "SL.xgboost.2", "SL.xgboost.4", "SL.xgboost.6", "SL.xgboost.8")
       } else {
-        if ((opts$learners[1] == "xgboost") & !opts$cvperf) {
+        if (length(opts$learners) == 1) {
             default_library <- "SL.xgboost.4"
         } else {
             default_library <- c(default_library, "SL.xgboost.4")
@@ -386,7 +386,7 @@ make_sl_library_vector <- function(opts){
       if (opts$cvtune) {
         default_library <- c(default_library, "SL.glmnet.0", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
       } else {
-        if ((opts$learners[1] == "lasso") & !opts$cvperf) {
+        if (length(opts$learners) == 1) {
             default_library <- "SL.glmnet.0"
         } else {
             default_library <- c(default_library, "SL.glmnet.0")
@@ -394,7 +394,7 @@ make_sl_library_vector <- function(opts){
       }
     }
     # if fitting a super learner, throw in SL.mean
-    if(length(opts$learners) > 1 & opts$cvtune & opts$cvperf){
+    if(length(opts$learners) > 1){
       default_library <- c(default_library, "SL.mean")
     }
     return(default_library)
@@ -460,25 +460,51 @@ sl_one_outcome <- function(dat, outcome_name,
         # don't save anything
     }
   } else {
-    # if we do not want to use any CV at all (i.e., just a single "default" learner is desired),
-    # then we will call directly the wrapper function.
+    # if we don't want to use CV at all, then use "default" learners
     L <- list(...)
-    # note that it is the first instance of the first listed learner
-    if (opts$learners[1] == "rf") {
-        this_learner <- SL.library[grepl("ranger", SL.library)][1]
-    } else if (opts$learners[1] == "lasso") {
-        this_learner <- SL.library[grepl("glmnet", SL.library)][1]
+    if (length(opts$learners) > 1) {
+        these_learners <- NULL
+        if ("rf" %in% opts$learners) {
+            these_learners <- c(these_learners, SL.library[grepl("ranger", SL.library)][1])
+        }
+        if ("lasso" %in% opts$learners) {
+            these_learners <- c(these_learners, SL.library[grepl("glmnet", SL.library)][1])
+        }
+        if ("xgboost" %in% opts$learners) {
+            these_learners <- c(these_learners, SL.library[grepl("xgboost", SL.library)][1])
+        }
+        these_learners <- c(these_learners, "SL.mean")
+        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = these_learners, ...)
+        fit$Y <- newdat[ , outcome_name]
+        if (save_full_object) {
+            saveRDS(fit, file = paste0(save_dir, fit_name))
+            if (opts$return_full_sl_obj) {
+                saveRDS(fit, file = paste0("/home/output/", fit_name))
+            }
+        }
+        # save super learner predictions
+        saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+        # save super learner weights
+        saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
     } else {
-        this_learner <- SL.library[grepl("xgboost", SL.library)][1]
-    }
-    fit <- do.call(this_learner, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
-    saveRDS(fit$pred, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
-    # this will be an object with class native to what the individual learner is
-    # i.e., if rf is desired, it'll be ranger object
-    if (save_full_object) {
-        saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
-        if (opts$return_full_sl_obj) {
-            saveRDS(fit$fit$object, file = paste0("/home/output/", fit_name))
+        # in this case, directly call the wrapper function
+        # note that it is the first instance of the first listed learner
+        if (opts$learners[1] == "rf") {
+            this_learner <- SL.library[grepl("ranger", SL.library)][1]
+        } else if (opts$learners[1] == "lasso") {
+            this_learner <- SL.library[grepl("glmnet", SL.library)][1]
+        } else {
+            this_learner <- SL.library[grepl("xgboost", SL.library)][1]
+        }
+        fit <- do.call(this_learner, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
+        saveRDS(fit$pred, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+        # this will be an object with class native to what the individual learner is
+        # i.e., if rf is desired, it'll be ranger object
+        if (save_full_object) {
+            saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
+            if (opts$return_full_sl_obj) {
+                saveRDS(fit$fit$object, file = paste0("/home/output/", fit_name))
+            }
         }
     }
   }
