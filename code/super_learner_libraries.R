@@ -131,7 +131,7 @@ SL.glmnet.0 <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id,
         X <- model.matrix(~-1 + ., X)
         newX <- model.matrix(~-1 + ., newX)
     }
-    
+
     if(family$family == "binomial"){
         fold_id <- get_fold_id(Y)
         nfolds <- max(fold_id)
@@ -358,27 +358,39 @@ tmp_method.CC_nloglik <- function ()
 make_sl_library_vector <- function(opts){
     default_library <- NULL
     # check if rf is requested
-    if("rf" %in% opts$learners){
-      if(opts$cvtune){
+    if ("rf" %in% opts$learners) {
+      if (opts$cvtune) {
         default_library <- c(default_library, "SL.ranger.small", "SL.ranger.reg", "SL.ranger.large")
-      }else{
-        default_library <- c(default_library, "SL.ranger.reg")
+      } else {
+        if (length(opts$learners) == 1) {
+            default_library <- "SL.ranger.reg"
+        } else {
+            default_library <- c(default_library, "SL.ranger.reg")
+        }
       }
     }
     # check if xgboost is requested
     if("xgboost" %in% opts$learners){
-      if(opts$cvtune){
+      if (opts$cvtune) {
         default_library <- c(default_library, "SL.xgboost.2", "SL.xgboost.4", "SL.xgboost.6", "SL.xgboost.8")
-      }else{
-        default_library <- c(default_library, "SL.xgboost.4")
+      } else {
+        if (length(opts$learners) == 1) {
+            default_library <- "SL.xgboost.4"
+        } else {
+            default_library <- c(default_library, "SL.xgboost.4")
+        }
       }
     }
     # check if elastic net is requested
     if("lasso" %in% opts$learners){
-      if(opts$cvtune){
+      if (opts$cvtune) {
         default_library <- c(default_library, "SL.glmnet.0", "SL.glmnet.25", "SL.glmnet.50", "SL.glmnet.75")
-      }else{
-        default_library <- c(default_library, "SL.glmnet.0")
+      } else {
+        if (length(opts$learners) == 1) {
+            default_library <- "SL.glmnet.0"
+        } else {
+            default_library <- c(default_library, "SL.glmnet.0")
+        }
       }
     }
     # if fitting a super learner, throw in SL.mean
@@ -430,6 +442,9 @@ sl_one_outcome <- function(dat, outcome_name,
     fit$Y <- newdat[ , outcome_name]
     if (save_full_object) {
         saveRDS(fit, file = paste0(save_dir, fit_name))
+        if (opts$return_full_sl_obj) {
+            saveRDS(fit, file = paste0("/home/output/", fit_name))
+        }
     }
 
     if(length(opts$learners) > 1 | (length(opts$learners) == 1 & !opts$cvtune)) {
@@ -445,14 +460,52 @@ sl_one_outcome <- function(dat, outcome_name,
         # don't save anything
     }
   } else {
-    # if we do not want to use any CV at all (i.e., just a single "default" learner is desired),
-    # then we will call directly the wrapper function.
-    fit <- do.call(SL.library[1], args = c(list(...), list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
-    saveRDS(fit$pred, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
-    # this will be an object with class native to what the individual learner is
-    # i.e., if rf is desired, it'll be ranger object
-    if (save_full_object) {
-        saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
+    # if we don't want to use CV at all, then use "default" learners
+    L <- list(...)
+    if (length(opts$learners) > 1) {
+        these_learners <- NULL
+        if ("rf" %in% opts$learners) {
+            these_learners <- c(these_learners, SL.library[grepl("ranger", SL.library)][1])
+        }
+        if ("lasso" %in% opts$learners) {
+            these_learners <- c(these_learners, SL.library[grepl("glmnet", SL.library)][1])
+        }
+        if ("xgboost" %in% opts$learners) {
+            these_learners <- c(these_learners, SL.library[grepl("xgboost", SL.library)][1])
+        }
+        these_learners <- c(these_learners, "SL.mean")
+        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = these_learners, ...)
+        fit$Y <- newdat[ , outcome_name]
+        if (save_full_object) {
+            saveRDS(fit, file = paste0(save_dir, fit_name))
+            if (opts$return_full_sl_obj) {
+                saveRDS(fit, file = paste0("/home/output/", fit_name))
+            }
+        }
+        # save super learner predictions
+        saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+        # save super learner weights
+        saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
+    } else {
+        # in this case, directly call the wrapper function
+        # note that it is the first instance of the first listed learner
+        if (opts$learners[1] == "rf") {
+            this_learner <- SL.library[grepl("ranger", SL.library)][1]
+        } else if (opts$learners[1] == "lasso") {
+            this_learner <- SL.library[grepl("glmnet", SL.library)][1]
+        } else {
+            this_learner <- SL.library[grepl("xgboost", SL.library)][1]
+        }
+        fit <- do.call(this_learner, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
+        saveRDS(fit$pred, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+        # this will be an object with class native to what the individual learner is
+        # i.e., if rf is desired, it'll be ranger object
+        if (save_full_object) {
+            saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
+            if (opts$return_full_sl_obj) {
+                saveRDS(fit$fit$object, file = paste0("/home/output/", fit_name))
+            }
+        }
     }
   }
 
@@ -464,6 +517,9 @@ sl_one_outcome <- function(dat, outcome_name,
     cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+        if (opts$return_full_sl_obj) {
+            saveRDS(cv_fit, file = paste0("/home/output/", cv_fit_name))
+        }
     }
     saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
     saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
@@ -473,6 +529,9 @@ sl_one_outcome <- function(dat, outcome_name,
     cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+        if (opts$return_full_sl_obj) {
+            saveRDS(cv_fit, file = paste0("/home/output/", cv_fit_name))
+        }
     }
     saveRDS(cv_fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
     saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))

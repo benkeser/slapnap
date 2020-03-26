@@ -34,7 +34,7 @@ library(seqinr)
 #antibodies <- "VRC07-523-LS"
 # antibodies <- c("VRC07-523-LS", "PGT121")
 #antibodies <- c("VRC07-523-LS", "PGT121", "PGDM1400")
-path.home <- "/home/"
+path.home <- "/home"
 
 # antibody names are passed to docker container at run time as
 # environment variable Nab, which is a semicolon-separated list
@@ -52,7 +52,10 @@ path.lib <- file.path(path.home, "lib")
 path.data <- file.path(path.home, "dat")
 path.data.catnap <- file.path(path.data, "catnap")
 path.data.analysis <- file.path(path.data, "analysis")
+path.out <- file.path(path.home, "output")
 
+source(file.path(path.lib, "utils.R"))
+opts <- get_global_options()
 # load data
 data.assay <- read.table(file.path(path.data.catnap, "assay.txt"), header=T, sep="\t", quote="\"")
 data.viruses <- read.table(file.path(path.data.catnap, "viruses.txt"), header=T, sep="\t", quote="\"")
@@ -241,7 +244,10 @@ data.final <- data.final[ , filter.insertions]
 filename <- paste0("multiab_catnap_", paste(antibodies, collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
 setwd(path.data.analysis)
 write.csv(data.final, file=filename, row.names=F)
-
+if (opts$return_analysis_dataset) {
+    setwd(path.out)
+    write.csv(data.final, file=filename, row.names=F)
+}
 
 # ---------------------------------------------------------------------------- #
 #                                    - 30 -

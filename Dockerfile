@@ -2,7 +2,9 @@
 FROM ubuntu:latest
 
 # update libraries
-RUN apt-get clean && apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https
+RUN apt-get clean && apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y apt-transport-https
 
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -20,8 +22,8 @@ ENV outcomes="ic50;ic80;iip;sens1;sens2"
 #  if more than a single algorithm is listed, then super learner is used
 #  if a single algorithm is listed, then the boolean `cvtune` variable can be used
 #  to determine if default tuning parameters are selected or if a small grid
-#  search is performed to select tuning parameters. 
-# 
+#  search is performed to select tuning parameters.
+#
 #  rf = random forest
 #  xgboost = eXtreme gradient boosting
 #  lasso = elastic net regression
@@ -35,7 +37,7 @@ ENV learners="rf;xgboost;lasso"
 ENV cvtune="TRUE"
 
 # should cv be used to measure performance?
-#   if TRUE, then cross-validation is used to validate the performance of the prediction 
+#   if TRUE, then cross-validation is used to validate the performance of the prediction
 #     algorithm in predicting the selected outcomes
 #   if FALSE, then the learner is trained on each outcome, but nothing more is performed
 ENV cvperf="TRUE"
@@ -51,6 +53,12 @@ ENV importance_ind="marg;cond;pred"
 # set the name of the saved report
 #  if set to "", then will default to report_[_-separated list of nabs]_[date].html
 ENV report_name=""
+
+# output to save in addition to the report
+#  if set to "TRUE", save the full regression object (the single learner if only one learner was specified, otherwise a SuperLearner object)
+ENV return_full_sl_obj="FALSE"
+#  if set to "TRUE", save the analysis dataset
+ENV return_analysis_dataset="FALSE"
 
 #-----------------------
 # Installing software
@@ -87,6 +95,9 @@ RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ggseqlogo", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("tibble", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
 
 # make directories
 # lib contains R source files
@@ -107,8 +118,8 @@ RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/
 RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
 # copy R package (only until new version gets to GitHub)
-COPY vimp_2.0.0.tar.gz /home/lib/vimp_2.0.0.tar.gz
-RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.0.tar.gz", type = "source", repos = NULL))'
+COPY vimp_2.0.1.tar.gz /home/lib/vimp_2.0.1.tar.gz
+RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.1.tar.gz", type = "source", repos = NULL))'
 # copy R scripts to do data pull and make executable
 COPY code/multi_ab_v4.Rlib /home/lib/multi_ab_v4.Rlib
 COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R
@@ -118,11 +129,13 @@ COPY code/run_super_learners.R /home/lib/run_super_learners.R
 COPY code/get_vimp.R /home/lib/get_vimp.R
 COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R
 COPY code/plotting_functions.R /home/lib/plotting_functions.R
+COPY code/check_opts.R /home/lib/check_opts.R
+COPY code/check_opts_functions.R /home/lib/check_opts_functions.R
 
-RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
+RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R /home/lib/check_opts.R
 
 # copy report Rmd
-COPY code/report.Rmd /home/lib/report.Rmd
+COPY code/new_report.Rmd /home/lib/new_report.Rmd
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
 RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R

@@ -1,5 +1,5 @@
 ---
-title: 'SLAPNAP Report: `r format(strsplit(Sys.getenv("Nab"), split = ";")[[1]])`'
+title: 'SLAPNAP Report: `r format(strsplit(Sys.getenv("nab"), split = ";")[[1]])`'
 author: "SLAPNAP Team"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
@@ -47,7 +47,13 @@ any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
 nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
 ncomplete <- readRDS(paste0(slfits_dir, "ncomplete.rds"))
 # read in data
-analysis_data_name <- list.files(paste0(data_dir, "analysis"))
+analysis_data_names <- list.files("/home/dat/analysis")
+# if more than one analysis dataset, use the most recent one
+if (length(analysis_data_names) > 1) {
+    analysis_data_name <- analysis_data_names[length(analysis_data_names)]
+} else {
+    analysis_data_name <- analysis_data_names
+}
 dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 dat <- dat[complete.cases(dat),]
 
@@ -67,11 +73,11 @@ bin_nms <- nice_outcomes[bin_idx]
 
 # Executive summary
 
-The NAbs studied in this analysis are `r paste0(antibodies, collapse = ", ")`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)`
+The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r ifelse(length(opts$nab) > 1, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. There were `r nprevious` sequences extracted from the CATNAP database; `r ncomplete` sequences had complete data and were used in the analysis. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
 
-The specific `r ifelse(length(opts$learners) > 1 | opts$cvtune == TRUE, "algorithms", "algorithm")` used in learning process `r ifelse(length(opts$learners) == 1 | opts$cvtune == TRUE, "are", "is")` described in Table \@ref(tab:sllibtab).
+The specific `r ifelse((length(opts$learners) > 1) | opts$cvtune == TRUE, "algorithms", "algorithm")` used in the learning process `r ifelse((length(opts$learners) > 1) | opts$cvtune == TRUE, "are", "is")` described in Table \@ref(tab:sllibtab).
 
 ```{r sllibtab}
 source(paste0(code_dir, "super_learner_libraries.R"))
@@ -92,11 +98,13 @@ kable(as.data.frame(Description), col.names = c("Label", "Description"),
 `r if(!opts$cvperf) "<!--"`
 
 ```{r}
-fit_list_out <- load_cv_fits(opts, slfits_dir)
-cv_outcomes <- get_cv_outcomes_tables(fit_list_out, opts)
+if (opts$cvperf) {
+    fit_list_out <- load_cv_fits(opts, slfits_dir)
+    cv_outcomes <- get_cv_outcomes_tables(fit_list_out, opts)
+}
 ```
 
-The predictive ability of the learner was assessed using cross-validation. `r if(any_cont & opts$cvperf) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."` `r if(any_dich) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
+The predictive ability of the learner was assessed using cross-validation. `r if(any_cont & opts$cvperf) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."` `r if(any_dich & opts$cvperf) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
 
 ```{r rsquaredtable, eval = any_cont & opts$cvperf}
 get_cv_outcomes_tables(fit_list_out, opts)[[1]]
@@ -107,8 +115,6 @@ get_cv_outcomes_tables(fit_list_out, opts)[[1]]
 # otherwise the labeling messes up
 get_cv_outcomes_tables(fit_list_out, opts)[[2]]
 ```
-
-`r if(any_dich & opts$cvperf) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
 
 `r if(!opts$cvperf) "-->"`
 
@@ -257,11 +263,11 @@ plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_
 ```
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "-->"`
 
-`r if (!("ic50" %in% opts$outcomes)) "<!--"`
+`r if (!("ic50" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 
 ## Variable importance
 
-`r if (!("ic50" %in% opts$outcomes)) "-->"`
+`r if (!("ic50" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 `r if (!("ic50" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
@@ -274,13 +280,13 @@ plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_
 The population-level variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) for predicting IC-50 is shown in Figure \@ref(fig:ic50groupvimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = TRUE)`
 
-```{r ic50groupvimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r ic50groupvimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
-    ic50_grp_vimp_grob_lst <- list(switch(opts$cvperf, log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_cv_vimp_plots$grp_marginal), switch(opts$cvperf, log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional))
+    ic50_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
-  ic50_grp_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_cv_vimp_plots$grp_marginal)
+  ic50_grp_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_cv_vimp_plots$grp_marginal)
 } else {
-  ic50_grp_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional)
+  ic50_grp_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
 ```
@@ -293,13 +299,13 @@ grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance
 We show the population-level variable importance of individual features in predicting IC-50 in Figure \@ref(fig:ic50indivimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = FALSE)`
 
-```{r ic50indivimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r ic50indivimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
-    ic50_ind_vimp_grob_lst <- list(switch(opts$cvperf, log10.pc.ic50_vimp_plots$ind_marginal, log10.pc.ic50_cv_vimp_plots$ind_marginal), switch(opts$cvperf, log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional))
+    ic50_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$ind_marginal, log10.pc.ic50_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
-  ic50_ind_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic50_vimp_plots$ind_marginal, log10.pc.ic50_cv_vimp_plots$ind_marginal)
+  ic50_ind_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$ind_marginal, log10.pc.ic50_cv_vimp_plots$ind_marginal)
 } else {
-  ic50_ind_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional)
+  ic50_ind_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
 ```
@@ -310,14 +316,14 @@ grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = length(opts$importance
 
 ### Predictive importance
 
-```{r get-pred-imp-ic50}
+```{r get-pred-imp-ic50, eval = ("ic50" %in% opts$outcomes) & ("pred" %in% opts$importance_ind)}
 fit_ic50 <- readRDS(paste0(slfits_dir, "fit_log10.pc.ic50.rds"))
 imp_ic50 <- extract_importance(fit_ic50, opts)
 ```
 
-Table \@ref(tab:ic50-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic50" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_ic50), "")`
+Table \@ref(tab:ic50-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_ic50), "")`
 
-```{r ic50-imp-table, eval = "ic50" %in% opts$outcomes}
+```{r ic50-imp-table, eval = "ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting IC-50 as measured by their algorithm-specific importance."))
 ```
@@ -341,7 +347,7 @@ ic80_descr <- get_individual_nab_summaries("ic80", opts, dat)
 do.call(grid.arrange, ic80_descr$hist)
 ```
 
-```{r, tableic80, eval = ("ic80" %in% opts$outcomes) & (length(opts$nab > 1))}
+```{r, tableic80, eval = ("ic80" %in% opts$outcomes) & (length(opts$nab) > 1)}
 ic80_table <- Reduce(rbind, ic80_descr$summary)
 row.names(ic80_table) <- c(paste0("IC-80 ", opts$nab))
 kable(ic80_table, row.names = TRUE, digits = 3,
@@ -422,11 +428,11 @@ plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("ic80" %in% opts$outcomes)) "<!--"`
+`r if (!("ic80" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 
 ## Variable importance
 
-`r if (!("ic80" %in% opts$outcomes)) "-->"`
+`r if (!("ic80" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -444,13 +450,13 @@ We show the population-level variable importance of groups of features (defined 
 `r get_biological_importance_plot_description(opts, grp = TRUE)`
 
 
-```{r ic80groupvimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic80", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r ic80groupvimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic80", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
-    ic80_grp_vimp_grob_lst <- list(switch(opts$cvperf, log10.pc.ic80_vimp_plots$grp_marginal, log10.pc.ic80_cv_vimp_plots$grp_marginal), switch(opts$cvperf, log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional))
+    ic80_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$grp_marginal, log10.pc.ic80_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
-  ic80_grp_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic80_vimp_plots$grp_marginal, log10.pc.ic80_cv_vimp_plots$grp_marginal)
+  ic80_grp_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$grp_marginal, log10.pc.ic80_cv_vimp_plots$grp_marginal)
 } else {
-  ic80_grp_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional)
+  ic80_grp_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
 ```
@@ -465,13 +471,13 @@ We show the population-level variable importance of individual features in predi
 `r get_biological_importance_plot_description(opts, grp = FALSE)`
 
 
-```{r ic80indivimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic80", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r ic80indivimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic80", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
-    ic80_ind_vimp_grob_lst <- list(switch(opts$cvperf, log10.pc.ic80_vimp_plots$ind_marginal, log10.pc.ic80_cv_vimp_plots$ind_marginal), switch(opts$cvperf, log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional))
+    ic80_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$ind_marginal, log10.pc.ic80_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
-  ic80_ind_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic80_vimp_plots$ind_marginal, log10.pc.ic80_cv_vimp_plots$ind_marginal)
+  ic80_ind_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$ind_marginal, log10.pc.ic80_cv_vimp_plots$ind_marginal)
 } else {
-  ic80_ind_vimp_grob_lst <- switch(opts$cvperf, log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional)
+  ic80_ind_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
 ```
@@ -481,14 +487,14 @@ grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = length(opts$importance
 `r if (!("ic80" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "<!--"`
 ### Predictive importance
 
-```{r get-pred-imp-ic80, eval = "ic80" %in% opts$outcomes}
+```{r get-pred-imp-ic80, eval = "ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 fit_ic80 <- readRDS(paste0(slfits_dir, "fit_log10.pc.ic80.rds"))
 imp_ic80 <- extract_importance(fit_ic80, opts)
 ```
 
-Table \@ref(tab:ic80-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic80" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_ic80), "")`
+Table \@ref(tab:ic80-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_ic80), "")`
 
-```{r ic80-imp-table, eval = "ic80" %in% opts$outcomes}
+```{r ic80-imp-table, eval = "ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic80[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting IC-80 as measured by their algorithm-specific importance."))
 ```
@@ -514,6 +520,7 @@ iip_figcap <- if(length(opts$nab) == 1){
 ```
 
 ```{r histcombniip, eval = "iip" %in% opts$outcomes, fig.cap = iip_figcap}
+combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat, "iip", "IIP", "Density")
 do.call(grid.arrange, combn_hist)
 ```
@@ -568,10 +575,10 @@ plot_cv_predictions(cv_fit = fit_list_out$out$iip, outcome_name = "IIP", log_axi
 ```
 `r if (!("iip" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("iip" %in% opts$outcomes)) "<!--"`
+`r if (!("iip" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 ## Variable importance
 
-`r if (!("iip" %in% opts$outcomes)) "-->"`
+`r if (!("iip" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -589,13 +596,13 @@ We show the population-level variable importance of groups of features (defined 
 `r get_biological_importance_plot_description(opts, grp = TRUE)`
 
 
-```{r iipgroupvimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "iip", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r iipgroupvimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "iip", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
-    iip_grp_vimp_grob_lst <- list(switch(opts$cvperf, iip_vimp_plots$grp_marginal, iip_cv_vimp_plots$grp_marginal), switch(opts$cvperf, iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional))
+    iip_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,iip_vimp_plots$grp_marginal, iip_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
-  iip_grp_vimp_grob_lst <- switch(opts$cvperf, iip_vimp_plots$grp_marginal, iip_cv_vimp_plots$grp_marginal)
+  iip_grp_vimp_grob_lst <- switch(opts$cvperf + 1,iip_vimp_plots$grp_marginal, iip_cv_vimp_plots$grp_marginal)
 } else {
-  iip_grp_vimp_grob_lst <- switch(opts$cvperf, iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional)
+  iip_grp_vimp_grob_lst <- switch(opts$cvperf + 1,iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
 ```
@@ -610,13 +617,13 @@ We show the population-level variable importance of individual features in predi
 `r get_biological_importance_plot_description(opts, grp = FALSE)`
 
 
-```{r iipindivimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "iip", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r iipindivimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "iip", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
-    iip_ind_vimp_grob_lst <- list(switch(opts$cvperf, iip_vimp_plots$ind_marginal, iip_cv_vimp_plots$ind_marginal), switch(opts$cvperf, iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional))
+    iip_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,iip_vimp_plots$ind_marginal, iip_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
-  iip_ind_vimp_grob_lst <- switch(opts$cvperf, iip_vimp_plots$ind_marginal, iip_cv_vimp_plots$ind_marginal)
+  iip_ind_vimp_grob_lst <- switch(opts$cvperf + 1,iip_vimp_plots$ind_marginal, iip_cv_vimp_plots$ind_marginal)
 } else {
-  iip_ind_vimp_grob_lst <- switch(opts$cvperf, iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional)
+  iip_ind_vimp_grob_lst <- switch(opts$cvperf + 1,iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
 ```
@@ -627,14 +634,14 @@ grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = length(opts$importance_
 
 ### Predictive importance
 
-```{r get-pred-imp-iip, eval = "iip" %in% opts$outcomes}
+```{r get-pred-imp-iip, eval = "iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 fit_iip <- readRDS(paste0(slfits_dir, "fit_log10.pc.iip.rds"))
 imp_iip <- extract_importance(fit_iip, opts)
 ```
 
-Table \@ref(tab:iip-imp-table) shows the top `r n_imp_ft` features. `r ifelse("iip" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_iip), "")`
+Table \@ref(tab:iip-imp-table) shows the top `r n_imp_ft` features. `r ifelse("iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_iip), "")`
 
-```{r iip-imp-table, eval = "iip" %in% opts$outcomes}
+```{r iip-imp-table, eval = "iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting IIP as measured by their algorithm-specific importance."))
 ```
@@ -649,7 +656,7 @@ kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive.
+Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive.
 
 `r if (!("sens1" %in% opts$outcomes)) "-->"`
 
@@ -686,7 +693,7 @@ The cross-validated performance of super learner, as measured by area under the 
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
-```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated sensitivity (n = ", ncomplete, "observations with complete sequence data)."), eval = "sens1" %in% opts$outcomes}
+```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated sensitivity (n = ", ncomplete, "observations with complete sequence data).")}
 plot(fit_list_out$out$sens1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 ```
@@ -720,16 +727,16 @@ plot_roc_curves(fit_list_out$out$sens1, opts = opts)
 ```
 
 ```{r predprob1, fig.cap = predprob_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf)}
-plot_predicted_prob_boxplots(cvfit_dichotomous.1, opts = opts)
+plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts)
 ```
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes)) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 
 ## Variable importance
 
-`r if (!("sens1" %in% opts$outcomes)) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -747,13 +754,13 @@ We show the population-level variable importance of groups of features (defined 
 `r get_biological_importance_plot_description(opts, grp = TRUE)`
 
 
-```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
-    sens1_grp_vimp_grob_lst <- list(switch(opts$cvperf, dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal), switch(opts$cvperf, dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional))
+    sens1_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
-  sens1_grp_vimp_grob_lst <- switch(opts$cvperf, dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal)
+  sens1_grp_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal)
 } else {
-  sens1_grp_vimp_grob_lst <- switch(opts$cvperf, dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional)
+  sens1_grp_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
 ```
@@ -768,13 +775,13 @@ We show the population-level variable importance of individual features in predi
 `r get_biological_importance_plot_description(opts, grp = FALSE)`
 
 
-```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
-    sens1_ind_vimp_grob_lst <- list(switch(opts$cvperf, dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal), switch(opts$cvperf, dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional))
+    sens1_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
-  sens1_ind_vimp_grob_lst <- switch(opts$cvperf, dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal)
+  sens1_ind_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal)
 } else {
-  sens1_ind_vimp_grob_lst <- switch(opts$cvperf, dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional)
+  sens1_ind_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
 ```
@@ -785,15 +792,15 @@ grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importanc
 
 ### Predictive importance
 
-```{r get-pred-imp-sens1, eval = "sens1" %in% opts$outcomes}
-fit_sens1 <- readRDS(paste0(slfits_dir, "fit_sens1.rds")
+```{r get-pred-imp-sens1, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
+fit_sens1 <- readRDS(paste0(slfits_dir, "fit_dichotomous.1.rds"))
 imp_sens1 <- extract_importance(fit_sens1, opts)
 ```
 
-Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens1" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_sens1), "")`
+Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_sens1), "")`
 
-```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes}
-kable(sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
+```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
+kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting estimated sensitivity as measured by their algorithm-specific importance."))
 ```
 
@@ -808,7 +815,7 @@ kable(sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequeunces, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive.
+Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive.
 
 `r if (!("sens2" %in% opts$outcomes)) "-->"`
 
@@ -884,12 +891,12 @@ plot_roc_curves(fit_list_out$out$sens2, opts = opts)
 plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts)
 ```
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes)) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
 ## Variable importance
 
-`r if (!("sens2" %in% opts$outcomes)) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -907,13 +914,13 @@ We show the population-level variable importance of groups of features (defined 
 `r get_biological_importance_plot_description(opts, grp = TRUE)`
 
 
-```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
-    sens2_grp_vimp_grob_lst <- list(switch(opts$cvperf, dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal), switch(opts$cvperf, dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional))
+    sens2_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
-  sens2_grp_vimp_grob_lst <- switch(opts$cvperf, dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal)
+  sens2_grp_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal)
 } else {
-  sens2_grp_vimp_grob_lst <- switch(opts$cvperf, dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional)
+  sens2_grp_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
 ```
@@ -928,13 +935,13 @@ We show the population-level variable importance of individual features in predi
 `r get_biological_importance_plot_description(opts, grp = FALSE)`
 
 
-```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance"), fig.height = 10, fig.width = 20}
+```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
-    sens2_ind_vimp_grob_lst <- list(switch(opts$cvperf, dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal), switch(opts$cvperf, dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional))
+    sens2_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
-  sens2_ind_vimp_grob_lst <- switch(opts$cvperf, dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal)
+  sens2_ind_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal)
 } else {
-  sens2_ind_vimp_grob_lst <- switch(opts$cvperf, dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional)
+  sens2_ind_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
 ```
@@ -944,15 +951,15 @@ grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importanc
 `r if (!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "<!--"`
 ### Predictive importance
 
-```{r get-pred-imp-sens2, eval = "sens2" %in% opts$outcomes}
-fit_sens2 <- readRDS(paste0(slfits_dir, "fit_sens2.rds")
+```{r get-pred-imp-sens2, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
+fit_sens2 <- readRDS(paste0(slfits_dir, "fit_dichotomous.2.rds"))
 imp_sens2 <- extract_importance(fit_sens2, opts)
 ```
 
-Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens2" %in% opts$outcomes, get_importance_text(opts = opts, imp_df = imp_sens2), "")`
+Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_sens2), "")`
 
-```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes}
-kable(sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
+```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
+kable(imp_sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting multiple sensitivity as measured by their algorithm-specific importance."))
 ```
 `r if(!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`

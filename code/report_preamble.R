@@ -10,6 +10,8 @@ options(stringsAsFactors = FALSE)
 library(grid)
 library(magrittr)
 library(ggplot2)
+library(cowplot)
+theme_set(theme_cowplot())
 library(dplyr)
 library(tidyr)
 library(ROCR)
@@ -51,7 +53,13 @@ n_ab <- length(antibodies)
 ## ----------------------------------------------------------------------------
 get_dat <- function(){
 	# load data
-	analysis_data_name <- list.files(paste0(data_dir, "analysis"))
+    analysis_data_names <- list.files("/home/dat/analysis")
+    # if more than one analysis dataset, use the most recent one
+    if (length(analysis_data_names) > 1) {
+        analysis_data_name <- analysis_data_names[length(analysis_data_names)]
+    } else {
+        analysis_data_name <- analysis_data_names
+    }
 	dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 
 	# check missing values
@@ -109,6 +117,7 @@ outcome_names <- c(
     switch("sens1" %in% opts$outcomes, "dichotomous.1", NULL),
     switch("sens2" %in% opts$outcomes, "dichotomous.2", NULL)
 )
+all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
 
 # get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)

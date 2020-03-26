@@ -31,25 +31,25 @@ for (i in 1:length(outcome_names)) {
     eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
     eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
     vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", unlist(lapply(as.list(names(current_vimp_lst)), vimp_plot_type)))
-    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, x_lim = this_x_lim, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
 }
 
 ## make table for executive summary
 vimp_threshold <- 0.05
 if (opts$cvperf) {
     vimp_summary_tbl <- make_vimp_executive_summary_table(
-        switch("log10.pc.ic50" %in% outcome_names, log10.pc.ic50_cv_vimp_lst, NULL),
-        switch("log10.pc.ic80" %in% outcome_names, log10.pc.ic80_cv_vimp_lst, NULL),
-        switch("iip" %in% outcome_names, iip_cv_vimp_lst, NULL),
-        switch("dichotomous.1" %in% outcome_names, dichotomous.1_cv_vimp_lst, NULL),
-        switch("dichotomous.2" %in% outcome_names, dichotomous.2_cv_vimp_lst, NULL),
-        threshold = vimp_threshold, outcome_names = outcome_names, cv = TRUE, opts = opts)
+        switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_cv_vimp_lst),
+        switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_cv_vimp_lst),
+        switch("iip" %in% outcome_names + 1, NULL, iip_cv_vimp_lst),
+        switch("dichotomous.1" %in% outcome_names + 1, NULL, dichotomous.1_cv_vimp_lst),
+        switch("dichotomous.2" %in% outcome_names + 1, NULL, dichotomous.2_cv_vimp_lst),
+        threshold = vimp_threshold, outcome_names = all_outcome_names, cv = TRUE, opts = opts)
 } else {
-    vimp_summary_tbl <- make_vimp_executive_summary_table(switch("log10.pc.ic50" %in% outcome_names, log10.pc.ic50_vimp_lst, NULL),
-    switch("log10.pc.ic80" %in% outcome_names, log10.pc.ic80_vimp_lst, NULL),
-    switch("iip" %in% outcome_names, iip_vimp_lst, NULL),
-    switch("dichotomous.1" %in% outcome_names, dichotomous.1_vimp_lst, NULL),
-    switch("dichotomous.2" %in% outcome_names, dichotomous.2_vimp_lst, NULL),
-    threshold = vimp_threshold, outcome_names = outcome_names, cv = FALSE, opts = opts)
+    vimp_summary_tbl <- make_vimp_executive_summary_table(switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_vimp_lst),
+    switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_vimp_lst),
+    switch("iip" %in% outcome_names + 1, NULL, iip_vimp_lst),
+    switch("dichotomous.1" %in% outcome_names + 1, NULL, dichotomous.1_vimp_lst),
+    switch("dichotomous.2" %in% outcome_names + 1, NULL, dichotomous.2_vimp_lst),
+    threshold = vimp_threshold, outcome_names = all_outcome_names, cv = FALSE, opts = opts)
 }

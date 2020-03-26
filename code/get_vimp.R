@@ -19,7 +19,13 @@ source("/home/lib/utils.R")
 opts <- get_global_options()
 
 # load data and subset to complete cases
-analysis_data_name <- list.files("/home/dat/analysis")
+analysis_data_names <- list.files("/home/dat/analysis")
+# if more than one analysis dataset, use the most recent one
+if (length(analysis_data_names) > 1) {
+    analysis_data_name <- analysis_data_names[length(analysis_data_names)]
+} else {
+    analysis_data_name <- analysis_data_names
+}
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
 dat <- dat[complete.cases(dat),]
 
