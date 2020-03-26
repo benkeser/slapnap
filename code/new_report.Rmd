@@ -693,7 +693,7 @@ The cross-validated performance of super learner, as measured by area under the 
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
-```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated sensitivity (n = ", ncomplete, "observations with complete sequence data).")}
+```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
 plot(fit_list_out$out$sens1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 ```
@@ -855,7 +855,7 @@ The cross-validated performance of super learner, as measured by area under the 
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2).
 
-```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete, "observations with complete sequence data).")}
+```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
 plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 ```
