@@ -73,13 +73,13 @@ postfix <- paste0(paste(opts$nab, collapse = "_"), Sys.getenv("init_date"))
 The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r ifelse(length(opts$nab) > 1, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
 
 * `r nprevious` sequences were extracted from the CATNAP database;
+
 * `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
 * out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive (using estimated sensitivity)`r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r if("sens1" %in% opts$outcomes) "-->"`
-Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity).
+* out of the sequences with complete data, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity).
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
@@ -127,18 +127,18 @@ get_cv_outcomes_tables(fit_list_out, opts)[[2]]
 
 <!-- If we did marginal group variable importance, print the next section -->
 `r if (!("marg" %in% opts$importance_grp)) "<!--"`
-We define the marginal biological importance of a subgroup of features as the difference in population predictiveness between the best possible prediction function based on the features under consideration plus geographic confounders versus only geographic confounders. In Table \@ref(tab:vimpgrpmarg), we display the groups of variables and their ranked marginal population variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+We define the marginal biological importance of a subgroup of features as the difference in population predictiveness between the best possible prediction function based on the features under consideration plus geographic confounders versus only geographic confounders. In Table \@ref(tab:vimpgrpmarg), we display the groups of variables and their ranked marginal biological variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` Stars next to ranks denote groups with p-value less than `r vimp_threshold` from a hypothesis test with null hypothesis of zero importance. For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
 
 ```{r vimpgrpmarg, eval = "marg" %in% opts$importance_grp}
 ## vimp_summary_tbl created in preamble
 vimp_summary_marg <- vimp_summary_tbl$grp_marg %>%
-    select(-mn_rank)
+    select(-mn_rank, -matches("num_rank"))
 correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
 cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "$R^2$", paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
 bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
 correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
-kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = paste0("Ranked marginal variable importance of groups relative to the group of geographic confounders predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data."))
+kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = paste0("Ranked marginal variable importance of groups relative to the group of geographic confounders predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data. Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance."))
 ```
 
 `r if (!("marg" %in% opts$importance_grp)) "-->"`
@@ -146,18 +146,18 @@ kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_m
 <!-- If we did conditional group variable importance, print the next section -->
 
 `r if (!("cond" %in% opts$importance_grp)) "<!--"`
-We define the conditional biological importance of a subgroup of features for predicting an outcome as the difference in population predictiveness between the best possible prediction function based on all available features versus all features except those under consideration. In Table \@ref(tab:vimpgrpcond), we display the groups of variables and their ranked conditional population variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+We define the conditional biological importance of a subgroup of features for predicting an outcome as the difference in population predictiveness between the best possible prediction function based on all available features versus all features except those under consideration. In Table \@ref(tab:vimpgrpcond), we display the groups of variables and their ranked conditional biological variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` Stars next to ranks denote groups with p-value less than `r vimp_threshold` from a hypothesis test with null hypothesis of zero importance. For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
 
 ```{r vimpgrpcond, eval = "cond" %in% opts$importance_grp}
 ## vimp_summary_tbl created in preamble
 vimp_summary_cond <- vimp_summary_tbl$grp_cond %>%
-    select(-mn_rank)
+    select(-mn_rank, -matches("num_rank"))
 correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
 cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "$R^2$", paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
 bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
 correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
-kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = paste0("Ranked conditional variable importance of groups relative to the remaining features for predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data."))
+kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = paste0("Ranked conditional variable importance of groups relative to the remaining features for predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on all available features, we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on the reduced set of features, we used the remaining ", num_obs_red, " observations with complete sequence data. Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance."))
 ```
 
 `r if (!("cond" %in% opts$importance_grp)) "-->"`
@@ -302,7 +302,7 @@ if ("figures" %in% opts$return) {
 `r if (!("ic50" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
 
 The biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) for predicting IC-50 is shown in Figure \@ref(fig:ic50groupvimp). Importance is defined using the difference in $R^2$ values.
-`r get_biological_importance_plot_description(opts, grp = TRUE)`
+`r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 ```{r ic50groupvimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
@@ -324,7 +324,7 @@ if ("figures" %in% opts$return) {
 `r if (!("ic50" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
 We show the biological variable importance of individual features in predicting IC-50 in Figure \@ref(fig:ic50indivimp). Importance is defined using the difference in $R^2$ values.
-`r get_biological_importance_plot_description(opts, grp = FALSE)`
+`r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 ```{r ic50indivimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
@@ -493,7 +493,7 @@ if ("figures" %in% opts$return) {
 `r if (!("ic80" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
 
 We show the biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting IC-80 in Figure \@ref(fig:ic80groupvimp). Importance is defined using the difference in $R^2$ values.
-`r get_biological_importance_plot_description(opts, grp = TRUE)`
+`r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
 ```{r ic80groupvimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic80", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -517,7 +517,7 @@ if ("figures" %in% opts$return) {
 `r if (!("ic80" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
 We show the biological variable importance of individual features in predicting IC-80 in Figure \@ref(fig:ic80indivimp). Importance is defined using the difference in $R^2$ values.
-`r get_biological_importance_plot_description(opts, grp = FALSE)`
+`r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
 ```{r ic80indivimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic80", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -657,7 +657,7 @@ if ("figures" %in% opts$return) {
 `r if (!("iip" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
 
 We show the biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting IIP in Figure \@ref(fig:iipgroupvimp). Importance is defined using the difference in $R^2$ values.
-`r get_biological_importance_plot_description(opts, grp = TRUE)`
+`r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
 ```{r iipgroupvimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "iip", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -681,7 +681,7 @@ if ("figures" %in% opts$return) {
 `r if (!("iip" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
 We show the biological variable importance of individual features in predicting IIP in Figure \@ref(fig:iipindivimp). Importance is defined using the difference in $R^2$ values.
-`r get_biological_importance_plot_description(opts, grp = FALSE)`
+`r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
 ```{r iipindivimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "iip", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -832,7 +832,7 @@ if ("figures" %in% opts$return) {
 `r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
 
 We show the biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting estimated sensitivity in Figure \@ref(fig:sens1groupvimp). Importance is defined using the difference in AUCs.
-`r get_biological_importance_plot_description(opts, grp = TRUE)`
+`r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
 ```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -856,7 +856,7 @@ if ("figures" %in% opts$return) {
 `r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
 We show the biological variable importance of individual features in predicting estimated sensitivity in Figure \@ref(fig:sems1indivimp). Importance is defined using the difference in AUCs.
-`r get_biological_importance_plot_description(opts, grp = FALSE)`
+`r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
 ```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -1009,7 +1009,7 @@ if ("figures" %in% opts$return) {
 `r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
 
 We show the biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting multiple sensitivity in Figure \@ref(fig:sens2groupvimp). Importance is defined using the difference in AUCs.
-`r get_biological_importance_plot_description(opts, grp = TRUE)`
+`r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
 ```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = TRUE), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -1033,7 +1033,7 @@ if ("figures" %in% opts$return) {
 `r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
 We show the biological variable importance of individual features in predicting multiple sensitivity in Figure \@ref(fig:sens2indivimp). Importance is defined using the difference in AUCs.
-`r get_biological_importance_plot_description(opts, grp = FALSE)`
+`r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
 ```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = FALSE), fig.subcap = c("Marginal importance", "Conditional importance")}

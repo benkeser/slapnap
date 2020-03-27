@@ -46,51 +46,57 @@ make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_nam
     ## determine the rankings of each group for each outcome
     if ("cond" %in% opts$importance_grp) {
         grp_cond_summary_tib <- output_tib_grp_cond %>%
-            group_by(outcome) %>%
-            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>%
-            ungroup() %>%
-            select(nice_outcome_name, nice_group_name, rank) %>%
-            group_by(nice_group_name) %>%
-            spread(key = nice_outcome_name, value = rank) %>%
-            ungroup() %>%
-            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>%
-            arrange(mn_rank)
+        group_by(outcome) %>%
+        mutate(rank = row_number(),
+        signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>%
+        ungroup() %>%
+        select(nice_outcome_name, nice_group_name, signif_rank) %>%
+        group_by(nice_group_name) %>%
+        spread(key = nice_outcome_name, value = signif_rank) %>%
+        ungroup() %>%
+        mutate_at(vars(-nice_group_name), list(num_rank = ~as.numeric(gsub("*", "", ., fixed = TRUE)))) %>%
+        mutate(mn_rank = select(., matches("num_rank")) %>% rowMeans(.)) %>%
+        arrange(mn_rank)
     }
     if ("marg" %in% opts$importance_grp) {
         grp_marg_summary_tib <- output_tib_grp_marg %>%
             group_by(outcome) %>%
-            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>%
+            mutate(rank = row_number(),
+            signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>%
             ungroup() %>%
-            select(nice_outcome_name, nice_group_name, rank) %>%
+            select(nice_outcome_name, nice_group_name, signif_rank) %>%
             group_by(nice_group_name) %>%
-            spread(key = nice_outcome_name, value = rank) %>%
+            spread(key = nice_outcome_name, value = signif_rank) %>%
             ungroup() %>%
-            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>%
+            mutate_at(vars(-nice_group_name), list(num_rank = ~as.numeric(gsub("*", "", ., fixed = TRUE)))) %>%
+            mutate(mn_rank = select(., matches("num_rank")) %>% rowMeans(.)) %>%
             arrange(mn_rank)
     }
     if ("cond" %in% opts$importance_ind) {
         ind_cond_summary_tib <- output_tib_ind_cond %>%
             group_by(outcome) %>%
-            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_ind_names(group)) %>%
+            mutate(rank = row_number(), signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_ind_names(group)) %>%
             ungroup() %>%
-            select(nice_outcome_name, nice_group_name, rank) %>%
+            select(nice_outcome_name, nice_group_name, signif_rank) %>%
             group_by(nice_group_name) %>%
-            spread(key = nice_outcome_name, value = rank) %>%
+            spread(key = nice_outcome_name, value = signif_rank) %>%
             ungroup() %>%
-            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>%
+            mutate_at(vars(-nice_group_name), list(num_rank = ~as.numeric(gsub("*", "", ., fixed = TRUE)))) %>%
+            mutate(mn_rank = select(., matches("num_rank")) %>% rowMeans(.)) %>%
             arrange(mn_rank)
     }
     if ("marg" %in% opts$importance_ind) {
         ind_marg_summary_tib <- output_tib_ind_marg %>%
-            group_by(outcome) %>%
-            mutate(rank = row_number(), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_ind_names(group)) %>%
-            ungroup() %>%
-            select(nice_outcome_name, nice_group_name, rank) %>%
-            group_by(nice_group_name) %>%
-            spread(key = nice_outcome_name, value = rank) %>%
-            ungroup() %>%
-            mutate(mn_rank = select(., -matches("nice_group_name")) %>% rowMeans(.)) %>%
-            arrange(mn_rank)
+        group_by(outcome) %>%
+        mutate(rank = row_number(), signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_ind_names(group)) %>%
+        ungroup() %>%
+        select(nice_outcome_name, nice_group_name, signif_rank) %>%
+        group_by(nice_group_name) %>%
+        spread(key = nice_outcome_name, value = signif_rank) %>%
+        ungroup() %>%
+        mutate_at(vars(-nice_group_name), list(num_rank = ~as.numeric(gsub("*", "", ., fixed = TRUE)))) %>%
+        mutate(mn_rank = select(., matches("num_rank")) %>% rowMeans(.)) %>%
+        arrange(mn_rank)
     }
     output_lst <- list(
         grp_cond = switch("cond" %in% opts$importance_grp, grp_cond_summary_tib, NULL),

@@ -58,11 +58,11 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
         this_text <- "feature"
     }
     if (("marg" %in% these_opts) & ("cond" %in% these_opts)) {
-        return(paste0("The left-hand plot shows the marginal importance of the ", this_text, " relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
+        return(paste0("The left-hand plot shows the marginal biological importance of the ", this_text, " relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
     } else if ("marg" %in% these_opts) {
-        return(paste0("The plot shows the marginal importance of the ", this_text, " relative to the null model with geographic confounders only."))
+        return(paste0("The plot shows the marginal biological importance of the ", this_text, " relative to the null model with geographic confounders only."))
     } else if ("cond" %in% these_opts){
-        return(paste0("The plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
+        return(paste0("The plot shows the conditional biological importance of the ", this_text, " relative to all other ", this_text, "s."))
     } else {
         return("")
     }
@@ -94,7 +94,7 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
         outer_descr <- "Individual"
         inner_descr <- "feature"
     }
-    cap <- paste0(outer_descr, " variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders, we used the remaining ", num_obs_red, " observations.")
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders, we used the remaining ", num_obs_red, " observations.")
     return(cap)
 }
 

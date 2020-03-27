@@ -6,20 +6,17 @@ num_pop_import <- 20  # the number of individual features to display in plots
 
 ## plotting things
 x_lab_continuous <- expression(paste("Difference in ", R^2, sep = ""))
-x_lim_continuous <- c(0, 1.2)
 x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
-x_lim_binary <- c(0, 1.2)
 ## read in importance results for each outcome, create a plot for each
 ## only return non-cv plots if cv = FALSE
 imp_nms <- list(all_var_groups, all_var_groups, var_inds)
+vimp_threshold <- 0.05
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     if (grepl("dichot", this_outcome_name)) {
         this_x_lab <- x_lab_binary
-        this_x_lim <- x_lim_binary
     } else {
         this_x_lab <- x_lab_continuous
-        this_x_lim <- x_lim_continuous
     }
     ## importance results
     eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_vimp.rds'))")))
@@ -31,12 +28,12 @@ for (i in 1:length(outcome_names)) {
     eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
     eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
     vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", unlist(lapply(as.list(names(current_vimp_lst)), vimp_plot_type)))
-    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = FALSE, num_plot = num_pop_import), current_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = TRUE, num_plot = num_pop_import), current_cv_vimp_lst, vimp_plot_titles, SIMPLIFY = FALSE)")))
+    grp_bool_lst <- as.list(grepl("grp", names(current_vimp_lst)))
+    eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y, z) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = FALSE, grp = z, threshold = vimp_threshold, num_plot = num_pop_import, opts = opts), current_vimp_lst, vimp_plot_titles, grp_bool_lst, SIMPLIFY = FALSE)")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y, z) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = TRUE, grp = z, threshold = threshold, num_plot = num_pop_import, opts = opts), current_cv_vimp_lst, vimp_plot_titles, grp_bool_lst, SIMPLIFY = FALSE)")))
 }
 
 ## make table for executive summary
-vimp_threshold <- 0.05
 if (opts$cvperf) {
     vimp_summary_tbl <- make_vimp_executive_summary_table(
         switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_cv_vimp_lst),
