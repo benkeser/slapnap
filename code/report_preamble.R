@@ -54,12 +54,7 @@ n_ab <- length(antibodies)
 get_dat <- function(){
 	# load data
     analysis_data_names <- list.files("/home/dat/analysis")
-    # if more than one analysis dataset, use the most recent one
-    if (length(analysis_data_names) > 1) {
-        analysis_data_name <- analysis_data_names[length(analysis_data_names)]
-    } else {
-        analysis_data_name <- analysis_data_names
-    }
+    analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
 	dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 
 	# check missing values
@@ -110,13 +105,7 @@ geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems t
 pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 
 # get names of outcomes
-outcome_names <- c(
-    switch("ic50" %in% opts$outcomes, "log10.pc.ic50", NULL),
-    switch("ic80" %in% opts$outcomes, "log10.pc.ic80", NULL),
-    switch("iip" %in% opts$outcomes, "iip", NULL),
-    switch("sens1" %in% opts$outcomes, "dichotomous.1", NULL),
-    switch("sens2" %in% opts$outcomes, "dichotomous.2", NULL)
-)
+outcome_names <- get_outcome_names(opts)
 all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
 
 # get variable groups

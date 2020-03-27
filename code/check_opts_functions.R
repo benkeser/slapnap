@@ -46,9 +46,8 @@ check_opts_vimp <- function(grp_str, ind_str, all_grp, all_ind) {
     )
 }
 # check object returns
-check_opts_returns <- function(sl_obj, dataset) {
+check_opts_returns <- function(return_str, all_returns) {
     shiny::validate(
-        shiny::need(sl_obj == TRUE | !sl_obj == TRUE, "Please enter a logical value for whether or not the full regression object should be returned."),
-        shiny::need(dataset == TRUE | !dataset == TRUE, "Please enter a logical value for whether or not the full regression object should be returned.")
+        shiny::need(length(setdiff(return_str, all_returns)) == 0 | return_str == "", "Please enter a semicolon-separated list of supported objects that you would like returned (i.e., 'report', 'learner', 'data', 'figures', 'vimp', or any semicolon-separated combination of these, e.g., 'report;learner;data;figures;vimp') or an empty string (''), in which case only the report will be returned.")
     )
 }

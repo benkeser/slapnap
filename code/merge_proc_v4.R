@@ -244,11 +244,6 @@ data.final <- data.final[ , filter.insertions]
 filename <- paste0("multiab_catnap_", paste(antibodies, collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
 setwd(path.data.analysis)
 write.csv(data.final, file=filename, row.names=F)
-if (opts$return_analysis_dataset) {
-    setwd(path.out)
-    write.csv(data.final, file=filename, row.names=F)
-}
-
 # ---------------------------------------------------------------------------- #
 #                                    - 30 -
 # ---------------------------------------------------------------------------- #

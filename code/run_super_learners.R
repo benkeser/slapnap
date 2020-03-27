@@ -24,12 +24,7 @@ opts <- get_global_options()
 
 # load data and subset to complete cases
 analysis_data_names <- list.files("/home/dat/analysis")
-# if more than one analysis dataset, use the most recent one
-if (length(analysis_data_names) > 1) {
-    analysis_data_name <- analysis_data_names[length(analysis_data_names)]
-} else {
-    analysis_data_name <- analysis_data_names
-}
+analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
 nprevious <- length(dat[,1])
 saveRDS(nprevious, "/home/slfits/nprevious.rds")
@@ -47,13 +42,7 @@ geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems t
 pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 
 # get names of outcomes
-outcome_names <- c(
-    switch("ic50" %in% opts$outcomes, "log10.pc.ic50", NULL),
-    switch("ic80" %in% opts$outcomes, "log10.pc.ic80", NULL),
-    switch("iip" %in% opts$outcomes, "iip", NULL),
-    switch("sens1" %in% opts$outcomes, "dichotomous.1", NULL),
-    switch("sens2" %in% opts$outcomes, "dichotomous.2", NULL)
-)
+outcome_names <- get_outcome_names(opts)
 
 # get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)
