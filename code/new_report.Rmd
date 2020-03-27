@@ -246,14 +246,14 @@ The cross-validated performance, as measured by $R^2$, of the learner (with tuni
 
 `r if (!opts$cvperf | length(opts$learners) > 1 | !("ic50" %in% opts$outcomes)) "-->"`
 
-`r if (!opts$cvperf | length(opts$learners == 1) & !opts$cvtune) "<!--"`
+`r if (!opts$cvperf) "<!--"`
 
 ```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for estimated IC-50 (", ncomplete, " observations with complete sequence data)")}
 plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 ```
 
-`r if(!opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune)) "-->"`
+`r if(!opts$cvperf) "-->"`
 
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "<!--"`
 Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC-50 plotted against observed values of IC-50, colored by cross-validation fold.

@@ -89,7 +89,7 @@ plot_cv_predictions <- function(cv_fit,
     sl_pred <- as.numeric(cv_fit$Z)
     cv_folds <- rep(NA, length(sl_pred))
     for(v in seq_along(cv_fit$validRows)){
-      cv_folds[cv_fit$folds[[v]]] <- v
+      cv_folds[cv_fit$validRows[[v]]] <- v
     }
   }else{
     sl_pred <- cv_fit$SL.predict
@@ -212,7 +212,7 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
       colnames(predict)[1] <- "pred"
       cv_folds <- rep(NA, length(cv_fit$Y))
       for(v in seq_along(cv_fit$validRows)){
-        cv_folds[cv_fit$folds[[v]]] <- v
+        cv_folds[cv_fit$validRows[[v]]] <- v
       }
       predict$cv_folds <- cv_folds
     }else{
@@ -228,7 +228,7 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
       predict$cv_folds <- cv_folds
     }
   }
-
+   # need to double check this code
   cv_fold_palette <- RColorBrewer::brewer.pal(max(cv_folds), "Set3")
   predict %>%
   mutate(Sensitivity = if_else(Y==1, "Resistant", "Sensitive")) %>%
@@ -236,11 +236,11 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
   ggplot(aes(x = Sensitivity, y = pred, color = factor(cv_folds))) +
   facet_grid(. ~ algo) +
   geom_boxplot(outlier.shape = NA) +
-  geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) +
+  labs(color = "CV fold") + 
+  geom_point(position=position_jitterdodge(), aes(colour = factor(cv_folds)), 
+             pch = "0", cex=3)+
   ylab(paste0("Predicted Probability of Resistance")) + xlab("") +
-  theme_bw() + coord_cartesian(ylim=c(0,1)) +
-  theme(legend.position = "", strip.text.x = element_text(size = 10),
-        text = element_text(size=12), axis.title = element_text(size=10))
+  theme_bw() + coord_cartesian(ylim=c(0,1)) 
 }
 
 
