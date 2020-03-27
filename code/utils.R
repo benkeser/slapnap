@@ -73,7 +73,7 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
 #' @param num_obs_red number of obs used in the "reduced" regression
 #' @param outcome the outcome (e.g., "ic50")
 #' @param grp whether or not this is group importance
-biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE) {
+biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE, marg = TRUE, cond = TRUE) {
     outcome_text <- if (outcome == "ic50") {
         "IC-50"
     } else if (outcome == "ic80") {
@@ -94,7 +94,7 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
         outer_descr <- "Individual"
         inner_descr <- "feature"
     }
-    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders, we used the remaining ", num_obs_red, " observations.")
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction function", ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, "based on geographic confounders only")), ", we used ", num_obs_full, " observations. To estimate the prediction function", ifelse(marg & cond, "s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders", ifelse(marg, "based on the ", inner_descr, " of interest plus geographic confounders")), ", we used the remaining ", num_obs_red, " observations.")
     return(cap)
 }
 
