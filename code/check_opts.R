@@ -12,4 +12,4 @@ opts <- get_global_options()
 # --------------------------------------
 # make sure that the options are in the form we expected
 # --------------------------------------
-get_options_check()
+get_options_check(opts)
