@@ -23,7 +23,7 @@ fi
 # Single nAb, single outcome, single learner
 # ------------------------------------------
 # no cv, no vimp, ic50; prints only descriptive statistics (no predictive performance) -- do we want that?
-sudo docker run -it \
+sudo docker run \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
     -v $local_dir/code:/home/lib/ \
     -v $local_dir/sandbox/slfits_ic50_nocv_novimp:/home/slfits/ \
@@ -37,7 +37,7 @@ sudo docker run -it \
     -e importance_ind="" \
     -e return="" \
     -e report_name="VRC07-523-LS_ic50_nocv_novimp" \
-    slapnap bash
+    slapnap
 
 # no cv, no vimp, ic80
 sudo docker run \

@@ -73,13 +73,13 @@ postfix <- paste0(paste(opts$nab, collapse = "_"), Sys.getenv("init_date"))
 The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r ifelse(length(opts$nab) > 1, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. There were:
 
 * `r nprevious` sequences extracted from the CATNAP database;
-* `r ncomplete` sequences had complete data and were used in the analysis;
+* `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive (using estimated sensitivity);
+* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive (using estimated sensitivity)`r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
 * out of the sequences with complete data, `r if("sens1" %in% opts$outcomes) "-->"`
-Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity);
+Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity).
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)`
