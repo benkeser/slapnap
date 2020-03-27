@@ -19,8 +19,7 @@ docker run -e nab="VRC07-523-LS" \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # no cv, no vimp, sens1
@@ -31,8 +30,7 @@ docker run -e nab="VRC07-523-LS" \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # no cv, vimp, ic50
@@ -43,8 +41,29 @@ docker run -e nab="VRC07-523-LS" \
     -e cvperf="FALSE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
+    slapnap
+
+# no cvperf, cvtune, no vimp, ic50
+docker run -e nab="VRC07-523-LS" \
+    -e outcomes="ic50" \
+    -e learners="lasso" \
+    -e cvtune="TRUE" \
+    -e cvperf="FALSE" \
+    -e importance_grp="marg" \
+    -e importance_ind="pred" \
+    -e return="" \
+    slapnap
+
+# cvperf, no cvtune, no vimp, ic50
+docker run -e nab="VRC07-523-LS" \
+    -e outcomes="ic50" \
+    -e learners="lasso" \
+    -e cvtune="FALSE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="marg" \
+    -e importance_ind="pred" \
+    -e return="" \
     slapnap
 
 # cv, vimp, ic50
@@ -55,8 +74,7 @@ docker run -e nab="VRC07-523-LS" \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # ------------------------------------------
@@ -70,8 +88,7 @@ docker run -e nab="VRC07-523-LS;PGT121" \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # no cv, no vimp, iip
@@ -82,8 +99,7 @@ docker run -e nab="VRC07-523-LS;PGT121" \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # no cv, vimp
@@ -94,8 +110,7 @@ docker run -e nab="VRC07-523-LS;PGT121" \
     -e cvperf="FALSE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # cv, vimp
@@ -106,8 +121,7 @@ docker run -e nab="VRC07-523-LS;PGT121" \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # ------------------------------------------
@@ -121,8 +135,7 @@ docker run -e nab="VRC07-523-LS;PGT121" \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # no cv, no vimp, iip
@@ -133,8 +146,7 @@ docker run -e nab="VRC07-523-LS;PGT121" \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # no cv, vimp
@@ -145,8 +157,7 @@ docker run -e nab="VRC07-523-LS;PGT121" \
     -e cvperf="FALSE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap
 
 # cv, vimp
@@ -157,6 +168,5 @@ docker run -e nab="VRC07-523-LS;PGT121" \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     slapnap

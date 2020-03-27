@@ -19,8 +19,7 @@ opts$cvperf <- TRUE
 opts$importance_grp <- ""
 opts$importance_ind <- ""
 opts$report_name <- ""
-opts$return_full_sl_obj <- FALSE
-opts$return_analysis_dataset <- FALSE
+opts$return <- FALSE
 opts_rf <- opts
 opts_rf$learners <- "rf"
 opts_rf_notune <- opts_rf
@@ -38,9 +37,9 @@ imp_df <- tibble::tibble(algo = c("rf", "lasso", "xgboost"), rank = c(1, 2, 3), 
 imp_df_lasso <- tibble::tibble(algo = c("lasso", "rf", "xgboost"), rank = c(1, 2, 3), Importance = c(1, 2, 3))
 imp_df_xgb <- tibble::tibble(algo = c("xgboost", "lasso", "rf"), rank = c(1, 2, 3), Importance = c(1, 2, 3))
 
-Sys.setenv(nab = "VRC07-523-LS", outcomes = "ic50;ic80;iip;sens1;sens2", learners = "rf;xgboost;lasso", cvtune = TRUE, cvperf = TRUE, importance_grp = "", importance_ind = "", report_name = "", return_full_sl_obj = TRUE, return_analysis_dataset = TRUE)
+Sys.setenv(nab = "VRC07-523-LS", outcomes = "ic50;ic80;iip;sens1;sens2", learners = "rf;xgboost;lasso", cvtune = TRUE, cvperf = TRUE, importance_grp = "", importance_ind = "", report_name = "", return = TRUE)
+global_opts <- get_global_options()
 test_that("Getting options works", {
-    global_opts <- get_global_options()
     expect_match(global_opts$nab, "VRC07-523-LS")
     expect_equal(global_opts$outcomes, c("ic50", "ic80", "iip", "sens1", "sens2"))
     expect_true(global_opts$cvtune)
@@ -52,17 +51,17 @@ test_that("Importance text works", {
     #   without tuning
     expect_match(get_importance_text(opts_rf_notune, imp_df), "random forest", fixed = TRUE)
     #   with tuning
-    expect_match(get_importance_text(opts_rf, imp_df), "cross-validation", fixed = TRUE)
+    expect_match(get_importance_text(opts_rf, imp_df), "super learner ensemble", fixed = TRUE)
     # only xgb used
     #   without tuning
-    expect_match(get_importance_text(opts_xgb_notune, imp_df), "tree", fixed = TRUE)
+    expect_match(get_importance_text(opts_xgb_notune, imp_df_xgb), "tree", fixed = TRUE)
     #   with tuning
-    expect_match(get_importance_text(opts_xgb, imp_df), "cross-validation", fixed = TRUE)
+    expect_match(get_importance_text(opts_xgb, imp_df_xgb), "super learner ensemble", fixed = TRUE)
     # only lasso used
     #   without tuning
-    expect_match(get_importance_text(opts_lasso_notune, imp_df), "lasso", fixed = TRUE)
+    expect_match(get_importance_text(opts_lasso_notune, imp_df_lasso), "lasso", fixed = TRUE)
     #   with tuning
-    expect_match(get_importance_text(opts_lasso, imp_df), "cross-validation", fixed = TRUE)
+    expect_match(get_importance_text(opts_lasso, imp_df_lasso), "cross-validation", fixed = TRUE)
     # rf wins
     expect_match(get_importance_text(opts, imp_df), "out-of-bag", fixed = TRUE)
     # lasso wins
@@ -86,9 +85,9 @@ test_that("Biological importance text works", {
     # with marginal and conditional
     expect_match(get_biological_importance_plot_description(opts_all_import, grp = TRUE), "left-hand plot", fixed = TRUE)
     # marginal only
-    expect_match(get_biological_importance_plot_description(opts_marg, grp = TRUE), "marginal importance", fixed = TRUE)
+    expect_match(get_biological_importance_plot_description(opts_marg, grp = TRUE), "marginal biological importance", fixed = TRUE)
     # with conditional only
-    expect_match(get_biological_importance_plot_description(opts_cond, grp = TRUE), "conditional importance", fixed = TRUE)
+    expect_match(get_biological_importance_plot_description(opts_cond, grp = TRUE), "conditional biological importance", fixed = TRUE)
     # with no importance
     expect_equal(get_biological_importance_plot_description(opts, grp = TRUE), "")
 })
@@ -229,5 +228,5 @@ test_that("Nice naming works for vimp", {
                      SL.library = learners, cvControl = list(V = 10),
                      folds = folds)
     all_est <- vimp::merge_vim(est, est_2)
-    expect_equal(vimp_nice_rownames(all_est, cv = TRUE), c("NA_NA_NA_est", "NA_NA_2"))
+    expect_equal(vimp_nice_rownames(all_est, cv = TRUE), c("NA_NA_2", "NA_NA_NA_est"))
 })

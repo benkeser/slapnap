@@ -132,13 +132,13 @@ sudo docker run \
     -e nab="VRC07-523-LS" \
     -e outcomes="ic50" \
     -e learners="lasso" \
-    -e cvtune="FALSE" \
-    -e cvperf="TRUE" \
+    -e cvtune="TRUE" \
+    -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
     -e return="" \
     -e report_name="VRC07-523-LS_ic50_nocvperf_novimp" \
-    slapnap}
+    slapnap
 
 # no cv, vimp, ic50
 sudo docker run \
