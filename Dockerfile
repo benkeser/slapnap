@@ -68,6 +68,8 @@ ENV return=""
 #-----------------------
 # Installing software
 #-----------------------
+RUN apt-get update
+
 # make sure we have wget
 RUN apt-get install -y wget
 
