@@ -31,8 +31,3 @@ check_opts_vimp(opts$importance_grp, opts$importance_ind, all_importance_grp, al
 # check objects requested for return
 all_returns <- c("report", "data", "learner", "figures", "vimp")
 check_opts_returns(opts$return, all_returns)
-
-# ---------------------------
-# set global environment variable with date of report
-# ---------------------------
-Sys.setenv(init_date=format(Sys.time(), "%d%b%Y"))

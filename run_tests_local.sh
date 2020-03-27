@@ -23,7 +23,7 @@ fi
 # Single nAb, single outcome, single learner
 # ------------------------------------------
 # no cv, no vimp, ic50; prints only descriptive statistics (no predictive performance) -- do we want that?
-sudo docker run \
+sudo docker run -it \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
     -v $local_dir/code:/home/lib/ \
     -v $local_dir/sandbox/slfits_ic50_nocv_novimp:/home/slfits/ \
@@ -35,10 +35,9 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS_ic50_nocv_novimp" \
-    slapnap
+    slapnap bash
 
 # no cv, no vimp, ic80
 sudo docker run \
@@ -53,8 +52,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS_ic80_nocv_novimp" \
     slapnap
 
@@ -71,8 +69,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS_iip_nocv_novimp" \
     slapnap
 
@@ -89,8 +86,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS_sens1_nocv_novimp" \
     slapnap
 
@@ -107,8 +103,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS_sens2_nocv_novimp" \
     slapnap
 
@@ -125,8 +120,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS_ic50_nocv_vimp" \
     slapnap
 
@@ -143,8 +137,7 @@ sudo docker run \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS_ic50_cv_vimp" \
     slapnap
 
@@ -161,8 +154,7 @@ sudo docker run \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS_sens1_cv_vimp" \
     slapnap
 
@@ -182,8 +174,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS;PGT121_ic50_nocv_novimp" \
     slapnap
 
@@ -200,8 +191,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS;PGT121_iip_nocv_novimp" \
     slapnap
 
@@ -218,8 +208,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS;PGT121_ic50_nocv_vimp" \
     slapnap
 
@@ -236,8 +225,7 @@ sudo docker run \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS;PGT121_ic50_cv_vimp" \
     slapnap
 
@@ -257,8 +245,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS;PGT121_ic50_nocv_novimp_multilearn" \
     slapnap
 
@@ -275,8 +262,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS;PGT121_iip_nocv_novimp_multilearn" \
     slapnap
 
@@ -293,8 +279,7 @@ sudo docker run \
     -e cvperf="TRUE" \
     -e importance_grp="" \
     -e importance_ind="" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS;PGT121_ic50_cv_novimp_multilearn" \
     slapnap
 
@@ -311,8 +296,7 @@ sudo docker run \
     -e cvperf="FALSE" \
     -e importance_grp="marg" \
     -e importance_ind="pred" \
-    -e return_full_sl_obj="FALSE" \
-    -e return_analysis_dataset="FALSE" \
+    -e return="" \
     -e report_name="VRC07-523-LS;PGT121_ic50_nocv_vimp_multilearn" \
     slapnap
 
@@ -329,7 +313,6 @@ sudo docker run \
 #     -e cvperf="TRUE" \
 #     -e importance_grp="marg" \
 #     -e importance_ind="pred" \
-#     -e return_full_sl_obj="FALSE" \
-#     -e return_analysis_dataset="FALSE" \
+#     -e return="" \
 #     -e report_name="VRC07-523-LS;PGT121_ic50_cv_vimp_multilearn" \
 #     slapnap

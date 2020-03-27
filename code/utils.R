@@ -660,7 +660,7 @@ get_analysis_dataset_name <- function(all_nms, opts) {
         nm_lst <- strsplit(nms_with_only_requested_nabs, "_", fixed = TRUE)
         # return the one that most closely matches the current date
         all_dates <- unlist(lapply(nm_lst, function(x) strsplit(x[length(x)], ".", fixed = TRUE)[[1]][1]))
-        current_date <- Sys.getenv("init_date")
+        current_date <- format(Sys.time(), "%d%b%Y")
         closest_date <- which.min(as.Date(current_date, "%d%b%Y") - as.Date(all_dates, "%d%b%Y"))
         nm <- nms_with_only_requested_nabs[closest_date]
     } else {
