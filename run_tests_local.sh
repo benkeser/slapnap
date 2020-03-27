@@ -1,13 +1,6 @@
 #!/bin/sh
 
 # post-build test script
-
-# check options checking
-Rscript tests/test-check_opts.R
-
-# check utility functions
-Rscript tests/test-utils.R
-
 # set up local directory arg
 brian_computer=true
 if $brian_computer; then
@@ -17,12 +10,18 @@ else
     local_dir=~/Dropbox/Emory/AMP/slapnap/
 fi
 
+# check options checking
+Rscript tests/test-check_opts.R
+
+# check utility functions
+Rscript tests/test-utils.R
+
 # only run if necessary
 # sudo docker build -t slapnap .
 # ------------------------------------------
 # Single nAb, single outcome, single learner
 # ------------------------------------------
-# no cv, no vimp, ic50; prints only descriptive statistics (no predictive performance) -- do we want that?
+# no cv, no vimp, ic50
 sudo docker run \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
     -v $local_dir/code:/home/lib/ \
@@ -107,6 +106,40 @@ sudo docker run \
     -e report_name="VRC07-523-LS_sens2_nocv_novimp" \
     slapnap
 
+# cvperf, no cvtune, novimp, ic50
+sudo docker run \
+    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+    -v $local_dir/code:/home/lib/ \
+    -v $local_dir/sandbox/slfits_ic50_nocvtune_novimp:/home/slfits/ \
+    -v $local_dir/sandbox/output:/home/output/ \
+    -e nab="VRC07-523-LS" \
+    -e outcomes="ic50" \
+    -e learners="lasso" \
+    -e cvtune="FALSE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="" \
+    -e importance_ind="" \
+    -e return="" \
+    -e report_name="VRC07-523-LS_ic50_nocvtune_novimp" \
+    slapnap
+
+# no cvperf, cvtune, novimp, ic50
+sudo docker run \
+    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+    -v $local_dir/code:/home/lib/ \
+    -v $local_dir/sandbox/slfits_ic50_nocvperf_novimp:/home/slfits/ \
+    -v $local_dir/sandbox/output:/home/output/ \
+    -e nab="VRC07-523-LS" \
+    -e outcomes="ic50" \
+    -e learners="lasso" \
+    -e cvtune="FALSE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="" \
+    -e importance_ind="" \
+    -e return="" \
+    -e report_name="VRC07-523-LS_ic50_nocvperf_novimp" \
+    slapnap}
+
 # no cv, vimp, ic50
 sudo docker run \
     -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
@@ -122,6 +155,23 @@ sudo docker run \
     -e importance_ind="pred" \
     -e return="" \
     -e report_name="VRC07-523-LS_ic50_nocv_vimp" \
+    slapnap
+
+# no cv, vimp, ic50 + ic80
+sudo docker run \
+    -v $local_dir/sandbox/dat/analysis:/home/dat/analysis/ \
+    -v $local_dir/code:/home/lib/ \
+    -v $local_dir/sandbox/slfits_ic50_nocv_vimp:/home/slfits/ \
+    -v $local_dir/sandbox/output:/home/output/ \
+    -e nab="VRC07-523-LS" \
+    -e outcomes="ic50;ic80" \
+    -e learners="lasso" \
+    -e cvtune="FALSE" \
+    -e cvperf="FALSE" \
+    -e importance_grp="marg" \
+    -e importance_ind="pred" \
+    -e return="" \
+    -e report_name="VRC07-523-LS_ic50;ic80_nocv_vimp" \
     slapnap
 
 # cv, vimp, ic50 (~ 20 minutes)

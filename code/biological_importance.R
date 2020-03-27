@@ -10,7 +10,6 @@ x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
 ## read in importance results for each outcome, create a plot for each
 ## only return non-cv plots if cv = FALSE
 imp_nms <- list(all_var_groups, all_var_groups, var_inds)
-vimp_threshold <- 0.05
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     if (grepl("dichot", this_outcome_name)) {

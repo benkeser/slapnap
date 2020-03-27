@@ -8,7 +8,7 @@ library("tibble")
 source("code/utils.R")
 
 # set up general test opts
-Sys.setenv(nab = "VRC07-523-LS", outcomes = "ic50;ic80;iip;sens1;sens2", learners = "rf;xgboost;lasso", cvtune = TRUE, cvperf = TRUE, importance_grp = "", importance_ind = "", report_name = "", return_full_sl_obj = TRUE, return_analysis_dataset = TRUE)
+Sys.setenv(nab = "VRC07-523-LS", outcomes = "ic50;ic80;iip;sens1;sens2", learners = "rf;xgboost;lasso", cvtune = TRUE, cvperf = TRUE, importance_grp = "", importance_ind = "", report_name = "", return = "")
 test_that("Run with multiple learners and outcomes works", {
     expect_warning(source("code/check_opts.R"), NA)
 })
