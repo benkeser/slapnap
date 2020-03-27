@@ -64,6 +64,8 @@ cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
 bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
 cont_nms <- nice_outcomes[cont_idx]
 bin_nms <- nice_outcomes[bin_idx]
+# postfix for naming plots
+postfix <- paste0(paste(opts$nab, collapse = "_"), Sys.getenv("init_date"))
 ```
 
 # Executive summary
@@ -166,6 +168,10 @@ Histograms of IC-50 for each individual neutralizing antibody are shown in Figur
 ```{r, histic50, eval = ("ic50" %in% opts$outcomes) & length(opts$nab) > 1, fig.cap = paste0("Distribution of IC-50 values (n = ", ncomplete, ") for each neutralizing antibody."), fig.height=5}
 ic50_descr <- get_individual_nab_summaries("ic50", opts, dat)
 do.call(grid.arrange, ic50_descr$hist)
+# if saving figures was requested, save
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic50_hist_", postfix, ".png"), plot = do.call(grid.arrange, ic50_descr$hist), width = 20, height = 20, units = "cm")
+}
 ```
 
 ```{r, tableic50, eval = ("ic50" %in% opts$outcomes) & length(opts$nab) > 1}
@@ -198,6 +204,10 @@ combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat, "pc.ic50", "IC-50", "Density")
 combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic50", bquote(log[10]~"(IC-50)"), "")
 do.call(grid.arrange, combn_hist)
+# if saving figures was requested, save
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic50_combn_hist_", postfix, ".png"), plot = do.call(grid.arrange, combn_hist), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("ic50" %in% opts$outcomes)) "-->"`
@@ -246,6 +256,11 @@ The cross-validated performance, as measured by $R^2$, of the learner (with tuni
 ```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for estimated IC-50 (", ncomplete, " observations with complete sequence data)")}
 plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
+# if saving figures was requested, save
+if ("figures" %in% opts$return) {
+ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8,
+      text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if(!opts$cvperf) "-->"`
@@ -255,6 +270,10 @@ Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions o
 
 ```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted IC-50 plotted against actual IC-50 values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_axis = FALSE)
+# if save figs, save
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic50_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_axis = FALSE), width = 20, height = 20, units = "cm")
+}
 ```
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "-->"`
 
@@ -284,6 +303,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
   ic50_grp_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic50_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("ic50" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "-->"`
@@ -303,6 +325,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
   ic50_ind_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic50_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("ic50" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "-->"`
@@ -340,6 +365,10 @@ Histograms of IC-80 for each individual neutralizing antibody are shown in Figur
 ```{r, histic80, eval = ("ic80" %in% opts$outcomes) & (length(opts$nab) > 1), fig.cap = paste0("Distribution of IC-80 values (n = ", ncomplete, ") for each neutralizing antibody."), fig.height=5}
 ic80_descr <- get_individual_nab_summaries("ic80", opts, dat)
 do.call(grid.arrange, ic80_descr$hist)
+# if saving figures was requested, save
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic80_hist_", postfix, ".png"), plot = do.call(grid.arrange, ic80_descr$hist), width = 20, height = 20, units = "cm")
+}
 ```
 
 ```{r, tableic80, eval = ("ic80" %in% opts$outcomes) & (length(opts$nab) > 1)}
@@ -367,6 +396,10 @@ combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat, "pc.ic80", "IC-80", "Density")
 combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic80", bquote(log[10]~"(IC-80)"), "")
 do.call(grid.arrange, combn_hist)
+# if saving figures was requested, save
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic80_combn_hist_", postfix, ".png"), plot = do.call(grid.arrange, combn_hist), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("ic80" %in% opts$outcomes)) "-->"`
@@ -410,6 +443,10 @@ The cross-validated performance, as measured by $R^2$, of the learner (with tuni
 ```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for estimated IC-80 (", ncomplete, " observations with complete sequence data)")}
 plot(fit_list_out$out$ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
+if ("figures" %in% opts$return) {
+ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8,
+     text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
@@ -419,6 +456,10 @@ Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions o
 
 ```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted IC-80 plotted against actual IC-80 values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_axis = FALSE)
+# if save figs, save
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic80_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_axis = FALSE), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
@@ -454,6 +495,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
   ic80_grp_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic80_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("ic80" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "-->"`
@@ -475,6 +519,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
   ic80_ind_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/ic80_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("ic80" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "-->"`
@@ -518,6 +565,9 @@ iip_figcap <- if(length(opts$nab) == 1){
 combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat, "iip", "IIP", "Density")
 do.call(grid.arrange, combn_hist)
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/iip_combn_hist_", postfix, ".png"), plot = do.call(grid.arrange, combn_hist), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("iip" %in% opts$outcomes)) "-->"`
@@ -561,12 +611,21 @@ The cross-validated performance, as measured by $R^2$, of the learner (with tuni
 ```{r plotiip, eval = ("iip" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for estimated IIP (", ncomplete, " observations with complete sequence data)")}
 plot(fit_list_out$out$iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
+# if saving figures was requested, save
+if ("figures" %in% opts$return) {
+ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 0.8,
+     text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 Figure \@ref(fig:plotiippredversusoutcomes) shows cross-validated predictions of IIP plotted against observed values of IIP, colored by cross-validation fold.
 
 ```{r plotiippredversusoutcomes, eval = ("iip" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted IIP plotted against actual IIP values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$iip, outcome_name = "IIP", log_axis = FALSE)
+# if save figs, save
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/iip_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$iip, outcome_name = "IIP", log_axis = FALSE), width = 20, height = 20, units = "cm")
+}
 ```
 `r if (!("iip" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
@@ -600,6 +659,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
   iip_grp_vimp_grob_lst <- switch(opts$cvperf + 1,iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/iip_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("iip" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "-->"`
@@ -621,6 +683,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
   iip_ind_vimp_grob_lst <- switch(opts$cvperf + 1,iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/iip_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("iip" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "-->"`
@@ -691,6 +756,11 @@ The cross-validated performance of the learner with tuning parameters selected v
 ```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
 plot(fit_list_out$out$sens1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
+# if saving figures was requested, save
+if ("figures" %in% opts$return) {
+ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
+     Rsquared = FALSE, method = "method.AUC", opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | ((length(opts$learners) > 1 | !opts$cvtune) & "sens1" %in% opts$outcomes)) "-->"`
@@ -719,10 +789,16 @@ predprob_cap <- if(length(opts$learners) > 1){
 
 ```{r rocdichot1, fig.cap = roc_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf)}
 plot_roc_curves(fit_list_out$out$sens1, opts = opts)
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/sens1_roc_", postfix, ".png"), plot = plot_roc_curves(fit_list_out$out$sens1, opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 ```{r predprob1, fig.cap = predprob_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf)}
 plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts)
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/sens1_predprob_", postfix, ".png"), plot = plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf) "-->"`
@@ -758,6 +834,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
   sens1_grp_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/sens1_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "-->"`
@@ -779,6 +858,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
   sens1_ind_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/sens1_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "-->"`
@@ -853,6 +935,11 @@ The cross-validated performance of the learner with tuning parameters selected v
 ```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
 plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
+# if saving figures was requested, save
+if ("figures" %in% opts$return) {
+ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
+     Rsquared = FALSE, method = "method.AUC", opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) > 1)) "-->"`
@@ -880,10 +967,16 @@ predprob_cap <- if(length(opts$learners) > 1){
 
 ```{r rocdichot2, fig.cap = roc_cap, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf)}
 plot_roc_curves(fit_list_out$out$sens2, opts = opts)
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/sens2_roc_", postfix, ".png"), plot = plot_roc_curves(fit_list_out$out$sens2, opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 ```{r predprob2, fig.cap = predprob_cap, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf)}
 plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts)
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/sens2_predprob_", postfix, ".png"), plot = plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "-->"`
@@ -918,6 +1011,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
   sens2_grp_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional)
 }
 grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/sens2_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "-->"`
@@ -939,6 +1035,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
   sens2_ind_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional)
 }
 grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+if ("figures" %in% opts$return) {
+    ggsave(filename = paste0("/home/output/sens2_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+}
 ```
 
 `r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "-->"`

@@ -5,9 +5,10 @@ antibody_string <- Sys.getenv("nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 
 report_name <- Sys.getenv("report_name")
+init_date <- Sys.getenv("init_date")
 # get report name from environment
 if(report_name == ""){
-	report_name <- paste0("report_", paste (antibodies, collapse = "_"), "_", format (Sys.time (), "%d%b%Y"))
+	report_name <- paste0("report_", paste (antibodies, collapse = "_"), "_", init_date)
 }
 # get whether to return report from environment
 objects_to_return <- Sys.getenv("return")

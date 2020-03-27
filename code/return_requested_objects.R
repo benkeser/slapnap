@@ -26,11 +26,10 @@ if (grepl("learner", opts$return)) {
     file.copy(paste0("/home/slfits/", fit_names), paste0("/home/output/", fit_names))
 }
 #------------------------------------
-# save figures, if requested
+# figures are saved directly from
+# new_report.Rmd
 #------------------------------------
-if (grepl("figures", opts$return)) {
-    
-}
+
 #------------------------------------
 # save variable importance objects, if requested
 #------------------------------------
