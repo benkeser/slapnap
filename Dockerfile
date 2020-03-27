@@ -140,7 +140,8 @@ COPY code/check_opts.R /home/lib/check_opts.R
 COPY code/check_opts_functions.R /home/lib/check_opts_functions.R
 COPY code/return_requested_objects.R /home/lib/return_requested_objects.R
 
-RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R /home/lib/check_opts.R /home/lib/return_requested_objects.R
+RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
+RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 
 # copy report Rmd
 COPY code/new_report.Rmd /home/lib/new_report.Rmd

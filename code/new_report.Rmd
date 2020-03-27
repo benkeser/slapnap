@@ -70,9 +70,7 @@ postfix <- paste0(paste(opts$nab, collapse = "_"), Sys.getenv("init_date"))
 
 # Executive summary
 
-The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r ifelse(length(opts$nab) > 1, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)`
-
-Based on this specification of `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
+The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r ifelse(length(opts$nab) > 1, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
 
 * `r nprevious` sequences were extracted from the CATNAP database;
 * `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
