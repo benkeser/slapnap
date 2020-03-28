@@ -29,7 +29,7 @@ for (i in 1:length(outcome_names)) {
     vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", unlist(lapply(as.list(names(current_vimp_lst)), vimp_plot_type)))
     grp_bool_lst <- as.list(grepl("grp", names(current_vimp_lst)))
     eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y, z) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = FALSE, grp = z, threshold = vimp_threshold, num_plot = num_pop_import, opts = opts), current_vimp_lst, vimp_plot_titles, grp_bool_lst, SIMPLIFY = FALSE)")))
-    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y, z) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = TRUE, grp = z, threshold = threshold, num_plot = num_pop_import, opts = opts), current_cv_vimp_lst, vimp_plot_titles, grp_bool_lst, SIMPLIFY = FALSE)")))
+    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y, z) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = TRUE, grp = z, threshold = vimp_threshold, num_plot = num_pop_import, opts = opts), current_cv_vimp_lst, vimp_plot_titles, grp_bool_lst, SIMPLIFY = FALSE)")))
 }
 
 ## make table for executive summary
