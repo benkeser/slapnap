@@ -55,14 +55,21 @@ ENV importance_ind="marg;cond;pred"
 ENV report_name=""
 
 # output to save in addition to the report
-#  if set to "TRUE", save the full regression object (the single learner if only one learner was specified, otherwise a SuperLearner object)
-ENV return_full_sl_obj="FALSE"
-#  if set to "TRUE", save the analysis dataset
-ENV return_analysis_dataset="FALSE"
+#   a semicolon-separated list of items,
+#   including all possible combinations of
+#   "report" (default, return the report)
+#   "learner" (return the fitted R object)
+#   "data" (return the analysis dataset)
+#   "figures" (return the figures from the report)
+#   "vimp" (return the R variable importance objects)
+#   if set to "", then will default to returning only the report
+ENV return=""
 
 #-----------------------
 # Installing software
 #-----------------------
+RUN apt-get update
+
 # make sure we have wget
 RUN apt-get install -y wget
 
@@ -120,7 +127,7 @@ RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_co
 # copy R package (only until new version gets to GitHub)
 COPY vimp_2.0.1.tar.gz /home/lib/vimp_2.0.1.tar.gz
 RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.1.tar.gz", type = "source", repos = NULL))'
-# copy R scripts to do data pull and make executable
+# copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
 COPY code/multi_ab_v4.Rlib /home/lib/multi_ab_v4.Rlib
 COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R
 COPY code/variable_groups.R /home/lib/variable_groups.R
@@ -131,8 +138,10 @@ COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R
 COPY code/plotting_functions.R /home/lib/plotting_functions.R
 COPY code/check_opts.R /home/lib/check_opts.R
 COPY code/check_opts_functions.R /home/lib/check_opts_functions.R
+COPY code/return_requested_objects.R /home/lib/return_requested_objects.R
 
-RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R /home/lib/check_opts.R
+RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
+RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 
 # copy report Rmd
 COPY code/new_report.Rmd /home/lib/new_report.Rmd

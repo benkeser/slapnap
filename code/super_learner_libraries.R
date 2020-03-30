@@ -442,9 +442,6 @@ sl_one_outcome <- function(dat, outcome_name,
     fit$Y <- newdat[ , outcome_name]
     if (save_full_object) {
         saveRDS(fit, file = paste0(save_dir, fit_name))
-        if (opts$return_full_sl_obj) {
-            saveRDS(fit, file = paste0("/home/output/", fit_name))
-        }
     }
 
     if(length(opts$learners) > 1 | (length(opts$learners) == 1 & !opts$cvtune)) {
@@ -478,9 +475,6 @@ sl_one_outcome <- function(dat, outcome_name,
         fit$Y <- newdat[ , outcome_name]
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))
-            if (opts$return_full_sl_obj) {
-                saveRDS(fit, file = paste0("/home/output/", fit_name))
-            }
         }
         # save super learner predictions
         saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
@@ -502,9 +496,6 @@ sl_one_outcome <- function(dat, outcome_name,
         # i.e., if rf is desired, it'll be ranger object
         if (save_full_object) {
             saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
-            if (opts$return_full_sl_obj) {
-                saveRDS(fit$fit$object, file = paste0("/home/output/", fit_name))
-            }
         }
     }
   }
@@ -517,9 +508,6 @@ sl_one_outcome <- function(dat, outcome_name,
     cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
-        if (opts$return_full_sl_obj) {
-            saveRDS(cv_fit, file = paste0("/home/output/", cv_fit_name))
-        }
     }
     saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
     saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
@@ -529,9 +517,6 @@ sl_one_outcome <- function(dat, outcome_name,
     cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
-        if (opts$return_full_sl_obj) {
-            saveRDS(cv_fit, file = paste0("/home/output/", cv_fit_name))
-        }
     }
     saveRDS(cv_fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
     saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))

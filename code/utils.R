@@ -58,11 +58,11 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
         this_text <- "feature"
     }
     if (("marg" %in% these_opts) & ("cond" %in% these_opts)) {
-        return(paste0("The left-hand plot shows the marginal importance of the ", this_text, " relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
+        return(paste0("The left-hand plot shows the marginal biological importance of the ", this_text, " relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
     } else if ("marg" %in% these_opts) {
-        return(paste0("The plot shows the marginal importance of the ", this_text, " relative to the null model with geographic confounders only."))
+        return(paste0("The plot shows the marginal biological importance of the ", this_text, " relative to the null model with geographic confounders only."))
     } else if ("cond" %in% these_opts){
-        return(paste0("The plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
+        return(paste0("The plot shows the conditional biological importance of the ", this_text, " relative to all other ", this_text, "s."))
     } else {
         return("")
     }
@@ -73,7 +73,7 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
 #' @param num_obs_red number of obs used in the "reduced" regression
 #' @param outcome the outcome (e.g., "ic50")
 #' @param grp whether or not this is group importance
-biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE) {
+biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE, marg = TRUE, cond = TRUE) {
     outcome_text <- if (outcome == "ic50") {
         "IC-50"
     } else if (outcome == "ic80") {
@@ -94,7 +94,7 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
         outer_descr <- "Individual"
         inner_descr <- "feature"
     }
-    cap <- paste0(outer_descr, " variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction functions based on all available features and geographic confounders only, we used ", num_obs_full, " observations. To estimate the prediction functions based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders, we used the remaining ", num_obs_red, " observations.")
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction function ", ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, "based on geographic confounders only", "based on all available features")), ", we used ", num_obs_full, " observations. To estimate the prediction function ", ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0("based on the ", inner_descr, " of interest plus geographic confounders"), paste0("based on the reduced set of features (defined by removing the ", inner_descr, " of interest)"))), ", we used the remaining ", num_obs_red, " observations.")
     return(cap)
 }
 
@@ -348,9 +348,9 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 
 ## read in permanent options
 get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf",
-                                           "importance_grp", "importance_ind", "report_name", "return_full_sl_obj", "return_analysis_dataset"),
+                                           "importance_grp", "importance_ind", "report_name", "return"),
                                options_boolean = c(FALSE, FALSE, FALSE, TRUE,
-                                                   TRUE, FALSE, FALSE, FALSE, TRUE, TRUE)){
+                                                   TRUE, FALSE, FALSE, FALSE, FALSE)){
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     return(out)
@@ -650,4 +650,51 @@ get_est_and_ci <- function(idx, fit_list, Rsquared = FALSE, constant = qnorm(0.9
     Lower <- plogis(qlogis(Mean) - constant * logit_se); Upper <- plogis(qlogis(Mean) + constant * logit_se)
   }
   return(list(est = Mean[1], ci = c(Lower[1], Upper[1])))
+}
+
+# get analysis dataset name (only a problem if you've reused a mount directory)
+get_analysis_dataset_name <- function(all_nms, opts) {
+    if (length(all_nms) > 1) {
+        nms_with_requested_nabs <- all_nms[grepl(paste(opts$nab, collapse = "_"), all_nms)]
+        nms_with_only_requested_nabs <- nms_with_requested_nabs[unlist(lapply(strsplit(nms_with_requested_nabs, "_", fixed = TRUE), function(x) length(x) == 3 + length(opts$nab)))]
+        nm_lst <- strsplit(nms_with_only_requested_nabs, "_", fixed = TRUE)
+        # return the one that most closely matches the current date
+        all_dates <- unlist(lapply(nm_lst, function(x) strsplit(x[length(x)], ".", fixed = TRUE)[[1]][1]))
+        current_date <- format(Sys.time(), "%d%b%Y")
+        closest_date <- which.min(as.Date(current_date, "%d%b%Y") - as.Date(all_dates, "%d%b%Y"))
+        nm <- nms_with_only_requested_nabs[closest_date]
+    } else {
+        nm <- all_nms
+    }
+    return(nm)
+}
+
+# get outcome names
+get_outcome_names <- function(opts) {
+    outcome_names <- c(
+        switch("ic50" %in% opts$outcomes, "log10.pc.ic50", NULL),
+        switch("ic80" %in% opts$outcomes, "log10.pc.ic80", NULL),
+        switch("iip" %in% opts$outcomes, "iip", NULL),
+        switch("sens1" %in% opts$outcomes, "dichotomous.1", NULL),
+        switch("sens2" %in% opts$outcomes, "dichotomous.2", NULL)
+    )
+    return(outcome_names)
+}
+
+# get full learner fit names
+get_learner_fit_names <- function(all_fit_nms, opts) {
+    fit_nms <- all_fit_nms[grepl("fit_", all_fit_nms)]
+    fit_only_outcomes <- gsub(".rds", "", gsub("cv", "", gsub("fit_", "", fit_nms)))
+    outcome_names <- get_outcome_names(opts)
+    these_outcome_fit_nms <- fit_nms[!is.na(pmatch(fit_only_outcomes, outcome_names, duplicates.ok = TRUE))]
+    return(these_outcome_fit_nms)
+}
+
+# get vimp object names
+get_vimp_object_names <- function(all_fit_nms, opts) {
+    vimp_nms <- all_fit_nms[grepl("_vimp", all_fit_nms, fixed = TRUE)]
+    vimp_only_outcome <- gsub(".rds", "", gsub("_cv", "", gsub("_vimp", "", vimp_nms)))
+    outcome_names <- get_outcome_names(opts)
+    these_outcome_vimp_nms <- vimp_nms[!is.na(pmatch(vimp_only_outcome, outcome_names, duplicates.ok = TRUE))]
+    return(these_outcome_vimp_nms)
 }
