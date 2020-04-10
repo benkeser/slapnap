@@ -105,6 +105,8 @@ RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("tibble", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("remotes", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'remotes::install_github("bdwilliamson/vimp@v2.0.1")'
 
 # make directories
 # lib contains R source files
@@ -124,9 +126,6 @@ RUN wget -O /home/dat/catnap/viruses.txt "https://www.hiv.lanl.gov/cgi-bin/commo
 RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/virseqs_aa.fasta"
 RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
-# copy R package (only until new version gets to GitHub)
-COPY vimp_2.0.1.tar.gz /home/lib/vimp_2.0.1.tar.gz
-RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.1.tar.gz", type = "source", repos = NULL))'
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
 COPY code/multi_ab_v4.Rlib /home/lib/multi_ab_v4.Rlib
 COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R

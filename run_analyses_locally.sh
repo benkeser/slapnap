@@ -16,7 +16,7 @@ fi
 # Single-bnAb regimens
 # -------------------------------------------
 # replicate the Magaret et al. (2019) analysis; for HVTN 703, HVTN704
-sudo docker run \
+sudo docker run -it \
     -v $local_dir/local_production_runs/slfits_vrc01:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
     -e nab="VRC01" \
@@ -28,7 +28,7 @@ sudo docker run \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
-    slapnap
+    slapnap bash
 
 # update to VRC01-LS; HVTN 116
 sudo docker run \
