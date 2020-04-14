@@ -700,7 +700,7 @@ if ("figures" %in% opts$return) {
 ### Predictive importance
 
 ```{r get-pred-imp-iip, eval = "iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
-fit_iip <- readRDS(paste0(slfits_dir, "fit_log10.pc.iip.rds"))
+fit_iip <- readRDS(paste0(slfits_dir, "fit_iip.rds"))
 imp_iip <- extract_importance(fit_iip, opts)
 ```
 
