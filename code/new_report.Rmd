@@ -288,11 +288,11 @@ if ("figures" %in% opts$return) {
 ```
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "-->"`
 
-`r if (!("ic50" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
+`r if (!("ic50" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "<!--"`
 
 ## Variable importance
 
-`r if (!("ic50" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
+`r if (!("ic50" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "-->"`
 
 `r if (!("ic50" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
@@ -475,11 +475,11 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("ic80" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
+`r if (!("ic80" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "<!--"`
 
 ## Variable importance
 
-`r if (!("ic80" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
+`r if (!("ic80" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -640,10 +640,10 @@ if ("figures" %in% opts$return) {
 ```
 `r if (!("iip" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("iip" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
+`r if (!("iip" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "<!--"`
 ## Variable importance
 
-`r if (!("iip" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
+`r if (!("iip" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -814,11 +814,11 @@ if ("figures" %in% opts$return) {
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "<!--"`
 
 ## Variable importance
 
-`r if (!("sens1" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
@@ -992,10 +992,10 @@ if ("figures" %in% opts$return) {
 
 `r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "<!--"`
 ## Variable importance
 
-`r if (!("sens2" %in% opts$outcomes) | (opts$importance_grp == "" & opts$importance_ind == "")) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "-->"`
 
 <!-- If we did any population vimp, print it -->
 

@@ -142,7 +142,7 @@ COPY code/plotting_functions.R /home/lib/plotting_functions.R
 COPY code/check_opts.R /home/lib/check_opts.R
 COPY code/check_opts_functions.R /home/lib/check_opts_functions.R
 COPY code/return_requested_objects.R /home/lib/return_requested_objects.R
-COPY code/ml_var_importance_measures.R /home/lib/ml_importance_measures.R
+COPY code/ml_var_importance_measures.R /home/lib/ml_var_importance_measures.R
 COPY code/plot_one_vimp.R /home/lib/plot_one_vimp.R
 COPY code/outcome_dist_plot.R /home/lib/outcome_dist_plot.R
 COPY code/pred_importance.R /home/lib/pred_importance.R
