@@ -142,6 +142,13 @@ COPY code/plotting_functions.R /home/lib/plotting_functions.R
 COPY code/check_opts.R /home/lib/check_opts.R
 COPY code/check_opts_functions.R /home/lib/check_opts_functions.R
 COPY code/return_requested_objects.R /home/lib/return_requested_objects.R
+COPY code/ml_var_importance_measures.R /home/lib/ml_importance_measures.R
+COPY code/plot_one_vimp.R /home/lib/plot_one_vimp.R
+COPY code/outcome_dist_plot.R /home/lib/outcome_dist_plot.R
+COPY code/pred_importance.R /home/lib/pred_importance.R
+COPY code/var_import_plot.R /home/lib/var_import_plot.R
+COPY code/vimp_executive_summary_table.R /home/lib/vimp_executive_summary_table.R
+COPY code/biological_importance.R /home/lib/biological_importance.R
 
 RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
