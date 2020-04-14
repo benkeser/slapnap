@@ -150,7 +150,8 @@ RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 COPY code/new_report.Rmd /home/lib/new_report.Rmd
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
-RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R
+COPY code/report_preamble.R /home/lib/report_preamble.R
+RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R /home/lib/report_preamble.R
 
 # entry point to container runs run_analysis.sh
 CMD /home/lib/run_analysis.sh
