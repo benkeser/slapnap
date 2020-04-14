@@ -20,15 +20,9 @@ if (in_container) {
         slfits_dir <- "~/Dropbox/Emory/AMP/slapnap/slfits/"
         data_dir <- "~/Dropbox/Emory/AMP/slapnap/data/"
     } else {
-        # opts <- list(nab = "VRC07-523-LS", outcomes = "ic50",
-        #              learners = "xgboost", cvtune = TRUE, cvperf = TRUE,
-        #              importance_grp = "marg", importance_ind = "marg;pred")
-              opts <- list(nab = "VRC07-523-LS", outcomes = "ic50",
-                     learners = "xgboost", cvtune = TRUE, cvperf = TRUE,
-                     importance_grp = "", importance_ind = "pred")
-        code_dir <- "~/Documents/Papers/slapnap/code/"
-        slfits_dir <- "~/Documents/Papers/slapnap/sandbox/slfits/"
-        data_dir <- "~/Documents/Papers/slapnap/sandbox/data/"
+        code_dir <- "~/Projects/VIDD/hvtn/slapnap/code/"
+        slfits_dir <- "~/Projects/VIDD/hvtn/slapnap/local_production_runs/slfits_vrc01/"
+        data_dir <- "~/Projects/VIDD/hvtn/slapnap/sandbox/data/"
     }
 
 }

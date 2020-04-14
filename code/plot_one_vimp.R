@@ -34,7 +34,7 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
         text_cis <- apply(tmp_cis, 1, function(x) paste0("[", x[1], ", ", x[2], "]"))
         vimp_est <- tibble::add_column(vimp_est, text_ci = text_cis)
         vimp_est <- tibble::add_column(vimp_est, signif_p = ifelse(vimp_est$p_value < threshold, "*", ""))
-        dim_plot <- dim(vimp_est)[1]
+        dim_plot <- ifelse(num_plot > 0, min(num_plot, dim(vimp_est)[1]), dim(vimp_est)[1])
         ## plot by ordered vimp measure
         vimp_plot <- vimp_est %>%
             arrange(desc(est)) %>%
