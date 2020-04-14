@@ -41,7 +41,7 @@ num_covs <- length(pred_names) - length(all_geog_vars)
 var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 
 # set number of CV folds
-V <- 5
+V <- as.numeric(opts$nfolds)
 
 ## ---------------------------------------------------------------------------
 ## get variable importance! but only run if one of opts$importance_grp or opts$importance_ind is not empty

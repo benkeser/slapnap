@@ -51,7 +51,7 @@ num_covs <- length(pred_names) - length(all_geog_vars)
 var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 
 # set number of CV folds
-V <- 5 # move to user control?
+V <- as.numeric(opts$nfolds)
 
 set.seed(123125)
 ## ----------------------------------------------------------------------------

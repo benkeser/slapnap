@@ -42,6 +42,10 @@ ENV cvtune="TRUE"
 #   if FALSE, then the learner is trained on each outcome, but nothing more is performed
 ENV cvperf="TRUE"
 
+# how many folds should be used for cross-validation?
+#   only has an effect if cvtune=TRUE or cvperf=TRUE
+ENV nfolds="5"
+
 # what group-level importance measures should be computed?
 #   possible values are marg (for marginal) cond (for conditional) or none (input "")
 ENV importance_grp="marg;cond"

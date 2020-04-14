@@ -36,6 +36,12 @@ check_opts_cvperf <- function(cvperf_str) {
         shiny::need(cvperf_str == TRUE | !opts$cvperf == TRUE, "cvperf must be logical (i.e., either 'TRUE' or 'FALSE').")
     )
 }
+# check nfolds
+check_opts_nfolds <- function(nfolds_str) {
+    shiny::validate(
+        shiny::need(nfolds_str == "" | is.numeric(as.numeric(nfolds_str)), "nfolds must be either a number (e.g., 5) or an empty string (in which case 5 folds will be used).")
+    )
+}
 # check vimp
 check_opts_vimp <- function(grp_str, ind_str, all_grp, all_ind) {
     shiny::validate(
