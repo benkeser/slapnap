@@ -10,7 +10,7 @@
 ## @param main_font_size the size of text
 ## @param cv whether or not this is cv importance
 ## @param num_plot the number of features to plot (in descending order)
-plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, ifelse(max(vimp_obj$mat$ciu) > 1, max(vimp_obj$mat$ciu) + 0.2, 1)), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), cv = FALSE, grp = TRUE, num_plot = 50, text_size = 9, threshold = 0.05, opts) {
+plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, ifelse(!is.null(vimp_obj), ifelse(max(vimp_obj$mat$ciu) > 1, max(vimp_obj$mat$ciu) + 0.2, 1), 0)), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), cv = FALSE, grp = TRUE, num_plot = 50, text_size = 9, threshold = 0.05, opts) {
     text_pos <- x_lim[2] - 0.05
     signif_pos <- x_lim[2] - 0.025
     if (!is.null(vimp_obj)) {

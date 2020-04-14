@@ -329,9 +329,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   ic50_ind_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -523,9 +523,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   ic80_ind_vimp_grob_lst <- switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -687,9 +687,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   iip_ind_vimp_grob_lst <- switch(opts$cvperf + 1,iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/iip_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/iip_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -862,9 +862,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   sens1_ind_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens1_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/sens1_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -1039,9 +1039,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   sens2_ind_vimp_grob_lst <- switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens2_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = length(opts$importance_ind), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/sens2_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
