@@ -754,7 +754,7 @@ The cross-validated performance of super learner, as measured by area under the 
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes)) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | ((length(opts$learners) > 1 | !opts$cvtune) & "sens1" %in% opts$outcomes)) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes)) "<!--"`
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
@@ -768,7 +768,7 @@ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = p
 }
 ```
 
-`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | ((length(opts$learners) > 1 | !opts$cvtune) & "sens1" %in% opts$outcomes)) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes)) "-->"`
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 
@@ -850,7 +850,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
-We show the biological variable importance of individual features in predicting estimated sensitivity in Figure \@ref(fig:sems1indivimp). Importance is defined using the difference in AUCs.
+We show the biological variable importance of individual features in predicting estimated sensitivity in Figure \@ref(fig:sens1indivimp). Importance is defined using the difference in AUCs.
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
@@ -933,7 +933,7 @@ The cross-validated performance of super learner, as measured by area under the 
 
 `r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune)) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) > 1)) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune)) "<!--"`
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2).
 
@@ -947,7 +947,7 @@ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = p
 }
 ```
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) > 1)) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune)) "-->"`
 
 `r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting multiple sensitivity.
