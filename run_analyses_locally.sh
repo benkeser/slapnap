@@ -24,7 +24,7 @@ sudo docker run -it \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
     -e cvperf="TRUE" \
-    -e importance_grp="marg;cond" \
+    -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
@@ -39,7 +39,7 @@ sudo docker run \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
     -e cvperf="TRUE" \
-    -e importance_grp="marg;cond" \
+    -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
@@ -57,7 +57,7 @@ sudo docker run \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
     -e cvperf="TRUE" \
-    -e importance_grp="marg;cond" \
+    -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
@@ -75,7 +75,7 @@ sudo docker run \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
     -e cvperf="TRUE" \
-    -e importance_grp="marg;cond" \
+    -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
