@@ -16,7 +16,7 @@ fi
 # Single-bnAb regimens
 # -------------------------------------------
 # replicate the Magaret et al. (2019) analysis; for HVTN 703, HVTN704
-sudo docker run -it \
+sudo docker run \
     -v $local_dir/local_production_runs/slfits_vrc01:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
     -e nab="VRC01" \
@@ -28,13 +28,13 @@ sudo docker run -it \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
-    slapnap bash
+    slapnap
 
-# update to VRC01-LS; HVTN 116
-sudo docker run \
-    -v $local_dir/local_production_runs/slfits_vrc01_ls:/home/slfits/ \
+# update to VRC07-523LS
+sudo docker run -it \
+    -v $local_dir/local_production_runs/slfits_vrc07_523ls:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
-    -e nab="VRC01-LS" \
+    -e nab="VRC07-523-LS" \
     -e outcomes="ic50;ic80;iip;sens1;sens2" \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
@@ -43,16 +43,16 @@ sudo docker run \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
-    slapnap
+    slapnap bash
 
 # -------------------------------------------
 # 2-bnAb regimens
 # -------------------------------------------
-# HVTN 136
-sudo docker run \
-    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121-414-ls:/home/slfits/ \
+# HVTN 130
+sudo docker run -it \
+    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
-    -e nab="VRC07-523-LS;PGT121.414.LS" \
+    -e nab="VRC07-523-LS;PGT121" \
     -e outcomes="ic50;ic80;iip;sens1;sens2" \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
@@ -61,16 +61,16 @@ sudo docker run \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
-    slapnap
+    slapnap bash
 
 # -------------------------------------------
 # 3-bnAb regimens
 # -------------------------------------------
 # HVTN 130
 sudo docker run \
-    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121-414-ls_pgdm1400:/home/slfits/ \
+    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121_pgdm1400:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
-    -e nab="VRC07-523-LS;PGT121.414.LS;PGDM1400" \
+    -e nab="VRC07-523-LS;PGT121;PGDM1400" \
     -e outcomes="ic50;ic80;iip;sens1;sens2" \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
