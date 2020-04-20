@@ -176,16 +176,16 @@ get_learner_descriptions <- function(opts){
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
 
 # each entry in the output list is a kable that should be properly labeled.
-get_cv_outcomes_tables <- function(fit_list_out, opts){
+get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
     fit_list <- fit_list_out$out
     V <- fit_list_out$V
     n_row_now <- fit_list_out$n_row_now
-    table_list <- lapply(fit_list, summary.myCV.SuperLearner, opts = opts)
+    table_list <- lapply(fit_list[!is.na(names(fit_list))], summary.myCV.SuperLearner, opts = opts)
 
     # re-label
-    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-    all_labels <- c("IC-50", "IC-80", "IIP", "Estimated sensitivity", "Multiple sensitivity")
-    tmp <- opts$outcomes
+    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
+    all_labels <- c("IC-50", "IC-80", "IIP", "Estimated sensitivity", "Multiple sensitivity")[run_sls]
+    tmp <- opts$outcomes[run_sls]
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
@@ -205,7 +205,7 @@ get_cv_outcomes_tables <- function(fit_list_out, opts){
                                " observations with complete sequence data)."))
     }
     # now format dichotomous outcomes table
-    dich_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
+    dich_idx <- which(opts$outcomes[run_sls] %in% c("sens1", "sens2"))
     auc_kab <- NULL
     if(length(dich_idx) > 0){
         list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list, Rsquared = FALSE, simplify = FALSE)

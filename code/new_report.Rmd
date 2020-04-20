@@ -21,7 +21,7 @@ if (in_container) {
         data_dir <- "~/Dropbox/Emory/AMP/slapnap/data/"
     } else {
         code_dir <- "~/Projects/VIDD/hvtn/slapnap/code/"
-        slfits_dir <- "~/Projects/VIDD/hvtn/slapnap/local_production_runs/slfits_vrc01/"
+        slfits_dir <- "~/Projects/VIDD/hvtn/slapnap/local_production_runs/slfits_vrc07-523-ls_pgt121_pgdm1400"
         data_dir <- "~/Projects/VIDD/hvtn/slapnap/sandbox/data/"
     }
 
@@ -54,6 +54,8 @@ nice_outcomes <- opts$outcomes
 for(i in seq_along(all_outcomes)){
     nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
 }
+outcome_names <- get_outcome_names(opts)
+run_sl_vimp_bools <- check_outcomes(dat, outcome_names, as.numeric(opts$nfolds))
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
 bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
@@ -71,10 +73,10 @@ The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r 
 
 * `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive (using estimated sensitivity)`r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive (using estimated sensitivity)`r ifelse(!run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]], ". There were too few observations in at least one class for results to be reliable, and thus estimated sensitivity is not included in any learning or population variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus estimated sensitivity is not included in any population variable importance analyses", ""))``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity).
+* out of the sequences with complete data, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity)`r ifelse(!run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or population variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any population variable importance analyses", "."))`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
@@ -101,21 +103,21 @@ kable(as.data.frame(Description), col.names = c("Label", "Description"),
 
 ```{r}
 if (opts$cvperf) {
-    fit_list_out <- load_cv_fits(opts, slfits_dir)
-    cv_outcomes <- get_cv_outcomes_tables(fit_list_out, opts)
+    fit_list_out <- load_cv_fits(opts, run_sl_vimp_bools$run_sl, slfits_dir)
+    cv_outcomes <- get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, opts)
 }
 ```
 
 The predictive ability of the learner was assessed using cross-validation. `r if(any_cont & opts$cvperf) "The estimated cross-validated $R^2$ of the super learner for predicting continuous outcomes are shown in Table \\@ref(tab:rsquaredtable)."` `r if(any_dich & opts$cvperf) "The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting binary sensitivity measures are shown in Table \\@ref(tab:auctable)."`
 
 ```{r rsquaredtable, eval = any_cont & opts$cvperf}
-get_cv_outcomes_tables(fit_list_out, opts)[[1]]
+get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, opts)[[1]]
 ```
 
 ```{r auctable, eval = any_dich & opts$cvperf}
 # apparently no way around calling this function multiple times
 # otherwise the labeling messes up
-get_cv_outcomes_tables(fit_list_out, opts)[[2]]
+get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, opts)[[2]]
 ```
 
 `r if(!opts$cvperf) "-->"`
@@ -721,17 +723,17 @@ kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive.
+Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(length(opts$nab) > 1, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive. `r ifelse(!run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]], "There were too few observations in at least one class for results to be reliable, and thus estimated sensitivity is not included in any learning or population variable importance analyses. ", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], "There were too few observations in at least one class for variable importance results to be reliable, and thus estimated sensitivity is not included in any population variable importance analyses. ", ""))`
 
 `r if (!("sens1" %in% opts$outcomes)) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | (length(opts$learners) == 1)) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (length(opts$learners) == 1) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 ## Super learner results
 
 The weights assigned to each algorithm for Super Learner predicting estimated sensitivity are shown in Table \@ref(tab:sens1superlearnerweighttable).
 
-```{r sens1superlearnerweighttable, eval = ("sens1" %in% opts$outcomes) & (length(opts$learners) > 1)}
+```{r sens1superlearnerweighttable, eval = ("sens1" %in% opts$outcomes) & (length(opts$learners) > 1) & run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]}
 weights_sens1 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.1.rds"))
 weight_table <- data.frame(Learner = this_library, Weight = weights_sens1)
 row.names(weight_table) <- NULL
@@ -740,25 +742,25 @@ kable(as.data.frame(weight_table), digits = 2,
              caption = paste0("Table of super learner weights for estimated sensitivity (n = ", ncomplete, " observations with complete sequence data)."))
 ```
 
-`r if (!("sens1" %in% opts$outcomes) | (length(opts$learners) == 1)) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (length(opts$learners) == 1) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | (!opts$cvperf)) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (!opts$cvperf) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 ## Predictive performance
 
-`r if (!("sens1" %in% opts$outcomes) | (!opts$cvperf)) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (!opts$cvperf) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes)) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 The cross-validated performance of super learner, as measured by area under the ROC curve, in predicting estimated sensitivity relative to other candidate algorithms is shown  in Figure \@ref(fig:plotdichot1). Figure \@ref(fig:rocdichot1) shows cross-validated ROC curves for this endpoint.
 
-`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes)) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes)) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
-```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
+```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]], fig.cap = paste0("Cross-validated AUC for predicting sensitivity based on estimated sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
 plot(fit_list_out$out$sens1, main_title = "Estimated sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 # if saving figures was requested, save
@@ -768,13 +770,13 @@ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = p
 }
 ```
 
-`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes)) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting estimated sensitivity.
 
-```{r roccap1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf)}
+```{r roccap1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]}
 roc_cap <- if(length(opts$learners) > 1){
   paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting estimated sensitivity (n = ", ncomplete, " observations with complete sequence data).")
 }else if(!opts$cvtune){
@@ -792,45 +794,45 @@ predprob_cap <- if(length(opts$learners) > 1){
 }
 ```
 
-```{r rocdichot1, fig.cap = roc_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf)}
+```{r rocdichot1, fig.cap = roc_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]}
 plot_roc_curves(fit_list_out$out$sens1, opts = opts)
 if ("figures" %in% opts$return) {
     ggsave(filename = paste0("/home/output/sens1_roc_", postfix, ".png"), plot = plot_roc_curves(fit_list_out$out$sens1, opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
 
-```{r predprob1, fig.cap = predprob_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf)}
+```{r predprob1, fig.cap = predprob_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]}
 plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts)
 if ("figures" %in% opts$return) {
     ggsave(filename = paste0("/home/output/sens1_predprob_", postfix, ".png"), plot = plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
 
-`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == "")) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 ## Variable importance
 
-`r if (!("sens1" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == "")) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
-`r if (!("sens1" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 ### Biological importance
 
-`r if (!("sens1" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
 <!-- If we did group vimp, print it -->
 
-`r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) | !run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 We show the biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting estimated sensitivity in Figure \@ref(fig:sens1groupvimp). Importance is defined using the difference in AUCs.
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     sens1_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -844,17 +846,17 @@ if ("figures" %in% opts$return) {
 }
 ```
 
-`r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) | !run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
 <!-- If we did individual vimp, print it -->
 
-`r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) | !run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 We show the biological variable importance of individual features in predicting estimated sensitivity in Figure \@ref(fig:sens1indivimp). Importance is defined using the difference in AUCs.
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     sens1_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
@@ -868,26 +870,26 @@ if ("figures" %in% opts$return) {
 }
 ```
 
-`r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) | !run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | !("pred" %in% opts$importance_ind) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "<!--"`
 
 ### Predictive importance
 
-```{r get-pred-imp-sens1, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
+```{r get-pred-imp-sens1, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]}
 fit_sens1 <- readRDS(paste0(slfits_dir, "fit_dichotomous.1.rds"))
 imp_sens1 <- extract_importance(fit_sens1, opts)
 ```
 
-Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_sens1), "")`
+Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]], get_importance_text(opts = opts, imp_df = imp_sens1), "")`
 
-```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
+```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]}
 kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting estimated sensitivity as measured by their algorithm-specific importance."))
 ```
 
 
-`r if (!("sens1" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | !("pred" %in% opts$importance_ind) | !run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]]) "-->"`
 
 <!-- multiple sensitivity section -->
 
@@ -903,12 +905,12 @@ Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.2)` were estimated to
 
 <!-- if we used more than one learner, display SL results -->
 
-`r if (!("sens2" %in% opts$outcomes) | (length(opts$learners) == 1)) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | (length(opts$learners) == 1) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 ## Super learner results
 
 The weights assigned to each algorithm for Super Learner predicting multiple sensitivity are shown in Table \@ref(tab:sens2superlearnerweighttable)\.
 
-```{r sens2superlearnerweighttable, eval = ("sens2" %in% opts$outcomes) & (length(opts$learners) > 1)}
+```{r sens2superlearnerweighttable, eval = ("sens2" %in% opts$outcomes) & (length(opts$learners) > 1) & run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]}
 weights_sens2 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.2.rds"))
 weight_table <- data.frame(Learner = this_library, Weight = weights_sens2)
 row.names(weight_table) <- NULL
@@ -917,27 +919,27 @@ kable(as.data.frame(weight_table), digits = 2,
              caption = paste0("Table of super learner weights for multiple sensitivity (n = ", ncomplete, " observations with complete sequence data)."))
 ```
 
-`r if (!("sens2" %in% opts$outcomes) | (length(opts$learners) == 1)) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | (length(opts$learners) == 1) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
 <!-- cv performance section -->
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 
 ## Predictive performance
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune)) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 
 The cross-validated performance of super learner, as measured by area under the ROC curve, in predicting multiple sensitivity relative to other candidate algorithms is shown  in Figure \@ref(fig:plotdichot2). Figure \@ref(fig:rocdichot2) shows cross-validated ROC curves for this endpoint.
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune)) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune)) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2).
 
-```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
+```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]], fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
 plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 # if saving figures was requested, save
@@ -947,12 +949,12 @@ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = p
 }
 ```
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune)) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting multiple sensitivity.
 
-```{r roccap2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf)}
+```{r roccap2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]}
 roc_cap <- if(length(opts$learners) > 1){
   paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")
 }else if(!opts$cvtune){
@@ -970,44 +972,44 @@ predprob_cap <- if(length(opts$learners) > 1){
 }
 ```
 
-```{r rocdichot2, fig.cap = roc_cap, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf)}
+```{r rocdichot2, fig.cap = roc_cap, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]}
 plot_roc_curves(fit_list_out$out$sens2, opts = opts)
 if ("figures" %in% opts$return) {
     ggsave(filename = paste0("/home/output/sens2_roc_", postfix, ".png"), plot = plot_roc_curves(fit_list_out$out$sens2, opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
 
-```{r predprob2, fig.cap = predprob_cap, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf)}
+```{r predprob2, fig.cap = predprob_cap, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]}
 plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts)
 if ("figures" %in% opts$return) {
     ggsave(filename = paste0("/home/output/sens2_predprob_", postfix, ".png"), plot = plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
 
-`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == "")) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 ## Variable importance
 
-`r if (!("sens2" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == "")) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
 <!-- If we did any population vimp, print it -->
 
-`r if (!("sens2" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 
 ### Biological importance
 
-`r if (!("sens2" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
 <!-- If we did group vimp, print it -->
 
-`r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) | !run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 
 We show the biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting multiple sensitivity in Figure \@ref(fig:sens2groupvimp). Importance is defined using the difference in AUCs.
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     sens2_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -1021,17 +1023,17 @@ if ("figures" %in% opts$return) {
 }
 ```
 
-`r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp)) | !run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
 <!-- If we did individual vimp, print it -->
 
-`r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) | !run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 
 We show the biological variable importance of individual features in predicting multiple sensitivity in Figure \@ref(fig:sens2indivimp). Importance is defined using the difference in AUCs.
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     sens2_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
@@ -1045,23 +1047,23 @@ if ("figures" %in% opts$return) {
 }
 ```
 
-`r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) | !run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
-`r if (!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "<!--"`
 ### Predictive importance
 
-```{r get-pred-imp-sens2, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
+```{r get-pred-imp-sens2, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]}
 fit_sens2 <- readRDS(paste0(slfits_dir, "fit_dichotomous.2.rds"))
 imp_sens2 <- extract_importance(fit_sens2, opts)
 ```
 
-Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_sens2), "")`
+Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]], get_importance_text(opts = opts, imp_df = imp_sens2), "")`
 
-```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
+```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]}
 kable(imp_sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
       caption = paste0("The top ", n_imp_ft, " important features for predicting multiple sensitivity as measured by their algorithm-specific importance."))
 ```
-`r if(!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`
+`r if(!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind) | !run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]]) "-->"`
 
 `r if (opts$importance_grp == "") "<!--"`
 # Variable group definitions

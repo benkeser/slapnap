@@ -114,6 +114,12 @@ all_geog_vars <- pred_names[grepl("geog", pred_names)]
 num_covs <- length(pred_names) - length(all_geog_vars)
 var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 
+# set number of CV folds
+V <- as.numeric(opts$nfolds)
+
+# check the outcomes to see if we can run them or not
+run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
+
 ## get biological importance
 if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
     source(paste0(code_dir, "biological_importance.R"), local = TRUE)
