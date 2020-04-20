@@ -184,7 +184,7 @@ iip.c <- 10
 iip.m <- log10(4) /(readouts$log10.pc.ic80 - readouts$log10.pc.ic50)
 iip.f.c <-(iip.c ^ iip.m) /((readouts$pc.ic50 ^ iip.m) +(iip.c ^ iip.m))
 iip.f.c[iip.f.c >= 1] <- 1 - .Machine$double.neg.eps
-readouts$iip <- log10(1 - iip.f.c)
+readouts$iip <- (-1) * log10(1 - iip.f.c)
 
 # derive the "Dichotomous 1" endpoint(i.e., is the PC IC50 higher than the
 # sensitivity cutoff?)

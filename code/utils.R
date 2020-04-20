@@ -289,7 +289,7 @@ get_outcome_descriptions <- function(opts){
         if(iip_pres){
             tmp <- paste0("IIP is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{predicted IC-50}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{predicted IC-80} - \\mbox{predicted IC-50})$ ",
+                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{predicted IC-80})} - \\mbox{log}_{10}(\\mbox{predicted IC-50}))$ ",
                           "and predicted IC-50 and IC-80 are computed as described above.",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
