@@ -1,39 +1,15 @@
 #!/usr/bin/env Rscript
 
-# ---------------------------------------------------------------------------- #
-# ---------------------------------------------------------------------------- #
-#
-# source("/home/cmagaret/compbio/projectus/cam117_multiAb/bin/02_procdata/merge_proc_v3.R")
-#
-# ---------------------------------------------------------------------------- #
-# ---------------------------------------------------------------------------- #
-
-
 # here are our standard example cases:
 #   single antibody:  VRC07-523-LS
-#   double cocktail:  VRC07-523LS + PGT12.BIJ4141LS
+#   double cocktail:  VRC07-523LS + PGT121.BIJ4141LS
 #   triple cocktail:  VRC07-523LS + PGT121.BIJ414LS + PGDM1400LS
 
 
 # ---------------------------------------------------------------------------- #
 # STEP -1:  prepare our environment
 # ---------------------------------------------------------------------------- #
-
-
-# refresh our workspace
-# rm(list=ls())
-
-# what libraries do we need to survive?
 library(seqinr)
-#library(gtools)
-
-# CONFIG:  define our home directory
-# path.home <- "/home/cmagaret/compbio/projectus/cam117_multiAb"
-
-# CONFIG:  which antibodies are we interested in?
-#antibodies <- "VRC07-523-LS"
-# antibodies <- c("VRC07-523-LS", "PGT121")
-#antibodies <- c("VRC07-523-LS", "PGT121", "PGDM1400")
 path.home <- "/home"
 
 # antibody names are passed to docker container at run time as

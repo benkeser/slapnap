@@ -223,13 +223,13 @@ get_cv_outcomes_tables <- function(fit_list_out, opts){
 
 # load cv_fits for given set of opts, needed since the naming convention
 # is different if length(opts$learners) == 1 and opts$cvtune == FALSE
-load_cv_fits <- function(opts, code_dir){
+load_cv_fits <- function(opts, run_sls, code_dir){
     if(!opts$cvtune & !opts$cvperf){
         stop("no cross-validated fit for these options")
     }
     out_list <- vector(mode = "list", length = length(opts$outcomes))
-    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-    all_file_labels <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
+    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
+    all_file_labels <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")[run_sls]
     if(length(opts$learners) == 1 & !opts$cvtune){
         ct <- 0
         for(i in seq_along(all_outcomes)){
@@ -697,4 +697,29 @@ get_vimp_object_names <- function(all_fit_nms, opts) {
     outcome_names <- get_outcome_names(opts)
     these_outcome_vimp_nms <- vimp_nms[!is.na(pmatch(vimp_only_outcome, outcome_names, duplicates.ok = TRUE))]
     return(these_outcome_vimp_nms)
+}
+
+# check dichotomous outcomes to make sure there are enough observations in each class to do SLs and vimp
+check_outcome <- function(dat, outcome_nm, V) {
+    if (grepl("dichot", outcome_nm)) {
+        outcome_tbl <- table(dat[, outcome_nm])
+        run_sl <- TRUE
+        run_vimp <- TRUE
+        if (any(outcome_tbl <= V)) {
+            run_sl <- FALSE
+        }
+        if (any(outcome_tbl <= 2 * V)) {
+            run_vimp <- FALSE
+        }
+    } else {
+        run_sl <- TRUE
+        run_vimp <- TRUE
+    }
+    return(list(run_sl = run_sl, run_vimp = run_vimp))
+}
+check_outcomes <- function(dat, outcome_names, V) {
+    checked_outcomes <- lapply(as.list(outcome_names), function(x) check_outcome(dat, x, V))
+    run_sls <- unlist(lapply(checked_outcomes, function(x) x[1]))
+    run_vimps <- unlist(lapply(checked_outcomes, function(x) x[2]))
+    return(list(run_sl = run_sls, run_vimp = run_vimps))
 }
