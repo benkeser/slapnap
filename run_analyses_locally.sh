@@ -67,7 +67,7 @@ sudo docker run -it \
 # 3-bnAb regimens
 # -------------------------------------------
 # HVTN 130
-sudo docker run \
+sudo docker run -it \
     -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121_pgdm1400:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
     -e nab="VRC07-523-LS;PGT121;PGDM1400" \
@@ -79,4 +79,4 @@ sudo docker run \
     -e importance_ind="marg;pred" \
     -e return_full_sl_obj="TRUE" \
     -e return_analysis_dataset="TRUE" \
-    slapnap
+    slapnap bash
