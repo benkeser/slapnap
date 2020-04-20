@@ -1,4 +1,5 @@
 .DS_Store
+.dockerignore
 sandbox/*
 slfits/*
 dat/*
