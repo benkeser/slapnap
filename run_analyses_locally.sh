@@ -16,7 +16,7 @@ fi
 # Single-bnAb regimens
 # -------------------------------------------
 # replicate the Magaret et al. (2019) analysis; for HVTN 703, HVTN704
-sudo docker run \
+sudo docker run -it \
     -v $local_dir/local_production_runs/slfits_vrc01:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
     -e nab="VRC01" \
@@ -26,9 +26,8 @@ sudo docker run \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
-    -e return_full_sl_obj="TRUE" \
-    -e return_analysis_dataset="TRUE" \
-    slapnap
+    -e return="report;data" \
+    slapnap bash
 
 # update to VRC07-523LS
 sudo docker run -it \
@@ -41,8 +40,7 @@ sudo docker run -it \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
-    -e return_full_sl_obj="TRUE" \
-    -e return_analysis_dataset="TRUE" \
+    -e return="report;data" \
     slapnap bash
 
 # -------------------------------------------
@@ -59,8 +57,7 @@ sudo docker run -it \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
-    -e return_full_sl_obj="TRUE" \
-    -e return_analysis_dataset="TRUE" \
+    -e return="report;data" \
     slapnap bash
 
 # -------------------------------------------
@@ -77,6 +74,5 @@ sudo docker run -it \
     -e cvperf="TRUE" \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
-    -e return_full_sl_obj="TRUE" \
-    -e return_analysis_dataset="TRUE" \
+    -e return="report;data" \
     slapnap bash
