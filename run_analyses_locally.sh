@@ -16,7 +16,7 @@ fi
 # Single-bnAb regimens
 # -------------------------------------------
 # replicate the Magaret et al. (2019) analysis; for HVTN 703, HVTN704
-sudo docker run -it \
+sudo docker run \
     -v $local_dir/local_production_runs/slfits_vrc01:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
     -e nab="VRC01" \
@@ -27,10 +27,10 @@ sudo docker run -it \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return="report;data" \
-    slapnap bash
+    slapnap
 
 # update to VRC07-523LS (HVTN ##)
-sudo docker run -it \
+sudo docker run \
     -v $local_dir/local_production_runs/slfits_vrc07_523ls:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
     -e nab="VRC07-523-LS" \
@@ -41,10 +41,10 @@ sudo docker run -it \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return="report;data" \
-    slapnap bash
+    slapnap
 
 # PGT121 (HVTN 136)
-sudo docker run -it \
+sudo docker run \
     -v $local_dir/local_production_runs/slfits_pgt121:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
     -e nab="PGT121" \
@@ -55,13 +55,13 @@ sudo docker run -it \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return="report;data" \
-    slapnap bash
+    slapnap
 
 # -------------------------------------------
 # 2-bnAb regimens
 # -------------------------------------------
 # HVTN 130 comparison 1
-sudo docker run -it \
+sudo docker run \
     -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
     -e nab="VRC07-523-LS;PGT121" \
@@ -72,7 +72,7 @@ sudo docker run -it \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return="report;data" \
-    slapnap bash
+    slapnap
 
 # HVTN 130 comparison 2
 sudo docker run \
