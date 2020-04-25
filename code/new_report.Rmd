@@ -1,5 +1,5 @@
 ---
-title: 'SLAPNAP Report: `r format(strsplit(Sys.getenv("nab"), split = ";")[[1]])`'
+title: "SLAPNAP Report: `r paste(format(strsplit(Sys.getenv('nab'), split = ';')[[1]], justify = 'none'), collapse = ', ')`"
 author: "SLAPNAP Team"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
@@ -101,7 +101,7 @@ kable(as.data.frame(Description), col.names = c("Label", "Description"),
 
 `r if(!opts$cvperf) "<!--"`
 
-```{r}
+```{r getcvfits}
 if (opts$cvperf) {
     fit_list_out <- load_cv_fits(opts, run_sl_vimp_bools$run_sl, slfits_dir)
     cv_outcomes <- get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, opts)
