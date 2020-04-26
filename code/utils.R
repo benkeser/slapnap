@@ -115,7 +115,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
     ct <- 0
     for(i in seq_along(opts$nab)){
         ct <- ct + 1
-        this_name <- gsub("-", ".", paste0(opts$nab[i], ".ic50.imputed"))
+        this_name <- gsub("-", ".", paste0("nab_", opts$nab[i], ".ic50.imputed"))
         out_hist[[ct]] <- make_hist_plot(dat, var_name = this_name,
                                           x_lab = paste0(outcome_label," ", opts$nab[i]),
                                           y_lab = "Density")

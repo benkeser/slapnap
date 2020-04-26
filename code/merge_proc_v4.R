@@ -78,14 +78,16 @@ imputed.ic80 <- list()
 censored.ic50 <- list()
 censored.ic80 <- list()
 for(ab.tmp in antibodies) {
-  imputed.ic50[[ab.tmp]] <- rep(NA, length(seqs.selected))
-  imputed.ic80[[ab.tmp]] <- rep(NA, length(seqs.selected))
-  censored.ic50[[ab.tmp]] <- rep(0, length(seqs.selected))
-  censored.ic80[[ab.tmp]] <- rep(0, length(seqs.selected))
+    ab_tmp_str <- paste0("nab_", ab.tmp)
+  imputed.ic50[[ab_tmp_str]] <- rep(NA, length(seqs.selected))
+  imputed.ic80[[ab_tmp_str]] <- rep(NA, length(seqs.selected))
+  censored.ic50[[ab_tmp_str]] <- rep(0, length(seqs.selected))
+  censored.ic80[[ab_tmp_str]] <- rep(0, length(seqs.selected))
 }
 
 # collect and process our imputed/censored information
 for(ab.tmp in antibodies) {
+    ab_tmp_str <- paste0("nab_", ab.tmp)
   for(seqname.index in 1:length(seqname.selected.db)) {
 
     # isolate our readouts of interest
@@ -97,16 +99,16 @@ for(ab.tmp in antibodies) {
 
       # make the binary notation that we have a right-censored variable
       if(">" %in% substr(data.assay.reduced.tmp[, 1], 1, 1)) {
-        censored.ic50[[ab.tmp]][seqname.index] <- 1
+        censored.ic50[[ab_tmp_str]][seqname.index] <- 1
       }
 
       # merge all of our readouts, both censored and numeric
-      imputed.ic50[[ab.tmp]][seqname.index] <- merge.readouts(data.assay.reduced.tmp[, 1])
+      imputed.ic50[[ab_tmp_str]][seqname.index] <- merge.readouts(data.assay.reduced.tmp[, 1])
 
     # if no assay readouts exist, "Mark it zero"
     } else {
-      censored.ic50[[ab.tmp]][seqname.index] <- NA
-      imputed.ic50[[ab.tmp]][seqname.index] <- NA
+      censored.ic50[[ab_tmp_str]][seqname.index] <- NA
+      imputed.ic50[[ab_tmp_str]][seqname.index] <- NA
     }
 
     # IC80:  let's confirm that we actually have readout data for this sequence
@@ -114,16 +116,16 @@ for(ab.tmp in antibodies) {
 
       # make the binary notation that we have a right-censored variable
       if(">" %in% substr(data.assay.reduced.tmp[, 2], 1, 1)) {
-        censored.ic80[[ab.tmp]][seqname.index] <- 1
+        censored.ic80[[ab_tmp_str]][seqname.index] <- 1
       }
 
       # merge all of our readouts, both censored and numeric
-      imputed.ic80[[ab.tmp]][seqname.index] <- merge.readouts(data.assay.reduced.tmp[, 2])
+      imputed.ic80[[ab_tmp_str]][seqname.index] <- merge.readouts(data.assay.reduced.tmp[, 2])
 
     # if no assay readouts exist, "Mark it zero"
     } else {
-      censored.ic80[[ab.tmp]][seqname.index] <- NA
-      imputed.ic80[[ab.tmp]][seqname.index] <- NA
+      censored.ic80[[ab_tmp_str]][seqname.index] <- NA
+      imputed.ic80[[ab_tmp_str]][seqname.index] <- NA
     }
   }
 }
@@ -131,12 +133,13 @@ for(ab.tmp in antibodies) {
 # combine results into new dataframe
 readouts <- data.frame(seq.id.catnap=seqname.selected.db)
 for(ab.tmp in antibodies) {
-  readouts.tmp <- data.frame(censored.ic50[[ab.tmp]], censored.ic80[[ab.tmp]],
-                              imputed.ic50[[ab.tmp]], imputed.ic80[[ab.tmp]])
-  names(readouts.tmp) <- c(paste0(ab.tmp, ".ic50.censored"),
-                             paste0(ab.tmp, ".ic80.censored"),
-                             paste0(ab.tmp, ".ic50.imputed"),
-                             paste0(ab.tmp, ".ic80.imputed"))
+    ab_tmp_str <- paste0("nab_", ab.tmp)
+  readouts.tmp <- data.frame(censored.ic50[[ab_tmp_str]], censored.ic80[[ab_tmp_str]],
+                              imputed.ic50[[ab_tmp_str]], imputed.ic80[[ab_tmp_str]])
+  names(readouts.tmp) <- c(paste0(ab_tmp_str, ".ic50.censored"),
+                             paste0(ab_tmp_str, ".ic80.censored"),
+                             paste0(ab_tmp_str, ".ic50.imputed"),
+                             paste0(ab_tmp_str, ".ic80.imputed"))
   readouts <- data.frame(readouts, readouts.tmp)
 }
 
