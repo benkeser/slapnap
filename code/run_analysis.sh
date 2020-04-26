@@ -6,14 +6,14 @@
 
 # set up a log file to print out to
 current_date=$(date "+%d%b%Y")
-log_file_init=($(echo "/home/output/"$nab"_"$current_date".log"))
-log_file=${log_file_init//;/_}
+log_file_init=($(echo ${nab//'/'/'-'}"_"$current_date".log"))
+log_file=($(echo "/home/output/"${log_file_init//';'/'_'}))
 printf "Starting SLAPNAP \n"
 printf "Messages, warnings, and errors (if any) will appear in your output directory under ${log_file//'/home/output/'/''} \n"
 
 # make sure that user-specified options match what we expect to see
 printf "Checking options \n"
-echo "--- Checking options --- " >> $log_file
+echo "--- Checking options --- " > $log_file
 Rscript /home/lib/check_opts.R >> $log_file 2>&1
 
 # run script to build analytic data set
