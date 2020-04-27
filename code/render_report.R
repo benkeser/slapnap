@@ -2,7 +2,7 @@
 
 # get antibodies from environment
 antibody_string <- Sys.getenv("nab")
-antibodies <- strsplit(antibody_string, split = ";")[[1]]
+antibodies <- strsplit(gsub("/", "-", antibody_string), split = ";")[[1]]
 
 report_name <- Sys.getenv("report_name")
 current_date <- format(Sys.time(), "%d%b%Y")# get report name from environment
