@@ -19,7 +19,7 @@ license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://openso
 
 ## Description
 
-`slapnap` is a Docker image for to develop cross-validation-based
+`slapnap` is a Docker image for developing cross-validation-based
 ensemble predictors of neutralization sensitivity/resistance using HIV
 sequences from the [CATNAP database](http://www.hiv.lanl.gov/). The
 image provides an automated tool for reading the data from the online
@@ -31,8 +31,8 @@ and summarizing results.
 ## Usage
 
 This GitHub repository contains the source code needed to build the
-slapnap docker image. However, the repository is also set up for
-continuous integration via Travis-CI, with built images found on
+slapnap docker image. The repository is also set up for continuous
+integration via Travis-CI, with built images found on
 [DockerHub](https://cloud.docker.com/u/slapnap/repository/docker/slapnap/slapnap).
 See the [Docker
 website](https://docs.docker.com/docker-for-windows/install/) for
@@ -45,30 +45,59 @@ command line.
 docker pull slapnap/slapnap
 ```
 
-At run time, the user specifies which NAbs are of interest by setting an
-environment variable named `Nab` via the `-e` option of `docker run`.
-This variable should be set to a semicolon-separated list of Nabs. A
+At run time, the user specifies which nAbs are of interest by setting an
+environment variable named `nab` via the `-e` option of `docker run`.
+This variable should be set to a semicolon-separated list of nAbs. A
 list of possible Nabs included in the CATNAP database can be found
 [here](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp).
+Other options that can be specified using `-e` include:
+
+  - `outcomes`: a semicolon-separated list of outcomes to include in the
+    analysis (defaults to all possible outcomes,
+    `ic50;ic80;iip;sens1;sens2`)
+  - `learners`: a semicolon-separated list of machine learning
+    algorithms to include in the ensemble learner (defaults to all
+    possible learners \[random forests, boosted trees, lasso\],
+    `rf;xgboost;lasso`)
+  - `nfolds`: the number of folds to use in cross-validation (defaults
+    to 5)
+  - `importance_grp`: a semicolon-separated list of group-level
+    biological importance measures to consider (options are none `""`,
+    marginal `"marg"`, conditional `"cond"`, and both)
+  - `importance_ind`: a semicolon-separated list of individual
+    variable-level importance measures to consider (options are none
+    `""`, learner-level `"pred"`, and biological marginal `"marg"` and
+    conditional `"cond"`, or any combination)
+  - `return`: a semicolon-separated list of the output to save in
+    addition to the report (options are `"report"`, `"learner"` for the
+    ensemble learner, `"data"` for the analysis dataset, `"figures"` for
+    all figures from the report, and `"vimp"` for variable importance
+    objects)
+
+For a complete list of options, see the `Dockerfile`.
+
 We will provide a reference to a detailed description of the SLAPNAP
-workflow at some point in the future. In the end, an HTML report is
-produced summarizing the analysis. This report can be accessed on a
-local computer by mounting a local drive to `/home/out/` (the directory
-in the Docker container where the report is generated) via the `-v`
-option to `docker run`. See the [`docker run` help
-page](https://docs.docker.com/engine/reference/run/) for more details.
+workflow at some point in the future.
+
+In the end, an HTML report is produced summarizing the analysis. This
+report can be accessed on a local computer by mounting a local drive to
+`/home/out/` (the directory in the Docker container where the report is
+generated) via the `-v` option to `docker run`. See the [`docker run`
+help page](https://docs.docker.com/engine/reference/run/) for more
+details.
 
 Here is an example for developing a predictor of sensitivity to a
 combination of `VRC07-523-LS`, `PGT121`, and `PGDM1400`.
 
 ``` bash
-docker run -e Nab="VRC07-523-LS;PGT121;PGDM1400" \ 
-           -v /path/to/directory:/home/out \ 
-           slapnap/slapnap 
+docker run -e nab="VRC07-523-LS;PGT121;PGDM1400" \
+           -v /path/to/directory:/home/out \
+           slapnap/slapnap
 ```
 
 If the `docker run` command successfully completes, an HTML report will
-appear in `/path/to/directory`.
+appear in `/path/to/directory`. Any errors or messages will also appear
+in a nAb combination-specific `.log` file in `/path/to/directory`.
 
 ## Issues
 
