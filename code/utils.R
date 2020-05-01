@@ -287,7 +287,7 @@ get_outcome_descriptions <- function(opts){
             tmp_text <- c(tmp_text, paste0(tmp, tmp1_5, tmp2, collapse = ""))
         }
         if(iip_pres){
-            tmp <- paste0("IIP is calculated as ",
+            tmp <- paste0("IIP [Shen et al. (2008); Wagh et al. (2016)] is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{predicted IC-50}^m + 10^m} \ , \\]",
                           "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{predicted IC-80}) - \\mbox{log}_{10}(\\mbox{predicted IC-50}))$ ",
                           "and predicted IC-50 and IC-80 are computed as described above.",
@@ -295,21 +295,21 @@ get_outcome_descriptions <- function(opts){
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 > 1.")
+            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 < 1.")
         }
         if(sens2_pres){
-            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC50 > 1 for at least two antibodies.")
+            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC-50 < 1 for at least two antibodies.")
         }
     } else {
         if(iip_pres){
-            tmp <- paste0("IIP is calculated as ",
+            tmp <- paste0("IIP [Shen et al. (2008); Wagh et al. (2016)] is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{IC-50}^m + 10^m} \ , \\]",
                           "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC-80}) - \\mbox{log}_{10}(\\mbox{IC-50}))$.",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres | sens2_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that IC-50 > 1.")
+            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that IC-50 < 1.")
         }
         if(sens2_pres){
             tmp_text <- c(tmp_text, "Since only one antibody was specified for this analysis, multiple sensitivity is the same as estimated sensitivity.")
