@@ -1,39 +1,15 @@
 #!/usr/bin/env Rscript
 
-# ---------------------------------------------------------------------------- #
-# ---------------------------------------------------------------------------- #
-#
-# source("/home/cmagaret/compbio/projectus/cam117_multiAb/bin/02_procdata/merge_proc_v3.R")
-#
-# ---------------------------------------------------------------------------- #
-# ---------------------------------------------------------------------------- #
-
-
 # here are our standard example cases:
 #   single antibody:  VRC07-523-LS
-#   double cocktail:  VRC07-523LS + PGT12.BIJ4141LS
+#   double cocktail:  VRC07-523LS + PGT121.BIJ4141LS
 #   triple cocktail:  VRC07-523LS + PGT121.BIJ414LS + PGDM1400LS
 
 
 # ---------------------------------------------------------------------------- #
 # STEP -1:  prepare our environment
 # ---------------------------------------------------------------------------- #
-
-
-# refresh our workspace
-# rm(list=ls())
-
-# what libraries do we need to survive?
 library(seqinr)
-#library(gtools)
-
-# CONFIG:  define our home directory
-# path.home <- "/home/cmagaret/compbio/projectus/cam117_multiAb"
-
-# CONFIG:  which antibodies are we interested in?
-#antibodies <- "VRC07-523-LS"
-# antibodies <- c("VRC07-523-LS", "PGT121")
-#antibodies <- c("VRC07-523-LS", "PGT121", "PGDM1400")
 path.home <- "/home"
 
 # antibody names are passed to docker container at run time as
@@ -102,14 +78,16 @@ imputed.ic80 <- list()
 censored.ic50 <- list()
 censored.ic80 <- list()
 for(ab.tmp in antibodies) {
-  imputed.ic50[[ab.tmp]] <- rep(NA, length(seqs.selected))
-  imputed.ic80[[ab.tmp]] <- rep(NA, length(seqs.selected))
-  censored.ic50[[ab.tmp]] <- rep(0, length(seqs.selected))
-  censored.ic80[[ab.tmp]] <- rep(0, length(seqs.selected))
+    ab_tmp_str <- paste0("nab_", ab.tmp)
+  imputed.ic50[[ab_tmp_str]] <- rep(NA, length(seqs.selected))
+  imputed.ic80[[ab_tmp_str]] <- rep(NA, length(seqs.selected))
+  censored.ic50[[ab_tmp_str]] <- rep(0, length(seqs.selected))
+  censored.ic80[[ab_tmp_str]] <- rep(0, length(seqs.selected))
 }
 
 # collect and process our imputed/censored information
 for(ab.tmp in antibodies) {
+    ab_tmp_str <- paste0("nab_", ab.tmp)
   for(seqname.index in 1:length(seqname.selected.db)) {
 
     # isolate our readouts of interest
@@ -121,16 +99,16 @@ for(ab.tmp in antibodies) {
 
       # make the binary notation that we have a right-censored variable
       if(">" %in% substr(data.assay.reduced.tmp[, 1], 1, 1)) {
-        censored.ic50[[ab.tmp]][seqname.index] <- 1
+        censored.ic50[[ab_tmp_str]][seqname.index] <- 1
       }
 
       # merge all of our readouts, both censored and numeric
-      imputed.ic50[[ab.tmp]][seqname.index] <- merge.readouts(data.assay.reduced.tmp[, 1])
+      imputed.ic50[[ab_tmp_str]][seqname.index] <- merge.readouts(data.assay.reduced.tmp[, 1])
 
     # if no assay readouts exist, "Mark it zero"
     } else {
-      censored.ic50[[ab.tmp]][seqname.index] <- NA
-      imputed.ic50[[ab.tmp]][seqname.index] <- NA
+      censored.ic50[[ab_tmp_str]][seqname.index] <- NA
+      imputed.ic50[[ab_tmp_str]][seqname.index] <- NA
     }
 
     # IC80:  let's confirm that we actually have readout data for this sequence
@@ -138,16 +116,16 @@ for(ab.tmp in antibodies) {
 
       # make the binary notation that we have a right-censored variable
       if(">" %in% substr(data.assay.reduced.tmp[, 2], 1, 1)) {
-        censored.ic80[[ab.tmp]][seqname.index] <- 1
+        censored.ic80[[ab_tmp_str]][seqname.index] <- 1
       }
 
       # merge all of our readouts, both censored and numeric
-      imputed.ic80[[ab.tmp]][seqname.index] <- merge.readouts(data.assay.reduced.tmp[, 2])
+      imputed.ic80[[ab_tmp_str]][seqname.index] <- merge.readouts(data.assay.reduced.tmp[, 2])
 
     # if no assay readouts exist, "Mark it zero"
     } else {
-      censored.ic80[[ab.tmp]][seqname.index] <- NA
-      imputed.ic80[[ab.tmp]][seqname.index] <- NA
+      censored.ic80[[ab_tmp_str]][seqname.index] <- NA
+      imputed.ic80[[ab_tmp_str]][seqname.index] <- NA
     }
   }
 }
@@ -155,12 +133,13 @@ for(ab.tmp in antibodies) {
 # combine results into new dataframe
 readouts <- data.frame(seq.id.catnap=seqname.selected.db)
 for(ab.tmp in antibodies) {
-  readouts.tmp <- data.frame(censored.ic50[[ab.tmp]], censored.ic80[[ab.tmp]],
-                              imputed.ic50[[ab.tmp]], imputed.ic80[[ab.tmp]])
-  names(readouts.tmp) <- c(paste0(ab.tmp, ".ic50.censored"),
-                             paste0(ab.tmp, ".ic80.censored"),
-                             paste0(ab.tmp, ".ic50.imputed"),
-                             paste0(ab.tmp, ".ic80.imputed"))
+    ab_tmp_str <- paste0("nab_", ab.tmp)
+  readouts.tmp <- data.frame(censored.ic50[[ab_tmp_str]], censored.ic80[[ab_tmp_str]],
+                              imputed.ic50[[ab_tmp_str]], imputed.ic80[[ab_tmp_str]])
+  names(readouts.tmp) <- c(paste0(ab_tmp_str, ".ic50.censored"),
+                             paste0(ab_tmp_str, ".ic80.censored"),
+                             paste0(ab_tmp_str, ".ic50.imputed"),
+                             paste0(ab_tmp_str, ".ic80.imputed"))
   readouts <- data.frame(readouts, readouts.tmp)
 }
 
@@ -184,7 +163,7 @@ iip.c <- 10
 iip.m <- log10(4) /(readouts$log10.pc.ic80 - readouts$log10.pc.ic50)
 iip.f.c <-(iip.c ^ iip.m) /((readouts$pc.ic50 ^ iip.m) +(iip.c ^ iip.m))
 iip.f.c[iip.f.c >= 1] <- 1 - .Machine$double.neg.eps
-readouts$iip <- log10(1 - iip.f.c)
+readouts$iip <- (-1) * log10(1 - iip.f.c)
 
 # derive the "Dichotomous 1" endpoint(i.e., is the PC IC50 higher than the
 # sensitivity cutoff?)
@@ -241,7 +220,7 @@ for (var.index in 1:ncol(data.final)) {
 data.final <- data.final[ , filter.insertions]
 
 # name our outfile and save
-filename <- paste0("multiab_catnap_", paste(antibodies, collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
+filename <- paste0("multiab_catnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
 setwd(path.data.analysis)
 write.csv(data.final, file=filename, row.names=F)
 # ---------------------------------------------------------------------------- #

@@ -24,59 +24,113 @@ sudo docker run \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
     -e cvperf="TRUE" \
-    -e importance_grp="marg;cond" \
+    -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
-    -e return_full_sl_obj="TRUE" \
-    -e return_analysis_dataset="TRUE" \
+    -e return="report;data" \
     slapnap
 
-# update to VRC01-LS; HVTN 116
+# update to VRC07-523LS (HVTN ##)
 sudo docker run \
-    -v $local_dir/local_production_runs/slfits_vrc01_ls:/home/slfits/ \
+    -v $local_dir/local_production_runs/slfits_vrc07_523ls:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
-    -e nab="VRC01-LS" \
+    -e nab="VRC07-523-LS" \
     -e outcomes="ic50;ic80;iip;sens1;sens2" \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
     -e cvperf="TRUE" \
-    -e importance_grp="marg;cond" \
+    -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
-    -e return_full_sl_obj="TRUE" \
-    -e return_analysis_dataset="TRUE" \
+    -e return="report;data" \
+    slapnap
+
+# PGT121 (HVTN 136)
+sudo docker run \
+    -v $local_dir/local_production_runs/slfits_pgt121:/home/slfits/ \
+    -v $local_dir/local_production_runs/output:/home/output/ \
+    -e nab="PGT121" \
+    -e outcomes="ic50;ic80;iip;sens1;sens2" \
+    -e learners="rf;lasso;xgboost" \
+    -e cvtune="TRUE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="marg" \
+    -e importance_ind="marg;pred" \
+    -e return="report;data" \
     slapnap
 
 # -------------------------------------------
 # 2-bnAb regimens
 # -------------------------------------------
-# HVTN 136
+# HVTN 130 comparison 1
 sudo docker run \
-    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121-414-ls:/home/slfits/ \
+    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
-    -e nab="VRC07-523-LS;PGT121.414.LS" \
+    -e nab="VRC07-523-LS;PGT121" \
     -e outcomes="ic50;ic80;iip;sens1;sens2" \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
     -e cvperf="TRUE" \
-    -e importance_grp="marg;cond" \
+    -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
-    -e return_full_sl_obj="TRUE" \
-    -e return_analysis_dataset="TRUE" \
+    -e return="report;data" \
     slapnap
+
+# HVTN 130 comparison 2
+sudo docker run \
+    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgdm1400:/home/slfits/ \
+    -v $local_dir/local_production_runs/output:/home/output/ \
+    -e nab="VRC07-523-LS;PGDM1400" \
+    -e outcomes="ic50;ic80;iip;sens1;sens2" \
+    -e learners="rf;lasso;xgboost" \
+    -e cvtune="TRUE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="marg" \
+    -e importance_ind="marg;pred" \
+    -e return="report;data" \
+    slapnap
+
+# HVTN 130 comparison 3
+sudo docker run \
+    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_10-1074:/home/slfits/ \
+    -v $local_dir/local_production_runs/output:/home/output/ \
+    -e nab="VRC07-523-LS;10-1074" \
+    -e outcomes="ic50;ic80;iip;sens1;sens2" \
+    -e learners="rf;lasso;xgboost" \
+    -e cvtune="TRUE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="marg" \
+    -e importance_ind="marg;pred" \
+    -e return="report;data" \
+    slapnap
+
 
 # -------------------------------------------
 # 3-bnAb regimens
 # -------------------------------------------
-# HVTN 130
+# HVTN 129
 sudo docker run \
-    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121-414-ls_pgdm1400:/home/slfits/ \
+    -v $local_dir/local_production_runs/slfits_vrc01-10e8v4-pgdm1400:/home/slfits/ \
     -v $local_dir/local_production_runs/output:/home/output/ \
-    -e nab="VRC07-523-LS;PGT121.414.LS;PGDM1400" \
+    -e nab="VRC01/PGDM1400-10E8v4" \
     -e outcomes="ic50;ic80;iip;sens1;sens2" \
     -e learners="rf;lasso;xgboost" \
     -e cvtune="TRUE" \
     -e cvperf="TRUE" \
-    -e importance_grp="marg;cond" \
+    -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
-    -e return_full_sl_obj="TRUE" \
-    -e return_analysis_dataset="TRUE" \
+    -e return="report;data" \
+    slapnap
+
+
+# HVTN 130
+sudo docker run \
+    -v $local_dir/local_production_runs/slfits_vrc07-523-ls_pgt121_pgdm1400:/home/slfits/ \
+    -v $local_dir/local_production_runs/output:/home/output/ \
+    -e nab="VRC07-523-LS;PGT121;PGDM1400" \
+    -e outcomes="ic50;ic80;iip;sens1;sens2" \
+    -e learners="rf;lasso;xgboost" \
+    -e cvtune="TRUE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="marg" \
+    -e importance_ind="marg;pred" \
+    -e return="report;data" \
     slapnap

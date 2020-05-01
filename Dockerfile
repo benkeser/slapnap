@@ -42,6 +42,10 @@ ENV cvtune="TRUE"
 #   if FALSE, then the learner is trained on each outcome, but nothing more is performed
 ENV cvperf="TRUE"
 
+# how many folds should be used for cross-validation?
+#   only has an effect if cvtune=TRUE or cvperf=TRUE
+ENV nfolds="5"
+
 # what group-level importance measures should be computed?
 #   possible values are marg (for marginal) cond (for conditional) or none (input "")
 ENV importance_grp="marg;cond"
@@ -105,6 +109,8 @@ RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("tibble", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("remotes", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'remotes::install_github("bdwilliamson/vimp@v2.0.1")'
 
 # make directories
 # lib contains R source files
@@ -124,9 +130,6 @@ RUN wget -O /home/dat/catnap/viruses.txt "https://www.hiv.lanl.gov/cgi-bin/commo
 RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/virseqs_aa.fasta"
 RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
-# copy R package (only until new version gets to GitHub)
-COPY vimp_2.0.1.tar.gz /home/lib/vimp_2.0.1.tar.gz
-RUN Rscript -e 'suppressMessages(install.packages("/home/lib/vimp_2.0.1.tar.gz", type = "source", repos = NULL))'
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
 COPY code/multi_ab_v4.Rlib /home/lib/multi_ab_v4.Rlib
 COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R
@@ -139,6 +142,13 @@ COPY code/plotting_functions.R /home/lib/plotting_functions.R
 COPY code/check_opts.R /home/lib/check_opts.R
 COPY code/check_opts_functions.R /home/lib/check_opts_functions.R
 COPY code/return_requested_objects.R /home/lib/return_requested_objects.R
+COPY code/ml_var_importance_measures.R /home/lib/ml_var_importance_measures.R
+COPY code/plot_one_vimp.R /home/lib/plot_one_vimp.R
+COPY code/outcome_dist_plot.R /home/lib/outcome_dist_plot.R
+COPY code/pred_importance.R /home/lib/pred_importance.R
+COPY code/var_import_plot.R /home/lib/var_import_plot.R
+COPY code/vimp_executive_summary_table.R /home/lib/vimp_executive_summary_table.R
+COPY code/biological_importance.R /home/lib/biological_importance.R
 
 RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
@@ -147,7 +157,8 @@ RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 COPY code/new_report.Rmd /home/lib/new_report.Rmd
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
-RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R
+COPY code/report_preamble.R /home/lib/report_preamble.R
+RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R /home/lib/report_preamble.R
 
 # entry point to container runs run_analysis.sh
 CMD /home/lib/run_analysis.sh

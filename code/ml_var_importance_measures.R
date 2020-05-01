@@ -50,6 +50,9 @@ extract_importance <- function(fit_sl, opts, ...){
                              rank = glmnet_imp_rank,
                              Importance = glmnet_coef)
     }
+    if ("numeric" %in% class(fit_object)) {
+        imp_dt <- data.frame(algo = "mean", Feature = fit_sl$varNames, rank = mean(1:length(fit_sl$varNames)), Importance = 0)
+    }
     row.names(imp_dt) <- NULL
 	return(imp_dt[order(imp_dt$rank), ])
 }

@@ -10,7 +10,7 @@
 ## @param main_font_size the size of text
 ## @param cv whether or not this is cv importance
 ## @param num_plot the number of features to plot (in descending order)
-plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, ifelse(max(vimp_obj$mat$ciu) > 1, max(vimp_obj$mat$ciu) + 0.2, 1)), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), cv = FALSE, grp = TRUE, num_plot = 50, text_size = 9, threshold = 0.05, opts) {
+plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, ifelse(!is.null(vimp_obj), ifelse(max(vimp_obj$mat$ciu) > 1, max(vimp_obj$mat$ciu) + 0.2, 1), 0)), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), cv = FALSE, grp = TRUE, num_plot = 50, text_size = 9, threshold = 0.05, opts) {
     text_pos <- x_lim[2] - 0.05
     signif_pos <- x_lim[2] - 0.025
     if (!is.null(vimp_obj)) {
@@ -34,7 +34,7 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
         text_cis <- apply(tmp_cis, 1, function(x) paste0("[", x[1], ", ", x[2], "]"))
         vimp_est <- tibble::add_column(vimp_est, text_ci = text_cis)
         vimp_est <- tibble::add_column(vimp_est, signif_p = ifelse(vimp_est$p_value < threshold, "*", ""))
-        dim_plot <- dim(vimp_est)[1]
+        dim_plot <- ifelse(num_plot > 0, min(num_plot, dim(vimp_est)[1]), dim(vimp_est)[1])
         ## plot by ordered vimp measure
         vimp_plot <- vimp_est %>%
             arrange(desc(est)) %>%

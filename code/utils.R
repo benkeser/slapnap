@@ -115,7 +115,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
     ct <- 0
     for(i in seq_along(opts$nab)){
         ct <- ct + 1
-        this_name <- gsub("-", ".", paste0(opts$nab[i], ".ic50.imputed"))
+        this_name <- gsub("-", ".", paste0("nab_", opts$nab[i], ".ic50.imputed"))
         out_hist[[ct]] <- make_hist_plot(dat, var_name = this_name,
                                           x_lab = paste0(outcome_label," ", opts$nab[i]),
                                           y_lab = "Density")
@@ -176,16 +176,16 @@ get_learner_descriptions <- function(opts){
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
 
 # each entry in the output list is a kable that should be properly labeled.
-get_cv_outcomes_tables <- function(fit_list_out, opts){
+get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
     fit_list <- fit_list_out$out
     V <- fit_list_out$V
     n_row_now <- fit_list_out$n_row_now
-    table_list <- lapply(fit_list, summary.myCV.SuperLearner, opts = opts)
+    table_list <- lapply(fit_list[!is.na(names(fit_list))], summary.myCV.SuperLearner, opts = opts)
 
     # re-label
-    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-    all_labels <- c("IC-50", "IC-80", "IIP", "Estimated sensitivity", "Multiple sensitivity")
-    tmp <- opts$outcomes
+    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
+    all_labels <- c("IC-50", "IC-80", "IIP", "Estimated sensitivity", "Multiple sensitivity")[run_sls]
+    tmp <- opts$outcomes[run_sls]
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
@@ -205,7 +205,7 @@ get_cv_outcomes_tables <- function(fit_list_out, opts){
                                " observations with complete sequence data)."))
     }
     # now format dichotomous outcomes table
-    dich_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
+    dich_idx <- which(opts$outcomes[run_sls] %in% c("sens1", "sens2"))
     auc_kab <- NULL
     if(length(dich_idx) > 0){
         list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list, Rsquared = FALSE, simplify = FALSE)
@@ -223,13 +223,13 @@ get_cv_outcomes_tables <- function(fit_list_out, opts){
 
 # load cv_fits for given set of opts, needed since the naming convention
 # is different if length(opts$learners) == 1 and opts$cvtune == FALSE
-load_cv_fits <- function(opts, code_dir){
+load_cv_fits <- function(opts, run_sls, code_dir){
     if(!opts$cvtune & !opts$cvperf){
         stop("no cross-validated fit for these options")
     }
     out_list <- vector(mode = "list", length = length(opts$outcomes))
-    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-    all_file_labels <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
+    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
+    all_file_labels <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")[run_sls]
     if(length(opts$learners) == 1 & !opts$cvtune){
         ct <- 0
         for(i in seq_along(all_outcomes)){
@@ -289,7 +289,7 @@ get_outcome_descriptions <- function(opts){
         if(iip_pres){
             tmp <- paste0("IIP is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{predicted IC-50}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{predicted IC-80} - \\mbox{predicted IC-50})$ ",
+                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{predicted IC-80}) - \\mbox{log}_{10}(\\mbox{predicted IC-50}))$ ",
                           "and predicted IC-50 and IC-80 are computed as described above.",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
@@ -304,7 +304,7 @@ get_outcome_descriptions <- function(opts){
         if(iip_pres){
             tmp <- paste0("IIP is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{IC-50}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{IC-80} - \\mbox{IC-50})$.",
+                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC-80}) - \\mbox{log}_{10}(\\mbox{IC-50}))$.",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
         }
@@ -347,10 +347,10 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 }
 
 ## read in permanent options
-get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf",
+get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf", "nfolds",
                                            "importance_grp", "importance_ind", "report_name", "return"),
                                options_boolean = c(FALSE, FALSE, FALSE, TRUE,
-                                                   TRUE, FALSE, FALSE, FALSE, FALSE)){
+                                                   TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)){
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     return(out)
@@ -697,4 +697,29 @@ get_vimp_object_names <- function(all_fit_nms, opts) {
     outcome_names <- get_outcome_names(opts)
     these_outcome_vimp_nms <- vimp_nms[!is.na(pmatch(vimp_only_outcome, outcome_names, duplicates.ok = TRUE))]
     return(these_outcome_vimp_nms)
+}
+
+# check dichotomous outcomes to make sure there are enough observations in each class to do SLs and vimp
+check_outcome <- function(dat, outcome_nm, V) {
+    if (grepl("dichot", outcome_nm)) {
+        outcome_tbl <- table(dat[, outcome_nm])
+        run_sl <- TRUE
+        run_vimp <- TRUE
+        if (any(outcome_tbl <= V)) {
+            run_sl <- FALSE
+        }
+        if (any(outcome_tbl <= 2 * V)) {
+            run_vimp <- FALSE
+        }
+    } else {
+        run_sl <- TRUE
+        run_vimp <- TRUE
+    }
+    return(list(run_sl = run_sl, run_vimp = run_vimp))
+}
+check_outcomes <- function(dat, outcome_names, V) {
+    checked_outcomes <- lapply(as.list(outcome_names), function(x) check_outcome(dat, x, V))
+    run_sls <- unlist(lapply(checked_outcomes, function(x) x[1]))
+    run_vimps <- unlist(lapply(checked_outcomes, function(x) x[2]))
+    return(list(run_sl = run_sls, run_vimp = run_vimps))
 }

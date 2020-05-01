@@ -1,7 +1,9 @@
 .DS_Store
+.dockerignore
 sandbox/*
 slfits/*
 dat/*
+local_production_runs/*
 
 2019*
 test/*
@@ -12,6 +14,7 @@ test_run.txt
 docs/*
 .Rproj.user
 *.Rproj
+*.Rhistory
 *.html
 tests/*.rds
 *.txt

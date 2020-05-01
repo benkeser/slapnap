@@ -12,7 +12,7 @@ opts <- get_global_options()
 #------------------------------------
 # save analysis dataset, if requested
 #------------------------------------
-if (grepl("data", opts$return)) {
+if (any(grepl("data", opts$return))) {
     analysis_data_names <- list.files("/home/dat/analysis")
     analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
     file.copy(paste0("/home/dat/analysis/", analysis_data_name), paste0("/home/output/", analysis_data_name))
@@ -20,7 +20,7 @@ if (grepl("data", opts$return)) {
 #--------------------------------------
 # save full super learner, if requested
 #--------------------------------------
-if (grepl("learner", opts$return)) {
+if (any(grepl("learner", opts$return))) {
     all_fit_names <- list.files("/home/slfits")
     fit_names <- get_learner_fit_names(all_fit_names, opts)
     file.copy(paste0("/home/slfits/", fit_names), paste0("/home/output/", fit_names))
@@ -33,7 +33,7 @@ if (grepl("learner", opts$return)) {
 #------------------------------------
 # save variable importance objects, if requested
 #------------------------------------
-if (grepl("vimp", opts$return)) {
+if (any(grepl("vimp", opts$return))) {
     all_fit_names <- list.files("/home/slfits")
     vimp_names <- get_vimp_object_names(all_fit_names, opts)
     file.copy(paste0("/home/slfits/", vimp_names), paste0("/home/output/", vimp_names))
