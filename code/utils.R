@@ -351,7 +351,7 @@ get_outcome_descriptions <- function(opts){
 
 # get a comma separated list of outcomes for report
 get_comma_sep_outcomes <- function(opts){
-    tmp <- paste0(opts$outcomes, collapse = ", ")
+    tmp <- paste0(paste0(opts$outcomes[-length(opts$outcomes)], collapse = ", "), ", and ", opts$outcomes[length(opts$outcomes)])
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
     all_labels <- c("IC-50", "IC-80", "IIP", "estimated sensitivity", "multiple sensitivity")
     for(i in seq_along(all_outcomes)){
