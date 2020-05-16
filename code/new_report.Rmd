@@ -67,7 +67,7 @@ postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b
 
 # Executive summary
 
-The `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` studied in this analysis `r ifelse(length(opts$nab) > 1, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(length(opts$nab) > 1, "NAbs", "NAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
+The broadly neutralizing antibod`r ifelse(length(opts$nab) > 1, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(length(opts$nab) > 1, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(length(opts$nab) > 1, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
 
 * `r nprevious` sequences were extracted from the CATNAP database;
 
@@ -190,17 +190,17 @@ if (is.null(dim(ic50_table))) {
 }
 row.names(ic50_table) <- c(paste0("IC-50 ", opts$nab))
 kable(ic50_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC-50 values for individual NAbs (n = ", ncomplete, " observations with complete sequence data)."))
+      caption = paste0("Summary statistics of IC-50 values for individual bnAbs (n = ", ncomplete, " observations with complete sequence data)."))
 ```
 
 `r if ((length(opts$nab) == 1) | !("ic50" %in% opts$outcomes)) "-->"`
 
 `r if (!("ic50" %in% opts$outcomes)) "<!--"`
-A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-50 for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic50).
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-50 for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic50).
 
 ```{r makecapic50, eval = "ic50" %in% opts$outcomes}
 ic50_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IC-50 for the selected neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of IC-50 for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
 }else{
   paste0("Histogram of estimated IC-50 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
 }
@@ -382,17 +382,17 @@ if ("figures" %in% opts$return) {
 ic80_table <- Reduce(rbind, ic80_descr$summary)
 row.names(ic80_table) <- c(paste0("IC-80 ", opts$nab))
 kable(ic80_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC-80 values for individual NAbs (n = ", ncomplete, " observations with complete sequence data)."))
+      caption = paste0("Summary statistics of IC-80 values for individual bnAbs (n = ", ncomplete, " observations with complete sequence data)."))
 ```
 
 `r if ((length(opts$nab) == 1) | !("ic80" %in% opts$outcomes)) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes)) "<!--"`
-A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-80 for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic80).
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "measured", "estimated")` IC-80 for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic80).
 
 ```{r makecapic80, eval = "ic80" %in% opts$outcomes}
 ic80_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IC-80 for the selected neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of IC-80 for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
 }else{
   paste0("Histogram of estimated IC-80 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
 }
@@ -558,11 +558,11 @@ kable(imp_ic80[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE
 
 ## Descriptive statistics
 
-A summary of the distribution of IIP for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombniip).
+A summary of the distribution of IIP for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombniip).
 
 ```{r makecapiip, eval = "iip" %in% opts$outcomes}
 iip_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IIP for the selected neutralizing antibody (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of IIP for the selected broadly neutralizing antibody (n = ", ncomplete, " observations with complete sequence data).")
 }else{
   paste0("Histogram of estimated IIP for the combined neutralizing antibodies (n = ", ncomplete, " observations with complete sequence data).")
 }
