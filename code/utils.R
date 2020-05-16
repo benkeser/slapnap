@@ -45,6 +45,36 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
     return(text_out)
 }
 
+#' get biological importance table text
+#' @param opts options
+#' @param cont_nms nice names of continuous outcomes
+#' @param bin_nms nice names of binary outcomes
+#' @param nobs_full number of total obs
+#' @param nobs_redu number of obs with complete data
+#' @param n_row_now
+#' @param importance_type "marginal" or "conditional"
+get_biological_importance_table_description <- function(opts, cont_nms, bin_nms, num_obs_full, num_obs_red, n_row_now, vimp_threshold, importance_type) {
+    rel_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the remaining features")
+    full_func_txt <- ifelse(importance_type == "marginal", "the feature group of interest", "all available features")
+    redu_func_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the reduced set of features (defined by removing the feature group of interest)")
+    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on ", full_func_txt, ", we used the ", num_obs_full, " observations with complete sequence data; to estimate the prediction function based on ", redu_func_txt, ", we used the remaining ", num_obs_red, " observations with complete sequence data. Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.")
+    return(descr)
+}
+
+# check whether or not vimp or sls were run for estimated/multiple sensitivity
+#' @param opts options
+#' @param run_sl_vimp_bools the true/false vector
+#' @param outcome_nm the outcome of interest ("sens1" or "sens2")
+check_sl_vimp_bin <- function(opts, run_sl_vimp_bools, outcome_nm) {
+    if (outcome_nm == "sens1") {
+        ifelse(!run_sl_vimp_bools$run_sl[grepl("sens1", opts$outcomes)][[1]], ". There were too few observations in at least one class for results to be reliable, and thus estimated sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus estimated sensitivity is not included in any biological variable importance analyses", ""))
+    } else {
+        ifelse(!run_sl_vimp_bools$run_sl[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
+    }
+}
+
+
+
 # get biological importance text
 #' @param opts options
 #' @param grp whether or not this is a group description
