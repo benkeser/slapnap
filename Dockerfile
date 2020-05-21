@@ -32,14 +32,14 @@ ENV outcomes="ic50"
 #  rf = random forest
 #  xgboost = eXtreme gradient boosting
 #  lasso = elastic net regression
-ENV learners="rf;xgboost;lasso"
+ENV learners="rf"
 
 # should cv be used to select tuning parameters?
 #   if TRUE, then a small grid search is performed to select tuning parameters
 #   if FALSE, then the "default" tuning parameters of the respective R packages are used
 #   note: if more than one learner, then this option controls whether a single version of each
 #    algorithm is included in the super learner, or multiple.
-ENV cvtune="TRUE"
+ENV cvtune="FALSE"
 
 # should cv be used to measure performance?
 #   if TRUE, then cross-validation is used to validate the performance of the prediction
@@ -49,7 +49,7 @@ ENV cvperf="TRUE"
 
 # how many folds should be used for cross-validation?
 #   only has an effect if cvtune=TRUE or cvperf=TRUE
-ENV nfolds="5"
+ENV nfolds="2"
 
 # what group-level importance measures should be computed?
 #   possible values are 'marg' (for marginal), 'cond' (for conditional), 'marg;cond' (for both marginal and conditional), or none (input "")
@@ -71,7 +71,7 @@ ENV report_name=""
 #   "figures" (return the figures from the report)
 #   "vimp" (return the R variable importance objects)
 #   if set to "", then will default to returning only the report
-ENV return=""
+ENV return="report"
 
 #-----------------------
 # Installing software
