@@ -22,19 +22,27 @@ echo "--- Building analytic data set from CATNAP database --- " >> $log_file
 Rscript /home/lib/merge_proc_v4.R >> $log_file 2>&1
 
 # run script to fit super learners
-printf "Fitting super learners \n"
-echo "--- Fitting super learners --- " >> $log_file
-Rscript /home/lib/run_super_learners.R >> $log_file 2>&1
+# but only fit if something other than just data is requested as output
+if [[ "$return" == *"report"* ]] || [[ "$return" == *"learner"* ]] || [[ "$return" == *"vimp"* ]] || [[ "$return" == *"figures"* ]]
+then
+  printf "Fitting super learners \n"
+  echo "--- Fitting super learners --- " >> $log_file
+  Rscript /home/lib/run_super_learners.R >> $log_file 2>&1
 
-# run script to get variable importance
-printf "Estimating variable importance \n"
-echo "--- Estimating variable importance --- " >> $log_file
-Rscript /home/lib/get_vimp.R >> $log_file 2>&1
 
-# run script to compile report
-printf "Compiling results using R Markdown \n"
-echo "--- Compiling results using R Markdown --- " >> $log_file
-Rscript /home/lib/render_report.R >> $log_file 2>&1
+  # run script to get variable importance
+  printf "Estimating variable importance \n"
+  echo "--- Estimating variable importance --- " >> $log_file
+  Rscript /home/lib/get_vimp.R >> $log_file 2>&1
+fi
+
+if [[ "$return" == *"report"* ]] || [[ "$return" == *"figures"* ]]
+then
+  # run script to compile report
+  printf "Compiling results using R Markdown \n"
+  echo "--- Compiling results using R Markdown --- " >> $log_file
+  Rscript /home/lib/render_report.R >> $log_file 2>&1
+fi
 
 # return requested objects
 printf "Returning requested objects \n"

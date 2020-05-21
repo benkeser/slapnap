@@ -114,7 +114,7 @@ country.2.geo.reg <- function (country) {
   asia <- c ("CN", "IN", "JP", "TH")
   n.africa <- c ("CM", "CG", "CI", "CD", "ET", "KE", "RW", "SN", "TZ", "UG")
   s.africa <- c ("BW", "MW", "ZA", "ZM")
-  euro <- c ("BE", "CH", "ES", "FR", "GB", "IT", "NL")
+  euro <- c ("BE", "CH", "DE", "ES", "FR", "GB", "IT", "NL")
   amer <- c ("BR", "DO", "HT", "PE", "TT", "US")
 
   # initialize and create our univariate/text results variable

@@ -131,7 +131,7 @@ RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/
 RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
-COPY code/multi_ab_v4.Rlib /home/lib/multi_ab_v4.Rlib
+COPY code/multi_ab_v5.Rlib /home/lib/multi_ab_v5.Rlib
 COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R
 COPY code/variable_groups.R /home/lib/variable_groups.R
 COPY code/utils.R /home/lib/utils.R

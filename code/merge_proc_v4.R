@@ -38,7 +38,7 @@ data.viruses <- read.table(file.path(path.data.catnap, "viruses.txt"), header=T,
 data.abs <- read.table(file.path(path.data.catnap, "abs.txt"), header=T, sep="\t", quote="\"")
 
 # source our function library
-source(file.path(path.lib, "multi_ab_v4.Rlib"))
+source(file.path(path.lib, "multi_ab_v5.Rlib"))
 
 # load and process virus info and sequences
 data.seq <- read.fasta(file.path(path.data.catnap, "virseqs_aa.fasta"), seqtype="AA")
