@@ -9,15 +9,20 @@ RUN apt-get install -y apt-transport-https
 # non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
-#---------------------
+#---------------------------------------------------------------------
 # Permanent options
-#---------------------
+#---------------------------------------------------------------------
 # which antibody to analyze
 #   "VRC07-523-LS" is arbitrarily selected as default
 ENV nab="VRC07-523-LS"
 
 # which outcomes to include in the analysis
-ENV outcomes="ic50;ic80;iip;sens1;sens2"
+#   possible outcomes include "ic50", "ic80",
+#   "iip", "sens1", "sens2" and semicolon-separated
+#   combinations of these
+#   "ic50" is arbitrarily selected as default
+ENV outcomes="ic50"
+
 # which learners are included by default
 #  if more than a single algorithm is listed, then super learner is used
 #  if a single algorithm is listed, then the boolean `cvtune` variable can be used
@@ -47,12 +52,11 @@ ENV cvperf="TRUE"
 ENV nfolds="5"
 
 # what group-level importance measures should be computed?
-#   possible values are marg (for marginal) cond (for conditional) or none (input "")
-ENV importance_grp="marg;cond"
+#   possible values are 'marg' (for marginal), 'cond' (for conditional), 'marg;cond' (for both marginal and conditional), or none (input "")
+ENV importance_grp=""
 # what individual-level importance measures should be computed?
-#   possible values are marg (for marginal), cond (for conditional), pred (for ML-specific
-#   predictive importance), or none (input "")
-ENV importance_ind="marg;cond;pred"
+#   possible values are marg (for marginal), cond (for conditional), pred (for ML-specific predictive importance), a semicolon-separated combination of these three, or none (input "")
+ENV importance_ind=""
 
 # set the name of the saved report
 #  if set to "", then will default to report_[_-separated list of nabs]_[date].html
