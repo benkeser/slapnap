@@ -10,9 +10,9 @@ git clone -b gh-pages \
   https://${GITHUB_PAT}@github.com/${TRAVIS_REPO_SLUG}.git \
   slapnap
 cd slapnap
-ls 
 git rm -rf *
 cp -r ../docs/_book/* ./
+touch .nojekyll
 git add --all *
 git commit -m "Update the book"
 git push -q origin gh-pages
