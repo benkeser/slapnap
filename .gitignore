@@ -13,6 +13,5 @@ test_run.txt
 .Rproj.user
 *.Rproj
 *.Rhistory
-*.html
 tests/*.rds
 *.txt
