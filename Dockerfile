@@ -112,8 +112,7 @@ ENV nab="VRC01"
 #   possible outcomes include "ic50", "ic80",
 #   "iip", "sens1", "sens2" and semicolon-separated
 #   combinations of these
-#   "ic50" is arbitrarily selected as default
-ENV outcomes="ic50"
+ENV outcomes="ic50;sens1"
 
 # which learners are included by default
 #  if more than a single algorithm is listed, then super learner is used

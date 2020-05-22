@@ -103,7 +103,7 @@ plot_cv_predictions <- function(cv_fit,
   resids <- cv_fit$Y - sl_pred
   these_corr <- get_cor_pred_outcome(prediction = sl_pred, outcome = cv_fit$Y)
 
-  cv_fold_palette <- RColorBrewer::brewer.pal(max(cv_folds), "Set3")
+  cv_fold_palette <- RColorBrewer::brewer.pal(max(c(3,cv_folds)), "Set3")
   if(!resid_scale){
     d <- data.frame(prediction = sl_pred, outcome = cv_fit$Y)
     p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) +
@@ -229,7 +229,7 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
     }
   }
    # need to double check this code
-  cv_fold_palette <- RColorBrewer::brewer.pal(max(cv_folds), "Set3")
+  cv_fold_palette <- RColorBrewer::brewer.pal(max(c(cv_folds,3)), "Set3")
   predict %>%
   mutate(Sensitivity = if_else(Y==1, "Resistant", "Sensitive")) %>%
   filter(!is.na(Sensitivity)) %>%

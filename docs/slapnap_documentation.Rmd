@@ -88,7 +88,7 @@ Each description below lists the default value that is assumed if the option is 
 __-e options for `slapnap`__ 
 
 * __`nab`__: A semicolon-separated list of bNAbs (default = "`VRC01`"). A list of possible bNAbs can be found [here](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp). If multiple bNAbs are listed, it is assumed that the analysis should be of estimated `outcomes` for a combination of bNAbs (see Section \@ref(sec:outcomedefs) for details on how estimated outcomes for multiple bNAbs are computed). 
-* __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (default), `"ic80"`, `"iip"`, `"sens1"`, `"sens2"` (for definitions of outcomes see Section \@ref(sec:outcomedefs)). 
+* __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (included in default), `"ic80"`, `"iip"`, `"sens1"` (included in default), `"sens2"` (for definitions of outcomes see Section \@ref(sec:outcomedefs)). Of note, if only a single `nab` is included, then `sens1` and `sens2` are the same. 
 * __`learners`__: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient boosting), and `"lasso"` (elastic net). If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section \@ref(sec:sldetails)). 
 * __`cvtune`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` should be tuned using cross-validation and a small grid search. Defaults to `"FALSE"`. If multiple `learners` are specified, then the super learner ensemble includes three versions of each of the requested `learners` with different tuning parameters. 
 * __`cvperf`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` performance should be evaluated using cross-validation. If `cvtune="TRUE"` or `learners` includes multiple algorithms, then nested cross-validation is used to evaluate the performance of the cross-validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively. 
@@ -110,17 +110,17 @@ This will enter you into the container in a bash terminal. This may be useful fo
 
 # Examples {#sec:examples}
 
-## A basic call to `slapnap`
+## Basic calls to `slapnap`
 
 A call to `slapnap` with all default options can be run using the following command.
 
 ```{bash, eval = FALSE}
-docker run -v /path/to/local/dir:/home/out slapnap/slapnap
+docker run -v /path/to/local/dir:/home/output slapnap/slapnap
 ```
 
 Note that this call mounts the local directory `path/to/local/dir` to receive output from the container (Section \@ref(sec:mounting)).
 
-When this command is executed, the following operations 
+When this command is executed, 
 
 ## Super learning
 
