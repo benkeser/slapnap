@@ -13,8 +13,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Permanent options
 #---------------------------------------------------------------------
 # which antibody to analyze
-#   "VRC07-523-LS" is arbitrarily selected as default
-ENV nab="VRC07-523-LS"
+#   "VRC01" is arbitrarily selected as default
+ENV nab="VRC01"
 
 # which outcomes to include in the analysis
 #   possible outcomes include "ic50", "ic80",

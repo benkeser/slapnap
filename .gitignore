@@ -4,14 +4,12 @@ sandbox/*
 slfits/*
 dat/*
 local_production_runs/*
-
 2019*
 test/*
 static_reports/*
 code/R-*
 code/*.tar.gz
 test_run.txt
-docs/*
 .Rproj.user
 *.Rproj
 *.Rhistory
