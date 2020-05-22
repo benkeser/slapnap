@@ -64,12 +64,6 @@ RUN mkdir /home/slfits /home/output
 RUN apt-get update
 RUN apt-get install -y ffmpeg
 
-# pull CATNAP data from LANL
-RUN wget -O /home/dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"
-RUN wget -O /home/dat/catnap/viruses.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/viruses.txt"
-RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/virseqs_aa.fasta"
-RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
-
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
 COPY code/multi_ab_v5.Rlib /home/lib/multi_ab_v5.Rlib
 COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R
@@ -163,6 +157,18 @@ ENV report_name=""
 #   "vimp" (return the R variable importance objects)
 #   if set to "", then will default to returning only the report
 ENV return="report"
+
+# add an argument to bust the cache, so that data are downloaded
+# fresh every build. taken from this SO answer: 
+# https://stackoverflow.com/questions/35134713/disable-cache-for-specific-run-commands
+ARG CACHEBUST=1
+RUN echo "$CACHEBUST"
+
+# pull CATNAP data from LANL
+RUN wget -O /home/dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"
+RUN wget -O /home/dat/catnap/viruses.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/viruses.txt"
+RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/virseqs_aa.fasta"
+RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
 # entry point to container runs run_analysis.sh
 CMD /home/lib/run_analysis.sh

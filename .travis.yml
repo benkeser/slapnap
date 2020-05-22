@@ -19,7 +19,7 @@ before_script:
 - chmod +x ./_deploy.sh
 
 script:
-- docker build --pull --cache-from slapnap/slapnap --tag slapnap/slapnap .
+- docker build --pull --cache-from slapnap/slapnap --build-arg CACHEBUST=$(date +%s) --tag slapnap/slapnap .
 - ./_build.sh
 - ./_deploy.sh
 
