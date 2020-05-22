@@ -1,0 +1,31 @@
+bookdown::gitbook:
+  lib_dir: assets
+  split_by: chapter+number
+  config:
+    sharing: null
+    toc:
+      collapse: section
+      scroll_hightlight: yes
+      before: |
+        <li><strong><a href="https://hub.docker.com/r/slapnap/slapnap">slapnap</a></strong></li>
+      toolbar:
+        position: static
+      edit : null
+      download: "pdf"
+      search: yes
+      fontsettings:
+        theme: white
+        family: sans
+        size: 2
+  includes:
+    in_header: mathjax_number.html
+  css: slapnap_style.css
+
+
+bookdown::pdf_book:
+  keep_tex: true
+  toc: true
+  toc_depth: 2
+  number_sections: true
+  latex_engine: xelatex
+  citation_package: natbib
