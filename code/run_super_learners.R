@@ -66,12 +66,12 @@ for (i in 1:length(outcome_names)) {
     }
 }
 
-set.seed(123125)
 ## ----------------------------------------------------------------------------
 ## (1) run full super learners for each outcome specified in outcome_names
 ## ----------------------------------------------------------------------------
 
 for (i in 1:length(outcome_names)) {
+    set.seed(123125)
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name, V = V)
     ## do the fitting, if there are enough outcomes
@@ -103,9 +103,9 @@ for (i in 1:length(outcome_names)) {
 # (3) If "marg" is in opts$importance_grp, run regression of each outcome in outcome_names on the set of features defined by the group of interest + confounders
 # (4) If "marg" is in opts$importance_grp, run regression of each outcome in outcome_names on geographic confounders only
 # ----------------------------------------------------------------------------
-set.seed(4747)
 if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
     for (i in 1:length(outcome_names)) {
+        set.seed(4747)
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
         ## only do this if we have enough obs to run it
@@ -165,9 +165,9 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
 # (5) If "cond" is in opts$importance_ind, run regressions dropping each individual feature
 # (6) If "marg" is in opts$importance_ind, run regressions with each feature + geographic confounders (note that for all variables, this is a glm)
 # ----------------------------------------------------------------------------
-set.seed(1234)
 if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
     for (i in 1:length(outcome_names)) {
+        set.seed(1234)
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
         if (run_sl_vimp_bools$run_vimp[i]) {

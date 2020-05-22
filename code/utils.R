@@ -69,7 +69,7 @@ check_sl_vimp_bin <- function(opts, run_sl_vimp_bools, outcome_nm) {
     if (outcome_nm == "sens1") {
         ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus estimated sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus estimated sensitivity is not included in any biological variable importance analyses", ""))
     } else {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
+        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
     }
 }
 
@@ -759,7 +759,7 @@ check_outcomes <- function(dat, outcome_names, V) {
     all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
     all_other_outcomes <- all_outcome_names[!(all_outcome_names %in% outcome_names)]
     checked_other_outcomes <- sapply(all_other_outcomes,
-                                     FUN = function(x) list(run_sl = FALSE, run_vimp = FALSE), 
+                                     FUN = function(x) list(run_sl = FALSE, run_vimp = FALSE),
                                      simplify = FALSE)
     names(checked_other_outcomes) <- all_other_outcomes
     run_sls <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[1]))
