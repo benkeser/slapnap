@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>3 Running the slapnap container | slapnap: Super LeArner Prediction of NAb Panels</title>
+  <meta name="description" content="3 Running the slapnap container | slapnap: Super LeArner Prediction of NAb Panels" />
+  <meta name="generator" content="bookdown 0.19 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="3 Running the slapnap container | slapnap: Super LeArner Prediction of NAb Panels" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="3 Running the slapnap container | slapnap: Super LeArner Prediction of NAb Panels" />
+  
+  
+  
+
+<meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert" />
+
+
+<meta name="date" content="2020-05-22" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="2-sec-catnap.html"/>
+<link rel="next" href="4-sec-examples.html"/>
+<script src="assets/jquery-2.2.3/jquery.min.js"></script>
+<link href="assets/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="assets/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="assets/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="assets/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="assets/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="assets/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="assets/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+  CommonHTML: {
+    scale: 90,
+    linebreaks: {
+      automatic: true
+    }
+  },
+  SVG: {
+    linebreaks: {
+      automatic: true
+    }
+  }, 
+  displayAlign: "left"
+  });
+</script>
+<script type="text/javascript"
+	src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async>
+</script><!-- see also '_output.yaml'
+src="https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"
+src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML" 
+src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"
+-->
+
+
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+<link rel="stylesheet" href="slapnap_style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><strong><a href="https://hub.docker.com/r/slapnap/slapnap">slapnap</a></strong></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Welcome</a></li>
+<li class="chapter" data-level="1" data-path="1-sec-docker.html"><a href="1-sec-docker.html"><i class="fa fa-check"></i><b>1</b> Docker</a></li>
+<li class="chapter" data-level="2" data-path="2-sec-catnap.html"><a href="2-sec-catnap.html"><i class="fa fa-check"></i><b>2</b> CATNAP Database</a></li>
+<li class="chapter" data-level="3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html"><i class="fa fa-check"></i><b>3</b> Running the <code>slapnap</code> container</a><ul>
+<li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.1</b> Mounting a local directory</a></li>
+<li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.2</b> <code>slapnap</code> options</a></li>
+<li class="chapter" data-level="3.3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#interactive-sessions"><i class="fa fa-check"></i><b>3.3</b> Interactive sessions</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="4-sec-examples.html"><a href="4-sec-examples.html"><i class="fa fa-check"></i><b>4</b> Examples</a><ul>
+<li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-calls-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic calls to <code>slapnap</code></a></li>
+<li class="chapter" data-level="4.2" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.2</b> Super learning</a></li>
+<li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#train-an-algorithm"><i class="fa fa-check"></i><b>4.3</b> Train an algorithm</a></li>
+<li class="chapter" data-level="4.4" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.4</b> Pull and clean data</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="5-sec-report.html"><a href="5-sec-report.html"><i class="fa fa-check"></i><b>5</b> Report details</a></li>
+<li class="chapter" data-level="6" data-path="6-sec-data.html"><a href="6-sec-data.html"><i class="fa fa-check"></i><b>6</b> Data details</a></li>
+<li class="chapter" data-level="7" data-path="7-sec-methods.html"><a href="7-sec-methods.html"><i class="fa fa-check"></i><b>7</b> Method details</a><ul>
+<li class="chapter" data-level="7.1" data-path="7-sec-methods.html"><a href="7-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>7.1</b> Outcome definitions</a></li>
+<li class="chapter" data-level="7.2" data-path="7-sec-methods.html"><a href="7-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>7.2</b> Super learner details</a></li>
+<li class="chapter" data-level="7.3" data-path="7-sec-methods.html"><a href="7-sec-methods.html#variable-importance-details"><i class="fa fa-check"></i><b>7.3</b> Variable importance details</a><ul>
+<li class="chapter" data-level="7.3.1" data-path="7-sec-methods.html"><a href="7-sec-methods.html#sec:biolimp"><i class="fa fa-check"></i><b>7.3.1</b> Biological importance</a></li>
+<li class="chapter" data-level="7.3.2" data-path="7-sec-methods.html"><a href="7-sec-methods.html#predictive-importance"><i class="fa fa-check"></i><b>7.3.2</b> Predictive importance</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="8-sec-refs.html"><a href="8-sec-refs.html"><i class="fa fa-check"></i><b>8</b> References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"><code>slapnap</code>: Super LeArner Prediction of NAb Panels</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="sec:runningcontainer" class="section level1">
+<h1><span class="header-section-number">3</span> Running the <code>slapnap</code> container</h1>
+<p>To run the <code>slapnap</code> container, we make use of the <a href="https://docs.docker.com/engine/reference/run/"><code>docker run</code></a> command. Note that administrator (<code>sudo</code>) privileges are needed to execute this command.</p>
+<p>There are several options that are necessary to include in this command to control the behavior of <code>slapnap</code>. These are discussed in separate subsections below.</p>
+<div id="sec:mounting" class="section level2">
+<h2><span class="header-section-number">3.1</span> Mounting a local directory</h2>
+<p>At the end of a <code>slapnap</code> run, user-specified output will be saved (see option <code>return</code> in Section <a href="3-sec-runningcontainer.html#sec:opts">3.2</a>). To retrieve these files from inside the container, we <a href="https://docs.docker.com/storage/bind-mounts/"><em>mount</em></a> a local directory to an output directory (<code>/home/out/</code>) in the container using the <code>-v</code> option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container <code>/home/out/</code>) will be available in the mounted directory.</p>
+<p>Suppose <code>/path/to/local/dir</code> is the file path on a local computer in which we wish to save the output files from a <code>slapnap</code> run. A <code>docker run</code> of <code>slapnap</code> would include the option <code>-v /path/to/local/dir:/home/out</code>. After a run completes, the requested output should be viewable in <code>/path/to/local/dir</code>. See Section <a href="4-sec-examples.html#sec:examples">4</a> for full syntax.</p>
+</div>
+<div id="sec:opts" class="section level2">
+<h2><span class="header-section-number">3.2</span> <code>slapnap</code> options</h2>
+<p>The user has control over many aspects of <code>slapnap</code>’s behavior. These options are passed in using the <code>-e</code> option<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>. Semi-colon separated strings are used to set options. For example, to provide input for the option <code>option_name</code>, we would used <code>-e option_name=&quot;a;semi-colon;separated;string&quot;</code>. Note that there are no spaces between the option name and its value and no spaces after semi-colons in the separated list. See Section <a href="4-sec-examples.html#sec:examples">4</a> for full syntax.</p>
+<p>Each description below lists the default value that is assumed if the option is not specified. Note that many of the default values are chosen simply so that na{&quot;i}ve calls to <code>slapnap</code> compile quickly. Proper values should be determined based on scientific context.</p>
+<p><strong>-e options for <code>slapnap</code></strong></p>
+<ul>
+<li><strong><code>nab</code></strong>: A semicolon-separated list of bNAbs (default = “<code>VRC01</code>”). A list of possible bNAbs can be found <a href="https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp">here</a>. If multiple bNAbs are listed, it is assumed that the analysis should be of estimated <code>outcomes</code> for a combination of bNAbs (see Section <a href="7-sec-methods.html#sec:outcomedefs">7.1</a> for details on how estimated outcomes for multiple bNAbs are computed).</li>
+<li><strong><code>outcomes</code></strong>: A semicolon-separated string of outcomes to include in the analysis. Possible values are <code>&quot;ic50&quot;</code> (included in default), <code>&quot;ic80&quot;</code>, <code>&quot;iip&quot;</code>, <code>&quot;sens1&quot;</code> (included in default), <code>&quot;sens2&quot;</code> (for definitions of outcomes see Section <a href="7-sec-methods.html#sec:outcomedefs">7.1</a>). Of note, if only a single <code>nab</code> is included, then <code>sens1</code> and <code>sens2</code> are the same.</li>
+<li><strong><code>learners</code></strong>: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include <code>&quot;rf&quot;</code> (random forest, default), <code>&quot;xgboost&quot;</code> (eXtreme gradient boosting), and <code>&quot;lasso&quot;</code> (elastic net). If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section <a href="7-sec-methods.html#sec:sldetails">7.2</a>).</li>
+<li><strong><code>cvtune</code></strong>: A boolean string (i.e., either <code>&quot;TRUE&quot;</code> or <code>&quot;FALSE&quot;</code> [default]) indicating whether the <code>learners</code> should be tuned using cross-validation and a small grid search. Defaults to <code>&quot;FALSE&quot;</code>. If multiple <code>learners</code> are specified, then the super learner ensemble includes three versions of each of the requested <code>learners</code> with different tuning parameters.</li>
+<li><strong><code>cvperf</code></strong>: A boolean string (i.e., either <code>&quot;TRUE&quot;</code> or <code>&quot;FALSE&quot;</code> [default]) indicating whether the <code>learners</code> performance should be evaluated using cross-validation. If <code>cvtune=&quot;TRUE&quot;</code> or <code>learners</code> includes multiple algorithms, then nested cross-validation is used to evaluate the performance of the cross-validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively.</li>
+<li><strong><code>nfolds</code></strong>: A numeric string indicating the number of folds to use in cross-validation procedures (default = <code>&quot;2&quot;</code>).</li>
+<li><strong><code>importance_grp</code></strong>: A semicolon-separated string indicating which group-level variable importance measures should be computed. Possible values are none <code>&quot;&quot;</code> (default), marginal <code>&quot;marg&quot;</code>, conditional <code>&quot;cond&quot;</code>. See Section <a href="7-sec-methods.html#sec:biolimp">7.3.1</a> for details on these measures.</li>
+<li><strong><code>importance_ind</code></strong>: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none <code>&quot;&quot;</code> (default), learner-level <code>&quot;pred&quot;</code>, marginal <code>&quot;marg&quot;</code> and conditional <code>&quot;cond&quot;</code>. The latter two take significant computation time to compute.</li>
+<li><strong><code>report_name</code></strong>: A string indicating the desired name of the output report (default = <code>report_[_-separated list of nabs]_[date].html</code>).</li>
+<li><strong><code>return</code></strong>: A semicolon-separated string of the desired output. Possible values are <code>&quot;report&quot;</code> (default), <code>&quot;learner&quot;</code> for the trained algorithm, <code>&quot;data&quot;</code> for the analysis dataset, <code>&quot;figures&quot;</code> for all figures from the report, and <code>&quot;vimp&quot;</code> for variable importance objects.</li>
+</ul>
+</div>
+<div id="interactive-sessions" class="section level2">
+<h2><span class="header-section-number">3.3</span> Interactive sessions</h2>
+<p>To simply enter the container and poke around, use an interactive session by including <code>-it</code> and overriding the container’s entry-point.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -it slapnap/slapnap /bin/bash</code></pre></div>
+<p>This will enter you into the container in a bash terminal. This may be useful for exploring the file structure, examining versions of <code>R</code> packages that are included in the container, etc.</p>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="1">
+<li id="fn1"><p>This sets an environment variable in the container environment. These variables are accessed by the various <code>R</code> and <code>bash</code> scripts in the container to dictate how the container executes code.<a href="3-sec-runningcontainer.html#fnref1">↩</a></p></li>
+</ol>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="2-sec-catnap.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="4-sec-examples.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="assets/gitbook-2.6.7/js/app.min.js"></script>
+<script src="assets/gitbook-2.6.7/js/lunr.js"></script>
+<script src="assets/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="assets/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="assets/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="assets/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="assets/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="assets/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="assets/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": null,
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "section",
+"scroll_hightlight": true,
+"toolbar": {
+"position": "static"
+},
+"edit": null,
+"download": "pdf",
+"search": true,
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+}
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
