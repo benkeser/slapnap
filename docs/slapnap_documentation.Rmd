@@ -1,10 +1,3 @@
----
-title: "`slapnap`: Super LeArner Prediction of NAb Panels"
-author: "David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
-bibliography: refs.bib
----
-
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
   comment = "#>",
@@ -20,30 +13,6 @@ knitr::opts_chunk$set(
   warnings = FALSE
 )
 ```
-
-# Welcome {-}
-
-The [`slapnap`](https://hub.docker.com/r/slapnap/slapnap) container is a tool for using the Compile, Analyze and Tally NAb Panels (CATNAP) database to develop predictive models of HIV-1 neutralization sensitivity to one or several broadly neutralizing antibodies (bNAbs). 
-
-```{r gp120, fig.width = 7, echo = FALSE}
-knitr::include_graphics("gp120.png")
-```
-```{block, fig.width = 5, type = "center"}
-Crystal structure of HIV-1 gp120 glycoprotein. Highlighted residues indicating sites most-predictive of VRC01 neutralization resistance. [@magaret2019prediction]
-```
-
-In its simplest form, `slapnap` can be used simply to access and format data from CATNAP in a way that is usable for machine learning analysis. However, the tool also offers fully automated and customizable machine learning analyses based on up to five different neutralization endpoints, complete with automated report generation to summarize results and identify the most predictive features. 
-
-This document serves as the user manual for the `slapnap` container. Here, we describe everything needed to utilize the `slapnap` container and understand its output. The documentation is organized into the following sections:
-	
-* Section \@ref(sec:docker) provides a brief overview of Docker, including information on installing Docker and downloading the `slapnap` container.
-* Section \@ref(sec:catnap) provides a brief overview of the CATNAP database and the specifics of how the data were accessed to build the `slapnap` container. 
-* Section \@ref(sec:runningcontainer) provides a detailed description of how to make calls to the slapnap repository, including descriptions of all options that are available.
-* Section \@ref(sec:examples) includes several example calls to the `slapnap` container and descriptions of their output.
-* Section \@ref(sec:data) provides a description of the data set created in the `slapnap` container. 
-* Section \@ref(sec:methods) provides an overview of the methodology that is used in within the `slapnap` analysis. 
-
-If you have any issues or questions about using `slapnap`, please [file an issue](https://github.com/benkeser/slapnap/issues) on GitHub. 
 
 # Docker {#sec:docker}
 
@@ -61,11 +30,9 @@ This command pulls the image from [DockerHub](https://hub.docker.com/). Once the
 
 # CATNAP Database {#sec:catnap}
 
-The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/index.html) is a web server hosted by Los Alamos National Laboratory [@yoon2015catnap]. The database integrates antibody neutralization and HIV-1 sequence data from published studies. Neutralization is measured in terms of half maximal inhibitory concentration (IC$_50$) and 80\% inhibitory concentration (IC$_80$). These measures of neutralization against HIV envelope pseudoviruses are available for many broadly neutralizing antibodies (bNAbs) and for some combination bNAbs. Also available on each pseudovirus are amino acid (AA) sequence features for the gp160 protein. These are detailed in Section \@ref(sec:data). 
+The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/index.html) is a web server hosted by Los Alamos National Laboratory [@yoon2015catnap]. The database integrates antibody neutralization and HIV-1 sequence data from published studies. Neutralization is measured in terms of half maximal inhibitory concentration (IC$_{50}$) and 80\% inhibitory concentration (IC$_{80}$). These measures of neutralization against HIV envelope pseudoviruses are available for many broadly neutralizing antibodies (bNAbs) and for some combination bNAbs. Also available on each pseudovirus are amino acid (AA) sequence features for the gp160 protein. These are detailed in Section \@ref(sec:data). 
 
-During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, the relevant data are selected and processed into a format that is amenable for predictive machine learning analyses. 
-
-The date of last build of `slapnap` (and thus the last date data were downloaded from CATNAP) is `r format(Sys.time(), '%B %d, %Y')`.  
+During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, the relevant data are selected and processed into a format that is amenable for predictive machine learning analyses. The CATNAP data are updated periodically. To check the date the raw data were pulled from CATNAP to `slapnap`, you can check the date of the `latest` build [here](https://hub.docker.com/repository/registry-1.docker.io/slapnap/slapnap/tags?page=1).
 
 # Running the `slapnap` container {#sec:runningcontainer}
 
@@ -88,7 +55,9 @@ Each description below lists the default value that is assumed if the option is 
 __-e options for `slapnap`__ 
 
 * __`nab`__: A semicolon-separated list of bNAbs (default = "`VRC01`"). A list of possible bNAbs can be found [here](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp). If multiple bNAbs are listed, it is assumed that the analysis should be of estimated `outcomes` for a combination of bNAbs (see Section \@ref(sec:outcomedefs) for details on how estimated outcomes for multiple bNAbs are computed). 
-* __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (included in default), `"ic80"`, `"iip"`, `"sens1"` (included in default), `"sens2"` (for definitions of outcomes see Section \@ref(sec:outcomedefs)). Of note, if only a single `nab` is included, then `sens1` and `sens2` are the same. 
+* __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (included in default), `"ic80"`, `"iip"`, `"sens"` (included in default), `"estsens"`, `"multsens"`. If only a single `nab` is specified, use `sens` to include a dichotomous endpoint. If multiple `nab`s are specified, use `estsens` and/or `multsens`. For detailed definitions of outcomes see Section \@ref(sec:outcomedefs)).
+* __`sens_thresh`__ A numeric value defining the IC$_{50}$ threshold for defining a sensitive versus resistant pseudovirus (default = 1). The dichotomous sensitivity/resistant `outcome`s are defined as the indicator that (estimated) IC$_{50}$ is greater than or equal to `sens_thresh`. 
+* __`multsens_nab`__ A numeric value used for defining whether a pseudovirus is resistant to a multi-nAb cocktail. The dichotomous outcome `multsens` is defined as the indicator that a virus has (estimated) $IC_{50}$ greater than `sens_thresh` for at least `multsens_nab` nAbs.
 * __`learners`__: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient boosting), and `"lasso"` (elastic net). If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section \@ref(sec:sldetails)). 
 * __`cvtune`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` should be tuned using cross-validation and a small grid search. Defaults to `"FALSE"`. If multiple `learners` are specified, then the super learner ensemble includes three versions of each of the requested `learners` with different tuning parameters. 
 * __`cvperf`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` performance should be evaluated using cross-validation. If `cvtune="TRUE"` or `learners` includes multiple algorithms, then nested cross-validation is used to evaluate the performance of the cross-validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively. 
