@@ -3,6 +3,7 @@
 sandbox/*
 slfits/*
 dat/*
+docs/_book/*
 local_production_runs/*
 2019*
 test/*

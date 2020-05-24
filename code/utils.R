@@ -67,7 +67,7 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
 #' @param outcome_nm the outcome of interest ("sens1" or "sens2")
 check_sl_vimp_bin <- function(opts, run_sl_vimp_bools, outcome_nm) {
     if (outcome_nm == "sens1") {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus estimated sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus estimated sensitivity is not included in any biological variable importance analyses", ""))
+        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses", ""))
     } else {
         ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
     }
@@ -103,7 +103,7 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
 #' @param num_obs_red number of obs used in the "reduced" regression
 #' @param outcome the outcome (e.g., "ic50")
 #' @param grp whether or not this is group importance
-biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE, marg = TRUE, cond = TRUE) {
+biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE, marg = TRUE, cond = TRUE, opts) {
     outcome_text <- if (outcome == "ic50") {
         "IC-50"
     } else if (outcome == "ic80") {
@@ -111,7 +111,11 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
     } else if (outcome == "iip") {
         "IIP"
     } else if (outcome == "sens1") {
-        "estimated sensitivity"
+        if(length(opts$nab) > 1){
+          "estimated sensitivity"
+        }else{
+            "sensitivity"
+        }
     } else if (outcome == "sens2") {
         "multiple sensitivity"
     } else {
@@ -214,7 +218,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
 
     # re-label
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
-    all_labels <- c("IC-50", "IC-80", "IIP", "Estimated sensitivity", "Multiple sensitivity")[run_sls]
+    all_labels <- c("IC-50", "IC-80", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
     tmp <- opts$outcomes[run_sls]
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
@@ -325,10 +329,10 @@ get_outcome_descriptions <- function(opts){
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 < 1.")
+            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 < ", opts$sens_thresh, ".")
         }
         if(sens2_pres){
-            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC-50 < 1 for at least two antibodies.")
+            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC-50 < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies.")
         }
     } else {
         if(iip_pres){
@@ -339,11 +343,12 @@ get_outcome_descriptions <- function(opts){
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres | sens2_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that IC-50 < 1.")
+            tmp_text <- c(tmp_text, "Sensitivity is defined by the binary indicator that IC-50 < ", opts$sens_thresh, ".")
         }
-        if(sens2_pres){
-            tmp_text <- c(tmp_text, "Since only one antibody was specified for this analysis, multiple sensitivity is the same as estimated sensitivity.")
-        }
+        # should no longer ever occur
+        # if(sens2_pres){
+        #     tmp_text <- c(tmp_text, "Since only one antibody was specified for this analysis, multiple sensitivity is the same as estimated sensitivity.")
+        # }
     }
     return(paste0(tmp_text, collapse = " "))
 }
@@ -359,7 +364,7 @@ get_comma_sep_outcomes <- function(opts){
         tmp <- opts$outcomes
     }
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-    all_labels <- c("IC-50", "IC-80", "IIP", "estimated sensitivity", "multiple sensitivity")
+    all_labels <- c("IC-50", "IC-80", "IIP", ifelse(length(opts$nab) == 1, "sensitivity", "estimated sensitivity"), "multiple sensitivity")
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
@@ -384,11 +389,17 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 
 ## read in permanent options
 get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf", "nfolds",
-                                           "importance_grp", "importance_ind", "report_name", "return"),
+                                           "importance_grp", "importance_ind", "report_name", "return",
+                                           "sens_thresh", "multsens_nab"),
                                options_boolean = c(FALSE, FALSE, FALSE, TRUE,
-                                                   TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)){
+                                                   TRUE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                                                   FALSE, FALSE)){
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
+    # replace sensitivity with sens1/2 labels
+    out$outcomes <- gsub("sens1", "sens", out$outcomes)
+    out$outcomes <- gsub("sens1", "estsens", out$outcomes)
+    out$outcomes <- gsub("sens2", "multsens", out$outcomes)
     return(out)
 }
 

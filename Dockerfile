@@ -104,9 +104,9 @@ ENV nab="VRC01"
 
 # which outcomes to include in the analysis
 #   possible outcomes include "ic50", "ic80",
-#   "iip", "sens1", "sens2" and semicolon-separated
+#   "iip", "sens", "estsens", "multsens" and semicolon-separated
 #   combinations of these
-ENV outcomes="ic50;sens1"
+ENV outcomes="ic50;sens"
 
 # which learners are included by default
 #  if more than a single algorithm is listed, then super learner is used
@@ -157,6 +157,13 @@ ENV report_name=""
 #   "vimp" (return the R variable importance objects)
 #   if set to "", then will default to returning only the report
 ENV return="report"
+
+# option to control sensitivity threshold for defining dichotomous
+# endpoints as (estimated/multiple) IC-50 > sens_thresh
+ENV sens_thresh="1"
+
+# option to control multiple 
+ENV multsens_nab="2"
 
 # add an argument to bust the cache, so that data are downloaded
 # fresh every build. taken from this SO answer: 

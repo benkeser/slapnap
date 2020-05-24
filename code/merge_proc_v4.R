@@ -15,6 +15,8 @@ path.home <- "/home"
 # antibody names are passed to docker container at run time as
 # environment variable Nab, which is a semicolon-separated list
 antibody_string <- Sys.getenv("nab")
+sensitivity.threshold <- Sys.getenv("sens_thresh")
+multiple.sensitivity.threshold <- Sys.getenv("multsens_nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 
 
@@ -167,15 +169,12 @@ readouts$iip <- (-1) * log10(1 - iip.f.c)
 
 # derive the "Dichotomous 1" endpoint(i.e., is the PC IC50 higher than the
 # sensitivity cutoff?)
-sensitivity.threshold <- 1
 readouts$dichotomous.1 <- as.numeric(readouts$pc.ic50 >= sensitivity.threshold)
 
 # derive the "Dichotomous 2" endpoint(i.e., is the imputed IC50 greater than
-# the sensitivity threshold for at least two antibodies?)(the use of "two"
-# Abs is used whether or not we have a two-Ab cocktail, or three(or more)-Ab
-# cocktail, etc., as per earlier discussion)
-min.resistant.abs <- ifelse(length(antibodies) > 1, 2, 1)
-readouts$dichotomous.2 <- as.numeric(apply(readouts[, grep("ic50.imputed", names(readouts), fixed=T), drop = FALSE] >= sensitivity.threshold, 1, sum) >= min.resistant.abs)
+# the sensitivity threshold for at least a user-select number of antibodies
+min.resistant.abs <- min(c(multiple.sensitivity.threshold, length(antibodies)))
+readouts$dichotomous.2 <- as.numeric(apply(readouts[, grep("ic50.imputed", names(readouts), fixed=TRUE), drop = FALSE] >= sensitivity.threshold, 1, sum) >= min.resistant.abs)
 
 
 # ---------------------------------------------------------------------------- #
