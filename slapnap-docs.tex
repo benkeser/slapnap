@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R.
 Borate, Peter B. Gilbert}
-\date{May 22, 2020}
+\date{May 24, 2020}
 
 \begin{document}
 \maketitle
@@ -305,10 +305,24 @@ Proper values should be determined based on scientific context.
   \textbf{\texttt{outcomes}}: A semicolon-separated string of outcomes
   to include in the analysis. Possible values are \texttt{"ic50"}
   (included in default), \texttt{"ic80"}, \texttt{"iip"},
-  \texttt{"sens1"} (included in default), \texttt{"sens2"} (for
-  definitions of outcomes see Section \ref{sec:outcomedefs}). Of note,
-  if only a single \texttt{nab} is included, then \texttt{sens1} and
-  \texttt{sens2} are the same.
+  \texttt{"sens"} (included in default), \texttt{"estsens"},
+  \texttt{"multsens"}. If only a single \texttt{nab} is specified, use
+  \texttt{sens} to include a dichotomous endpoint. If multiple
+  \texttt{nab}s are specified, use \texttt{estsens} and/or
+  \texttt{multsens}. For detailed definitions of outcomes see Section
+  \ref{sec:outcomedefs}).
+\item
+  \textbf{\texttt{sens\_thresh}} A numeric value defining the
+  IC\(_{50}\) threshold for defining a sensitive versus resistant
+  pseudovirus (default = 1). The dichotomous sensitivity/resistant
+  \texttt{outcome}s are defined as the indicator that (estimated)
+  IC\(_{50}\) is greater than or equal to \texttt{sens\_thresh}.
+\item
+  \textbf{\texttt{multsens\_nab}} A numeric value used for defining
+  whether a pseudovirus is resistant to a multi-nAb cocktail. The
+  dichotomous outcome \texttt{multsens} is defined as the indicator that
+  a virus has (estimated) \(IC_{50}\) greater than \texttt{sens\_thresh}
+  for at least \texttt{multsens\_nab} nAbs.
 \item
   \textbf{\texttt{learners}}: A semicolon-separated string of machine
   learning algorithms to include in the analysis. Possible values
