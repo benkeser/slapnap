@@ -1,0 +1,103 @@
+---
+title: "SLAPNAP Metadata: `r paste(format(strsplit(Sys.getenv('nab'), split = ';')[[1]], justify = 'none'), collapse = ', ')`"
+author: "SLAPNAP Team"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: bookdown::html_document2
+header-includes:
+   - \usepackage{subfig}
+---
+
+```{r setup, include=FALSE}
+in_container <- TRUE
+david_computer <- FALSE
+if (in_container) {
+  code_dir <- "/home/lib/"
+  slfits_dir <- "/home/slfits/"
+  data_dir <- "/home/dat/"
+} else {
+    if (david_computer) {
+        code_dir <- "~/Dropbox/Emory/AMP/slapnap/code/"
+        slfits_dir <- "~/Dropbox/Emory/AMP/slapnap/slfits/"
+        data_dir <- "~/Dropbox/Emory/AMP/slapnap/data/"
+    } else {
+        code_dir <- "~/Projects/VIDD/hvtn/slapnap/code/"
+        slfits_dir <- "~/Projects/VIDD/hvtn/slapnap/local_production_runs/slfits_vrc07-523-ls_pgt121_pgdm1400"
+        data_dir <- "~/Projects/VIDD/hvtn/slapnap/sandbox/data/"
+    }
+}
+```
+
+```{r source_preamble}
+# get biological importance
+vimp_threshold <- 0.05
+source(paste0(code_dir, "report_preamble.R"), local = TRUE)
+# set number of predictive importance features to show
+n_imp_ft <- 20
+```
+
+```{r get_options}
+if (in_container) {
+  opts <- get_global_options()
+}
+# boolean of single nab
+one_nab <- length(opts$nab) == 1
+est_fillin <- ifelse(one_nab, "", "estimated ")
+any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
+any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
+# read in number of observations
+nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
+ncomplete <- readRDS(paste0(slfits_dir, "ncomplete.rds"))
+# read in data
+analysis_data_names <- list.files("/home/dat/analysis")
+analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
+dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
+dat <- dat[complete.cases(dat),]
+
+# make nice outcome names
+all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
+all_labels <- c("IC-50", "IC-80", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
+nice_outcomes <- opts$outcomes
+for(i in seq_along(all_outcomes)){
+    nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
+}
+outcome_names <- get_outcome_names(opts)
+run_sl_vimp_bools <- check_outcomes(dat, outcome_names, as.numeric(opts$nfolds))
+# now format continuous outcomes table
+cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
+bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
+cont_nms <- nice_outcomes[cont_idx]
+bin_nms <- nice_outcomes[bin_idx]
+# postfix for naming plots
+postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b%Y"))
+```
+
+# Executive summary
+
+The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
+
+* `r nprevious` sequences were extracted from the CATNAP database;
+
+* `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
+`r if(!("sens1" %in% opts$outcomes)) "<!--"`
+* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive (using `r est_fillin`sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+`r if(!("sens1" %in% opts$outcomes)) "-->"`
+`r if(!("sens2" %in% opts$outcomes)) "<!--"`
+* out of the sequences with complete data, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
+`r if(!("sens2" %in% opts$outcomes)) "-->"`
+
+# Variables in the dataset
+
+Table \@ref(tab:variables) provides the name and description of each variable in the returned dataset.
+
+# Variable group definitions
+
+Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for biological importance.
+
+```{r vimpGroupTab, eval = !(opts$importance_grp == "")}
+# all_var_groups is created in preamble
+var_grps_chr_lst <- lapply(lapply(all_var_groups, function(x) strsplit(x, ".", fixed = TRUE)), function(x) do.call(c, lapply(x, function(y) paste0(y[!grepl("hxb2", y) & !grepl("mer", y)], collapse = "."))))
+grptab <- do.call(rbind, lapply(var_grps_chr_lst, function(x) paste0(x, collapse = ", ")))
+kable(grptab, col.names = "Variables",
+      digits = 3, row.names = TRUE,
+      caption = "Individual variables within each variable group.")
+```

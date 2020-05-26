@@ -67,7 +67,7 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
 #' @param outcome_nm the outcome of interest ("sens1" or "sens2")
 check_sl_vimp_bin <- function(opts, run_sl_vimp_bools, outcome_nm) {
     if (outcome_nm == "sens1") {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses", ""))
+        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
     } else {
         ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
     }
@@ -223,7 +223,6 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
-
     # now format continuous outcomes table
     cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
     rsq_kab <- NULL
@@ -234,9 +233,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
         row.names(rsqtab) <- tmp[cont_idx]
         rsq_kab <- knitr::kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions ",
-                               "of the continuous-valued outcome(s) (n = ", n_row_now,
-                               " observations with complete sequence data)."))
+              caption = paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions of ", ifelse(length(cont_idx) == 1, tmp[cont_idx], "the continuous-valued outcomes"), " (n = ", n_row_now, " observations with complete sequence data)."))
     }
     # now format dichotomous outcomes table
     dich_idx <- which(opts$outcomes[run_sls] %in% c("sens1", "sens2"))
@@ -248,9 +245,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
         row.names(auctab) <- tmp[dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CVAUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions ",
-                               "of the binary-valued outcome(s) (n = ", n_row_now,
-                               " observations with complete sequence data)."))
+              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", n_row_now, " observations with complete sequence data)."))
     }
     return(list(r2 = rsq_kab, auc = auc_kab))
 }
@@ -317,19 +312,19 @@ get_outcome_descriptions <- function(opts){
                            paste0(ifelse(ic50_pres, "IC-50 ", ""),
                                   ifelse(ic50_pres & ic80_pres, "or ", ""),
                                   ifelse(ic80_pres, "IC-80 ", ""), collapse = ""),
-                           "for antibody $j$.")
+                           "for antibody $j$. ")
             tmp_text <- c(tmp_text, paste0(tmp, tmp1_5, tmp2, collapse = ""))
         }
         if(iip_pres){
             tmp <- paste0("IIP [Shen et al. (2008); Wagh et al. (2016)] is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{predicted IC-50}^m + 10^m} \ , \\]",
                           "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{predicted IC-80}) - \\mbox{log}_{10}(\\mbox{predicted IC-50}))$ ",
-                          "and predicted IC-50 and IC-80 are computed as described above.",
+                          "and predicted IC-50 and IC-80 are computed as described above. ",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 < ", opts$sens_thresh, ".")
+            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 < ", opts$sens_thresh, ". ")
         }
         if(sens2_pres){
             tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC-50 < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies.")
@@ -338,7 +333,7 @@ get_outcome_descriptions <- function(opts){
         if(iip_pres){
             tmp <- paste0("IIP [Shen et al. (2008); Wagh et al. (2016)] is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{IC-50}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC-80}) - \\mbox{log}_{10}(\\mbox{IC-50}))$.",
+                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC-80}) - \\mbox{log}_{10}(\\mbox{IC-50}))$. ",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
         }
@@ -350,7 +345,7 @@ get_outcome_descriptions <- function(opts){
         #     tmp_text <- c(tmp_text, "Since only one antibody was specified for this analysis, multiple sensitivity is the same as estimated sensitivity.")
         # }
     }
-    return(paste0(tmp_text, collapse = " "))
+    return(paste0(tmp_text, collapse = ""))
 }
 
 
@@ -397,9 +392,9 @@ get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     # replace sensitivity with sens1/2 labels
-    out$outcomes <- gsub("sens1", "sens", out$outcomes)
-    out$outcomes <- gsub("sens1", "estsens", out$outcomes)
-    out$outcomes <- gsub("sens2", "multsens", out$outcomes)
+    out$outcomes <- gsub("sens", "sens1", out$outcomes)
+    out$outcomes <- gsub("estsens", "sens1", out$outcomes)
+    out$outcomes <- gsub("multsens", "sens2", out$outcomes)
     return(out)
 }
 
@@ -479,12 +474,12 @@ vimp_nice_ind_names <- function(nm_vec) {
     return(no_1mer)
 }
 ## nice plotting names
-vimp_plot_name <- function(vimp_str) {
+vimp_plot_name <- function(vimp_str, one_nab) {
     plot_nms <- rep(NA, length(vimp_str))
     plot_nms[grepl("iip", vimp_str)] <- "IIP"
     plot_nms[grepl("pc.ic50", vimp_str)] <- "IC-50"
     plot_nms[grepl("pc.ic80", vimp_str)] <- "IC-80"
-    plot_nms[grepl("dichotomous.1", vimp_str)] <- "Estimated sensitivity"
+    plot_nms[grepl("dichotomous.1", vimp_str)] <- ifelse(one_nab, "Sensitivity", "Estimated sensitivity")
     plot_nms[grepl("dichotomous.2", vimp_str)] <- "Multiple sensitivity"
     return(plot_nms)
 }
@@ -715,8 +710,31 @@ get_analysis_dataset_name <- function(all_nms, opts) {
     }
     return(nm)
 }
+# clean analysis dataset, by changing column names to match how we refer to them
+# in the report
+# @param input_data the dataset that we use internally
+# @param opts the options
+# @return a cleaned dataset, with outcome columns matching the report
 clean_analysis_dataset <- function(input_data, opts) {
-    analysis_dataset <- input_data
+    # drop nab_ columns
+    minus_nab_cols <- input_data[, !grepl("nab_", names(input_data))]
+    # rename ic50, ic80 cols
+    minus_nab_nms <- names(minus_nab_cols)
+    correct_ic50_ic80_nms <- gsub("log10.pc.", "", minus_nab_nms)
+    # rename sens/estsens/multsens
+    if (length(opts$nab) == 1) {
+        corrected_nms <- gsub("dichotomous.1", "sens", correct_ic50_ic80_nms)
+    } else {
+        if ("estsens" %in% opts$outcomes) {
+            corrected_nms <- gsub("dichotomous.1", "estsens", correct_ic50_ic80_nms)
+        }
+        if ("multsens" %in% opts$outcomes) {
+            corrected_nms <- gsub("dichotomous.2", "multsens", correct_ic50_ic80_nms)
+        }
+    }
+    corrected_cols <- setNames(minus_nab_cols, corrected_nms)
+    # drop unneccessary cols
+    analysis_dataset <- corrected_cols[, !(grepl("pc.", corrected_nms) | grepl("dichot", corrected_nms))]
     return(analysis_dataset)
 }
 
@@ -780,4 +798,16 @@ check_outcomes <- function(dat, outcome_names, V) {
     run_sls <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[1]))
     run_vimps <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[2]))
     return(list(run_sl = run_sls, run_vimp = run_vimps))
+}
+
+# create metadata table
+# @param dataset the clean analysis dataset
+# @param opts the global options
+create_metadata <- function(dataset, opts) {
+    all_nms <- names(dataset)
+    id_nms <- all_nms[1:2]
+    geog_idx <- grepl("geog", all_nms)
+    outcome_nms <- all_nms[3:(which(geog_idx)[1] - 1)]
+    geog_nms <- all_nms[geog_idx]
+    var_nms <- all_nms[(geog_idx + 1):ncol(dataset)]
 }

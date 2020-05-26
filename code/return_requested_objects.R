@@ -9,9 +9,9 @@ source("/home/lib/utils.R")
 # read in options
 opts <- get_global_options()
 
-#------------------------------------
-# save analysis dataset, if requested
-#------------------------------------
+#-------------------------------------------------
+# save analysis dataset and metadata, if requested
+#-------------------------------------------------
 if (any(grepl("data", opts$return))) {
     data_dir <- "/home/dat/analysis/"
     analysis_data_names <- list.files(data_dir)

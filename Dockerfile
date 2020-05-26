@@ -109,6 +109,8 @@ ENV nab="VRC01"
 #   possible outcomes include "ic50", "ic80",
 #   "iip", "sens", "estsens", "multsens" and semicolon-separated
 #   combinations of these
+#   For a single/multispecific bnAb, enter "sens".
+#   For a bnAb combination, enter "estsens" or "multsens".
 ENV outcomes="ic50;sens"
 
 # which learners are included by default
@@ -165,14 +167,14 @@ ENV return="report"
 # endpoints as (estimated/multiple) IC-50 > sens_thresh
 ENV sens_thresh="1"
 
-# option to control multiple 
+# option to control multiple
 ENV multsens_nab="2"
 
 # option to view output on exposed port
 ENV view_port="TRUE"
 
 # add an argument to bust the cache, so that data are downloaded
-# fresh every build. taken from this SO answer: 
+# fresh every build. taken from this SO answer:
 # https://stackoverflow.com/questions/35134713/disable-cache-for-specific-run-commands
 ARG CACHEBUST=1
 RUN echo "$CACHEBUST"

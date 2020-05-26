@@ -17,11 +17,11 @@ check_opts_outcomes <- function(outcome_vec, all_outcomes, n_abs) {
     )
     if(n_abs == 1){
         shiny::validate(
-            shiny::need(any(c("estsens", "multsens") %in% outcome_vec), "If a single nAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
+            shiny::need(!any(c("estsens", "multsens") %in% outcome_vec), "If a single nAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
         )
     }else if(n_abs > 1){
         shiny::validate(
-            shiny::need(any(c("sens") %in% outcome_vec), "If multiple nAbs are used, please specify 'estsens' and/or 'multsens' as the outcome, instead of 'sens'.")
+            shiny::need(!any(c("sens") %in% outcome_vec), "If multiple nAbs are used, please specify 'estsens' and/or 'multsens' as the outcome, instead of 'sens'.")
         )
     }
 }

@@ -1,5 +1,6 @@
 ## make vimp table for executive summary
 make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_names = NULL, cv = FALSE, opts) {
+    one_nab <- length(opts$nab) == 1
     ## capture everything entered before threshold
     L <- list(...)
     ## combine together as a tibble for conditional, marginal, individual
@@ -48,7 +49,7 @@ make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_nam
         grp_cond_summary_tib <- output_tib_grp_cond %>%
         group_by(outcome) %>%
         mutate(rank = row_number(),
-        signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>%
+        signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome, one_nab = one_nab), nice_group_name = vimp_nice_group_names(group)) %>%
         ungroup() %>%
         select(nice_outcome_name, nice_group_name, signif_rank) %>%
         group_by(nice_group_name) %>%
@@ -62,7 +63,7 @@ make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_nam
         grp_marg_summary_tib <- output_tib_grp_marg %>%
             group_by(outcome) %>%
             mutate(rank = row_number(),
-            signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_group_names(group)) %>%
+            signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome, one_nab = one_nab), nice_group_name = vimp_nice_group_names(group)) %>%
             ungroup() %>%
             select(nice_outcome_name, nice_group_name, signif_rank) %>%
             group_by(nice_group_name) %>%
@@ -75,7 +76,7 @@ make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_nam
     if ("cond" %in% opts$importance_ind) {
         ind_cond_summary_tib <- output_tib_ind_cond %>%
             group_by(outcome) %>%
-            mutate(rank = row_number(), signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_ind_names(group)) %>%
+            mutate(rank = row_number(), signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome, one_nab = one_nab), nice_group_name = vimp_nice_ind_names(group)) %>%
             ungroup() %>%
             select(nice_outcome_name, nice_group_name, signif_rank) %>%
             group_by(nice_group_name) %>%
@@ -88,7 +89,7 @@ make_vimp_executive_summary_table <- function(..., threshold = 0.05, outcome_nam
     if ("marg" %in% opts$importance_ind) {
         ind_marg_summary_tib <- output_tib_ind_marg %>%
         group_by(outcome) %>%
-        mutate(rank = row_number(), signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome), nice_group_name = vimp_nice_ind_names(group)) %>%
+        mutate(rank = row_number(), signif_rank = paste0(rank, ifelse(p_value <= threshold, "*", " ")), nice_outcome_name = vimp_plot_name(outcome, one_nab = one_nab), nice_group_name = vimp_nice_ind_names(group)) %>%
         ungroup() %>%
         select(nice_outcome_name, nice_group_name, signif_rank) %>%
         group_by(nice_group_name) %>%
