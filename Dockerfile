@@ -26,7 +26,7 @@ RUN apt-get install -y r-base && apt-get install -y r-base-dev
 RUN apt-get install -y vim
 
 # install pandoc (for Rmarkdown conversions)
-RUN apt-get install -y pandoc
+RUN apt-get install -y pandoc && apt-get install -y pandoc-citeproc
 
 # install R libraries needed for analysis
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
