@@ -96,7 +96,6 @@ COPY code/new_report.Rmd /home/lib/new_report.Rmd
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
 COPY code/report_preamble.R /home/lib/report_preamble.R
-COPY docs/refs.bib /home/lib/refs.bib
 RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R /home/lib/report_preamble.R
 
 
