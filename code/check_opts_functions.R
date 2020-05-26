@@ -48,7 +48,7 @@ check_opts_cvperf <- function(cvperf_str) {
 # check nfolds
 check_opts_nfolds <- function(nfolds_str) {
     shiny::validate(
-        shiny::need(nfolds_str == "" | is.numeric(as.numeric(nfolds_str)), "nfolds must be either a number (e.g., 5) or an empty string (in which case 5 folds will be used).")
+        shiny::need(nfolds_str == "" | is.numeric(as.numeric(nfolds_str)), "nfolds must be either a number (e.g., 5) or an empty string (in which case 2 folds will be used).")
     )
 }
 # check vimp

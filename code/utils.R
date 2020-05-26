@@ -715,6 +715,10 @@ get_analysis_dataset_name <- function(all_nms, opts) {
     }
     return(nm)
 }
+clean_analysis_dataset <- function(input_data, opts) {
+    analysis_dataset <- input_data
+    return(analysis_dataset)
+}
 
 # get outcome names
 get_outcome_names <- function(opts) {
