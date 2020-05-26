@@ -9,6 +9,7 @@ current_date <- format(Sys.time(), "%d%b%Y")# get report name from environment
 if(report_name == ""){
 	report_name <- paste0("report_", paste (antibodies, collapse = "_"), "_", current_date)
 }
+
 # get whether to return report from environment
 objects_to_return <- Sys.getenv("return")
 if (objects_to_return == "" | grepl("report", objects_to_return)) {

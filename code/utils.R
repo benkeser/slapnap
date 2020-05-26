@@ -397,9 +397,12 @@ get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     # replace sensitivity with sens1/2 labels
-    out$outcomes <- gsub("sens", "sens1", out$outcomes)
-    out$outcomes <- gsub("estsens", "sens1", out$outcomes)
-    out$outcomes <- gsub("multsens", "sens1", out$outcomes)
+    if(length(out$nab) == 1){
+        out$outcomes <- gsub("sens", "sens1", out$outcomes)
+    }else{
+        out$outcomes <- gsub("estsens", "sens1", out$outcomes)
+        out$outcomes <- gsub("multsens", "sens1", out$outcomes)
+    }
     return(out)
 }
 

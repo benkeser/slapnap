@@ -56,7 +56,7 @@ printf "Report can be viewed on localhost. To stop container, retrieve CONTAINER
 echo "--- Report can be viewed on localhost. ---" >> $log_file
 # copy report to www folder for viewing
 name_of_report=$(Rscript -e "antibody_string <- Sys.getenv('nab'); antibodies <- strsplit(gsub('/', '-', antibody_string), split = ';')[[1]]; report_name <- Sys.getenv('report_name'); current_date <- format(Sys.time(), '%d%b%Y'); if(report_name == '') report_name <- paste0('report_', paste (antibodies, collapse = '_'), '_', current_date); cat(report_name)")
-cp /home/output/$(name_of_report).html /var/www/html/index.html
+cp /home/output/${name_of_report}.html /var/www/html/index.html
 nginx -g "daemon off;"
 fi
 
