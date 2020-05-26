@@ -34,11 +34,7 @@ source(paste0(code_dir, "variable_groups.R"))
 # Permanent options
 #---------------------
 # read in options
-if (in_container) {
-  opts <- get_global_options()
-} else {
-
-}
+opts <- get_global_options()
 
 # --------------------
 # Antibodies
