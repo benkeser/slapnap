@@ -67,9 +67,9 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
 #' @param outcome_nm the outcome of interest ("sens1" or "sens2")
 check_sl_vimp_bin <- function(opts, run_sl_vimp_bools, outcome_nm) {
     if (outcome_nm == "sens1") {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens1", opts$outcomes)][[1]], paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
+        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
     } else {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("sens2", opts$outcomes)][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
+        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
     }
 }
 
@@ -219,7 +219,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
     # re-label
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
     all_labels <- c("IC-50", "IC-80", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
-    tmp <- opts$outcomes[run_sls]
+    tmp <- all_outcomes
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
@@ -236,7 +236,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
               caption = paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions of ", ifelse(length(cont_idx) == 1, tmp[cont_idx], "the continuous-valued outcomes"), " (n = ", n_row_now, " observations with complete sequence data)."))
     }
     # now format dichotomous outcomes table
-    dich_idx <- which(opts$outcomes[run_sls] %in% c("sens1", "sens2"))
+    dich_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
     auc_kab <- NULL
     if(length(dich_idx) > 0){
         list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list, Rsquared = FALSE, simplify = FALSE)
@@ -354,7 +354,7 @@ get_comma_sep_outcomes <- function(opts){
     if(length(opts$outcomes) > 2){
         tmp <- paste0(paste0(opts$outcomes[-length(opts$outcomes)], collapse = ", "), ", and ", opts$outcomes[length(opts$outcomes)])
     }else if(length(opts$outcomes) == 2){
-        tmp <- paste0(opts$outcomes[-length(opts$outcomes)], collapse = " and ")
+        tmp <- paste0(opts$outcomes, collapse = " and ")
     }else{
         tmp <- opts$outcomes
     }
@@ -392,9 +392,12 @@ get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     # replace sensitivity with sens1/2 labels
-    out$outcomes <- gsub("sens", "sens1", out$outcomes)
-    out$outcomes <- gsub("estsens", "sens1", out$outcomes)
-    out$outcomes <- gsub("multsens", "sens2", out$outcomes)
+    if(length(out$nab) == 1){
+        out$outcomes <- gsub("sens", "sens1", out$outcomes)
+    } else{
+        out$outcomes <- gsub("estsens", "sens1", out$outcomes)
+        out$outcomes <- gsub("multsens", "sens2", out$outcomes)
+    }
     return(out)
 }
 
@@ -795,8 +798,8 @@ check_outcomes <- function(dat, outcome_names, V) {
                                      FUN = function(x) list(run_sl = FALSE, run_vimp = FALSE),
                                      simplify = FALSE)
     names(checked_other_outcomes) <- all_other_outcomes
-    run_sls <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[1]))
-    run_vimps <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[2]))
+    run_sls <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[1]))[c("log10.pc.ic50.run_sl", "log10.pc.ic80.run_sl", "iip.run_sl", "dichotomous.1.run_sl", "dichotomous.2.run_sl")]
+    run_vimps <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[2]))[c("log10.pc.ic50.run_vimp", "log10.pc.ic80.run_vimp", "iip.run_vimp", "dichotomous.1.run_vimp", "dichotomous.2.run_vimp")]
     return(list(run_sl = run_sls, run_vimp = run_vimps))
 }
 

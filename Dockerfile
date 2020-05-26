@@ -54,6 +54,7 @@ RUN Rscript -e 'remotes::install_github("bdwilliamson/vimp@v2.0.1")'
 
 # install nginx for static website hosting
 RUN apt-get install -y nginx
+RUN rm /var/www/html/index.nginx-debian.html
 
 # make directories
 # lib contains R source files
@@ -171,7 +172,7 @@ ENV sens_thresh="1"
 ENV multsens_nab="2"
 
 # option to view output on exposed port
-ENV view_port="TRUE"
+ENV view_port="FALSE"
 
 # add an argument to bust the cache, so that data are downloaded
 # fresh every build. taken from this SO answer:

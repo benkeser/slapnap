@@ -52,9 +52,11 @@ Rscript /home/lib/return_requested_objects.R >> $log_file 2>&1
 # if requested, port
 if [[ "$view_port" == "TRUE" ]] && [[ "$return" == *"report"* ]]
 then
-printf "Report can be viewed on localhost, press Ctrl + c to exit container \n"
-echo "--- Report can be viewed on localhost, press Ctrl + c to exit container ---" >> $log_file
-cp *.html /var/www/html
+printf "Report can be viewed on localhost. To stop container, retrieve CONTAINER ID using 'docker container ps' and 'docker stop CONTAINER_ID'.  \n"
+echo "--- Report can be viewed on localhost. ---" >> $log_file
+# copy report to www folder for viewing
+name_of_report=$(Rscript -e "antibody_string <- Sys.getenv('nab'); antibodies <- strsplit(gsub('/', '-', antibody_string), split = ';')[[1]]; report_name <- Sys.getenv('report_name'); current_date <- format(Sys.time(), '%d%b%Y'); if(report_name == '') report_name <- paste0('report_', paste (antibodies, collapse = '_'), '_', current_date); cat(report_name)")
+cp /home/output/${name_of_report}.html /var/www/html/index.html
 nginx -g "daemon off;"
 fi
 

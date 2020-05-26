@@ -55,13 +55,17 @@ V <- as.numeric(opts$nfolds)
 
 # check the outcomes to see if we can run them or not
 run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
+run_sl_vimp_bools2 <- lapply(run_sl_vimp_bools, function(x){
+    x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
+})
+
 # print a message for any that are false (first SL, then vimp)
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- opts$outcomes[i]
-    if (!run_sl_vimp_bools$run_sl[i]) {
+    if (!run_sl_vimp_bools2$run_sl[i]) {
         print(paste0("There are fewer observations in one or more classes than the number of CV folds for requested outcome '", this_outcome_name, "'. The SuperLearner will not be run for this outcome."))
     }
-    if (!run_sl_vimp_bools$run_vimp[i]) {
+    if (!run_sl_vimp_bools2$run_vimp[i]) {
         print(paste0("There are not enough observations in one or more classes to run population variable importance for requested outcome '", this_outcome_name, "'."))
     }
 }
@@ -75,11 +79,11 @@ for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name, V = V)
     ## do the fitting, if there are enough outcomes
-    if (run_sl_vimp_bools$run_sl[i]) {
+    if (run_sl_vimp_bools2$run_sl[i]) {
         sl_fit_i <- sl_one_outcome(dat = dat, outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library,
             cvControl = sl_opts$ctrl, method = sl_opts$method, opts = opts)
     }
-    if (run_sl_vimp_bools$run_vimp[i]) {
+    if (run_sl_vimp_bools2$run_vimp[i]) {
         ## if we need any type of importance, generate splits for VIM hypothesis testing
         if (!((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             outer_folds <- make_folds(dat[, this_outcome_name], V = 2, stratified = grepl("dichot", this_outcome_name))
@@ -109,7 +113,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
         ## only do this if we have enough obs to run it
-        if (run_sl_vimp_bools$run_vimp[i]) {
+        if (run_sl_vimp_bools2$run_vimp[i]) {
             ## read in the full folds, for this group's cv folds
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
             for (j in 1:length(all_var_groups)) {
@@ -170,7 +174,7 @@ if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
         set.seed(1234)
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
-        if (run_sl_vimp_bools$run_vimp[i]) {
+        if (run_sl_vimp_bools2$run_vimp[i]) {
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
             for (j in 1:length(var_inds)) {
                 this_var_name <- var_inds[j]
