@@ -249,26 +249,6 @@ There are several options that are necessary to include in this command
 to control the behavior of \texttt{slapnap}. These are discussed in
 separate subsections below.
 
-\subsection{Mounting a local directory}\label{sec:mounting}
-
-At the end of a \texttt{slapnap} run, user-specified output will be
-saved (see option \texttt{return} in Section \ref{sec:opts}). To
-retrieve these files from inside the container, we
-\href{https://docs.docker.com/storage/bind-mounts/}{\emph{mount}} a
-local directory to an output directory (\texttt{/home/out/}) in the
-container using the \texttt{-v} option. That is, all files in the
-mounted local directory will be visible to programs running inside the
-container and any items saved to the output directory in the container
-(file path in the container \texttt{/home/out/}) will be available in
-the mounted directory.
-
-Suppose \texttt{/path/to/local/dir} is the file path on a local computer
-in which we wish to save the output files from a \texttt{slapnap} run. A
-\texttt{docker\ run} of \texttt{slapnap} would include the option
-\texttt{-v\ /path/to/local/dir:/home/out}. After a run completes, the
-requested output should be viewable in \texttt{/path/to/local/dir}. See
-Section \ref{sec:examples} for full syntax.
-
 \subsection{\texorpdfstring{\texttt{slapnap}
 options}{slapnap options}}\label{sec:opts}
 
@@ -376,11 +356,42 @@ Proper values should be determined based on scientific context.
   and \texttt{"vimp"} for variable importance objects.
 \item
   \textbf{\texttt{view\_port}}: A boolean string indicating whether the
-  compiled report should be made viewable on \texttt{localhost}. If
-  \texttt{"TRUE"} then \texttt{-p} option should be used in the
-  \texttt{docker\ run} command to identify the port. See examples for
-  details.
+  compiled report should be made viewable on \texttt{localhost} (default
+  \texttt{"FALSE"}). If \texttt{"TRUE"} then \texttt{-p} option should
+  be used in the \texttt{docker\ run} command to identify the port. See
+  examples for details.
 \end{itemize}
+
+\subsection{Mounting a local directory}\label{sec:mounting}
+
+At the end of a \texttt{slapnap} run, user-specified output will be
+saved (see option \texttt{return} in Section \ref{sec:opts}). To
+retrieve these files from inside the container, we can
+\href{https://docs.docker.com/storage/bind-mounts/}{\emph{mount}} a
+local directory to an output directory (\texttt{/home/output/}) in the
+container using the \texttt{-v} option. That is, all files in the
+mounted local directory will be visible to programs running inside the
+container and any items saved to the output directory in the container
+(file path in the container \texttt{/home/output/}) will be available in
+the mounted directory.
+
+Suppose \texttt{/path/to/local/dir} is the file path on a local computer
+in which we wish to save the output files from a \texttt{slapnap} run. A
+\texttt{docker\ run} of \texttt{slapnap} would include the option
+\texttt{-v\ /path/to/local/dir:/home/output}. After a run completes, the
+requested output should be viewable in \texttt{/path/to/local/dir}. See
+Section \ref{sec:examples} for full syntax.
+
+\subsection{Viewing report in web browser}\label{sec:viewreport}
+
+An alternative option to mounting local directories for viewing and
+downloading the report is to set the \texttt{view\_port} option to
+\texttt{"TRUE"} and open a port to the container via the \texttt{-p}
+option in the \texttt{docker\ run} statement. In this case, rather than
+exiting upon completion of the analysis, the container will continuing
+to run and broadcast the compiled report to \texttt{localhost} at the
+specified port (see examples below). The report can be downloaded from
+the web browser directly in this way.
 
 \subsection{Interactive sessions}\label{interactive-sessions}
 
@@ -400,8 +411,8 @@ useful for exploring the file structure, examining versions of
 
 \section{Examples}\label{sec:examples}
 
-\subsection{\texorpdfstring{Basic calls to
-\texttt{slapnap}}{Basic calls to slapnap}}\label{basic-calls-to-slapnap}
+\subsection{\texorpdfstring{Basic call to
+\texttt{slapnap}}{Basic call to slapnap}}\label{basic-call-to-slapnap}
 
 A call to \texttt{slapnap} with all default options can be run using the
 following command.
@@ -416,7 +427,47 @@ Note that this call mounts the local directory
 \texttt{path/to/local/dir} to receive output from the container (Section
 \ref{sec:mounting}).
 
-When this command is executed,
+When this command is executed, messages will print to indicate the
+progress of the container. The first message will report the name of the
+log file, which will appear in \texttt{/path/to/local/dir}. The
+container will then compile an analytic data set from the CATNAP
+database for the default antibody (VRC01), train the default learner
+(random forest) for the default outcomes (\texttt{ic50} and
+\texttt{sens}), evaluate its performance using two-fold (default for
+\texttt{nfolds}) cross-validation, and compile a report detailing the
+results, and place the compiled report in \texttt{path/to/local/dir}.
+
+\subsection{Viewing results in a web
+browser}\label{viewing-results-in-a-web-browser}
+
+To have the results viewable in a web browser execute the following
+command.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{docker}\NormalTok{ run -v /path/to/local/dir:/home/output \textbackslash{}}
+\NormalTok{           -e view_port=}\StringTok{"TRUE"}\NormalTok{ -p 80:80 \textbackslash{}}
+\NormalTok{           slapnap/slapnap}
+\end{Highlighting}
+\end{Shaded}
+
+This command opens port 80 on the container. Once the report has been
+compiled, the container will not close down automatically. Instead it
+will continue to run, broadcasting the report to port 80. Open a web
+browser on your computer and navigate to \texttt{localhost:80} and you
+should see the compiled report. Many web browsers should allow
+downloading of the report (e.g., by right-clicking and selecting save
+\texttt{Save\ As...}).
+
+The container will continue to run until you tell it to \texttt{stop}.
+To do that, retrieve the container ID by executing
+\texttt{docker\ container\ ps}. Copy the ID of the running container
+(say \texttt{MY\_CONTAINER\_ID}) and then execute
+\texttt{docker\ stop\ MY\_CONTAINER\_ID} to shut down the container.
+
+Note that in the above command, we have still mounted a local directory,
+which may be considered best practice in case other output besides the
+report is desired to be returned.
 
 \subsection{Super learning}\label{super-learning}
 

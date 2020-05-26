@@ -133,15 +133,17 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="1" data-path="1-sec-docker.html"><a href="1-sec-docker.html"><i class="fa fa-check"></i><b>1</b> Docker</a></li>
 <li class="chapter" data-level="2" data-path="2-sec-catnap.html"><a href="2-sec-catnap.html"><i class="fa fa-check"></i><b>2</b> CATNAP Database</a></li>
 <li class="chapter" data-level="3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html"><i class="fa fa-check"></i><b>3</b> Running the <code>slapnap</code> container</a><ul>
-<li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.1</b> Mounting a local directory</a></li>
-<li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.2</b> <code>slapnap</code> options</a></li>
-<li class="chapter" data-level="3.3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#interactive-sessions"><i class="fa fa-check"></i><b>3.3</b> Interactive sessions</a></li>
+<li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.1</b> <code>slapnap</code> options</a></li>
+<li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.2</b> Mounting a local directory</a></li>
+<li class="chapter" data-level="3.3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:viewreport"><i class="fa fa-check"></i><b>3.3</b> Viewing report in web browser</a></li>
+<li class="chapter" data-level="3.4" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#interactive-sessions"><i class="fa fa-check"></i><b>3.4</b> Interactive sessions</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="4-sec-examples.html"><a href="4-sec-examples.html"><i class="fa fa-check"></i><b>4</b> Examples</a><ul>
-<li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-calls-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic calls to <code>slapnap</code></a></li>
-<li class="chapter" data-level="4.2" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.2</b> Super learning</a></li>
-<li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#train-an-algorithm"><i class="fa fa-check"></i><b>4.3</b> Train an algorithm</a></li>
-<li class="chapter" data-level="4.4" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.4</b> Pull and clean data</a></li>
+<li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-call-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic call to <code>slapnap</code></a></li>
+<li class="chapter" data-level="4.2" data-path="4-sec-examples.html"><a href="4-sec-examples.html#viewing-results-in-a-web-browser"><i class="fa fa-check"></i><b>4.2</b> Viewing results in a web browser</a></li>
+<li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.3</b> Super learning</a></li>
+<li class="chapter" data-level="4.4" data-path="4-sec-examples.html"><a href="4-sec-examples.html#train-an-algorithm"><i class="fa fa-check"></i><b>4.4</b> Train an algorithm</a></li>
+<li class="chapter" data-level="4.5" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.5</b> Pull and clean data</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-sec-report.html"><a href="5-sec-report.html"><i class="fa fa-check"></i><b>5</b> Report details</a></li>
 <li class="chapter" data-level="6" data-path="6-sec-data.html"><a href="6-sec-data.html"><i class="fa fa-check"></i><b>6</b> Data details</a></li>
@@ -173,21 +175,31 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="sec:examples" class="section level1">
 <h1><span class="header-section-number">4</span> Examples</h1>
-<div id="basic-calls-to-slapnap" class="section level2">
-<h2><span class="header-section-number">4.1</span> Basic calls to <code>slapnap</code></h2>
+<div id="basic-call-to-slapnap" class="section level2">
+<h2><span class="header-section-number">4.1</span> Basic call to <code>slapnap</code></h2>
 <p>A call to <code>slapnap</code> with all default options can be run using the following command.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output slapnap/slapnap</code></pre></div>
-<p>Note that this call mounts the local directory <code>path/to/local/dir</code> to receive output from the container (Section <a href="3-sec-runningcontainer.html#sec:mounting">3.1</a>).</p>
-<p>When this command is executed,</p>
+<p>Note that this call mounts the local directory <code>path/to/local/dir</code> to receive output from the container (Section <a href="3-sec-runningcontainer.html#sec:mounting">3.2</a>).</p>
+<p>When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in <code>/path/to/local/dir</code>. The container will then compile an analytic data set from the CATNAP database for the default antibody (VRC01), train the default learner (random forest) for the default outcomes (<code>ic50</code> and <code>sens</code>), evaluate its performance using two-fold (default for <code>nfolds</code>) cross-validation, and compile a report detailing the results, and place the compiled report in <code>path/to/local/dir</code>.</p>
+</div>
+<div id="viewing-results-in-a-web-browser" class="section level2">
+<h2><span class="header-section-number">4.2</span> Viewing results in a web browser</h2>
+<p>To have the results viewable in a web browser execute the following command.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
+           -e view_port=<span class="st">&quot;TRUE&quot;</span> -p 80:80 \
+           slapnap/slapnap</code></pre></div>
+<p>This command opens port 80 on the container. Once the report has been compiled, the container will not close down automatically. Instead it will continue to run, broadcasting the report to port 80. Open a web browser on your computer and navigate to <code>localhost:80</code> and you should see the compiled report. Many web browsers should allow downloading of the report (e.g., by right-clicking and selecting save <code>Save As...</code>).</p>
+<p>The container will continue to run until you tell it to <code>stop</code>. To do that, retrieve the container ID by executing <code>docker container ps</code>. Copy the ID of the running container (say <code>MY_CONTAINER_ID</code>) and then execute <code>docker stop MY_CONTAINER_ID</code> to shut down the container.</p>
+<p>Note that in the above command, we have still mounted a local directory, which may be considered best practice in case other output besides the report is desired to be returned.</p>
 </div>
 <div id="super-learning" class="section level2">
-<h2><span class="header-section-number">4.2</span> Super learning</h2>
+<h2><span class="header-section-number">4.3</span> Super learning</h2>
 </div>
 <div id="train-an-algorithm" class="section level2">
-<h2><span class="header-section-number">4.3</span> Train an algorithm</h2>
+<h2><span class="header-section-number">4.4</span> Train an algorithm</h2>
 </div>
 <div id="pull-and-clean-data" class="section level2">
-<h2><span class="header-section-number">4.4</span> Pull and clean data</h2>
+<h2><span class="header-section-number">4.5</span> Pull and clean data</h2>
 </div>
 </div>
             </section>

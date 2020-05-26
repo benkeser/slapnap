@@ -133,15 +133,17 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="1" data-path="1-sec-docker.html"><a href="1-sec-docker.html"><i class="fa fa-check"></i><b>1</b> Docker</a></li>
 <li class="chapter" data-level="2" data-path="2-sec-catnap.html"><a href="2-sec-catnap.html"><i class="fa fa-check"></i><b>2</b> CATNAP Database</a></li>
 <li class="chapter" data-level="3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html"><i class="fa fa-check"></i><b>3</b> Running the <code>slapnap</code> container</a><ul>
-<li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.1</b> Mounting a local directory</a></li>
-<li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.2</b> <code>slapnap</code> options</a></li>
-<li class="chapter" data-level="3.3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#interactive-sessions"><i class="fa fa-check"></i><b>3.3</b> Interactive sessions</a></li>
+<li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.1</b> <code>slapnap</code> options</a></li>
+<li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.2</b> Mounting a local directory</a></li>
+<li class="chapter" data-level="3.3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:viewreport"><i class="fa fa-check"></i><b>3.3</b> Viewing report in web browser</a></li>
+<li class="chapter" data-level="3.4" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#interactive-sessions"><i class="fa fa-check"></i><b>3.4</b> Interactive sessions</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="4-sec-examples.html"><a href="4-sec-examples.html"><i class="fa fa-check"></i><b>4</b> Examples</a><ul>
-<li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-calls-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic calls to <code>slapnap</code></a></li>
-<li class="chapter" data-level="4.2" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.2</b> Super learning</a></li>
-<li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#train-an-algorithm"><i class="fa fa-check"></i><b>4.3</b> Train an algorithm</a></li>
-<li class="chapter" data-level="4.4" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.4</b> Pull and clean data</a></li>
+<li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-call-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic call to <code>slapnap</code></a></li>
+<li class="chapter" data-level="4.2" data-path="4-sec-examples.html"><a href="4-sec-examples.html#viewing-results-in-a-web-browser"><i class="fa fa-check"></i><b>4.2</b> Viewing results in a web browser</a></li>
+<li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.3</b> Super learning</a></li>
+<li class="chapter" data-level="4.4" data-path="4-sec-examples.html"><a href="4-sec-examples.html#train-an-algorithm"><i class="fa fa-check"></i><b>4.4</b> Train an algorithm</a></li>
+<li class="chapter" data-level="4.5" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.5</b> Pull and clean data</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-sec-report.html"><a href="5-sec-report.html"><i class="fa fa-check"></i><b>5</b> Report details</a></li>
 <li class="chapter" data-level="6" data-path="6-sec-data.html"><a href="6-sec-data.html"><i class="fa fa-check"></i><b>6</b> Data details</a></li>
@@ -175,13 +177,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1><span class="header-section-number">3</span> Running the <code>slapnap</code> container</h1>
 <p>To run the <code>slapnap</code> container, we make use of the <a href="https://docs.docker.com/engine/reference/run/"><code>docker run</code></a> command. Note that administrator (<code>sudo</code>) privileges are needed to execute this command.</p>
 <p>There are several options that are necessary to include in this command to control the behavior of <code>slapnap</code>. These are discussed in separate subsections below.</p>
-<div id="sec:mounting" class="section level2">
-<h2><span class="header-section-number">3.1</span> Mounting a local directory</h2>
-<p>At the end of a <code>slapnap</code> run, user-specified output will be saved (see option <code>return</code> in Section <a href="3-sec-runningcontainer.html#sec:opts">3.2</a>). To retrieve these files from inside the container, we <a href="https://docs.docker.com/storage/bind-mounts/"><em>mount</em></a> a local directory to an output directory (<code>/home/out/</code>) in the container using the <code>-v</code> option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container <code>/home/out/</code>) will be available in the mounted directory.</p>
-<p>Suppose <code>/path/to/local/dir</code> is the file path on a local computer in which we wish to save the output files from a <code>slapnap</code> run. A <code>docker run</code> of <code>slapnap</code> would include the option <code>-v /path/to/local/dir:/home/out</code>. After a run completes, the requested output should be viewable in <code>/path/to/local/dir</code>. See Section <a href="4-sec-examples.html#sec:examples">4</a> for full syntax.</p>
-</div>
 <div id="sec:opts" class="section level2">
-<h2><span class="header-section-number">3.2</span> <code>slapnap</code> options</h2>
+<h2><span class="header-section-number">3.1</span> <code>slapnap</code> options</h2>
 <p>The user has control over many aspects of <code>slapnap</code>’s behavior. These options are passed in using the <code>-e</code> option<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>. Semi-colon separated strings are used to set options. For example, to provide input for the option <code>option_name</code>, we would used <code>-e option_name=&quot;a;semi-colon;separated;string&quot;</code>. Note that there are no spaces between the option name and its value and no spaces after semi-colons in the separated list. See Section <a href="4-sec-examples.html#sec:examples">4</a> for full syntax.</p>
 <p>Each description below lists the default value that is assumed if the option is not specified. Note that many of the default values are chosen simply so that na{&quot;i}ve calls to <code>slapnap</code> compile quickly. Proper values should be determined based on scientific context.</p>
 <p><strong>-e options for <code>slapnap</code></strong></p>
@@ -198,11 +195,20 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><strong><code>importance_ind</code></strong>: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none <code>&quot;&quot;</code> (default), learner-level <code>&quot;pred&quot;</code>, marginal <code>&quot;marg&quot;</code> and conditional <code>&quot;cond&quot;</code>. The latter two take significant computation time to compute.</li>
 <li><strong><code>report_name</code></strong>: A string indicating the desired name of the output report (default = <code>report_[_-separated list of nabs]_[date].html</code>).</li>
 <li><strong><code>return</code></strong>: A semicolon-separated string of the desired output. Possible values are <code>&quot;report&quot;</code> (default), <code>&quot;learner&quot;</code> for the trained algorithm, <code>&quot;data&quot;</code> for the analysis dataset, <code>&quot;figures&quot;</code> for all figures from the report, and <code>&quot;vimp&quot;</code> for variable importance objects.</li>
-<li><strong><code>view_port</code></strong>: A boolean string indicating whether the compiled report should be made viewable on <code>localhost</code>. If <code>&quot;TRUE&quot;</code> then <code>-p</code> option should be used in the <code>docker run</code> command to identify the port. See examples for details.</li>
+<li><strong><code>view_port</code></strong>: A boolean string indicating whether the compiled report should be made viewable on <code>localhost</code> (default <code>&quot;FALSE&quot;</code>). If <code>&quot;TRUE&quot;</code> then <code>-p</code> option should be used in the <code>docker run</code> command to identify the port. See examples for details.</li>
 </ul>
 </div>
+<div id="sec:mounting" class="section level2">
+<h2><span class="header-section-number">3.2</span> Mounting a local directory</h2>
+<p>At the end of a <code>slapnap</code> run, user-specified output will be saved (see option <code>return</code> in Section <a href="3-sec-runningcontainer.html#sec:opts">3.1</a>). To retrieve these files from inside the container, we can <a href="https://docs.docker.com/storage/bind-mounts/"><em>mount</em></a> a local directory to an output directory (<code>/home/output/</code>) in the container using the <code>-v</code> option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container <code>/home/output/</code>) will be available in the mounted directory.</p>
+<p>Suppose <code>/path/to/local/dir</code> is the file path on a local computer in which we wish to save the output files from a <code>slapnap</code> run. A <code>docker run</code> of <code>slapnap</code> would include the option <code>-v /path/to/local/dir:/home/output</code>. After a run completes, the requested output should be viewable in <code>/path/to/local/dir</code>. See Section <a href="4-sec-examples.html#sec:examples">4</a> for full syntax.</p>
+</div>
+<div id="sec:viewreport" class="section level2">
+<h2><span class="header-section-number">3.3</span> Viewing report in web browser</h2>
+<p>An alternative option to mounting local directories for viewing and downloading the report is to set the <code>view_port</code> option to <code>&quot;TRUE&quot;</code> and open a port to the container via the <code>-p</code> option in the <code>docker run</code> statement. In this case, rather than exiting upon completion of the analysis, the container will continuing to run and broadcast the compiled report to <code>localhost</code> at the specified port (see examples below). The report can be downloaded from the web browser directly in this way.</p>
+</div>
 <div id="interactive-sessions" class="section level2">
-<h2><span class="header-section-number">3.3</span> Interactive sessions</h2>
+<h2><span class="header-section-number">3.4</span> Interactive sessions</h2>
 <p>To simply enter the container and poke around, use an interactive session by including <code>-it</code> and overriding the container’s entry-point.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -it slapnap/slapnap /bin/bash</code></pre></div>
 <p>This will enter you into the container in a bash terminal. This may be useful for exploring the file structure, examining versions of <code>R</code> packages that are included in the container, etc.</p>
