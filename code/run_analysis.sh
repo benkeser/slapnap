@@ -54,7 +54,7 @@ if [[ "$view_port" == "TRUE" ]] && [[ "$return" == *"report"* ]]
 then
 printf "Report can be viewed on localhost, press Ctrl + c to exit container \n"
 echo "--- Report can be viewed on localhost, press Ctrl + c to exit container ---" >> $log_file
-cp *.html /var/www/html
+cp /home/output/*.html /var/www/html
 nginx -g "daemon off;"
 fi
 
