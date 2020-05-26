@@ -433,7 +433,7 @@ sl_one_outcome <- function(dat, outcome_name,
   newdat <- subset(dat, outer_bool)
 
   pred <- newdat[ , pred_names]
-
+  L <- list(...)
   # unless we do not want to tune using CV nor evaluate performance using CV,
   # we will make a call to super learner
   if (!(opts$cvtune == FALSE & opts$cvperf == FALSE)) {
@@ -458,7 +458,6 @@ sl_one_outcome <- function(dat, outcome_name,
     }
   } else {
     # if we don't want to use CV at all, then use "default" learners
-    L <- list(...)
     if (length(opts$learners) > 1) {
         these_learners <- NULL
         if ("rf" %in% opts$learners) {
@@ -499,13 +498,16 @@ sl_one_outcome <- function(dat, outcome_name,
         }
     }
   }
-
+  # now copy cvControl to innerCvControl to pass to CV.SL
+  L$innerCvControl <- list(L$cvControl)
+  new_arg_list <- c(list(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library), L)
   if (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) {
     # in this case, we want to report back only results for discrete super learner
     # since we're trying to pick out e.g., the best single random forest fit
     # note that if either opts$cvtune AND/OR opts$cvperf is FALSE then everything we need
     # will already be in the SuperLearner fit object.
-    cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+    cv_fit <- do.call(CV.SuperLearner, new_arg_list)
+    # cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
     }
@@ -514,7 +516,8 @@ sl_one_outcome <- function(dat, outcome_name,
   } else if (length(opts$learners) > 1 & opts$cvperf) {
     # if multiple learners, then we are fitting a super learner so need CV superlearner
     # unless cvperf = FALSE
-    cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+    cv_fit <- do.call(CV.SuperLearner, new_arg_list)
+    # cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
     }

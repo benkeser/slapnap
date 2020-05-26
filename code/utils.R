@@ -105,9 +105,17 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
 #' @param grp whether or not this is group importance
 biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE, marg = TRUE, cond = TRUE, opts) {
     outcome_text <- if (outcome == "ic50") {
-        "IC-50"
+        if (length(opts$nab) > 1) {
+            "estimated IC-50"
+        } else {
+            "IC-50"
+        }
     } else if (outcome == "ic80") {
-        "IC-80"
+        if (length(opts$nab) > 1) {
+            "estimated IC-80"
+        } else {
+            "IC-80"
+        }
     } else if (outcome == "iip") {
         "IIP"
     } else if (outcome == "sens1") {
