@@ -52,6 +52,9 @@ RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("remotes", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'remotes::install_github("bdwilliamson/vimp@v2.0.1")'
 
+# install nginx for static website hosting
+RUN apt-get install -y nginx
+
 # make directories
 # lib contains R source files
 # dat contains data
@@ -164,6 +167,9 @@ ENV sens_thresh="1"
 
 # option to control multiple 
 ENV multsens_nab="2"
+
+# option to view output on exposed port
+ENV view_port="TRUE"
 
 # add an argument to bust the cache, so that data are downloaded
 # fresh every build. taken from this SO answer: 

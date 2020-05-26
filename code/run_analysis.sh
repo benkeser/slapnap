@@ -49,9 +49,13 @@ printf "Returning requested objects \n"
 echo "--- Returning requested objects --- " >> $log_file
 Rscript /home/lib/return_requested_objects.R >> $log_file 2>&1
 
-# run script
-printf "Cleaning up \n"
-echo "--- Cleaning up --- " >> $log_file
-rm -rf /home/out/*_files
+# if requested, port
+if [[ "$view_port" == "TRUE" ]] && [[ "$return" == *"report"* ]]
+then
+printf "Report can be viewed on localhost, press Ctrl + c to exit container \n"
+echo "--- Report can be viewed on localhost, press Ctrl + c to exit container ---" >> $log_file
+cp *.html /var/www/html
+nginx -g "daemon off;"
+fi
 
 echo "--- END --- " >> $log_file
