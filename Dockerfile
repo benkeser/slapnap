@@ -54,6 +54,7 @@ RUN Rscript -e 'remotes::install_github("bdwilliamson/vimp@v2.0.1")'
 
 # install nginx for static website hosting
 RUN apt-get install -y nginx
+RUN rm /var/www/html/index.nginx-debian.html
 
 # make directories
 # lib contains R source files

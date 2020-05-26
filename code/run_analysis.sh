@@ -52,9 +52,9 @@ Rscript /home/lib/return_requested_objects.R >> $log_file 2>&1
 # if requested, port
 if [[ "$view_port" == "TRUE" ]] && [[ "$return" == *"report"* ]]
 then
-printf "Report can be viewed on localhost, press Ctrl + c to exit container \n"
-echo "--- Report can be viewed on localhost, press Ctrl + c to exit container ---" >> $log_file
-cp /home/output/*.html /var/www/html
+printf "Report can be viewed on localhost. To stop container, retrieve CONTAINER ID using 'docker container ps' and 'docker stop CONTAINER_ID'.  \n"
+echo "--- Report can be viewed on localhost. ---" >> $log_file
+cp /home/output/*.html /var/www/html/index.html
 nginx -g "daemon off;"
 fi
 
