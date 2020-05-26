@@ -170,7 +170,7 @@ ENV sens_thresh="1"
 ENV multsens_nab="2"
 
 # option to view output on exposed port
-ENV view_port="TRUE"
+ENV view_port="FALSE"
 
 # add an argument to bust the cache, so that data are downloaded
 # fresh every build. taken from this SO answer: 

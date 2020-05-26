@@ -40,12 +40,6 @@ To run the `slapnap` container, we make use of the [`docker run`](https://docs.d
 
 There are several options that are necessary to include in this command to control the behavior of `slapnap`. These are discussed in separate subsections below. 
 
-## Mounting a local directory {#sec:mounting}
-
-At the end of a `slapnap` run, user-specified output will be saved (see option `return` in Section \@ref(sec:opts)). To retrieve these files from inside the container, we [*mount*](https://docs.docker.com/storage/bind-mounts/) a local directory to an output directory (`/home/out/`) in the container using the `-v` option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container `/home/out/`) will be available in the mounted directory. 
-
-Suppose `/path/to/local/dir` is the file path on a local computer in which we wish to save the output files from a `slapnap` run. A `docker run` of `slapnap` would include the option `-v /path/to/local/dir:/home/out`. After a run completes, the requested output should be viewable in `/path/to/local/dir`. See Section \@ref(sec:examples) for full syntax. 
-
 ## `slapnap` options {#sec:opts}
 
 The user has control over many aspects of `slapnap`'s behavior. These options are passed in using the `-e` option^[This sets an environment variable in the container environment. These variables are accessed by the various `R` and `bash` scripts in the container to dictate how the container executes code.]. Semi-colon separated strings are used to set options. For example, to provide input for the option `option_name`, we would used `-e option_name="a;semi-colon;separated;string"`. Note that there are no spaces between the option name and its value and no spaces after semi-colons in the separated list. See Section \@ref(sec:examples) for full syntax. 
@@ -66,7 +60,17 @@ __-e options for `slapnap`__
 * __`importance_ind`__: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none `""` (default), learner-level `"pred"`, marginal `"marg"` and conditional `"cond"`. The latter two take significant computation time to compute. 
 * __`report_name`__: A string indicating the desired name of the output report (default = `report_[_-separated list of nabs]_[date].html`). 
 * __`return`__: A semicolon-separated string of the desired output. Possible values are `"report"` (default), `"learner"` for the trained algorithm, `"data"` for the analysis dataset, `"figures"` for all figures from the report, and `"vimp"` for variable importance objects.
-* __`view_port`__: A boolean string indicating whether the compiled report should be made viewable on `localhost`. If `"TRUE"` then `-p` option should be used in the `docker run` command to identify the port. See examples for details. 
+* __`view_port`__: A boolean string indicating whether the compiled report should be made viewable on `localhost` (default `"FALSE"`). If `"TRUE"` then `-p` option should be used in the `docker run` command to identify the port. See examples for details. 
+
+## Mounting a local directory {#sec:mounting}
+
+At the end of a `slapnap` run, user-specified output will be saved (see option `return` in Section \@ref(sec:opts)). To retrieve these files from inside the container, we can [*mount*](https://docs.docker.com/storage/bind-mounts/) a local directory to an output directory (`/home/output/`) in the container using the `-v` option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory. 
+
+Suppose `/path/to/local/dir` is the file path on a local computer in which we wish to save the output files from a `slapnap` run. A `docker run` of `slapnap` would include the option `-v /path/to/local/dir:/home/output`. After a run completes, the requested output should be viewable in `/path/to/local/dir`. See Section \@ref(sec:examples) for full syntax. 
+
+## Viewing report in web browser {#sec:viewreport}
+
+An alternative option to mounting local directories for viewing and downloading the report is to set the `view_port` option to `"TRUE"` and open a port to the container via the `-p` option in the `docker run` statement. In this case, rather than exiting upon completion of the analysis, the container will continuing to run and broadcast the compiled report to `localhost` at the specified port (see examples below). The report can be downloaded from the web browser directly in this way.  
 
 ## Interactive sessions
 
@@ -80,7 +84,7 @@ This will enter you into the container in a bash terminal. This may be useful fo
 
 # Examples {#sec:examples}
 
-## Basic calls to `slapnap`
+## Basic call to `slapnap`
 
 A call to `slapnap` with all default options can be run using the following command.
 
@@ -90,7 +94,23 @@ docker run -v /path/to/local/dir:/home/output slapnap/slapnap
 
 Note that this call mounts the local directory `path/to/local/dir` to receive output from the container (Section \@ref(sec:mounting)).
 
-When this command is executed, 
+When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir`. The container will then compile an analytic data set from the CATNAP database for the default antibody (VRC01), train the default learner (random forest) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross-validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir`. 
+
+## Viewing results in a web browser
+
+To have the results viewable in a web browser execute the following command. 
+
+```{bash, eval = FALSE}
+docker run -v /path/to/local/dir:/home/output \
+           -e view_port="TRUE" -p 80:80 \
+           slapnap/slapnap
+```
+
+This command opens port 80 on the container. Once the report has been compiled, the container will not close down automatically. Instead it will continue to run, broadcasting the report to port 80. Open a web browser on your computer and navigate to `localhost:80` and you should see the compiled report. Many web browsers should allow downloading of the report (e.g., by right-clicking and selecting save `Save As...`). 
+
+The container will continue to run until you tell it to `stop`. To do that, retrieve the container ID by executing `docker container ps`. Copy the ID of the running container (say `MY_CONTAINER_ID`) and then execute `docker stop MY_CONTAINER_ID` to shut down the container. 
+
+Note that in the above command, we have still mounted a local directory, which may be considered best practice in case other output besides the report is desired to be returned. 
 
 ## Super learning
 
