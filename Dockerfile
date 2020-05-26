@@ -27,6 +27,9 @@ RUN apt-get install -y vim
 
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc
+RUN apt-get install -y haskell-platform
+RUN cabal update -y
+RUN cabal install pandoc-citeproc
 
 # install R libraries needed for analysis
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
@@ -96,6 +99,7 @@ COPY code/new_report.Rmd /home/lib/new_report.Rmd
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
 COPY code/report_preamble.R /home/lib/report_preamble.R
+COPY docs/refs.bib /home/lib/refs.bib
 RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R /home/lib/report_preamble.R
 
 

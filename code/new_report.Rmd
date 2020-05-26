@@ -5,6 +5,9 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
 header-includes:
    - \usepackage{subfig}
+bibliography: refs.bib
+nocite: |
+   @shen2008dose, @wagh2016optimal
 ---
 
 ```{r setup, include=FALSE}
@@ -73,13 +76,13 @@ postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b
 
 # Executive summary
 
-The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
+The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of neutralization sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
 
 * `r nprevious` sequences were extracted from the CATNAP database;
 
 * `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive (using `r est_fillin`sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive`r ifelse(!one_nab, " (using estimated sensitivity)", "")``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
 * out of the sequences with complete data, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
@@ -137,8 +140,8 @@ We define the marginal biological importance of a subgroup of features as the di
 vimp_summary_marg <- vimp_summary_tbl$grp_marg %>%
     select(-mn_rank, -matches("num_rank"))
 correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
-cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "$R^2$", paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
-bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
+cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
+bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
 correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
 kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_full, num_obs_red, n_row_now, vimp_threshold, importance_type = "marginal"))
@@ -1086,3 +1089,5 @@ kable(grptab, col.names = "Variables",
 ```
 
 `r if (opts$importance_grp == "") "-->"`
+
+# References
