@@ -8,23 +8,10 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-in_container <- TRUE
-david_computer <- FALSE
-if (in_container) {
-  code_dir <- "/home/lib/"
-  slfits_dir <- "/home/slfits/"
-  data_dir <- "/home/dat/"
-} else {
-    if (david_computer) {
-        code_dir <- "~/Dropbox/Emory/AMP/slapnap/code/"
-        slfits_dir <- "~/Dropbox/Emory/AMP/slapnap/slfits/"
-        data_dir <- "~/Dropbox/Emory/AMP/slapnap/data/"
-    } else {
-        code_dir <- "~/Projects/VIDD/hvtn/slapnap/code/"
-        slfits_dir <- "~/Projects/VIDD/hvtn/slapnap/local_production_runs/slfits_vrc07-523-ls_pgt121_pgdm1400"
-        data_dir <- "~/Projects/VIDD/hvtn/slapnap/sandbox/data/"
-    }
-}
+code_dir <- "/home/lib/"e
+slfits_dir <- "/home/slfits/"
+data_dir <- "/home/dat/"
+output_dir <- "/home/output/"
 ```
 
 ```{r source_preamble}
@@ -36,9 +23,7 @@ n_imp_ft <- 20
 ```
 
 ```{r get_options}
-if (in_container) {
-  opts <- get_global_options()
-}
+opts <- get_global_options()
 # boolean of single nab
 one_nab <- length(opts$nab) == 1
 est_fillin <- ifelse(one_nab, "", "estimated ")
@@ -89,9 +74,13 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` 
 
 Table \@ref(tab:variables) provides the name and description of each variable in the returned dataset.
 
+```{r variables}
+metadata_tab <- create_metadata()
+```
+
 # Variable group definitions
 
-Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for biological importance.
+Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for biological importance`r ifelse(!(opts$importance_grp == ""), "" " (however, in the SLAPNAP call that generated this dataset, biological importance was not requested)")`.
 
 ```{r vimpGroupTab, eval = !(opts$importance_grp == "")}
 # all_var_groups is created in preamble

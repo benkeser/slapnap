@@ -5,29 +5,144 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
 header-includes:
    - \usepackage{subfig}
-bibliography: refs.bib
-nocite: |
-   @shen2008dose, @wagh2016optimal
+   references:
+   - id: yoon2015catnap
+     type: article-journal
+     author:
+     - family: Yoon
+       given: Hyejin
+     - family: Macke
+       given: Jennifer
+     - family: West Jr
+       given: Anthony P
+     - family: Foley
+       given: Brian
+     - family: Bjorkman
+       given: Pamela J
+     - family: Korber
+       given: Bette
+     - family: Yusim
+       given: Karina
+     issued:
+     - year: 2015
+     title: 'CATNAP: A tool to compile, analyze and tally neutralizing antibody panels'
+     title-short: CATNAP
+     container-title: Nucleic Acids Research
+     publisher: Oxford University Press
+     page: W213-W219
+     volume: '43'
+     issue: W1
+     DOI: 10.1093/nar/gkv404
+
+   - id: magaret2019prediction
+     type: article-journal
+     author:
+     - family: Magaret
+       given: Craig A
+     - family: Benkeser
+       given: David C
+     - family: Williamson
+       given: Brian D
+     - family: Borate
+       given: Bhavesh R
+     - family: Carpp
+       given: Lindsay N
+     - family: Georgiev
+       given: Ivelin S
+     - family: Setliff
+       given: Ian
+     - family: Dingens
+       given: Adam S
+     - family: Simon
+       given: Noah
+     - family: Carone
+       given: Marco
+     - literal: others
+     issued:
+     - year: 2019
+     title: Prediction of VRC01 neutralization sensitivity by HIV-1 <span class="nocase">gp160</span>
+       sequence features
+     container-title: PLoS Computational Biology
+     publisher: Public Library of Science
+     page: e1006952
+     volume: '15'
+     issue: '4'
+     DOI: 10.1371/journal.pcbi.1006952
+
+   - id: wagh2016optimal
+     type: article-journal
+     author:
+     - family: Wagh
+       given: Kshitij
+     - family: Bhattacharya
+       given: Tanmoy
+     - family: Williamson
+       given: Carolyn
+     - family: Robles
+       given: Alex
+     - family: Bayne
+       given: Madeleine
+     - family: Garrity
+       given: Jetta
+     - family: Rist
+       given: Michael
+     - family: Rademeyer
+       given: Cecilia
+     - family: Yoon
+       given: Hyejin
+     - family: Lapedes
+       given: Alan
+     - literal: others
+     issued:
+     - year: 2016
+     title: Optimal combinations of broadly neutralizing antibodies for prevention and
+       treatment of HIV-1 clade C infection
+     container-title: PLoS Pathogens
+     publisher: Public Library of Science
+     volume: '12'
+     issue: '3'
+     DOI: 10.1371/journal.ppat.1005520
+
+   - id: shen2008dose
+     type: article-journal
+     author:
+     - family: Shen
+       given: Lin
+     - family: Peterson
+       given: Susan
+     - family: Sedaghat
+       given: Ahmad R
+     - family: McMahon
+       given: Moira A
+     - family: Callender
+       given: Marc
+     - family: Zhang
+       given: Haili
+     - family: Zhou
+       given: Yan
+     - family: Pitt
+       given: Eleanor
+     - family: Anderson
+       given: Karen S
+     - family: Acosta
+       given: Edward P
+     - literal: others
+     issued:
+     - year: 2008
+     title: Dose-response curve slope sets class-specific limits on inhibitory potential
+       of <span class="nocase">anti-HIV</span> drugs
+     container-title: Nature Medicine
+     publisher: Nature Publishing Group
+     page: 762-766
+     volume: '14'
+     issue: '7'
+     DOI: 10.1038/nm1777
 ---
 
 ```{r setup, include=FALSE}
-in_container <- TRUE
-david_computer <- FALSE
-if (in_container) {
-  code_dir <- "/home/lib/"
-  slfits_dir <- "/home/slfits/"
-  data_dir <- "/home/dat/"
-} else {
-    if (david_computer) {
-        code_dir <- "~/Dropbox/Emory/AMP/slapnap/code/"
-        slfits_dir <- "~/Dropbox/Emory/AMP/slapnap/slfits/"
-        data_dir <- "~/Dropbox/Emory/AMP/slapnap/data/"
-    } else {
-        code_dir <- "~/Projects/VIDD/hvtn/slapnap/code/"
-        slfits_dir <- "~/Projects/VIDD/hvtn/slapnap/local_production_runs/slfits_vrc07-523-ls_pgt121_pgdm1400"
-        data_dir <- "~/Projects/VIDD/hvtn/slapnap/sandbox/data/"
-    }
-}
+code_dir <- "/home/lib/"
+slfits_dir <- "/home/slfits/"
+data_dir <- "/home/dat/"
 ```
 
 ```{r source_preamble, include = FALSE}
@@ -39,9 +154,7 @@ n_imp_ft <- 20
 ```
 
 ```{r get_options}
-if (in_container) {
-  opts <- get_global_options()
-}
+opts <- get_global_options()
 # boolean of single nab
 one_nab <- length(opts$nab) == 1
 est_fillin <- ifelse(one_nab, "", "estimated ")

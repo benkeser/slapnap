@@ -3,7 +3,8 @@
 #-----------------------------------------------------
 # This script is executed as entry point to container
 #-----------------------------------------------------
-
+# allow errors to propagate up to container
+set -e
 # set up a log file to print out to
 current_date=$(date "+%d%b%Y")
 log_file_init=($(echo ${nab//'/'/'-'}"_"$current_date".log"))
