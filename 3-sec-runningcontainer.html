@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert" />
 
 
-<meta name="date" content="2020-05-24" />
+<meta name="date" content="2020-05-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -198,6 +198,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><strong><code>importance_ind</code></strong>: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none <code>&quot;&quot;</code> (default), learner-level <code>&quot;pred&quot;</code>, marginal <code>&quot;marg&quot;</code> and conditional <code>&quot;cond&quot;</code>. The latter two take significant computation time to compute.</li>
 <li><strong><code>report_name</code></strong>: A string indicating the desired name of the output report (default = <code>report_[_-separated list of nabs]_[date].html</code>).</li>
 <li><strong><code>return</code></strong>: A semicolon-separated string of the desired output. Possible values are <code>&quot;report&quot;</code> (default), <code>&quot;learner&quot;</code> for the trained algorithm, <code>&quot;data&quot;</code> for the analysis dataset, <code>&quot;figures&quot;</code> for all figures from the report, and <code>&quot;vimp&quot;</code> for variable importance objects.</li>
+<li><strong><code>view_port</code></strong>: A boolean string indicating whether the compiled report should be made viewable on <code>localhost</code>. If <code>&quot;TRUE&quot;</code> then <code>-p</code> option should be used in the <code>docker run</code> command to identify the port. See examples for details.</li>
 </ul>
 </div>
 <div id="interactive-sessions" class="section level2">

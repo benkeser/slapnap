@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R.
 Borate, Peter B. Gilbert}
-\date{May 24, 2020}
+\date{May 26, 2020}
 
 \begin{document}
 \maketitle
@@ -374,6 +374,12 @@ Proper values should be determined based on scientific context.
   \texttt{"learner"} for the trained algorithm, \texttt{"data"} for the
   analysis dataset, \texttt{"figures"} for all figures from the report,
   and \texttt{"vimp"} for variable importance objects.
+\item
+  \textbf{\texttt{view\_port}}: A boolean string indicating whether the
+  compiled report should be made viewable on \texttt{localhost}. If
+  \texttt{"TRUE"} then \texttt{-p} option should be used in the
+  \texttt{docker\ run} command to identify the port. See examples for
+  details.
 \end{itemize}
 
 \subsection{Interactive sessions}\label{interactive-sessions}

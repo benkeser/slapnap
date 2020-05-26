@@ -53,6 +53,7 @@ __-e options for `slapnap`__
 * __`importance_ind`__: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none `""` (default), learner-level `"pred"`, marginal `"marg"` and conditional `"cond"`. The latter two take significant computation time to compute. 
 * __`report_name`__: A string indicating the desired name of the output report (default = `report_[_-separated list of nabs]_[date].html`). 
 * __`return`__: A semicolon-separated string of the desired output. Possible values are `"report"` (default), `"learner"` for the trained algorithm, `"data"` for the analysis dataset, `"figures"` for all figures from the report, and `"vimp"` for variable importance objects.
+* __`view_port`__: A boolean string indicating whether the compiled report should be made viewable on `localhost`. If `"TRUE"` then `-p` option should be used in the `docker run` command to identify the port. See examples for details. 
 
 ## Interactive sessions
 
