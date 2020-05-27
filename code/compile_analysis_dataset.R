@@ -228,6 +228,9 @@ nprevious <- length(data.final[,1])
 saveRDS(nprevious, "/home/slfits/nprevious.rds")
 ncomplete <- length(data.final[complete.cases(data.final), 1])
 saveRDS(ncomplete, "/home/slfits/ncomplete.rds")
+# first covariate column
+min_cov_col_idx <- min(grep("geographic", colnames(data.final)))
+ncol_data_final <- ncol(data.final)
 # number with complete sequence/geog information
 ncomplete_features <- sum(complete.cases(data.final[ , min_cov_col_idx:ncol_data_final]))
 # number with complete IC50
