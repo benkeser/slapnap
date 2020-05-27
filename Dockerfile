@@ -26,7 +26,7 @@ RUN apt-get install -y r-base && apt-get install -y r-base-dev
 RUN apt-get install -y vim
 
 # install pandoc (for Rmarkdown conversions)
-RUN apt-get install -y pandoc
+RUN apt-get install -y pandoc && apt-get install -y pandoc-citeproc
 
 # install R libraries needed for analysis
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
@@ -37,6 +37,7 @@ RUN Rscript -e 'install.packages("SuperLearner", repos="https://cran.rstudio.com
 RUN Rscript -e 'install.packages("quadprog", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("dplyr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("tidyr", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("stringr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("cowplot", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ggplot2", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("glmnet", repos="https://cran.rstudio.com")'
@@ -93,10 +94,16 @@ RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 
 # copy report Rmd
 COPY code/new_report.Rmd /home/lib/new_report.Rmd
+COPY docs/refs.bib /home/lib/refs.bib
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
 COPY code/report_preamble.R /home/lib/report_preamble.R
 RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R /home/lib/report_preamble.R
+
+# copy metadata Rmd
+COPY code/metadata.Rmd /home/lib/metadata.Rmd
+COPY code/render_metadata.R /home/lib/render_metadata.R
+RUN chmod +x /home/lib/render_metadata.R
 
 
 #---------------------------------------------------------------------
@@ -110,6 +117,8 @@ ENV nab="VRC01"
 #   possible outcomes include "ic50", "ic80",
 #   "iip", "sens", "estsens", "multsens" and semicolon-separated
 #   combinations of these
+#   For a single/multispecific bnAb, enter "sens".
+#   For a bnAb combination, enter "estsens" or "multsens".
 ENV outcomes="ic50;sens"
 
 # which learners are included by default
@@ -166,14 +175,14 @@ ENV return="report"
 # endpoints as (estimated/multiple) IC-50 > sens_thresh
 ENV sens_thresh="1"
 
-# option to control multiple 
+# option to control multiple
 ENV multsens_nab="2"
 
 # option to view output on exposed port
 ENV view_port="FALSE"
 
 # add an argument to bust the cache, so that data are downloaded
-# fresh every build. taken from this SO answer: 
+# fresh every build. taken from this SO answer:
 # https://stackoverflow.com/questions/35134713/disable-cache-for-specific-run-commands
 ARG CACHEBUST=1
 RUN echo "$CACHEBUST"

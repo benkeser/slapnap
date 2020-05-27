@@ -27,7 +27,7 @@ for (i in 1:length(outcome_names)) {
         ## make plots
         eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
         eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
-        vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name), ": ", unlist(lapply(as.list(names(current_vimp_lst)), vimp_plot_type)))
+        vimp_plot_titles <- paste0(vimp_plot_name(this_outcome_name, one_nab = n_ab), ": ", unlist(lapply(as.list(names(current_vimp_lst)), vimp_plot_type)))
         grp_bool_lst <- as.list(grepl("grp", names(current_vimp_lst)))
         eval(parse(text = paste0(this_outcome_name, "_vimp_plots <- mapply(function(x, y, z) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = FALSE, grp = z, threshold = vimp_threshold, num_plot = num_pop_import, opts = opts), current_vimp_lst, vimp_plot_titles, grp_bool_lst, SIMPLIFY = FALSE)")))
         eval(parse(text = paste0(this_outcome_name, "_cv_vimp_plots <- mapply(function(x, y, z) plot_one_vimp(x, title = y, x_lab = this_x_lab, cv = TRUE, grp = z, threshold = vimp_threshold, num_plot = num_pop_import, opts = opts), current_cv_vimp_lst, vimp_plot_titles, grp_bool_lst, SIMPLIFY = FALSE)")))
@@ -40,14 +40,14 @@ if (opts$cvperf) {
         switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_cv_vimp_lst),
         switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_cv_vimp_lst),
         switch("iip" %in% outcome_names + 1, NULL, iip_cv_vimp_lst),
-        switch((("dichotomous.1" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", outcome_names)])) + 1, NULL, dichotomous.1_cv_vimp_lst),
-        switch((("dichotomous.2" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", outcome_names)])) + 1, NULL, dichotomous.2_cv_vimp_lst),
+        switch((("dichotomous.1" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))])) + 1, NULL, dichotomous.1_cv_vimp_lst),
+        switch((("dichotomous.2" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))])) + 1, NULL, dichotomous.2_cv_vimp_lst),
         threshold = vimp_threshold, outcome_names = all_outcome_names, cv = TRUE, opts = opts)
 } else {
     vimp_summary_tbl <- make_vimp_executive_summary_table(switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_vimp_lst),
     switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_vimp_lst),
     switch("iip" %in% outcome_names + 1, NULL, iip_vimp_lst),
-    switch((("dichotomous.1" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", outcome_names)])) + 1, NULL, dichotomous.1_vimp_lst),
-    switch((("dichotomous.2" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", outcome_names)])) + 1, NULL, dichotomous.2_vimp_lst),
+    switch((("dichotomous.1" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))])) + 1, NULL, dichotomous.1_vimp_lst),
+    switch((("dichotomous.2" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))])) + 1, NULL, dichotomous.2_vimp_lst),
     threshold = vimp_threshold, outcome_names = all_outcome_names, cv = FALSE, opts = opts)
 }

@@ -12,16 +12,12 @@ check_opts_outcomes <- function(outcome_vec, all_outcomes, n_abs) {
         shiny::need(outcome_vec, "Please enter at least one outcome (one of 'ic50', 'ic80', 'iip', 'estsens', 'multsens', 'sens') or a semicolon-separated list of outcomes (e.g., 'ic50;ic80').")
     )
     shiny::validate(
-        shiny::need(outcome_vec != '', "Please enter at least one outcome (one of 'ic50', 'ic80', 'iip', 'estsens', 'multsens', 'sens') or a semicolon-separated list of outcomes (e.g., 'ic50;ic80')."),
-        shiny::need(length(setdiff(outcome_vec, all_outcomes)) == 0, "You have entered one or more outcomes that are not supported at this time. Please enter at least one of the currently supported outcomes ('ic50', 'ic80', 'iip', 'estsens', 'multsens', 'sens') or a semicolon-separated list of outcomes (e.g., 'ic50;ic80').")
+        shiny::need(outcome_vec != '', "Please enter at least one outcome (one of 'ic50'; 'ic80'; 'iip'; 'estsens' and/or 'multsens' [for combination bnAb regimens]; or 'sens' [for single/multispecific bnAbs]) or a semicolon-separated list of outcomes (e.g., 'ic50;ic80')."),
+        shiny::need(length(setdiff(outcome_vec, all_outcomes)) == 0, "You have entered one or more outcomes that are not supported at this time. Please enter at least one of the currently supported outcomes ('ic50'; 'ic80'; 'iip'; 'estsens' and/or 'multsens' [for combination bnAb regimens]; or 'sens' [for single/multispecific bnAbs]) or a semicolon-separated list of outcomes (e.g., 'ic50;ic80').")
     )
     if(n_abs == 1){
         shiny::validate(
-            shiny::need(any(c("estsens", "multsens") %in% outcome_vec), "If a single nAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
-        )
-    }else if(n_abs > 1){
-        shiny::validate(
-            shiny::need(any(c("sens") %in% outcome_vec), "If multiple nAbs are used, please specify 'estsens' and/or 'multsens' as the outcome, instead of 'sens'.")
+            shiny::need(!any(c("sens2") %in% outcome_vec), "If a single nAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
         )
     }
 }
@@ -48,7 +44,7 @@ check_opts_cvperf <- function(cvperf_str) {
 # check nfolds
 check_opts_nfolds <- function(nfolds_str) {
     shiny::validate(
-        shiny::need(nfolds_str == "" | is.numeric(as.numeric(nfolds_str)), "nfolds must be either a number (e.g., 5) or an empty string (in which case 5 folds will be used).")
+        shiny::need(nfolds_str == "" | is.numeric(as.numeric(nfolds_str)), "nfolds must be either a number (e.g., 5) or an empty string (in which case 2 folds will be used).")
     )
 }
 # check vimp
@@ -86,7 +82,7 @@ get_options_check <- function(opts) {
     # check the nab
     check_opts_nab(opts$nab)
     # check the outcome
-    all_outcomes <- c("ic50", "ic80", "iip", "estsens", "multsens", "sens")
+    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
     check_opts_outcomes(opts$outcomes, all_outcomes, length(opts$nab))
     # check the learners
     all_learners <- c("rf", "xgboost", "lasso")
