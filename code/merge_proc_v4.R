@@ -222,6 +222,12 @@ data.final <- data.final[ , filter.insertions]
 filename <- paste0("multiab_catnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
 setwd(path.data.analysis)
 write.csv(data.final, file=filename, row.names=F)
+
+# save missing data stats for report compilation later
+nprevious <- length(data.final[,1])
+saveRDS(nprevious, "/home/slfits/nprevious.rds")
+ncomplete <- length(data.final[complete.cases(data.final), 1])
+saveRDS(ncomplete, "/home/slfits/ncomplete.rds")
 # ---------------------------------------------------------------------------- #
 #                                    - 30 -
 # ---------------------------------------------------------------------------- #
