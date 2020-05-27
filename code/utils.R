@@ -1,3 +1,31 @@
+get_complete_data_text <- function(opts, ncomplete_ic50,
+                                   ncomplete_ic80,
+                                   ncomplete_ic5080,
+                                   iip_undef){
+    if(!opts$same_subset | !("ic80" %in% opts$outcomes & length(opts$outcomes) > 1)){
+        if(all(opts$outcomes == "ic80")){
+            tmp <- paste0(ncomplete_ic80, " of these sequences had measured IC$_{80}$.")
+        }else{
+            tmp <- paste0(ncomplete_ic50, " of these sequences had measured IC$_{50}$")
+            if(any(c("ic80", "iip") %in% opts$outcomes)){
+                tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, ", ", " and "), ncomplete_ic80, " had measured IC$_{80}$")
+                if("iip" %in% opts$outcome){
+                    tmp <- paste0(tmp, ", and ", ncomplete_ic5080, " had both measured")
+                }
+            }
+        }
+    }else{
+        tmp <- paste0(ncomplete_ic5080, " of these sequences had IC$_{50}$ and IC$_{80}$ measured.")
+        if(iip_undef > 0){
+            tmp <- paste0(tmp, "Amongst these sequences, ", iip_undef, " had the same IC$_{50}$ and IC$_{80}$ and thus were excluded from the analysis.",
+                          "Since `same_subset` was set to TRUE in the call to `slapnap`, there were a total of ", ncomplete_ic5080 - iip_undef, " sequences included in the analysis of each endpoint")
+        }else{
+            tmp <- paste0(tmp, "Since `same_subset` was set to TRUE in the call to `slapnap`, this was the total number of sequences included in the analysis of each endpoint")            
+        }
+    }
+    return(tmp)
+}
+
 ## various utility functions
 #' @param opts options
 #' @param imp_df importance data.frame
@@ -260,11 +288,41 @@ get_learner_descriptions <- function(opts){
 # CV.SuperLearner fits and create a list of CV results for all continuous
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
 
+get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
+    tmp <- paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions of ")
+    if("ic50" %in% opts$outcomes){
+        tmp <- paste0(tmp, "IC$_{50}$")
+        if(any(c("ic80", "iip") %in% opts$outcomes)){
+            if(n_row_ic50 != n_row_ic80){
+                tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
+            }else{
+                tmp <- paste0(tmp, ", ")
+            }
+            if("ic80" %in% opts$outcomes){
+                tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$"))
+                if(n_row_ic80 != n_row_iip | !("iip" %in% opts$outcomes)){
+                    tmp <- paste0(tmp, " (n = ", n_row_ic80, ")")
+                }
+                if("iip" %in% opts$outcomes){
+                    tmp <- paste0(tmp, ", and IIP (n = ", n_row_iip, ").")
+                }else{
+                    tmp <- paste0(tmp, ".")
+                }
+            }
+        }else{
+            tmp <- paste0(tmp, " (n = ", n_row_ic50, ").")
+        }
+    }
+}
 # each entry in the output list is a kable that should be properly labeled.
 get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
     fit_list <- fit_list_out$out
+<<<<<<< HEAD
     V <- opts$nfolds
     n_row_now <- fit_list_out$n_row_now
+=======
+    V <- fit_list_out$V
+>>>>>>> upstream/master
     table_list <- lapply(fit_list[!is.na(names(fit_list))], summary.myCV.SuperLearner, opts = opts)
 
     # re-label
@@ -277,6 +335,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
     # now format continuous outcomes table
     cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
     rsq_kab <- NULL
+
     if(length(cont_idx) > 0){
         list_rows <- sapply(cont_idx, get_est_and_ci, fit_list = table_list, Rsquared = TRUE, simplify = FALSE)
         rsqtab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
@@ -284,7 +343,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
         row.names(rsqtab) <- tmp[cont_idx]
         rsq_kab <- knitr::kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions of ", ifelse(length(cont_idx) == 1, tmp[cont_idx], "the continuous-valued outcomes"), " (n = ", n_row_now, " observations with complete sequence data)."))
+              caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
     }
     # now format dichotomous outcomes table
     dich_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
@@ -296,7 +355,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
         row.names(auctab) <- tmp[dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CVAUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", n_row_now, " observations with complete sequence data)."))
+              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
     }
     return(list(r2 = rsq_kab, auc = auc_kab))
 }
@@ -337,7 +396,24 @@ load_cv_fits <- function(opts, run_sls, code_dir){
         V <- out_list[[1]]$V
     }
     # figure out number
-    return(list(out = out_list, V = V, n_row_now = length(out_list[[1]]$Y)))
+    n_row_ic50 <- if("ic50" %in% opts$outcomes){
+        length(out_list$ic50$Y)
+    }else{
+        NULL
+    }
+    n_row_ic80 <- if("ic80" %in% opts$outcomes){
+        length(out_list$ic80$Y)
+    }else{
+        n_row_ic50
+    }
+    n_row_iip <- if("iip" %in% opts$outcomes){
+        length(out_list$iip$Y)
+    }else{
+        n_row_ic80
+    }
+    
+    return(list(out = out_list, V = V, n_row_ic50 = n_row_ic50, 
+                n_row_ic80 = n_row_ic80, n_row_iip = n_row_iip))
 }
 
 # get descriptions of outcomes
@@ -367,28 +443,28 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
         }
         if(iip_pres){
             tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
-                          "\\[ \\frac{10^m}{\\mbox{predicted IC-50}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{predicted IC-80}) - \\mbox{log}_{10}(\\mbox{predicted IC-50}))$ ",
-                          "and predicted IC-50 and IC-80 are computed as described above. ",
+                          "\\[ \\frac{10^m}{\\mbox{predicted IC$_{50}$}^m + 10^m} \ , \\]",
+                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{predicted IC}_{80}) - \\mbox{log}_{10}(\\mbox{predicted IC}_{50}))$ ",
+                          "and predicted IC$_{50}$ and IC$_{80}$ are computed as described above. ",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC-50 < ", opts$sens_thresh, ". ")
+            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC$_{50}$ < ", opts$sens_thresh, ". ")
         }
         if(sens2_pres){
-            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC-50 < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies.")
+            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies.")
         }
     } else {
         if(iip_pres){
             tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
-                          "\\[ \\frac{10^m}{\\mbox{IC-50}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC-80}) - \\mbox{log}_{10}(\\mbox{IC-50}))$. ",
+                          "\\[ \\frac{10^m}{\\mbox{IC$_{50}$}^m + 10^m} \ , \\]",
+                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC}_{80}) - \\mbox{log}_{10}(\\mbox{IC}_{50}))$. ",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres | sens2_pres){
-            tmp_text <- c(tmp_text, "Sensitivity is defined by the binary indicator that IC-50 < ", opts$sens_thresh, ".")
+            tmp_text <- c(tmp_text, "Sensitivity is defined by the binary indicator that IC$_{50}$ < ", opts$sens_thresh, ".")
         }
         # should no longer ever occur
         # if(sens2_pres){
@@ -413,7 +489,7 @@ get_comma_sep_outcomes <- function(opts){
         tmp <- opts$outcomes
     }
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-    all_labels <- c("IC-50", "IC-80", "IIP", ifelse(length(opts$nab) == 1, "sensitivity", "estimated sensitivity"), "multiple sensitivity")
+    all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "sensitivity", "estimated sensitivity"), "multiple sensitivity")
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
@@ -439,10 +515,10 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 ## read in permanent options
 get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf", "nfolds",
                                            "importance_grp", "importance_ind", "report_name", "return",
-                                           "sens_thresh", "multsens_nab"),
+                                           "sens_thresh", "multsens_nab", "same_subset"),
                                options_boolean = c(FALSE, FALSE, FALSE, TRUE,
                                                    TRUE, FALSE, FALSE, FALSE, FALSE, FALSE,
-                                                   FALSE, FALSE)){
+                                                   FALSE, FALSE, TRUE)){
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     # replace sensitivity with sens1/2 labels
