@@ -70,7 +70,7 @@ RUN apt-get update
 RUN apt-get install -y ffmpeg
 
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
-COPY code/multi_ab_v5.Rlib /home/lib/multi_ab_v5.Rlib
+COPY code/multi_ab.Rlib /home/lib/multi_ab.Rlib
 COPY code/compile_analysis_dataset.R /home/lib/compile_analysis_dataset.R
 COPY code/variable_groups.R /home/lib/variable_groups.R
 COPY code/utils.R /home/lib/utils.R
