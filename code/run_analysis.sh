@@ -30,11 +30,14 @@ then
     echo "--- Fitting learners --- " >> $log_file
     Rscript /home/lib/run_super_learners.R >> $log_file 2>&1
 
-
-    # run script to get variable importance
-    printf "Estimating variable importance \n"
-    echo "--- Estimating variable importance --- " >> $log_file
-    Rscript /home/lib/get_vimp.R >> $log_file 2>&1
+    VIMP_REGEX="^(marg|cond|marg;cond)"
+    if [[ "$importance_grp" =~ $VIMP_REGEX ]] || [[ "$importance_ind" =~ $VIMP_REGEX ]]
+    then
+        # run script to get variable importance
+        printf "Estimating variable importance \n"
+        echo "--- Estimating variable importance --- " >> $log_file
+        Rscript /home/lib/get_vimp.R >> $log_file 2>&1
+    fi
 fi
 
 if [[ "$return" == *"report"* ]] || [[ "$return" == *"figures"* ]]
