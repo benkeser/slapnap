@@ -201,10 +201,21 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="train-an-algorithm" class="section level2">
 <h2><span class="header-section-number">4.4</span> Train an algorithm</h2>
-<p>The previous commands train learners and evaluate their performance using cross-validation. However, at times we may wish only to use <code>slapnap</code> to train a particular algorithm, while avoiding the additional time incurred by evaluating its cross-validated performance.</p>
+<p>The previous commands train learners and evaluate their performance using cross-validation. However, at times we may wish only to use <code>slapnap</code> to train a particular algorithm, while avoiding the additional computational time associated with evaluating its cross-validated performance and compiling a report. We show an example of this below using sensitivity as the outcome.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
+           -e learners=<span class="st">&quot;rf&quot;</span> \
+           -e return=<span class="st">&quot;learner&quot;</span> \
+           -e cvperf=<span class="st">&quot;FALSE&quot;</span> \
+           -e outcome=<span class="st">&quot;sens&quot;</span> \
+           slapnap/slapnap</code></pre></div>
+<p>After completion of this run, <code>learner_sens.rds</code> will appear in <code>/path/to/local/dir</code> that contains an <code>R</code> object of class <code>ranger</code> (the package used by <code>slapnap</code> to fit random forests).</p>
 </div>
 <div id="pull-and-clean-data" class="section level2">
 <h2><span class="header-section-number">4.5</span> Pull and clean data</h2>
+<p>The <code>slapnap</code> container can also be used to return cleaned CATNAP data suitable for analyses not supported by the <code>slapnap</code> pipeline. In this case, the container avoids training machine learning algorithms and report generation, returning a data set and associated documentation. In the following call, <code>return</code> only includes <code>&quot;data&quot;</code>; thus, options pertaining to the machine learning portions of <code>slapnap</code> are essentially ignored by <code>slapnap</code>. The inputted <code>outcomes</code> are also irrelevant, as all <code>outcomes</code> are included in the resultant data set.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
+           -e return=<span class="st">&quot;data&quot;</span> \
+           slapnap/slapnap</code></pre></div>
 </div>
 </div>
             </section>

@@ -492,9 +492,45 @@ needed to construct the ensemble.
 The previous commands train learners and evaluate their performance
 using cross-validation. However, at times we may wish only to use
 \texttt{slapnap} to train a particular algorithm, while avoiding the
-additional time incurred by evaluating its cross-validated performance.
+additional computational time associated with evaluating its
+cross-validated performance and compiling a report. We show an example
+of this below using sensitivity as the outcome.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{docker}\NormalTok{ run -v /path/to/local/dir:/home/output \textbackslash{}}
+\NormalTok{           -e learners=}\StringTok{"rf"}\NormalTok{ \textbackslash{}}
+\NormalTok{           -e return=}\StringTok{"learner"}\NormalTok{ \textbackslash{}}
+\NormalTok{           -e cvperf=}\StringTok{"FALSE"}\NormalTok{ \textbackslash{}}
+\NormalTok{           -e outcome=}\StringTok{"sens"}\NormalTok{ \textbackslash{}}
+\NormalTok{           slapnap/slapnap}
+\end{Highlighting}
+\end{Shaded}
+
+After completion of this run, \texttt{learner\_sens.rds} will appear in
+\texttt{/path/to/local/dir} that contains an \texttt{R} object of class
+\texttt{ranger} (the package used by \texttt{slapnap} to fit random
+forests).
 
 \subsection{Pull and clean data}\label{pull-and-clean-data}
+
+The \texttt{slapnap} container can also be used to return cleaned CATNAP
+data suitable for analyses not supported by the \texttt{slapnap}
+pipeline. In this case, the container avoids training machine learning
+algorithms and report generation, returning a data set and associated
+documentation. In the following call, \texttt{return} only includes
+\texttt{"data"}; thus, options pertaining to the machine learning
+portions of \texttt{slapnap} are essentially ignored by
+\texttt{slapnap}. The inputted \texttt{outcomes} are also irrelevant, as
+all \texttt{outcomes} are included in the resultant data set.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{docker}\NormalTok{ run -v /path/to/local/dir:/home/output \textbackslash{}}
+\NormalTok{           -e return=}\StringTok{"data"}\NormalTok{ \textbackslash{}}
+\NormalTok{           slapnap/slapnap}
+\end{Highlighting}
+\end{Shaded}
 
 \section{Report details}\label{sec:report}
 
