@@ -47,7 +47,7 @@ __-e options for `slapnap`__
 * __`importance_ind`__: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none `""` (default), learner-level `"pred"`, marginal `"marg"` and conditional `"cond"`. The latter two take significant computation time to compute. 
 * __`report_name`__: A string indicating the desired name of the output report (default = `report_[_-separated list of nabs]_[date].html`). 
 * __`return`__: A semicolon-separated string of the desired output. Possible values are `"report"` (default), `"learner"` for the trained algorithm, `"data"` for the analysis dataset, `"figures"` for all figures from the report, and `"vimp"` for variable importance objects.
-* __`view_port`__: A boolean string indicating whether the compiled report should be made viewable on `localhost` (default `"FALSE"`). If `"TRUE"` then `-p` option should be used in the `docker run` command to identify the port. See examples for details. 
+* __`view_port`__: A boolean string indicating whether the compiled report should be made viewable on `localhost` (default `"FALSE"`). If `"TRUE"` then `-p` option should be used in the `docker run` command to identify the port. See example in Section \@ref(sec:webbrowse) for details. 
 
 ## Mounting a local directory {#sec:mounting}
 
@@ -85,9 +85,9 @@ Note that this call mounts the local directory `path/to/local/dir` to receive ou
 
 When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir`. The container will then compile an analytic data set from the CATNAP database for the default antibody (VRC01), train the default learner (random forest) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross-validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir`. 
 
-## Viewing results in a web browser
+## Viewing results in a web browser {sec:webbrowse}
 
-To have the results viewable in a web browser execute the following command. 
+To have the results viewable in a web browser execute the following command (note the use of `\` to break the `bash` command over multiple lines).  
 
 
 ```bash
@@ -104,7 +104,18 @@ Note that in the above command, we have still mounted a local directory, which m
 
 ## Super learning
 
+If multiple `learner`s are specified, then a super learner ensemble is constructed. In the following command, we construct an ensemble based on a random forest and elastic net. Note that the execution time for super learners can be considerably greater than for single `learner`s because of the extra layer of cross-validation needed to construct the ensemble. 
+
+
+```bash
+docker run -v /path/to/local/dir:/home/output \
+           -e learners="rf;lasso" \
+           slapnap/slapnap
+```
+
 ## Train an algorithm
+
+The previous commands train learners and evaluate their performance using cross-validation. However, at times we may wish only to use `slapnap` to train a particular algorithm, while avoiding the additional time incurred by evaluating its cross-validated performance. 
 
 ## Pull and clean data
 

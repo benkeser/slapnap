@@ -359,7 +359,7 @@ Proper values should be determined based on scientific context.
   compiled report should be made viewable on \texttt{localhost} (default
   \texttt{"FALSE"}). If \texttt{"TRUE"} then \texttt{-p} option should
   be used in the \texttt{docker\ run} command to identify the port. See
-  examples for details.
+  example in Section \ref{sec:webbrowse} for details.
 \end{itemize}
 
 \subsection{Mounting a local directory}\label{sec:mounting}
@@ -437,11 +437,12 @@ database for the default antibody (VRC01), train the default learner
 \texttt{nfolds}) cross-validation, and compile a report detailing the
 results, and place the compiled report in \texttt{path/to/local/dir}.
 
-\subsection{Viewing results in a web
-browser}\label{viewing-results-in-a-web-browser}
+\subsection{Viewing results in a web browser
+\{sec:webbrowse\}}\label{viewing-results-in-a-web-browser-secwebbrowse}
 
 To have the results viewable in a web browser execute the following
-command.
+command (note the use of \texttt{\textbackslash{}} to break the
+\texttt{bash} command over multiple lines).
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -471,7 +472,27 @@ report is desired to be returned.
 
 \subsection{Super learning}\label{super-learning}
 
+If multiple \texttt{learner}s are specified, then a super learner
+ensemble is constructed. In the following command, we construct an
+ensemble based on a random forest and elastic net. Note that the
+execution time for super learners can be considerably greater than for
+single \texttt{learner}s because of the extra layer of cross-validation
+needed to construct the ensemble.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{docker}\NormalTok{ run -v /path/to/local/dir:/home/output \textbackslash{}}
+\NormalTok{           -e learners=}\StringTok{"rf;lasso"}\NormalTok{ \textbackslash{}}
+\NormalTok{           slapnap/slapnap}
+\end{Highlighting}
+\end{Shaded}
+
 \subsection{Train an algorithm}\label{train-an-algorithm}
+
+The previous commands train learners and evaluate their performance
+using cross-validation. However, at times we may wish only to use
+\texttt{slapnap} to train a particular algorithm, while avoiding the
+additional time incurred by evaluating its cross-validated performance.
 
 \subsection{Pull and clean data}\label{pull-and-clean-data}
 
