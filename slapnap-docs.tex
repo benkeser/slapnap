@@ -432,10 +432,11 @@ progress of the container. The first message will report the name of the
 log file, which will appear in \texttt{/path/to/local/dir}. The
 container will then compile an analytic data set from the CATNAP
 database for the default antibody (VRC01), train the default learner
-(random forest) for the default outcomes (\texttt{ic50} and
-\texttt{sens}), evaluate its performance using two-fold (default for
-\texttt{nfolds}) cross-validation, and compile a report detailing the
-results, and place the compiled report in \texttt{path/to/local/dir}.
+(random forest \citep{breiman2001}) for the default outcomes
+(\texttt{ic50} and \texttt{sens}), evaluate its performance using
+two-fold (default for \texttt{nfolds}) cross-validation, and compile a
+report detailing the results, and place the compiled report in
+\texttt{path/to/local/dir}.
 
 \subsection{Viewing results in a web browser
 \{sec:webbrowse\}}\label{viewing-results-in-a-web-browser-secwebbrowse}
@@ -619,10 +620,11 @@ features. Learner-level predictive importance may be obtained by passing
 importance is defined using the absolute value of the estimated
 regression coefficient; for random forests, importance is defined using
 the Gini index (binary outcomes) or the variance of the outcome
-(continuous outcomes); for boosted trees, importance is defined using
-the fractional contribution of total gain of the feature's splits. If a
-super learner ensemble is fit, then the best-fitting algorithm in the
-ensemble is used to compute the predictive importance.
+(continuous outcomes); for eXtreme gradient boosting \citep{chen2016},
+importance is defined using the fractional contribution of total gain of
+the feature's splits. If a super learner ensemble is fit, then the
+best-fitting algorithm in the ensemble is used to compute the predictive
+importance.
 
 In the following command, we request predictive importance for a simple
 scenario. Predictive importance is displayed for the top 20 features.
