@@ -20,7 +20,7 @@ Rscript /home/lib/check_opts.R >> $log_file 2>&1
 # run script to build analytic data set
 printf "Building analytic data set from CATNAP database \n"
 echo "--- Building analytic data set from CATNAP database --- " >> $log_file
-Rscript /home/lib/merge_proc_v4.R >> $log_file 2>&1
+Rscript /home/lib/compile_analysis_dataset.R >> $log_file 2>&1
 
 # run script to fit super learners
 # but only fit if something other than just data is requested as output

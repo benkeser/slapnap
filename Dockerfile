@@ -71,7 +71,7 @@ RUN apt-get install -y ffmpeg
 
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
 COPY code/multi_ab_v5.Rlib /home/lib/multi_ab_v5.Rlib
-COPY code/merge_proc_v4.R /home/lib/merge_proc_v4.R
+COPY code/compile_analysis_dataset.R /home/lib/compile_analysis_dataset.R
 COPY code/variable_groups.R /home/lib/variable_groups.R
 COPY code/utils.R /home/lib/utils.R
 COPY code/run_super_learners.R /home/lib/run_super_learners.R
@@ -89,7 +89,7 @@ COPY code/var_import_plot.R /home/lib/var_import_plot.R
 COPY code/vimp_executive_summary_table.R /home/lib/vimp_executive_summary_table.R
 COPY code/biological_importance.R /home/lib/biological_importance.R
 
-RUN chmod +x /home/lib/merge_proc_v4.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
+RUN chmod +x /home/lib/compile_analysis_dataset.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
 RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 
 # copy report Rmd

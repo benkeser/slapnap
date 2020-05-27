@@ -228,6 +228,18 @@ nprevious <- length(data.final[,1])
 saveRDS(nprevious, "/home/slfits/nprevious.rds")
 ncomplete <- length(data.final[complete.cases(data.final), 1])
 saveRDS(ncomplete, "/home/slfits/ncomplete.rds")
+# number with complete sequence/geog information
+ncomplete_features <- sum(complete.cases(data.final[ , min_cov_col_idx:ncol_data_final]))
+# number with complete IC50
+ncomplete_ic50 <- sum(!is.na(data.final$pc.ic50))
+# number with complete IC80
+ncomplete_ic80 <- sum(!is.na(data.final$pc.ic80))
+# number with complete IC50 and IC80
+ncomplete_ic5080 <- sum(!is.na(data.final$pc.ic50) & !is.na(data.final$pc.ic80))
+saveRDS(ncomplete_features, "/home/slfits/ncomplete_features.rds")
+saveRDS(ncomplete_ic50, "/home/slfits/ncomplete_ic50.rds")
+saveRDS(ncomplete_ic80, "/home/slfits/ncomplete_ic80.rds")
+saveRDS(ncomplete_ic5080, "/home/slfits/ncomplete_ic5080.rds")
 # ---------------------------------------------------------------------------- #
 #                                    - 30 -
 # ---------------------------------------------------------------------------- #

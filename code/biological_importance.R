@@ -53,7 +53,3 @@ if (opts$cvperf) {
     switch((("dichotomous.2" %in% outcome_names) & (run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))])) + 1, NULL, dichotomous.2_vimp_lst),
     threshold = vimp_threshold, outcome_names = all_outcome_names, cv = FALSE, opts = opts)
 }
-
-for (i in 1:length(opts$outcomes)) {
-    eval(parse(text = paste0("num_obs_fulls[i] <- ", "
-}
