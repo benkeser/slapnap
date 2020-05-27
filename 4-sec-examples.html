@@ -194,7 +194,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="super-learning" class="section level2">
 <h2><span class="header-section-number">4.3</span> Super learning</h2>
-<p>If multiple <code>learner</code>s are specified, then a super learner ensemble is constructed. In the following command, we construct an ensemble based on a random forest and elastic net. Note that the execution time for super learners can be considerably greater than for single <code>learner</code>s because of the extra layer of cross-validation needed to construct the ensemble.</p>
+<p>If multiple <code>learner</code>s are specified, then a super learner ensemble <span class="citation">(van der Laan, Polley, and Hubbard 2007)</span> is constructed. In the following command, we construct an ensemble based on a random forest <span class="citation">(Breiman 2001)</span> and elastic net <span class="citation">(Zou and Hastie 2005)</span>. Note that the execution time for super learners can be considerably greater than for single <code>learner</code>s because of the extra layer of cross-validation needed to construct the ensemble.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
            -e learners=<span class="st">&quot;rf;lasso&quot;</span> \
            slapnap/slapnap</code></pre></div>

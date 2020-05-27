@@ -275,7 +275,7 @@ Proper values should be determined based on scientific context.
 \tightlist
 \item
   \textbf{\texttt{nab}}: A semicolon-separated list of bNAbs (default =
-  ``\texttt{VRC01}''). A list of possible bNAbs can be found
+  \texttt{"VRC01"}). A list of possible bNAbs can be found
   \href{https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp}{here}.
   If multiple bNAbs are listed, it is assumed that the analysis should
   be of estimated \texttt{outcomes} for a combination of bNAbs (see
@@ -473,8 +473,9 @@ report is desired to be returned.
 \subsection{Super learning}\label{super-learning}
 
 If multiple \texttt{learner}s are specified, then a super learner
-ensemble is constructed. In the following command, we construct an
-ensemble based on a random forest and elastic net. Note that the
+ensemble \citep{vanderlaan2007} is constructed. In the following
+command, we construct an ensemble based on a random forest
+\citep{breiman2001} and elastic net \citep{zou2005}. Note that the
 execution time for super learners can be considerably greater than for
 single \texttt{learner}s because of the extra layer of cross-validation
 needed to construct the ensemble.
@@ -545,9 +546,94 @@ all \texttt{outcomes} are included in the resultant data set.
 \subsection{Variable importance
 details}\label{variable-importance-details}
 
+If \texttt{importance\_grp} or \texttt{importance\_ind} is specified,
+then variable importance estimates are computed based on the fitted
+\texttt{learner}s. Both biological and prediction importance can be
+obtained; we discuss each in the following two sections.
+
 \subsubsection{Biological importance}\label{sec:biolimp}
 
+Biological importance may be obtained by specifying
+\texttt{importance\_grp}, \texttt{importance\_ind}, or both. We provide
+two types of biological importance: marginal and conditional, accessed
+by passing \texttt{"marg"} and \texttt{"cond"}, respectively, to one of
+the importance variables. Both types of biological importance are based
+on the population prediction potential of features
+\citep{williamson2020}. We measure prediction potential using
+nonparametric \(R^2\) for continuous outcomes (i.e., IC-50, IC-80, or
+IIP) and using the nonparametric area under the receiver operating
+characteristic curve (AUC) for binary outcomes (i.e., sensitivity,
+estimated sensitivity, or multiple sensitivity). In both marginal and
+conditional importance, we compare the population prediction potential
+including the feature(s) of interest to the population prediction
+potential excluding the feature(s) or interest; this provides a measure
+of the biological importance of the feature(s). The two types of
+biological importance differ only in the other adjustment variables that
+we consider: conditional importance compares the prediction potential of
+all features to the prediction potential of all features excluding the
+feature(s) of interest, and thus importance must be interpreted
+conditionally; whereas marginal importance compares the prediction
+potential of the feature(s) of interest plus geographic confounders to
+the prediction potential of the geographic confounders alone.
+
+Both marginal and conditional biological importance can be computed for
+groups of features or individual features. The available feature groups
+are detailed in \ref{sec:data}. Execution time may increase dramatically
+when biological importance is requested: a separate \texttt{learner} (or
+super learner ensemble) must be trained for each feature group (or
+individual feature) of interest. Marginal importance tends to be
+computed more quickly than conditional importance, but both types of
+importance provide useful information about the population of interest
+and the underlying biology.
+
+If feature importance is requested, then point estimates, confidence
+intervals, and p-values (for a test of the null hypothesis that the
+biological importance is equal to zero) will be computed and displayed
+for each feature or group of features of interest.
+
+In the following command, we request marginal biological importance for
+the feature groups defined in \ref{sec:data}. We do not specify a super
+learner ensemble to reduce computation time; however, in most problems
+we recommend an ensemble to protect against model misspecification.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{docker}\NormalTok{ run -v /path/to/local/dir:/home/output \textbackslash{}}
+\NormalTok{           -e importance_grp=}\StringTok{"marg"}\NormalTok{ \textbackslash{}}
+\NormalTok{           slapnap/slapnap}
+\end{Highlighting}
+\end{Shaded}
+
+The raw \texttt{R} objects (saved as \texttt{.rds} files) containing the
+point estimates, confidence intervals, and p-values for biological
+importance can be saved by passing \texttt{"vimp"} to \texttt{return}.
+
 \subsubsection{Predictive importance}\label{predictive-importance}
+
+In addition to the biological importance, it may be of interest to
+understand how the fitted \texttt{learner} depends on the measured
+features. Learner-level predictive importance may be obtained by passing
+\texttt{"pred"} to the variable \texttt{importance\_ind}. If a single
+\texttt{learner} is fit, then the predictive importance is the
+\texttt{R} default for that type of learner: for the elastic net,
+importance is defined using the absolute value of the estimated
+regression coefficient; for random forests, importance is defined using
+the Gini index (binary outcomes) or the variance of the outcome
+(continuous outcomes); for boosted trees, importance is defined using
+the fractional contribution of total gain of the feature's splits. If a
+super learner ensemble is fit, then the best-fitting algorithm in the
+ensemble is used to compute the predictive importance.
+
+In the following command, we request predictive importance for a simple
+scenario. Predictive importance is displayed for the top 20 features.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{docker}\NormalTok{ run -v /path/to/local/dir:/home/output \textbackslash{}}
+\NormalTok{           -e importance_ind=}\StringTok{"pred"}\NormalTok{ \textbackslash{}}
+\NormalTok{           slapnap/slapnap}
+\end{Highlighting}
+\end{Shaded}
 
 \section{References}\label{sec:refs}
 
