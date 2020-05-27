@@ -71,6 +71,10 @@ for(i in seq_along(all_outcomes)){
     nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
 }
 outcome_names <- get_outcome_names(opts)
+# set number of CV folds
+V <- as.numeric(opts$nfolds)
+# check the outcomes to see if we can run them or not
+run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
 bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
@@ -108,10 +112,13 @@ kable(metadata_tab, caption = "Variables in the analysis dataset, with names and
 
 # Variable group definitions
 
-Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for biological importance`r ifelse(!(opts$importance_grp == ""), "" " (however, in the SLAPNAP call that generated this dataset, biological importance was not requested)")`.
+Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for biological importance`r ifelse(!(opts$importance_grp == ""), "", " (however, in the SLAPNAP call that generated this dataset, biological importance was not requested)")`.
 
 ```{r vimpGroupTab, eval = !(opts$importance_grp == "")}
-# all_var_groups is created in preamble
+# get names of predictors
+geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
+pred_names <- colnames(dat)[geog_idx:ncol(dat)]
+all_var_groups <- get_variable_groups(dat, pred_names)
 var_grps_chr_lst <- lapply(lapply(all_var_groups, function(x) strsplit(x, ".", fixed = TRUE)), function(x) do.call(c, lapply(x, function(y) paste0(y[!grepl("hxb2", y) & !grepl("mer", y)], collapse = "."))))
 grptab <- do.call(rbind, lapply(var_grps_chr_lst, function(x) paste0(x, collapse = ", ")))
 kable(grptab, col.names = "Variables",
