@@ -818,6 +818,7 @@ check_outcomes <- function(dat, outcome_names, V) {
 # @param dataset the clean analysis dataset
 # @param opts the global options
 create_metadata <- function(dataset, opts) {
+    # set up the names
     all_nms <- names(dataset)
     id_nms <- all_nms[1:2]
     geog_idx <- grepl("geog", all_nms)
@@ -825,19 +826,28 @@ create_metadata <- function(dataset, opts) {
     geog_nms <- all_nms[geog_idx]
     subtype_idx <- grepl("subtype", all_nms)
     subtype_nms <- all_nms[subtype_idx]
-    var_nms <- all_nms[(which(subtype_idx)[length(which(subtype_idx))] + 1):ncol(dataset)]
+    aa_idx <- grepl("hxb2", all_nms)
+    aa_var_nms <- all_nms[aa_idx]
+    geom_nms <- all_nms[grepl("length", all_nms) | grepl("num", all_nms)]
+    # set up the tibble
     metadata_tib <- tibble(Variable = all_nms, Name = NA, Description = NA)
+    # make nice names
     nice_ids <- str_to_title(gsub(".", " ", id_nms, fixed = TRUE))
-    nice_outcomes <- gsub("sens2", "Multiple Sensitivity", gsub("sens1", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated Sensitivity"), gsub("iip", "IIP", gsub("ic80", "IC-80", gsub("ic50", "IC-50", outcome_nms)))))
+    nice_outcomes <- gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC-80", gsub("ic50", "IC-50", outcome_nms))))))
     nice_geog <- str_to_title(gsub(".", " ", geog_nms, fixed = TRUE))
     nice_subtype <- str_to_title(gsub(".", " ", subtype_nms, fixed = TRUE))
-    nice_aas <- str_to_title(gsub(".", " ", vimp_nice_ind_names(var_nms), fixed = TRUE))
-    metadata_tib$Name <- c(nice_ids, nice_outcomes, nice_geog, nice_subtype, nice_aas)
+    nice_aas <- str_to_title(gsub(".", " ", vimp_nice_ind_names(aa_var_nms), fixed = TRUE))
+    nice_geom <- str_to_title(gsub(".", " ", geom_nms, fixed = TRUE))
+    metadata_tib$Name <- c(nice_ids, nice_outcomes, nice_geog, nice_subtype, nice_aas, nice_geom)
+    # make descriptions
     id_descriptions <- apply(matrix(id_nms), 1, describe_id_var)
-    outcome_descriptions <- get_outcome_descriptions(opts, collapse = FALSE)
+    outcome_descriptions <- apply(matrix(outcome_nms), 1, describe_outcome_var, opts = opts)
     geog_descriptions <- apply(matrix(geog_nms), 1, describe_geog_var)
     subtype_descriptions <- apply(matrix(subtype_nms), 1, describe_subtype_var)
-    aa_descriptions <- apply(matrix(var_nms), 1, describe_subtype_var)
+    aa_descriptions <- apply(matrix(aa_var_nms), 1, describe_aa_var)
+    geom_descriptions <- apply(matrix(geom_nms), 1, describe_geom_var)
+    metadata_tib$Description <- c(id_descriptions, outcome_descriptions, geog_descriptions, subtype_descriptions, aa_descriptions, geom_descriptions)
+    return(metadata_tib)
 }
 
 # describe id variables
@@ -863,10 +873,41 @@ describe_outcome_var <- function(var, opts) {
     } else if (grepl("ic80", var)) {
         descr <- paste0("Outcome variable: IC-80 (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
     } else if (grepl("iip", var)) {
-        descr <- "Outcome variable: IIP [see, e.g, @shen2008dose; @wagh2016optimal]."
-    } else if (outcome_var == "sens" | outcome_var == "estsens") {
+        descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "predicted"), " IC-50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "predicted"), " IC-80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "predicted"), " IC-50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "predicted"), " IC-50 and IC-80 are computed as described above. ", collapse = "")
+    } else if (var == "sens" | var == "estsens") {
         descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 < ", opts$sens_thresh, ". Note that in the dataset, 1 denotes resistant (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 > ", opts$sens_thresh, ") while 0 denotes sensitive.")
-    } else if (outcome_var == "multsens") {
+    } else if (var == "multsens") {
         descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured IC-50 < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies. note that in the dataset, 1 denotes multiple resistance (i.e., measured IC-50 >= ", opts$sens_thresh, " for >= ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies).")
     }
+    return(descr)
+}
+# geographic region descriptions
+describe_geog_var <- function(var) {
+    split_str <- unlist(strsplit(var, ".", fixed = TRUE))
+    descr <- paste0("Binary indicator variable describing the geographic region of origin for the given virus. 1 denotes that the virus is from ", paste(split_str[6:length(split_str)], collapse = " "), ".")
+    return(descr)
+}
+# subtype descriptions
+describe_subtype_var <- function(var) {
+    split_str <- unlist(strsplit(var, ".", fixed = TRUE))
+    descr <- paste0("Binary indicator variable denoting the subtype of the virus. 1 denotes that the virus is subtype ", split_str[length(split_str)], ".")
+    return(descr)
+}
+# AA descriptions
+describe_aa_var <- function(var) {
+    split_str <- unlist(strsplit(var, ".", fixed = TRUE))
+    descr <- paste0("Binary indicator (1 denotes present) of residue containing ", paste(split_str[3:(length(split_str) - 1)], collapse = " "), " at HXB2-referenced site ", split_str[2], ".")
+    return(descr)
+}
+# geometry descriptions
+describe_geom_var <- function(var) {
+    split_str <- unlist(strsplit(var, ".", fixed = TRUE))
+    if (grepl("length", var)) {
+        descr <- paste0("Length of ", split_str[length(split_str)])
+    } else if (grepl("num", var)) {
+        descr <- paste0("Number of sequons in ", split_str[length(split_str)])
+    } else {
+        # do nothing
+    }
+    return(descr)
 }

@@ -100,6 +100,11 @@ COPY code/render_report.R /home/lib/render_report.R
 COPY code/report_preamble.R /home/lib/report_preamble.R
 RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R /home/lib/report_preamble.R
 
+# copy metadata Rmd
+COPY code/metadata.Rmd /home/lib/metadata.Rmd
+COPY code/render_metadata.R /home/lib/render_metadata.R
+RUN chmod +x /home/lib/render_metadata.R
+
 
 #---------------------------------------------------------------------
 # Permanent options

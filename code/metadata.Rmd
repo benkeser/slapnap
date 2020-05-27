@@ -37,6 +37,7 @@ library(gridExtra)
 library(xgboost); library(ranger); library(glmnet)
 library(vimp)
 library(tibble)
+library(stringr)
 source(paste0(code_dir, "variable_groups.R"))
 source(paste0(code_dir, "super_learner_libraries.R"))
 source(paste0(code_dir, "utils.R"))
@@ -58,12 +59,10 @@ any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
 # read in number of observations
 nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
 ncomplete <- readRDS(paste0(slfits_dir, "ncomplete.rds"))
-# read in data
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
 dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 dat <- dat[complete.cases(dat),]
-
 # make nice outcome names
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
 all_labels <- c("IC-50", "IC-80", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
@@ -72,7 +71,6 @@ for(i in seq_along(all_outcomes)){
     nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
 }
 outcome_names <- get_outcome_names(opts)
-run_sl_vimp_bools <- check_outcomes(dat, outcome_names, as.numeric(opts$nfolds))
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
 bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
@@ -105,6 +103,7 @@ clean_data_names <- list.files(output_dir)
 analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
 analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFactors = FALSE)
 metadata_tab <- create_metadata(analysis_dataset, opts)
+kable(metadata_tab, caption = "Variables in the analysis dataset, with names and descriptions.")
 ```
 
 # Variable group definitions
