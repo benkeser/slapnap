@@ -12,6 +12,8 @@ x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
 imp_nms <- list(all_var_groups, all_var_groups, var_inds)
 num_obs_fulls <- vector("numeric", length(outcome_names))
 num_obs_reds <- vector("numeric", length(outcome_names))
+names(num_obs_fulls) <- opts$outcomes
+names(num_obs_reds) <- opts$outcomes
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     if (run_sl_vimp_bools$run_vimp[i]) {

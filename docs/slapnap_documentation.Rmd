@@ -94,7 +94,7 @@ docker run -v /path/to/local/dir:/home/output slapnap/slapnap
 
 Note that this call mounts the local directory `path/to/local/dir` to receive output from the container (Section \@ref(sec:mounting)).
 
-When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir`. The container will then compile an analytic data set from the CATNAP database for the default antibody (VRC01), train the default learner (random forest) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross-validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir`.
+When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir`. The container will then compile an analytic data set from the CATNAP database for the default antibody (VRC01), train the default learner (random forest [@breiman2001]) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross-validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir`.
 
 ## Viewing results in a web browser {sec:webbrowse}
 
@@ -124,7 +124,7 @@ docker run -v /path/to/local/dir:/home/output \
 
 ## Train an algorithm
 
-The previous commands train learners and evaluate their performance using cross-validation. However, at times we may wish only to use `slapnap` to train a particular algorithm, while avoiding the additional computational time associated with evaluating its cross-validated performance and compiling a report. We show an example of this below using sensitivity as the outcome. 
+The previous commands train learners and evaluate their performance using cross-validation. However, at times we may wish only to use `slapnap` to train a particular algorithm, while avoiding the additional computational time associated with evaluating its cross-validated performance and compiling a report. We show an example of this below using sensitivity as the outcome.
 
 ```{bash, eval = FALSE}
 docker run -v /path/to/local/dir:/home/output \
@@ -185,7 +185,7 @@ The raw `R` objects (saved as `.rds` files) containing the point estimates, conf
 
 ### Predictive importance
 
-In addition to the biological importance, it may be of interest to understand how the fitted `learner` depends on the measured features. Learner-level predictive importance may be obtained by passing `"pred"` to the variable `importance_ind`. If a single `learner` is fit, then the predictive importance is the `R` default for that type of learner: for the elastic net, importance is defined using the absolute value of the estimated regression coefficient; for random forests, importance is defined using the Gini index (binary outcomes) or the variance of the outcome (continuous outcomes); for boosted trees, importance is defined using the fractional contribution of total gain of the feature's splits. If a super learner ensemble is fit, then the best-fitting algorithm in the ensemble is used to compute the predictive importance.
+In addition to the biological importance, it may be of interest to understand how the fitted `learner` depends on the measured features. Learner-level predictive importance may be obtained by passing `"pred"` to the variable `importance_ind`. If a single `learner` is fit, then the predictive importance is the `R` default for that type of learner: for the elastic net, importance is defined using the absolute value of the estimated regression coefficient; for random forests, importance is defined using the Gini index (binary outcomes) or the variance of the outcome (continuous outcomes); for eXtreme gradient boosting [@chen2016], importance is defined using the fractional contribution of total gain of the feature's splits. If a super learner ensemble is fit, then the best-fitting algorithm in the ensemble is used to compute the predictive importance.
 
 In the following command, we request predictive importance for a simple scenario. Predictive importance is displayed for the top 20 features.
 

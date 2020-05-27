@@ -53,8 +53,6 @@ for(i in seq_along(all_outcomes)){
 }
 outcome_names <- get_outcome_names(opts)
 ncompletes <- all_ncomplete[names(all_ncomplete) %in% opts$outcomes]
-names(num_obs_fulls) <- opts$outcomes
-names(num_obs_reds) <- opts$outcomes
 run_sl_vimp_bools <- check_outcomes(dat, outcome_names, as.numeric(opts$nfolds))
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
