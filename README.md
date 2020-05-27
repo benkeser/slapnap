@@ -52,32 +52,55 @@ list of possible Nabs included in the CATNAP database can be found
 [here](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp).
 Other options that can be specified using `-e` include:
 
-  - `outcomes`: a semicolon-separated list of outcomes to include in the
-    analysis (defaults to all possible outcomes,
-    `ic50;ic80;iip;sens1;sens2`)
-  - `learners`: a semicolon-separated list of machine learning
-    algorithms to include in the ensemble learner (defaults to all
-    possible learners \[random forests, boosted trees, lasso\],
-    `rf;xgboost;lasso`)
-  - `nfolds`: the number of folds to use in cross-validation (defaults
-    to 5)
+  - `outcomes`: a semicolon-separated string of outcomes to include in
+    the analysis. Possible values are `"ic50"` (included in default),
+    `"ic80"`, `"iip"`, `"sens"` (included in default), `"estsens"`,
+    `"multsens"`. If only a single `nab` is specified, use `sens` to
+    include a dichotomous endpoint. If multiple `nab`s are specified,
+    use `estsens` and/or `multsens`. For detailed definitions of
+    outcomes, see the “Data details” section of the [full
+    documentation](https://benkeser.github.io/slapnap/6-sec-data.html).
+  - `sens_thresh`: a numeric value defining the IC\(_{50}\) threshold
+    for defining a sensitive versus resistant pseudovirus (default = 1).
+    The dichotomous sensitivity/resistant `outcome`s are defined as the
+    indicator that (estimated) IC\(_{50}\) is greater than or equal to
+    `sens_thresh`.
+  - `multsens_nab`: a numeric value used for defining whether a
+    pseudovirus is resistant to a multi-nAb cocktail. The dichotomous
+    outcome `multsens` is defined as the indicator that a virus has
+    (estimated) \(IC_{50}\) greater than `sens_thresh` for at least
+    `multsens_nab` nAbs.
+  - `learners`: a semicolon-separated string of machine learning
+    algorithms to include in the analysis. Possible values include
+    `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient
+    boosting), and `"lasso"` (elastic net). If more than one algorithm
+    is included, then it is assumed that a cross-validated-based
+    ensemble (i.e., a super learner) is desired (see the “Method
+    details” section of the [full
+    documentation](https://benkeser.github.io/slapnap/7-sec-methods.html)).
+  - `nfolds`: a numeric string indicating the number of folds to use in
+    cross-validation procedures (default = `"2"`).
   - `importance_grp`: a semicolon-separated list of group-level
-    biological importance measures to consider (options are none `""`,
-    marginal `"marg"`, conditional `"cond"`, and both)
+    biological importance measures to consider (options are none `""`
+    \[default\], marginal `"marg"`, conditional `"cond"`, and both). For
+    more detail, see the “Variable importance details” section of the
+    [full
+    documentation](https://benkeser.github.io/slapnap/7-sec-methods.html#variable-importance-details).
   - `importance_ind`: a semicolon-separated list of individual
     variable-level importance measures to consider (options are none
-    `""`, learner-level `"pred"`, and biological marginal `"marg"` and
-    conditional `"cond"`, or any combination)
+    `""` \[default\], learner-level `"pred"`, and biological marginal
+    `"marg"` and conditional `"cond"`, or any combination)
   - `return`: a semicolon-separated list of the output to save in
-    addition to the report (options are `"report"`, `"learner"` for the
-    ensemble learner, `"data"` for the analysis dataset, `"figures"` for
-    all figures from the report, and `"vimp"` for variable importance
-    objects)
+    addition to the report (options are `"report"` \[default\],
+    `"learner"` for the trained algorithm, `"data"` for the analysis
+    dataset, `"figures"` for all figures from the report, and `"vimp"`
+    for variable importance objects)
 
-For a complete list of options, see the `Dockerfile`.
+For a complete list of options, see the `Dockerfile` and the [full
+documentation](https://benkeser.github.io/slapnap/3-sec-runningcontainer.html).
 
-We will provide a reference to a detailed description of the SLAPNAP
-workflow at some point in the future.
+For a detailed description of the SLAPNAP workflow, see the [full
+documentation](https://benkeser.github.io/slapnap/).
 
 In the end, an HTML report is produced summarizing the analysis. This
 report can be accessed on a local computer by mounting a local drive to
