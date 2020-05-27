@@ -905,7 +905,7 @@ describe_geom_var <- function(var) {
     if (grepl("length", var)) {
         descr <- paste0("Length of ", split_str[length(split_str)])
     } else if (grepl("num", var)) {
-        descr <- paste0("Number of sequons in ", split_str[length(split_str)])
+        descr <- paste0("Number of ", ifelse(grepl("cysteine", var), "cysteines", "sequons"), " in ", split_str[length(split_str)])
     } else {
         # do nothing
     }
