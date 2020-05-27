@@ -37,6 +37,7 @@ RUN Rscript -e 'install.packages("SuperLearner", repos="https://cran.rstudio.com
 RUN Rscript -e 'install.packages("quadprog", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("dplyr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("tidyr", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("stringr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("cowplot", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ggplot2", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("glmnet", repos="https://cran.rstudio.com")'
@@ -93,6 +94,7 @@ RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 
 # copy report Rmd
 COPY code/new_report.Rmd /home/lib/new_report.Rmd
+COPY docs/refs.bib /home/lib/refs.bib
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
 COPY code/report_preamble.R /home/lib/report_preamble.R
