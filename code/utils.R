@@ -64,7 +64,8 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, complete_obs_txt, " To estimate the prediction functions based on ", full_func_txt, full_obs_txt, " to estimate the prediction function based on ", redu_func_txt, redu_obs_txt, " Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.")
     return(descr)
 }
-get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now) {
+# @param outcomes: can specify to only return text for a single outcome
+get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outcomes = "all") {
     if (length(unique(num_obs_fulls)) == 1) {
         complete_obs_txt <- paste0(" A total of ", n_row_now, " pseudoviruses with complete information for the outcome", ifelse(length(opts$outcomes) > 1, "s", ""), " of interest were used in this analysis.")
         full_obs_txt <- paste0(", we used ", num_obs_fulls[1], " observations;")
@@ -75,9 +76,22 @@ get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now) {
         } else {
             ntot <- paste0(paste0(n_row_now[-length(n_row_now)], collapse = ", "), " and ", n_row_now[length(n_row_now)])
         }
-        complete_obs_txt <- paste0(" A total of ", ntot, " pseudoviruses with complete information for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively, were used in this analysis.")
-        full_obs_txt <- paste0(", we used ", paste0(paste0(num_obs_fulls[-length(num_obs_fulls)], collapse = ", "), " and ", num_obs_fulls[length(num_obs_fulls)]), " observations for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively;")
-        redu_obs_txt <- paste0(", we used the remaining ", paste0(paste0(num_obs_reds[-length(num_obs_reds)], collapse = ", "), " and ", num_obs_reds[length(num_obs_reds)]), " observations for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively.")
+        if (outcomes == "all") {
+            full_prelim <- paste0(paste0(num_obs_fulls[-length(num_obs_fulls)], collapse = ", "), " and ", num_obs_fulls[length(num_obs_fulls)])
+            redu_prelim <- paste0(paste0(num_obs_reds[-length(num_obs_reds)], collapse = ", "), " and ", num_obs_reds[length(num_obs_reds)])
+            outcomes_txt <- gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE)
+            plural_txt <- ", respectively"
+            postlim <- paste0(" for ", outcomes_txt, plural_txt)
+        } else {
+            full_prelim <- num_obs_fulls[grepl(outcomes, names(num_obs_fulls))]
+            redu_prelim <- num_obs_reds[grepl(outcomes, names(num_obs_reds))]
+            outcomes_txt <- make_nice_outcome(outcomes)
+            plural_txt <- ""
+            postlim <- ""
+        }
+        complete_obs_txt <- paste0(" A total of ", ntot, " pseudoviruses with complete information for ", outcomes_txt, plural_txt, ifelse(outcomes == "all", ",", ""), " were used in this analysis.")
+        full_obs_txt <- paste0(", we used ", full_prelim, " observations", postlim, ";")
+        redu_obs_txt <- paste0(", we used the remaining ", redu_prelim, " observations", postlim, ".")
     }
     return(list(complete = complete_obs_txt, full = full_obs_txt, redu = redu_obs_txt))
 }
@@ -124,8 +138,25 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
 #' @param num_obs_red number of obs used in the "reduced" regression
 #' @param outcome the outcome (e.g., "ic50")
 #' @param grp whether or not this is group importance
-biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome, grp = TRUE, marg = TRUE, cond = TRUE, opts) {
-    outcome_text <- if (outcome == "ic50") {
+biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts) {
+    outcome_text <- paste0(make_nice_outcome(outcome), ".")
+    if (grp) {
+        outer_descr <- "Group"
+        inner_descr <- "feature group"
+    } else {
+        outer_descr <- "Individual"
+        inner_descr <- "feature"
+    }
+    all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, ncomplete, outcomes = outcome)
+    complete_obs_txt <- all_obs_txt$complete
+    full_obs_txt <- all_obs_txt$full
+    redu_obs_txt <- all_obs_txt$redu
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, complete_obs_txt, " To estimate the prediction function ", ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, "based on geographic confounders only", "based on all available features")), full_obs_txt, " to estimate the prediction function ", ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0("based on the ", inner_descr, " of interest plus geographic confounders"), paste0("based on the reduced set of features (defined by removing the ", inner_descr, " of interest)"))), redu_obs_txt)
+    return(cap)
+}
+
+make_nice_outcome <- function(outcome) {
+    if (outcome == "ic50") {
         if (length(opts$nab) > 1) {
             "estimated IC-50"
         } else {
@@ -150,19 +181,6 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
     } else {
         ""
     }
-    if (grp) {
-        outer_descr <- "Group"
-        inner_descr <- "feature group"
-    } else {
-        outer_descr <- "Individual"
-        inner_descr <- "feature"
-    }
-    all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, ncomplete)
-    complete_obs_txt <- all_obs_txt$complete
-    full_obs_txt <- all_obs_txt$full
-    redu_obs_txt <- all_obs_txt$redu
-    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction function ", ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, "based on geographic confounders only", "based on all available features")), full_obs_txt, " To estimate the prediction function ", ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0("based on the ", inner_descr, " of interest plus geographic confounders"), paste0("based on the reduced set of features (defined by removing the ", inner_descr, " of interest)"))), redu_obs_txt)
-    return(cap)
 }
 
 # for a given outcome make a panel histogram of the individual
@@ -858,7 +876,7 @@ create_metadata <- function(dataset, opts) {
     metadata_tib <- tibble(Variable = all_nms, Name = NA, Description = NA)
     # make nice names
     nice_ids <- str_to_title(gsub(".", " ", id_nms, fixed = TRUE))
-    nice_outcomes <- gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC-80", gsub("ic50", "IC-50", outcome_nms))))))
+    nice_outcomes <- make_nice_outcomes(outcome_nms)
     nice_geog <- str_to_title(gsub(".", " ", geog_nms, fixed = TRUE))
     nice_subtype <- str_to_title(gsub(".", " ", subtype_nms, fixed = TRUE))
     nice_aas <- str_to_title(gsub(".", " ", vimp_nice_ind_names(aa_var_nms), fixed = TRUE))
@@ -874,7 +892,9 @@ create_metadata <- function(dataset, opts) {
     metadata_tib$Description <- c(id_descriptions, outcome_descriptions, geog_descriptions, subtype_descriptions, aa_descriptions, geom_descriptions)
     return(metadata_tib)
 }
-
+make_nice_outcomes <- function(outcome_nms) {
+    gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC-80", gsub("ic50", "IC-50", outcome_nms))))))
+}
 # describe id variables
 describe_id_var <- function(var) {
     if (grepl("id", var)) {

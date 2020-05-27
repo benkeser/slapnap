@@ -44,12 +44,17 @@ dat <- dat[complete.cases(dat),]
 
 # make nice outcome names
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
+all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_ic50, ncomplete_ic50)
+names(all_ncomplete) <- all_outcomes
 all_labels <- c("IC-50", "IC-80", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
 nice_outcomes <- opts$outcomes
 for(i in seq_along(all_outcomes)){
     nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
 }
 outcome_names <- get_outcome_names(opts)
+ncompletes <- all_ncomplete[names(all_ncomplete) %in% opts$outcomes]
+names(num_obs_fulls) <- opts$outcomes
+names(num_obs_reds) <- opts$outcomes
 run_sl_vimp_bools <- check_outcomes(dat, outcome_names, as.numeric(opts$nfolds))
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
@@ -132,7 +137,7 @@ cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, past
 bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
 correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
-kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, n_row_now, vimp_threshold, importance_type = "marginal"))
+kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, ncompletes, vimp_threshold, importance_type = "marginal"))
 ```
 
 `r if (!("marg" %in% opts$importance_grp)) "-->"`
@@ -151,7 +156,7 @@ cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "$R^
 bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
 correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
-kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, n_row_now, vimp_threshold, importance_type = "conditional"))
+kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, ncompletes, vimp_threshold, importance_type = "conditional"))
 ```
 
 `r if (!("cond" %in% opts$importance_grp)) "-->"`
@@ -298,7 +303,7 @@ if ("figures" %in% opts$return) {
 The biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) for predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-50 is shown in Figure \@ref(fig:ic50groupvimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
-```{r ic50groupvimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, "ic50", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r ic50groupvimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, outcome = "ic50", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     ic50_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
