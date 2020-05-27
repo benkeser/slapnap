@@ -959,16 +959,20 @@ describe_geom_var <- function(var) {
 # describe the number of complete sequences for each outcome
 get_complete_data_description <- function(opts, ncomplete_ic50, ncomplete_ic80, ncomplete_ic50ic80, one_nab, est_fillin) {
     num_obs <- ""
-    if ("ic50" %in% opts$outcomes | "sens1" %in% opts$outcomes | "sens2" %in% opts$outcomes | "iip" %in% opts$outcomes) {
+    outcome_txt <- ""
+    print_ic50 <- "ic50" %in% opts$outcomes | "sens1" %in% opts$outcomes | "sens2" %in% opts$outcomes | "iip" %in% opts$outcomes
+    print_ic80 <- "ic80" %in% opts$outcomes
+    print_ic5080 <- "iip" %in% opts$outcomes
+    if (print_ic50) {
         num_obs <- paste0(num_obs, ncomplete_ic50)
         outcome_txt <- paste0(outcome_txt, ifelse(one_nab, "", est_fillin), "IC-50")
     }
-    if ("ic80" %in% opts$outcomes & "iip" %in% opts$outcomes) {
-        num_obs <- paste0(num_obs, ", ", ncomplete_ic80)
-        outcome_txt <- paste0(outcome_txt, ", ", ifelse(one_nab, "", est_fillin), "IC-80, ", " and both ", ifelse(one_nab, "", est_fillin), "IC-50 and ", ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
+    if (print_ic80 & print_ic5080) {
+        num_obs <- paste0(num_obs, ifelse(!print_ic50, "", ", "), ncomplete_ic80)
+        outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", ", "), ifelse(one_nab, "", est_fillin), "IC-80, ", " and both ", ifelse(one_nab, "", est_fillin), "IC-50 and ", ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
     } else {
-        num_obs <- paste0(num_obs, ", ", ncomplete_ic80)
-        outcome_txt <- paste0(outcome_txt, ", ", ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
+        num_obs <- paste0(num_obs, ifelse(!print_ic50, "", " and "), ncomplete_ic80)
+        outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", " and "), ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
     }
     paste0(num_obs, " sequences had complete data for ", outcome_txt, " and were used in the analysis")
 }
