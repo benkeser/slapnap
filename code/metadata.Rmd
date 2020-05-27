@@ -49,7 +49,7 @@ source(paste0(code_dir, "plot_one_vimp.R"))
 source(paste0(code_dir, "variable_groups.R"))
 ```
 
-```{r get_options}
+```{r get-options-and-dataset}
 opts <- get_global_options()
 # boolean of single nab
 one_nab <- length(opts$nab) == 1
@@ -58,7 +58,10 @@ any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
 any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
 # read in number of observations
 nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
-ncomplete <- readRDS(paste0(slfits_dir, "ncomplete.rds"))
+ncomplete_features <- readRDS(paste0(slfits_dir, "ncomplete_features.rds"))
+ncomplete_ic50 <- readRDS(paste0(slfits_dir, "ncomplete_ic50.rds"))
+ncomplete_ic80 <- readRDS(paste0(slfits_dir, "ncomplete_ic80.rds"))
+ncomplete_ic5080 <- readRDS(paste0(slfits_dir, "ncomplete_ic5080.rds"))
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
 dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
@@ -82,20 +85,31 @@ cont_nms <- nice_outcomes[cont_idx]
 bin_nms <- nice_outcomes[bin_idx]
 # postfix for naming plots
 postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b%Y"))
+# get clean analysis dataset
+clean_data_names <- list.files(output_dir)
+analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
+analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFactors = FALSE)
 ```
 
 # Executive summary
 
+This file describes the analysis dataset `r analysis_data_name`.
+
 The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
 
-* `r nprevious` sequences were extracted from the CATNAP database;
+* `r nprevious` sequences were extracted from the CATNAP database [@yoon2015catnap];
 
-* `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
+* `r ncomplete_features` sequences had complete geographic and genetic sequence information;
+
+* `r paste0(get_complete_data_text(opts, ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, iip_undef), ifelse(any_dich, ";", "."))`
+`r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "<!--"`
+* out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` has the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and their exclusion from IIP analyses.
+`r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive (using `r est_fillin`sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were estimated to be sensitive`r ifelse(!one_nab, " (using estimated sensitivity)", "")``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 # Variables in the dataset
@@ -103,27 +117,8 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` 
 Table \@ref(tab:variables) provides the name and description of each variable in the returned dataset.
 
 ```{r variables}
-clean_data_names <- list.files(output_dir)
-analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
-analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFactors = FALSE)
 metadata_tab <- create_metadata(analysis_dataset, opts)
 kable(metadata_tab, caption = "Variables in the analysis dataset, with names and descriptions.")
-```
-
-# Variable group definitions
-
-Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for biological importance`r ifelse(!(opts$importance_grp == ""), "", " (however, in the SLAPNAP call that generated this dataset, biological importance was not requested)")`.
-
-```{r vimpGroupTab, eval = !(opts$importance_grp == "")}
-# get names of predictors
-geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
-pred_names <- colnames(dat)[geog_idx:ncol(dat)]
-all_var_groups <- get_variable_groups(dat, pred_names)
-var_grps_chr_lst <- lapply(lapply(all_var_groups, function(x) strsplit(x, ".", fixed = TRUE)), function(x) do.call(c, lapply(x, function(y) paste0(y[!grepl("hxb2", y) & !grepl("mer", y)], collapse = "."))))
-grptab <- do.call(rbind, lapply(var_grps_chr_lst, function(x) paste0(x, collapse = ", ")))
-kable(grptab, col.names = "Variables",
-      digits = 3, row.names = TRUE,
-      caption = "Individual variables within each variable group.")
 ```
 
 # References

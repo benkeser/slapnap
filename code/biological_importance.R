@@ -10,6 +10,10 @@ x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
 ## read in importance results for each outcome, create a plot for each
 ## only return non-cv plots if cv = FALSE
 imp_nms <- list(all_var_groups, all_var_groups, var_inds)
+num_obs_fulls <- vector("numeric", length(outcome_names))
+num_obs_reds <- vector("numeric", length(outcome_names))
+names(num_obs_fulls) <- opts$outcomes
+names(num_obs_reds) <- opts$outcomes
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
     if (run_sl_vimp_bools$run_vimp[i]) {
@@ -22,8 +26,8 @@ for (i in 1:length(outcome_names)) {
         eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_vimp.rds'))")))
         eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_cv_vimp.rds'))")))
         eval(parse(text = paste0(this_outcome_name, "_outer_folds <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_outer_folds.rds'))")))
-        eval(parse(text = paste0("num_obs_full <- sum(", this_outcome_name, "_outer_folds == 1)")))
-        eval(parse(text = paste0("num_obs_red <- sum(", this_outcome_name, "_outer_folds == 2)")))
+        eval(parse(text = paste0("num_obs_fulls[i] <- sum(", this_outcome_name, "_outer_folds == 1)")))
+        eval(parse(text = paste0("num_obs_reds[i] <- sum(", this_outcome_name, "_outer_folds == 2)")))
         ## make plots
         eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
         eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))

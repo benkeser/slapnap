@@ -40,7 +40,7 @@ data.viruses <- read.table(file.path(path.data.catnap, "viruses.txt"), header=T,
 data.abs <- read.table(file.path(path.data.catnap, "abs.txt"), header=T, sep="\t", quote="\"")
 
 # source our function library
-source(file.path(path.lib, "multi_ab_v5.Rlib"))
+source(file.path(path.lib, "multi_ab.Rlib"))
 
 # load and process virus info and sequences
 data.seq <- read.fasta(file.path(path.data.catnap, "virseqs_aa.fasta"), seqtype="AA")
@@ -226,6 +226,21 @@ write.csv(data.final, file=filename, row.names=F)
 # save missing data stats for report compilation later
 nprevious <- length(data.final[,1])
 saveRDS(nprevious, "/home/slfits/nprevious.rds")
+<<<<<<< HEAD:code/compile_analysis_dataset.R
+ncomplete <- length(data.final[complete.cases(data.final), 1])
+saveRDS(ncomplete, "/home/slfits/ncomplete.rds")
+# first covariate column
+min_cov_col_idx <- min(grep("geographic", colnames(data.final)))
+ncol_data_final <- ncol(data.final)
+# number with complete sequence/geog information
+ncomplete_features <- sum(complete.cases(data.final[ , min_cov_col_idx:ncol_data_final]))
+# number with complete IC50
+ncomplete_ic50 <- sum(!is.na(data.final$pc.ic50))
+# number with complete IC80
+ncomplete_ic80 <- sum(!is.na(data.final$pc.ic80))
+# number with complete IC50 and IC80
+ncomplete_ic5080 <- sum(!is.na(data.final$pc.ic50) & !is.na(data.final$pc.ic80))
+=======
 
 # first covariate column
 min_cov_col_idx <- min(grep("geographic", colnames(data.final)))
@@ -244,6 +259,7 @@ ncomplete_ic80 <- sum(!is.na(data.final$pc.ic80[complete_features_idx]))
 # number with complete IC50 and IC80 + complete features
 ncomplete_ic5080 <- sum(!is.na(data.final$pc.ic50[complete_features_idx]) & !is.na(data.final$pc.ic80[complete_features_idx]))
 
+>>>>>>> upstream/master:code/merge_proc_v4.R
 saveRDS(ncomplete_features, "/home/slfits/ncomplete_features.rds")
 saveRDS(ncomplete_ic50, "/home/slfits/ncomplete_ic50.rds")
 saveRDS(ncomplete_ic80, "/home/slfits/ncomplete_ic80.rds")
