@@ -5,133 +5,8 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
 header-includes:
    - \usepackage{subfig}
-references:
-- id: yoon2015catnap
-  type: article-journal
-  author:
-  - family: Yoon
-    given: Hyejin
-  - family: Macke
-    given: Jennifer
-  - family: West Jr
-    given: Anthony P
-  - family: Foley
-    given: Brian
-  - family: Bjorkman
-    given: Pamela J
-  - family: Korber
-    given: Bette
-  - family: Yusim
-    given: Karina
-  issued:
-   - year: 2015
-  title: 'CATNAP: A tool to compile, analyze and tally neutralizing antibody panels'
-  title-short: CATNAP
-  container-title: Nucleic Acids Research
-  publisher: Oxford University Press
-  page: W213-W219
-  volume: '43'
-  issue: W1
-  DOI: 10.1093/nar/gkv404
-- id: magaret2019prediction
-  type: article-journal
-  author:
-  - family: Magaret
-    given: Craig A
-  - family: Benkeser
-    given: David C
-  - family: Williamson
-    given: Brian D
-  - family: Borate
-    given: Bhavesh R
-  - family: Carpp
-    given: Lindsay N
-  - family: Georgiev
-    given: Ivelin S
-  - family: Setliff
-    given: Ian
-  - family: Dingens
-    given: Adam S
-  - family: Simon
-    given: Noah
-  - family: Carone
-    given: Marco
-  - literal: others
-  issued:
-   - year: 2019
-  title: Prediction of VRC01 neutralization sensitivity by HIV-1 <span class="nocase">gp160</span>
-   sequence features
-  container-title: PLoS Computational Biology
-  publisher: Public Library of Science
-  page: e1006952
-  volume: '15'
-  issue: '4'
-  DOI: 10.1371/journal.pcbi.1006952
-- id: wagh2016optimal
-  type: article-journal
-  author:
-  - family: Wagh
-    given: Kshitij
-  - family: Bhattacharya
-    given: Tanmoy
-  - family: Williamson
-    given: Carolyn
-  - family: Robles
-    given: Alex
-  - family: Bayne
-    given: Madeleine
-  - family: Garrity
-    given: Jetta
-  - family: Rist
-    given: Michael
-  - family: Rademeyer
-    given: Cecilia
-  - family: Yoon
-    given: Hyejin
-  - family: Lapedes
-    given: Alan
-  - literal: others
-  issued:
-   - year: 2016
-  title: Optimal combinations of broadly neutralizing antibodies for prevention and treatment of HIV-1 clade C infection
-  container-title: PLoS Pathogens
-  publisher: Public Library of Science
-  volume: '12'
-  issue: '3'
-  DOI: 10.1371/journal.ppat.1005520
-- id: shen2008dose
-  type: article-journal
-  author:
-  - family: Shen
-    given: Lin
-  - family: Peterson
-    given: Susan
-  - family: Sedaghat
-    given: Ahmad R
-  - family: McMahon
-    given: Moira A
-  - family: Callender
-    given: Marc
-  - family: Zhang
-    given: Haili
-  - family: Zhou
-    given: Yan
-  - family: Pitt
-    given: Eleanor
-  - family: Anderson
-    given: Karen S
-  - family: Acosta
-    given: Edward P
-  - literal: others
-  issued:
-   - year: 2008
-  title: Dose-response curve slope sets class-specific limits on inhibitory potential of <span class="nocase">anti-HIV</span> drugs
-  container-title: Nature Medicine
-  publisher: Nature Publishing Group
-  page: 762-766
-  volume: '14'
-  issue: '7'
-  DOI: 10.1038/nm1777
+bibliography: refs.bib
+link-citations: true
 ---
 
 ```{r setup, include=FALSE}
@@ -186,7 +61,7 @@ postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b
 
 The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of neutralization sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
 
-* `r nprevious` sequences were extracted from the CATNAP database;
+* `r nprevious` sequences were extracted from the CATNAP database [@yoon2015catnap];
 
 * `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
@@ -241,7 +116,7 @@ get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, opts)[[2]]
 
 <!-- If we did marginal group variable importance, print the next section -->
 `r if (!("marg" %in% opts$importance_grp)) "<!--"`
-We define the marginal biological importance of a subgroup of features as the difference in population predictiveness between the best possible prediction function based on the features under consideration plus geographic confounders versus only geographic confounders. In Table \@ref(tab:vimpgrpmarg), we display the groups of variables and their ranked marginal biological variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` `r ifelse(length(opts$outcomes) > 1, "The groups are displayed in order of decreasing average rank across outcomes.", "")` Stars next to ranks denote groups with p-value less than `r vimp_threshold` from a hypothesis test with null hypothesis of zero importance. For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+We define the marginal biological importance of a subgroup of features as the difference in population predictiveness between the best possible prediction function based on the features under consideration plus geographic confounders versus only geographic confounders [@williamson2020]. In Table \@ref(tab:vimpgrpmarg), we display the groups of variables and their ranked marginal biological variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` `r ifelse(length(opts$outcomes) > 1, "The groups are displayed in order of decreasing average rank across outcomes.", "")` Stars next to ranks denote groups with p-value less than `r vimp_threshold` from a hypothesis test with null hypothesis of zero importance. For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
 
 ```{r vimpgrpmarg, eval = "marg" %in% opts$importance_grp}
 ## vimp_summary_tbl created in preamble
@@ -260,7 +135,7 @@ kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_m
 <!-- If we did conditional group variable importance, print the next section -->
 
 `r if (!("cond" %in% opts$importance_grp)) "<!--"`
-We define the conditional biological importance of a subgroup of features for predicting an outcome as the difference in population predictiveness between the best possible prediction function based on all available features versus all features except those under consideration. In Table \@ref(tab:vimpgrpcond), we display the groups of variables and their ranked conditional biological variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` The groups are displayed in order of decreasing average rank across outcomes. Stars next to ranks denote groups with p-value less than `r vimp_threshold` from a hypothesis test with null hypothesis of zero importance. For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
+We define the conditional biological importance of a subgroup of features for predicting an outcome as the difference in population predictiveness between the best possible prediction function based on all available features versus all features except those under consideration [@williamson2020]. In Table \@ref(tab:vimpgrpcond), we display the groups of variables and their ranked conditional biological variable importance for predicting `r ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")` The groups are displayed in order of decreasing average rank across outcomes. Stars next to ranks denote groups with p-value less than `r vimp_threshold` from a hypothesis test with null hypothesis of zero importance. For variable group definitions, please refer to Table \@ref(tab:vimpGroupTab).
 
 ```{r vimpgrpcond, eval = "cond" %in% opts$importance_grp}
 ## vimp_summary_tbl created in preamble

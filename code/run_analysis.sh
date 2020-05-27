@@ -50,6 +50,13 @@ printf "Returning requested objects \n"
 echo "--- Returning requested objects --- " >> $log_file
 Rscript /home/lib/return_requested_objects.R >> $log_file 2>&1
 
+if [[ "$return" == *"data"* ]]
+then
+    printf "Generating metadata using R Markdown \n"
+    echo "--- Generating metadata using R Markdown --- " >> $log_file
+    Rscript /home/lib/render_metadata.R >> $log_file 2>&1
+fi
+
 # if requested, port
 if [[ "$view_port" == "TRUE" ]] && [[ "$return" == *"report"* ]]
 then

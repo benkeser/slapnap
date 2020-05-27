@@ -178,10 +178,10 @@ get_learner_descriptions <- function(opts){
 
     if(length(opts$learners) == 1){
         learner_label <- if(opts$learners[1] == "rf"){
-            "random forest"
+            "random forest [@breiman2001]"
         }else if(opts$learners[1] == "xgboost"){
-            "extreme gradient boosting"
-        }else if(opts$learners[1] == "lasso"){
+            "extreme gradient boosting [@chen2016]"
+        }else if(opts$learners[1] == "lasso [@zou2005]"){
             "elastic net regression"
         }
         tmp <- paste(learner_label,
@@ -191,7 +191,7 @@ get_learner_descriptions <- function(opts){
     } else {
         lib_label <- NULL
         if("rf" %in% opts$learners){
-            lib_label <- c(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "random forest", ifelse(opts$cvtune, "s with varied tuning parameters", "")))
+            lib_label <- c(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "random forest", ifelse(opts$cvtune, "s [@breiman2001] with varied tuning parameters", " [@breiman2001]")))
         }
         if("xgboost" %in% opts$learners){
             if("rf" %in% opts$learners){
@@ -201,15 +201,15 @@ get_learner_descriptions <- function(opts){
                     lib_label <- paste0(lib_label, ", ")
                 }
             }
-            lib_label <- paste0(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "gradient boosted tree", ifelse(opts$cvtune, "s with varied tuning parameters", "")))
+            lib_label <- paste0(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "gradient boosted tree", ifelse(opts$cvtune, "s [@chen2016] with varied tuning parameters", " [@chen2016]")))
         }
         if("lasso" %in% opts$learners){
             if("rf" %in% opts$learners | "xgboost" %in% opts$learners){
                 lib_label <- paste0(lib_label, " and ")
             }
-            lib_label <- paste0(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "elastic net regression", ifelse(opts$cvtune, "s with varied tuning parameters", "")))
+            lib_label <- paste0(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "elastic net regression", ifelse(opts$cvtune, "s [@zou2005] with varied tuning parameters", " [@zou2005]")))
         }
-        tmp <- paste0("a super learner ensemble of ", lib_label, " and intercept-only regression.")
+        tmp <- paste0("a super learner ensemble [@vanderlaan2007] of ", lib_label, " and intercept-only regression.")
     }
     return(tmp)
 }
@@ -297,9 +297,8 @@ load_cv_fits <- function(opts, run_sls, code_dir){
     return(list(out = out_list, V = V, n_row_now = length(out_list[[1]]$Y)))
 }
 
-
 # get descriptions of outcomes
-get_outcome_descriptions <- function(opts){
+get_outcome_descriptions <- function(opts, collapse = TRUE){
     # first describe IC-50, IC-80 if present
     tmp_text <- NULL
     ic50_pres <- "ic50" %in% opts$outcomes
@@ -314,7 +313,7 @@ get_outcome_descriptions <- function(opts){
                           ifelse((ic50_pres & ic80_pres) | iip_pres, "and ", ""),
                           ifelse(ic80_pres | iip_pres, "IC-80 ", ""), collapse = "")
             tmp1_5 <- ifelse((ic50_pres & ic80_pres) | iip_pres, "were ", "was ")
-            tmp2 <- paste0("computed based on the additive model of Wagh et al. (2016); ",
+            tmp2 <- paste0("computed based on the additive model of @wagh2016optimal; ",
                            "for $J$ antibodies, it is computed as \\[ \\mbox{predicted IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
                            " where $\\mbox{IC}_j$ denotes the measured ",
                            paste0(ifelse(ic50_pres, "IC-50 ", ""),
@@ -324,7 +323,7 @@ get_outcome_descriptions <- function(opts){
             tmp_text <- c(tmp_text, paste0(tmp, tmp1_5, tmp2, collapse = ""))
         }
         if(iip_pres){
-            tmp <- paste0("IIP [Shen et al. (2008); Wagh et al. (2016)] is calculated as ",
+            tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{predicted IC-50}^m + 10^m} \ , \\]",
                           "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{predicted IC-80}) - \\mbox{log}_{10}(\\mbox{predicted IC-50}))$ ",
                           "and predicted IC-50 and IC-80 are computed as described above. ",
@@ -339,7 +338,7 @@ get_outcome_descriptions <- function(opts){
         }
     } else {
         if(iip_pres){
-            tmp <- paste0("IIP [Shen et al. (2008); Wagh et al. (2016)] is calculated as ",
+            tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
                           "\\[ \\frac{10^m}{\\mbox{IC-50}^m + 10^m} \ , \\]",
                           "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC-80}) - \\mbox{log}_{10}(\\mbox{IC-50}))$. ",
                           collapse = "")
@@ -353,7 +352,11 @@ get_outcome_descriptions <- function(opts){
         #     tmp_text <- c(tmp_text, "Since only one antibody was specified for this analysis, multiple sensitivity is the same as estimated sensitivity.")
         # }
     }
-    return(paste0(tmp_text, collapse = ""))
+    if (collapse) {
+        return(paste0(tmp_text, collapse = ""))
+    } else {
+        return(tmp_text)
+    }
 }
 
 
@@ -820,5 +823,43 @@ create_metadata <- function(dataset, opts) {
     geog_idx <- grepl("geog", all_nms)
     outcome_nms <- all_nms[3:(which(geog_idx)[1] - 1)]
     geog_nms <- all_nms[geog_idx]
-    var_nms <- all_nms[(geog_idx + 1):ncol(dataset)]
+    subtype_idx <- grepl("subtype", all_nms)
+    subtype_nms <- all_nms[subtype_idx]
+    var_nms <- all_nms[(which(subtype_idx)[length(which(subtype_idx))] + 1):ncol(dataset)]
+    metadata_tib <- tibble(Variable = all_nms, Name = NA, Description = NA)
+    nice_geog <- str_to_title(gsub(".", " ", geog_nms, fixed = TRUE))
+    nice_subtype <- str_to_title(gsub(".", " ", subtype_nms, fixed = TRUE))
+    nice_aas <- str_to_title(gsub(".", " ", vimp_nice_ind_names(var_nms), fixed = TRUE))
+    outcome_descriptions <- get_outcome_descriptions(opts, collapse = FALSE)
+}
+
+# describe id variables
+describe_id_var <- function(var) {
+    if (grepl("id", var)) {
+        descr <- "Subject identifier"
+        if (grepl("lanl", var)) {
+            descr <- paste0(descr, " from LANL viral sequences database [@yoon2015catnap].")
+        } else if (grepl("catnap", var)) {
+            descr <- paste0(descr, " from CATNAP viral sequence database [@yoon2015catnap].")
+        }
+    } else {
+        descr <- NA
+    }
+    return(descr)
+}
+# describe outcomes
+describe_outcome_var <- function(var, opts) {
+    predicted_text_ic50 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{predicted IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-50 for antibody $j$.")
+    predicted_text_ic80 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{predicted IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-80 for antibody $j$.")
+    if (grepl("ic50", var)) {
+        descr <- paste0("Outcome variable: IC-50 (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
+    } else if (grepl("ic80", var)) {
+        descr <- paste0("Outcome variable: IC-80 (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
+    } else if (grepl("iip", var)) {
+        descr <- "Outcome variable: IIP [see, e.g, @shen2008dose; @wagh2016optimal]."
+    } else if (outcome_var == "sens" | outcome_var == "estsens") {
+        descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 < ", opts$sens_thresh, ". Note that in the dataset, 1 denotes resistant (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 > ", opts$sens_thresh, ") while 0 denotes sensitive.")
+    } else if (outcome_var == "multsens") {
+        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured IC-50 < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies. note that in the dataset, 1 denotes multiple resistance (i.e., measured IC-50 >= ", opts$sens_thresh, " for >= ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies).")
+    }
 }

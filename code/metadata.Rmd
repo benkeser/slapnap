@@ -5,21 +5,47 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
 header-includes:
    - \usepackage{subfig}
+bibliography: refs.bib
+link-citations: true
 ---
 
 ```{r setup, include=FALSE}
-code_dir <- "/home/lib/"e
+code_dir <- "/home/lib/"
 slfits_dir <- "/home/slfits/"
 data_dir <- "/home/dat/"
 output_dir <- "/home/output/"
-```
 
-```{r source_preamble}
-# get biological importance
-vimp_threshold <- 0.05
-source(paste0(code_dir, "report_preamble.R"), local = TRUE)
-# set number of predictive importance features to show
-n_imp_ft <- 20
+## ----------------------------------------------------------------------------
+## Knitr options, packages, files
+## ----------------------------------------------------------------------------
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+
+options(stringsAsFactors = FALSE)
+
+library(grid)
+library(magrittr)
+library(ggplot2)
+library(cowplot)
+theme_set(theme_cowplot())
+library(dplyr)
+library(tidyr)
+library(ROCR)
+library(knitr)
+library(gridExtra)
+library(xgboost); library(ranger); library(glmnet)
+library(vimp)
+library(tibble)
+source(paste0(code_dir, "variable_groups.R"))
+source(paste0(code_dir, "super_learner_libraries.R"))
+source(paste0(code_dir, "utils.R"))
+source(paste0(code_dir, "plotting_functions.R"))
+source(paste0(code_dir, "ml_var_importance_measures.R"))
+source(paste0(code_dir, "var_import_plot.R"))
+source(paste0(code_dir, "vimp_executive_summary_table.R"))
+source(paste0(code_dir, "plot_one_vimp.R"))
+source(paste0(code_dir, "variable_groups.R"))
 ```
 
 ```{r get_options}
@@ -75,7 +101,10 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` 
 Table \@ref(tab:variables) provides the name and description of each variable in the returned dataset.
 
 ```{r variables}
-metadata_tab <- create_metadata()
+clean_data_names <- list.files(output_dir)
+analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
+analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFactors = FALSE)
+metadata_tab <- create_metadata(analysis_dataset, opts)
 ```
 
 # Variable group definitions
@@ -90,3 +119,5 @@ kable(grptab, col.names = "Variables",
       digits = 3, row.names = TRUE,
       caption = "Individual variables within each variable group.")
 ```
+
+# References
