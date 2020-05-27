@@ -970,9 +970,11 @@ get_complete_data_description <- function(opts, ncomplete_ic50, ncomplete_ic80, 
     if (print_ic80 & print_ic5080) {
         num_obs <- paste0(num_obs, ifelse(!print_ic50, "", ", "), ncomplete_ic80)
         outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", ", "), ifelse(one_nab, "", est_fillin), "IC-80, ", " and both ", ifelse(one_nab, "", est_fillin), "IC-50 and ", ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
-    } else {
+    } else if (print_ic80) {
         num_obs <- paste0(num_obs, ifelse(!print_ic50, "", " and "), ncomplete_ic80)
         outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", " and "), ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
+    } else {
+        # do nothing
     }
     paste0(num_obs, " sequences had complete data for ", outcome_txt, " and were used in the analysis")
 }
