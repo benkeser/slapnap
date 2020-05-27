@@ -124,9 +124,29 @@ docker run -v /path/to/local/dir:/home/output \
 
 ## Train an algorithm
 
-The previous commands train learners and evaluate their performance using cross-validation. However, at times we may wish only to use `slapnap` to train a particular algorithm, while avoiding the additional time incurred by evaluating its cross-validated performance. 
+The previous commands train learners and evaluate their performance using cross-validation. However, at times we may wish only to use `slapnap` to train a particular algorithm, while avoiding the additional computational time associated with evaluating its cross-validated performance and compiling a report. We show an example of this below using sensitivity as the outcome. 
+
+```{bash, eval = FALSE}
+docker run -v /path/to/local/dir:/home/output \
+           -e learners="rf" \
+           -e return="learner" \
+           -e cvperf="FALSE" \
+           -e outcome="sens" \
+           slapnap/slapnap
+```
+
+After completion of this run, `learner_sens.rds` will appear in `/path/to/local/dir` that contains an `R` object of class `ranger` (the package used by `slapnap` to fit random forests). 
 
 ## Pull and clean data
+
+The `slapnap` container can also be used to return cleaned CATNAP data suitable for analyses not supported by the `slapnap` pipeline. In this case, the container avoids training machine learning algorithms and report generation, returning a data set and associated documentation. In the following call, `return` only includes `"data"`; thus, options pertaining to the machine learning portions of `slapnap` are essentially ignored by `slapnap`. The inputted `outcomes` are also irrelevant, as all `outcomes` are included in the resultant data set.  
+
+```{bash, eval = FALSE}
+docker run -v /path/to/local/dir:/home/output \
+           -e return="data" \
+           slapnap/slapnap
+```
+
 
 
 # Report details {#sec:report}
