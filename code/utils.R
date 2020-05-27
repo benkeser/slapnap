@@ -70,7 +70,12 @@ get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now) {
         full_obs_txt <- paste0(", we used ", num_obs_fulls[1], " observations;")
         redu_obs_txt <- paste0(", we used the remaining ", num_obs_reds[1], "observations.")
     } else {
-        complete_obs_txt <- paste0(" A total of ", paste0(paste0(n_row_now[-length(n_row_now)], collapse = ", "), " and ", n_row_now[length(n_row_now)]), " pseudoviruses with complete information for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively, were used in this analysis.")
+        if (length(n_row_now) == 1) {
+            ntot <- n_row_now
+        } else {
+            ntot <- paste0(paste0(n_row_now[-length(n_row_now)], collapse = ", "), " and ", n_row_now[length(n_row_now)])
+        }
+        complete_obs_txt <- paste0(" A total of ", ntot, " pseudoviruses with complete information for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively, were used in this analysis.")
         full_obs_txt <- paste0(", we used ", paste0(paste0(num_obs_fulls[-length(num_obs_fulls)], collapse = ", "), " and ", num_obs_fulls[length(num_obs_fulls)]), " observations for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively;")
         redu_obs_txt <- paste0(", we used the remaining ", paste0(paste0(num_obs_reds[-length(num_obs_reds)], collapse = ", "), " and ", num_obs_reds[length(num_obs_reds)]), " observations for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively.")
     }
@@ -152,7 +157,7 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
         outer_descr <- "Individual"
         inner_descr <- "feature"
     }
-    all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, n_row_now)
+    all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, ncomplete)
     complete_obs_txt <- all_obs_txt$complete
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
