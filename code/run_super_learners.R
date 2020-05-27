@@ -26,13 +26,7 @@ opts <- get_global_options()
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
 dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
-nprevious <- length(dat[,1])
-saveRDS(nprevious, "/home/slfits/nprevious.rds")
 dat <- dat[complete.cases(dat),]
-
-# save for report compilation later
-ncomplete <- length(dat[,1])
-saveRDS(ncomplete, "/home/slfits/ncomplete.rds")
 
 # make super learner library
 SL.library <- make_sl_library_vector(opts = opts)
