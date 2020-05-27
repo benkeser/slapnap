@@ -827,10 +827,17 @@ create_metadata <- function(dataset, opts) {
     subtype_nms <- all_nms[subtype_idx]
     var_nms <- all_nms[(which(subtype_idx)[length(which(subtype_idx))] + 1):ncol(dataset)]
     metadata_tib <- tibble(Variable = all_nms, Name = NA, Description = NA)
+    nice_ids <- str_to_title(gsub(".", " ", id_nms, fixed = TRUE))
+    nice_outcomes <- gsub("sens2", "Multiple Sensitivity", gsub("sens1", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated Sensitivity"), gsub("iip", "IIP", gsub("ic80", "IC-80", gsub("ic50", "IC-50", outcome_nms)))))
     nice_geog <- str_to_title(gsub(".", " ", geog_nms, fixed = TRUE))
     nice_subtype <- str_to_title(gsub(".", " ", subtype_nms, fixed = TRUE))
     nice_aas <- str_to_title(gsub(".", " ", vimp_nice_ind_names(var_nms), fixed = TRUE))
+    metadata_tib$Name <- c(nice_ids, nice_outcomes, nice_geog, nice_subtype, nice_aas)
+    id_descriptions <- apply(matrix(id_nms), 1, describe_id_var)
     outcome_descriptions <- get_outcome_descriptions(opts, collapse = FALSE)
+    geog_descriptions <- apply(matrix(geog_nms), 1, describe_geog_var)
+    subtype_descriptions <- apply(matrix(subtype_nms), 1, describe_subtype_var)
+    aa_descriptions <- apply(matrix(var_nms), 1, describe_subtype_var)
 }
 
 # describe id variables
