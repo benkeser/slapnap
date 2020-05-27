@@ -49,7 +49,7 @@ source(paste0(code_dir, "plot_one_vimp.R"))
 source(paste0(code_dir, "variable_groups.R"))
 ```
 
-```{r get_options}
+```{r get-options-and-dataset}
 opts <- get_global_options()
 # boolean of single nab
 one_nab <- length(opts$nab) == 1
@@ -82,9 +82,15 @@ cont_nms <- nice_outcomes[cont_idx]
 bin_nms <- nice_outcomes[bin_idx]
 # postfix for naming plots
 postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b%Y"))
+# get clean analysis dataset
+clean_data_names <- list.files(output_dir)
+analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
+analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFactors = FALSE)
 ```
 
 # Executive summary
+
+This file describes the analysis dataset `r analysis_data_name`.
 
 The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
 
@@ -103,27 +109,8 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` 
 Table \@ref(tab:variables) provides the name and description of each variable in the returned dataset.
 
 ```{r variables}
-clean_data_names <- list.files(output_dir)
-analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
-analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFactors = FALSE)
 metadata_tab <- create_metadata(analysis_dataset, opts)
 kable(metadata_tab, caption = "Variables in the analysis dataset, with names and descriptions.")
-```
-
-# Variable group definitions
-
-Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for biological importance`r ifelse(!(opts$importance_grp == ""), "", " (however, in the SLAPNAP call that generated this dataset, biological importance was not requested)")`.
-
-```{r vimpGroupTab, eval = !(opts$importance_grp == "")}
-# get names of predictors
-geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
-pred_names <- colnames(dat)[geog_idx:ncol(dat)]
-all_var_groups <- get_variable_groups(dat, pred_names)
-var_grps_chr_lst <- lapply(lapply(all_var_groups, function(x) strsplit(x, ".", fixed = TRUE)), function(x) do.call(c, lapply(x, function(y) paste0(y[!grepl("hxb2", y) & !grepl("mer", y)], collapse = "."))))
-grptab <- do.call(rbind, lapply(var_grps_chr_lst, function(x) paste0(x, collapse = ", ")))
-kable(grptab, col.names = "Variables",
-      digits = 3, row.names = TRUE,
-      caption = "Individual variables within each variable group.")
 ```
 
 # References

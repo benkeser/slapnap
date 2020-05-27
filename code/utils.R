@@ -49,16 +49,32 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
 #' @param opts options
 #' @param cont_nms nice names of continuous outcomes
 #' @param bin_nms nice names of binary outcomes
-#' @param nobs_full number of total obs
-#' @param nobs_redu number of obs with complete data
-#' @param n_row_now
+#' @param num_obs_fulls number of total obs for "full" regression (may differ for each outcome)
+#' @param num_obs_reds number of total obs for reduced regression (may differ for each outcome)
+#' @param n_row_now (may differ for each outcome)
 #' @param importance_type "marginal" or "conditional"
-get_biological_importance_table_description <- function(opts, cont_nms, bin_nms, num_obs_full, num_obs_red, n_row_now, vimp_threshold, importance_type) {
+get_biological_importance_table_description <- function(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, n_row_now, vimp_threshold, importance_type) {
     rel_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the remaining features")
     full_func_txt <- ifelse(importance_type == "marginal", "the feature group of interest", "all available features")
     redu_func_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the reduced set of features (defined by removing the feature group of interest)")
-    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, " A total of ", n_row_now, " pseudoviruses with complete information were used in this analysis. To estimate the prediction function based on ", full_func_txt, ", we used ", num_obs_full, " observations; to estimate the prediction function based on ", redu_func_txt, ", we used the remaining ", num_obs_red, " observations. Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.")
+    all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, n_row_now)
+    complete_obs_txt <- all_obs_txt$complete
+    full_obs_txt <- all_obs_txt$full
+    redu_obs_txt <- all_obs_txt$redu
+    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, complete_obs_txt, " To estimate the prediction functions based on ", full_func_txt, full_obs_txt, " to estimate the prediction function based on ", redu_func_txt, redu_obs_txt, " Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.")
     return(descr)
+}
+get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now) {
+    if (length(unique(num_obs_fulls)) == 1) {
+        complete_obs_txt <- paste0(" A total of ", n_row_now, " pseudoviruses with complete information for the outcome", ifelse(length(opts$outcomes) > 1, "s", ""), " of interest were used in this analysis.")
+        full_obs_txt <- paste0(", we used ", num_obs_fulls[1], " observations;")
+        redu_obs_txt <- paste0(", we used the remaining ", num_obs_reds[1], "observations.")
+    } else {
+        complete_obs_txt <- paste0(" A total of ", paste0(paste0(n_row_now[-length(n_row_now)], collapse = ", "), " and ", n_row_now[length(n_row_now)]), " pseudoviruses with complete information for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively, were used in this analysis.")
+        full_obs_txt <- paste0(", we used ", paste0(paste0(num_obs_fulls[-length(num_obs_fulls)], collapse = ", "), " and ", num_obs_fulls[length(num_obs_fulls)]), " observations for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively;")
+        redu_obs_txt <- paste0(", we used the remaining ", paste0(paste0(num_obs_reds[-length(num_obs_reds)], collapse = ", "), " and ", num_obs_reds[length(num_obs_reds)]), " observations for ", gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE), ", respectively.")
+    }
+    return(list(complete = complete_obs_txt, full = full_obs_txt, redu = redu_obs_txt))
 }
 
 # check whether or not vimp or sls were run for estimated/multiple sensitivity
@@ -136,7 +152,11 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
         outer_descr <- "Individual"
         inner_descr <- "feature"
     }
-    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction function ", ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, "based on geographic confounders only", "based on all available features")), ", we used ", num_obs_full, " observations. To estimate the prediction function ", ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0("based on the ", inner_descr, " of interest plus geographic confounders"), paste0("based on the reduced set of features (defined by removing the ", inner_descr, " of interest)"))), ", we used the remaining ", num_obs_red, " observations.")
+    all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, n_row_now)
+    complete_obs_txt <- all_obs_txt$complete
+    full_obs_txt <- all_obs_txt$full
+    redu_obs_txt <- all_obs_txt$redu
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ". We used the ", ncomplete, " observations with complete sequence data in this analysis. To estimate the prediction function ", ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, "based on geographic confounders only", "based on all available features")), full_obs_txt, " To estimate the prediction function ", ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0("based on the ", inner_descr, " of interest plus geographic confounders"), paste0("based on the reduced set of features (defined by removing the ", inner_descr, " of interest)"))), redu_obs_txt)
     return(cap)
 }
 
