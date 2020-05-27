@@ -1,4 +1,5 @@
 .DS_Store
+code/refs.bib
 .dockerignore
 sandbox/*
 slfits/*

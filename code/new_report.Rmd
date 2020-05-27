@@ -32,12 +32,45 @@ any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
 any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
 # read in number of observations
 nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
-ncomplete <- readRDS(paste0(slfits_dir, "ncomplete.rds"))
+ncomplete_features <- readRDS(paste0(slfits_dir,"ncomplete_features.rds"))
+ncomplete_ic50 <- readRDS(paste0(slfits_dir,"ncomplete_ic50.rds"))
+ncomplete_ic80 <- readRDS(paste0(slfits_dir,"ncomplete_ic80.rds"))
+ncomplete_ic5080 <- readRDS(paste0(slfits_dir,"ncomplete_ic5080.rds"))
+
 # read in data
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
 dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
-dat <- dat[complete.cases(dat),]
+
+# first covariate column
+min_cov_col_idx <- min(grep("geographic", colnames(dat)))
+ncol_data_final <- ncol(dat)
+# number with complete sequence/geog information
+complete_features_idx <- complete.cases(dat[ , min_cov_col_idx:ncol_data_final])
+
+# data with complete features
+dat_comp_ft <- dat[complete_features_idx, ]
+
+# iip column
+iip_col_idx <- which(colnames(dat_comp_ft) == "iip")
+# data used for ic50-related analyses
+if(opts$same_subset){
+  dat_ic50 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+}else{
+  dat_ic50 <- dat_comp_ft[!is.na(dat_comp_ft$pc.ic50), ]
+}
+# data used for ic80-related analyses
+if(!opts$same_subset | !("ic80" %in% opts$outcomes & length(opts$outcomes) > 1)){
+  dat_ic80 <- dat_comp_ft[!is.na(dat_comp_ft$pc.ic80), ]
+}else{
+  dat_ic80 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+}
+
+dat_ic5080 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+
+# compute number of sequences with same ic50 and ic80,
+# these guys do not have IIP defined
+iip_undef <- sum(dat_ic5080$log10.pc.ic80 == dat_ic5080$log10.pc.ic50)
 
 # make nice outcome names
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
@@ -47,7 +80,7 @@ for(i in seq_along(all_outcomes)){
     nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
 }
 outcome_names <- get_outcome_names(opts)
-run_sl_vimp_bools <- check_outcomes(dat, outcome_names, as.numeric(opts$nfolds))
+run_sl_vimp_bools <- check_outcomes(dat_ic50, outcome_names, as.numeric(opts$nfolds))
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
 bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
@@ -63,12 +96,17 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` 
 
 * `r nprevious` sequences were extracted from the CATNAP database [@yoon2015catnap];
 
-* `r ncomplete` sequences had complete data and were used in the analysis`r ifelse(any_dich, ";", ".")`
+* `r ncomplete_features` sequences had complete geographic and genetic sequence information; 
+
+* `r paste0(get_complete_data_text(opts, ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, iip_undef), ifelse(any_dich, ";", "."))`
+`r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "<!--"`
+* out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` has the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and their exclusion from IIP analyses. 
+`r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat$dichotomous.1)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were estimated to be sensitive`r ifelse(!one_nab, " (using estimated sensitivity)", "")``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were estimated to be sensitive`r ifelse(!one_nab, " (using estimated sensitivity)", "")``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be sensitive (using multiple sensitivity)`r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
@@ -154,7 +192,7 @@ kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_c
 <!-- If we estimated for IC-50, print the next section -->
 `r if(!("ic50" %in% opts$outcomes)) "<!--"`
 
-# Results for IC-50
+# Results for IC$_{50}$
 
 ## Descriptive statistics
 
@@ -164,8 +202,8 @@ kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_c
 
 Histograms of IC-50 for each individual neutralizing antibody are shown in Figure \@ref(fig:histic50). Related summary measures are shown in \@ref(tab:tableic50)
 
-```{r, histic50, eval = ("ic50" %in% opts$outcomes) & !one_nab, fig.cap = paste0("Distribution of IC-50 values (n = ", ncomplete, ") for each neutralizing antibody."), fig.height=5}
-ic50_descr <- get_individual_nab_summaries("ic50", opts, dat)
+```{r, histic50, eval = ("ic50" %in% opts$outcomes) & !one_nab, fig.cap = paste0("Distribution of IC-50 values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), ") for each neutralizing antibody."), fig.height=5}
+ic50_descr <- get_individual_nab_summaries("ic50", opts, dat_ic50)
 do.call(grid.arrange, ic50_descr$hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -182,7 +220,7 @@ if (is.null(dim(ic50_table))) {
 }
 row.names(ic50_table) <- c(paste0("IC-50 ", opts$nab))
 kable(ic50_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC-50 values for individual bnAbs (n = ", ncomplete, " observations with complete sequence data)."))
+      caption = paste0("Summary statistics of IC-50 values for individual bnAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)."))
 ```
 
 `r if ((length(opts$nab) == 1) | !("ic50" %in% opts$outcomes)) "-->"`
@@ -192,16 +230,16 @@ A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated
 
 ```{r makecapic50, eval = "ic50" %in% opts$outcomes}
 ic50_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IC-50 for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of IC-50 for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data).")
 }else{
-  paste0("Histogram of estimated IC-50 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of estimated IC-50 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data).")
 }
 ```
 
 ```{r histcombnic50, eval = "ic50" %in% opts$outcomes, fig.cap = ic50_figcap}
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat, "pc.ic50", "IC-50", "Density")
-combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic50", bquote(log[10]~"(IC-50)"), "")
+combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", "IC-50", "Density")
+combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", bquote(log[10]~"(IC-50)"), "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -225,7 +263,7 @@ weight_table <- data.frame(Learner = this_library, Weight = weights_ic50)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 (n = ", ncomplete, " observations with complete sequence data)."))
+             caption = paste0("Table of super learner weights for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)."))
 ```
 
 `r if (length(opts$learners) == 1  | !("ic50" %in% opts$outcomes)) "-->"`
@@ -252,7 +290,7 @@ The cross-validated performance, as measured by $R^2$, of the learner (with tuni
 
 `r if (!opts$cvperf) "<!--"`
 
-```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 (", ncomplete, " observations with complete sequence data)")}
+```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)")}
 plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 # if saving figures was requested, save
@@ -267,7 +305,7 @@ if ("figures" %in% opts$return) {
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "<!--"`
 Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC-50 plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-50, colored by cross-validation fold.
 
-```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 plotted against actual IC-50 values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
+```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 plotted against actual IC-50 values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
@@ -293,7 +331,7 @@ if ("figures" %in% opts$return) {
 The biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) for predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-50 is shown in Figure \@ref(fig:ic50groupvimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
-```{r ic50groupvimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r ic50groupvimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), num_obs_full, num_obs_red, "ic50", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     ic50_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -315,7 +353,7 @@ if ("figures" %in% opts$return) {
 We show the biological variable importance of individual features in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-50 in Figure \@ref(fig:ic50indivimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
-```{r ic50indivimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic50", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r ic50indivimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), num_obs_full, num_obs_red, "ic50", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     ic50_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$ind_marginal, log10.pc.ic50_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
@@ -351,7 +389,7 @@ kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE
 
 `r if(!("ic80" %in% opts$outcomes)) "<!--"`
 
-# Results for IC-80
+# Results for IC$_{80}$
 
 ## Descriptive statistics
 
@@ -359,10 +397,10 @@ kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE
 
 `r if ((length(opts$nab) == 1) | !("ic80" %in% opts$outcomes)) "<!--"`
 
-Histograms of IC-80 for each individual neutralizing antibody are shown in Figure \@ref(fig:histic80). Related summary measures are shown in \@ref(tab:tableic80)
+Histograms of IC$_{80}$ for each individual neutralizing antibody are shown in Figure \@ref(fig:histic80). Related summary measures are shown in \@ref(tab:tableic80)
 
-```{r, histic80, eval = ("ic80" %in% opts$outcomes) & (!one_nab), fig.cap = paste0("Distribution of IC-80 values (n = ", ncomplete, ") for each neutralizing antibody."), fig.height=5}
-ic80_descr <- get_individual_nab_summaries("ic80", opts, dat)
+```{r, histic80, eval = ("ic80" %in% opts$outcomes) & (!one_nab), fig.cap = paste0("Distribution of IC-80 values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), ") for each neutralizing antibody."), fig.height=5}
+ic80_descr <- get_individual_nab_summaries("ic80", opts, dat_ic80)
 do.call(grid.arrange, ic80_descr$hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -374,7 +412,7 @@ if ("figures" %in% opts$return) {
 ic80_table <- Reduce(rbind, ic80_descr$summary)
 row.names(ic80_table) <- c(paste0("IC-80 ", opts$nab))
 kable(ic80_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC-80 values for individual bnAbs (n = ", ncomplete, " observations with complete sequence data)."))
+      caption = paste0("Summary statistics of IC-80 values for individual bnAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)."))
 ```
 
 `r if ((length(opts$nab) == 1) | !("ic80" %in% opts$outcomes)) "-->"`
@@ -384,16 +422,16 @@ A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated
 
 ```{r makecapic80, eval = "ic80" %in% opts$outcomes}
 ic80_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IC-80 for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of IC-80 for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data).")
 }else{
-  paste0("Histogram of estimated IC-80 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of estimated IC-80 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data).")
 }
 ```
 
 ```{r histcombnic80, eval = "ic80" %in% opts$outcomes, fig.cap = ic80_figcap}
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat, "pc.ic80", "IC-80", "Density")
-combn_hist[[2]] <- make_hist_plot(dat, "log10.pc.ic80", bquote(log[10]~"(IC-80)"), "")
+combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", "IC-80", "Density")
+combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", bquote(log[10]~"(IC-80)"), "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -415,7 +453,7 @@ weight_table <- data.frame(Learner = this_library, Weight = weights_ic80)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 (n = ", ncomplete, " observations with complete sequence data)."))
+             caption = paste0("Table of super learner weights for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)."))
 ```
 
 `r if ((length(opts$learners) == 1) | !("ic80" %in% opts$outcomes)) "-->"`
@@ -439,7 +477,7 @@ The cross-validated performance, as measured by $R^2$, of the learner (with tuni
 `r if ((length(opts$learners) > 1) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
-```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC-80 (", ncomplete, " observations with complete sequence data)")}
+```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC-80 (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)")}
 plot(fit_list_out$out$ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 if ("figures" %in% opts$return) {
@@ -453,7 +491,7 @@ ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = p
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-80 plotted against observed values of IC-80, colored by cross-validation fold.
 
-```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
+```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
@@ -485,7 +523,7 @@ We show the biological variable importance of groups of features (defined in Tab
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r ic80groupvimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic80", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r ic80groupvimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), num_obs_full, num_obs_red, "ic80", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     ic80_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$grp_marginal, log10.pc.ic80_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -509,7 +547,7 @@ We show the biological variable importance of individual features in predicting 
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r ic80indivimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "ic80", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r ic80indivimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), num_obs_full, num_obs_red, "ic80", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     ic80_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$ind_marginal, log10.pc.ic80_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
@@ -554,15 +592,15 @@ A summary of the distribution of IIP for the `r ifelse(length(opts$nab) == 1, ""
 
 ```{r makecapiip, eval = "iip" %in% opts$outcomes}
 iip_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IIP for the selected broadly neutralizing antibody (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of IIP for the selected broadly neutralizing antibody (n = ", ncomplete_ic5080, " observations with complete sequence data).")
 }else{
-  paste0("Histogram of estimated IIP for the combined neutralizing antibodies (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Histogram of estimated IIP for the combined neutralizing antibodies (n = ", ncomplete_ic5080, " observations with complete sequence data).")
 }
 ```
 
 ```{r histcombniip, eval = "iip" %in% opts$outcomes, fig.cap = iip_figcap}
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat, "iip", "IIP", "Density")
+combn_hist[[1]] <- make_hist_plot(dat_ic5080, "iip", "IIP", "Density")
 do.call(grid.arrange, combn_hist)
 if ("figures" %in% opts$return) {
     ggsave(filename = paste0("/home/output/iip_combn_hist_", postfix, ".png"), plot = do.call(grid.arrange, combn_hist), width = 20, height = 20, units = "cm")
@@ -583,7 +621,7 @@ weight_table <- data.frame(Learner = this_library, Weight = weights_iip)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for IIP (n = ", ncomplete, " observations with complete sequence data)."))
+             caption = paste0("Table of super learner weights for IIP (n = ", ncomplete_ic5080, " observations with complete sequence data)."))
 ```
 
 `r if (!("iip" %in% opts$outcomes) | (length(opts$learners) == 1)) "-->"`
@@ -607,7 +645,7 @@ The cross-validated performance, as measured by $R^2$, of the learner (with tuni
 `r if (!("iip" %in% opts$outcomes) | (!opts$cvperf) |(length(opts$learners) > 1)) "-->"`
 
 `r if (!("iip" %in% opts$outcomes) | !opts$cvperf) "<!--"`
-```{r plotiip, eval = ("iip" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "","estimated "), "IIP (", ncomplete, " observations with complete sequence data)")}
+```{r plotiip, eval = ("iip" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "","estimated "), "IIP (", ncomplete_ic5080, " observations with complete sequence data)")}
 plot(fit_list_out$out$iip, main_title = "IIP", xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 # if saving figures was requested, save
@@ -619,7 +657,7 @@ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = p
 
 Figure \@ref(fig:plotiippredversusoutcomes) shows cross-validated predictions of IIP plotted against observed values of IIP, colored by cross-validation fold.
 
-```{r plotiippredversusoutcomes, eval = ("iip" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted IIP plotted against actual IIP values (", ncomplete, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
+```{r plotiippredversusoutcomes, eval = ("iip" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted IIP plotted against actual IIP values (", ncomplete_ic5080, " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$iip, outcome_name = "IIP", log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
@@ -649,7 +687,7 @@ We show the biological variable importance of groups of features (defined in Tab
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r iipgroupvimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "iip", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r iipgroupvimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete_ic5080, num_obs_full, num_obs_red, "iip", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     iip_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,iip_vimp_plots$grp_marginal, iip_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -673,7 +711,7 @@ We show the biological variable importance of individual features in predicting 
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r iipindivimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "iip", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r iipindivimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete_ic5080, num_obs_full, num_obs_red, "iip", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     iip_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,iip_vimp_plots$ind_marginal, iip_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
@@ -715,7 +753,7 @@ kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be ")` resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be ")` sensitive. `r ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
+Out of the `r ncomplete_ic50` sequences, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be ")` resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete_ic50 - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be ")` sensitive. `r ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
 
 `r if (!("sens1" %in% opts$outcomes)) "-->"`
 
@@ -731,7 +769,7 @@ weight_table <- data.frame(Learner = this_library, Weight = weights_sens1)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for ", est_fillin, "sensitivity (n = ", ncomplete, " observations with complete sequence data)."))
+             caption = paste0("Table of super learner weights for ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data)."))
 ```
 
 `r if (!("sens1" %in% opts$outcomes) | (length(opts$learners) == 1) | !run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]]) "-->"`
@@ -752,7 +790,7 @@ The cross-validated performance of super learner, as measured by area under the 
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
-```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = paste0("Cross-validated AUC for predicting ", est_fillin, "sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
+```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = paste0("Cross-validated AUC for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data).")}
 plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Estimated sensitivity", "Sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 # if saving figures was requested, save
@@ -770,19 +808,19 @@ Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting 
 
 ```{r roccap1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]]}
 roc_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting ", est_fillin, "sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }else if(!opts$cvtune){
-  paste0("Cross-validated ROC curve for the specified learner for predicting ", est_fillin, "sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated ROC curve for the specified learner for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }else{
-  paste0("Cross-validated ROC curve for the learner (with tuning parameters selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated ROC curve for the learner (with tuning parameters selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }
 
 predprob_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }else if(!opts$cvtune){
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }else{
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }
 ```
 
@@ -824,7 +862,7 @@ We show the biological variable importance of groups of features (defined in Tab
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_full, num_obs_red, "sens1", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     sens1_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -848,7 +886,7 @@ We show the biological variable importance of individual features in predicting 
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens1", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_full, num_obs_red, "sens1", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     sens1_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
@@ -891,7 +929,7 @@ kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALS
 
 ## Descriptive statistics
 
-Out of the `r ncomplete` sequences, `r sum(dat$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete - sum(dat$dichotomous.2)` were estimated to be sensitive.
+Out of the `r ncomplete_ic50` sequences, `r sum(dat_ic50$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete_ic50 - sum(dat_ic50$dichotomous.2)` were estimated to be sensitive.
 
 `r if (!("sens2" %in% opts$outcomes)) "-->"`
 
@@ -908,7 +946,7 @@ weight_table <- data.frame(Learner = this_library, Weight = weights_sens2)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for multiple sensitivity (n = ", ncomplete, " observations with complete sequence data)."))
+             caption = paste0("Table of super learner weights for multiple sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data)."))
 ```
 
 `r if (!("sens2" %in% opts$outcomes) | (length(opts$learners) == 1) | !run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]]) "-->"`
@@ -931,7 +969,7 @@ The cross-validated performance of super learner, as measured by area under the 
 
 The cross-validated performance of the learner with tuning parameters selected via cross-validation, as measured by area under the ROC curve, and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2).
 
-```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")}
+```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data).")}
 plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 # if saving figures was requested, save
@@ -948,19 +986,19 @@ Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting 
 
 ```{r roccap2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]]}
 roc_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }else if(!opts$cvtune){
-  paste0("Cross-validated ROC curve for the specified learner for predicting multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated ROC curve for the specified learner for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }else{
-  paste0("Cross-validated ROC curve for the learner (with tuning parameters selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated ROC curve for the learner (with tuning parameters selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }
 
 predprob_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated predicted probabilities of multiple resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated predicted probabilities of multiple resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }else if(!opts$cvtune){
-  paste0("Cross-validated predicted probabilities of multiple resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated predicted probabilities of multiple resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }else{
-  paste0("Cross-validated predicted probabilities of multiple resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete, " observations with complete sequence data).")
+  paste0("Cross-validated predicted probabilities of multiple resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations with complete sequence data).")
 }
 ```
 
@@ -1001,7 +1039,7 @@ We show the biological variable importance of groups of features (defined in Tab
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_full, num_obs_red, "sens2", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     sens2_grp_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal), switch(opts$cvperf + 1,dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -1025,7 +1063,7 @@ We show the biological variable importance of individual features in predicting 
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
-```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = biological_importance_figure_caption(ncomplete, num_obs_full, num_obs_red, "sens2", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_full, num_obs_red, "sens2", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     sens2_ind_vimp_grob_lst <- list(switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal), switch(opts$cvperf + 1,dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {

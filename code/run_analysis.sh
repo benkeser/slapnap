@@ -30,7 +30,6 @@ then
   echo "--- Fitting learners --- " >> $log_file
   Rscript /home/lib/run_super_learners.R >> $log_file 2>&1
 
-
   # run script to get variable importance
   printf "Estimating variable importance \n"
   echo "--- Estimating variable importance --- " >> $log_file

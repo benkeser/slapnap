@@ -402,7 +402,7 @@ make_sl_library_vector <- function(opts){
 
 
 #' function to run super learner and cv super learner on a single outcome
-#' @param dat the dataset
+#' @param complete_dat the full dataset
 #' @param outcome_name String name of outcome
 #' @param pred_names Vector of string names of predictor variables
 #' @param opts List of options outputted by get_global_options()
@@ -414,7 +414,7 @@ make_sl_library_vector <- function(opts){
 #' @param full_fit is it the full fit (TRUE) or a reduced fit (FALSE)?
 #' @param SL.library the library to pass to SuperLearner
 #' @param ... additional arguments to pass to individual algorithms or the SuperLearner
-sl_one_outcome <- function(dat, outcome_name,
+sl_one_outcome <- function(complete_dat, outcome_name,
                            pred_names,
                            opts,
                            save_dir = "/home/slfits/",
@@ -425,11 +425,27 @@ sl_one_outcome <- function(dat, outcome_name,
                            full_fit = TRUE,
                            SL.library = "SL.mean",
                            ...){
-  if (full_fit) {
-      outer_bool <- outer_folds == 1
-  } else {
-      outer_bool <- outer_folds == 2
+  # three cases to worry about in terms of how to deal with missing data
+  # 1. same_subset requested, but only studying ic80 or only studying ic50-derived outcomes, 
+  #    in which case, we will ignore your same_subset request because you're only studying 
+  #    endpoints based entirely on ic50 or entirely on ic80
+  # 2. same_subset requested and studying mix of ic50(-derived) and ic80 endpoints, in which
+  #    case we will subset down to sequences with both ic50 and ic80
+  # 3. no same_subset requested, in which case we use all data available on each outcome
+  if(!opts$same_subset | !("ic80" %in% opts$outcomes & length(opts$outcomes) > 1)){
+    complete_cases_idx <- complete.cases(complete_dat[,c(outcome_name,pred_names)])
+  }else{
+    complete_cases_idx <- complete.cases(complete_dat)
   }
+
+  if (full_fit) {
+      outer_bool <- outer_folds[complete_cases_idx] == 1
+  } else {
+      outer_bool <- outer_folds[complete_cases_idx] == 2
+  }
+  # subset data to only complete outcome and pred_names
+  dat <- complete_dat[complete_cases_idx, ]
+
   newdat <- subset(dat, outer_bool)
 
   pred <- newdat[ , pred_names]

@@ -226,8 +226,28 @@ write.csv(data.final, file=filename, row.names=F)
 # save missing data stats for report compilation later
 nprevious <- length(data.final[,1])
 saveRDS(nprevious, "/home/slfits/nprevious.rds")
-ncomplete <- length(data.final[complete.cases(data.final), 1])
-saveRDS(ncomplete, "/home/slfits/ncomplete.rds")
+
+# first covariate column
+min_cov_col_idx <- min(grep("geographic", colnames(data.final)))
+ncol_data_final <- ncol(data.final)
+
+# number with complete sequence/geog information
+complete_features_idx <- complete.cases(data.final[ , min_cov_col_idx:ncol_data_final])
+ncomplete_features <- sum(complete_features_idx)
+
+# number with complete IC50 + complete features
+ncomplete_ic50 <- sum(!is.na(data.final$pc.ic50[complete_features_idx]))
+
+# number with complete IC80 + complete features
+ncomplete_ic80 <- sum(!is.na(data.final$pc.ic80[complete_features_idx]))
+
+# number with complete IC50 and IC80 + complete features
+ncomplete_ic5080 <- sum(!is.na(data.final$pc.ic50[complete_features_idx]) & !is.na(data.final$pc.ic80[complete_features_idx]))
+
+saveRDS(ncomplete_features, "/home/slfits/ncomplete_features.rds")
+saveRDS(ncomplete_ic50, "/home/slfits/ncomplete_ic50.rds")
+saveRDS(ncomplete_ic80, "/home/slfits/ncomplete_ic80.rds")
+saveRDS(ncomplete_ic5080, "/home/slfits/ncomplete_ic5080.rds")
 # ---------------------------------------------------------------------------- #
 #                                    - 30 -
 # ---------------------------------------------------------------------------- #

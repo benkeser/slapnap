@@ -181,6 +181,9 @@ ENV multsens_nab="2"
 # option to view output on exposed port
 ENV view_port="FALSE"
 
+# option to subset to pseudoviruses that have all measured outcomes
+ENV same_subset="FALSE"
+
 # add an argument to bust the cache, so that data are downloaded
 # fresh every build. taken from this SO answer:
 # https://stackoverflow.com/questions/35134713/disable-cache-for-specific-run-commands
