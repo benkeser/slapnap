@@ -261,13 +261,13 @@ make_xlab <- function(outcome, nab, transformation = "none") {
         if (transformation == "none") {
             return(bquote(IC[50]~.(nab)))
         } else {
-            return(bquote(log[10*"("*IC[50]~.(nab)*")"]))
+            return(bquote(log[10]*"("*IC[50]~.(nab)*")"))
         }
     } else if (outcome == "ic80") {
         if (transformation == "none") {
             return(bquote(IC[80]~.(nab)))
         } else {
-            return(bquote(log[10*"("*IC[80]~.(nab)*")"]))
+            return(bquote(log[10]*"("*IC[80]~.(nab)*")"))
         }
     } else {
         if (transformation == "none") {
