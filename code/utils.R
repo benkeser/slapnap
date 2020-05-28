@@ -557,9 +557,6 @@ get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune
     if (length(out$nab) == 1){
         out$outcomes <- gsub("sens", "sens1", out$outcomes)
     } else {
-        if ("sens" %in% out$outcomes) {
-            stop("If multiple bNAbs are used, please specify 'estsens' and/or 'multsens' as the outcome, instead of 'sens'.")
-        }
         out$outcomes <- gsub("estsens", "sens1", out$outcomes)
         out$outcomes <- gsub("multsens", "sens2", out$outcomes)
     }

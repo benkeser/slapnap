@@ -19,6 +19,11 @@ check_opts_outcomes <- function(outcome_vec, all_outcomes, n_abs) {
         shiny::validate(
             shiny::need(!any(c("sens2") %in% outcome_vec), "If a single bNAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
         )
+    } else {
+        shiny::validate(
+            shiny::need(!("sens" %in% Sys.getenv("outcomes")), "If multiple bNAbs are used, please specify 'estsens' and/or 'multsens' as the outcome, instead of 'sens'.")
+            })
+        )
     }
 }
 # check learners
