@@ -218,9 +218,9 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
 make_nice_outcome <- function(outcome) {
     if (outcome == "ic50") {
         if (length(opts$nab) > 1) {
-            "estimated IC$_{50}"
+            "estimated IC$_{50}$"
         } else {
-            "IC$_{50}"
+            "IC$_{50}$"
         }
     } else if (outcome == "ic80") {
         if (length(opts$nab) > 1) {
@@ -250,7 +250,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
     out_summary <- list()
     # re-label and grab correct column
     if (outcome == "ic50") {
-        outcome_label <- "IC$_{50}"
+        outcome_label <- "IC$_{50}$"
         name_prefix <- "nab_"
         name_postfix <- ".ic50.imputed"
     } else if (outcome == "ic80") {
