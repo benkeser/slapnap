@@ -172,11 +172,11 @@ ENV report_name=""
 ENV return="report"
 
 # option to control sensitivity threshold for defining dichotomous
-# endpoints as (estimated/multiple) IC-50 > sens_thresh
+# endpoints as (estimated/multiple) IC-50 < sens_thresh
 ENV sens_thresh="1"
 
-# option to control multiple
-ENV multsens_nab="2"
+# number of sensitive abs needed to declare a pseudovirus sensitive 
+ENV multsens_nab="1"
 
 # option to view output on exposed port
 ENV view_port="FALSE"

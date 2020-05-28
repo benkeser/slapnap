@@ -156,7 +156,7 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
       # if here, then just one algo, so just show curve for one algo
       predict <- cv_fit[["Z"]][,1] %>% as.data.frame() %>%
       bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
-      predict$algo <- cv_fit$libraryNames[1]
+      predict$algo <- relabel_library(cv_fit$libraryNames[1])
       colnames(predict)[1] <- "pred"
     }else{
       # if here, then just want to show discrete super learner curve
@@ -209,7 +209,7 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
       # if here, then just one algo, so just show curve for one algo
       predict <- cv_fit[["Z"]][,1] %>% as.data.frame() %>%
       bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
-      predict$algo <- cv_fit$libraryNames[1]
+      predict$algo <- relabel_library(cv_fit$libraryNames[1])
       colnames(predict)[1] <- "pred"
       cv_folds <- rep(NA, length(cv_fit$Y))
       for(v in seq_along(cv_fit$validRows)){
@@ -232,7 +232,7 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
    # need to double check this code
   cv_fold_palette <- RColorBrewer::brewer.pal(max(c(cv_folds,3)), "Set1")
   predict %>%
-  mutate(Sensitivity = if_else(Y==1, "Resistant", "Sensitive")) %>%
+  mutate(Sensitivity = if_else(Y==1, "Sensitive", "Resistant")) %>%
   filter(!is.na(Sensitivity)) %>%
   ggplot(aes(x = Sensitivity, y = pred, color = factor(cv_folds))) +
   facet_grid(. ~ algo) +
@@ -240,7 +240,7 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
   labs(color = "CV fold") + 
   geom_point(position=position_jitterdodge(), aes(colour = factor(cv_folds)),
              pch = 1)+
-  ylab(paste0("Predicted Probability of Resistance")) + xlab("") +
+  ylab(paste0("Predicted Probability of Sensitivity")) + xlab("") +
   theme_bw() + coord_cartesian(ylim=c(0,1)) +
   scale_color_manual(values = cv_fold_palette)
 }
