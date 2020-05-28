@@ -167,14 +167,14 @@ iip.f.c <-(iip.c ^ iip.m) /((readouts$pc.ic50 ^ iip.m) +(iip.c ^ iip.m))
 iip.f.c[iip.f.c >= 1] <- 1 - .Machine$double.neg.eps
 readouts$iip <- (-1) * log10(1 - iip.f.c)
 
-# derive the "Dichotomous 1" endpoint(i.e., is the PC IC50 higher than the
+# derive the "Dichotomous 1" endpoint(i.e., is the PC IC50 less than the
 # sensitivity cutoff?)
-readouts$dichotomous.1 <- as.numeric(readouts$pc.ic50 >= sensitivity.threshold)
+readouts$dichotomous.1 <- as.numeric(readouts$pc.ic50 < sensitivity.threshold)
 
-# derive the "Dichotomous 2" endpoint(i.e., is the imputed IC50 greater than
+# derive the "Dichotomous 2" endpoint(i.e., is the imputed IC50 less than
 # the sensitivity threshold for at least a user-select number of antibodies
-min.resistant.abs <- min(c(multiple.sensitivity.threshold, length(antibodies)))
-readouts$dichotomous.2 <- as.numeric(apply(readouts[, grep("ic50.imputed", names(readouts), fixed=TRUE), drop = FALSE] >= sensitivity.threshold, 1, sum) >= min.resistant.abs)
+min.sensitive.abs <- min(c(multiple.sensitivity.threshold, length(antibodies)))
+readouts$dichotomous.2 <- as.numeric(apply(readouts[, grep("ic50.imputed", names(readouts), fixed=TRUE), drop = FALSE] < sensitivity.threshold, 1, sum) >= min.sensitive.abs)
 
 
 # ---------------------------------------------------------------------------- #
