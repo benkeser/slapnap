@@ -31,7 +31,7 @@ for (i in 1:length(outcome_names)) {
         ## make plots
         eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
         eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
-        plot_title_expr <- vimp_plot_name_expr(this_outcome_name, one_nab = n_ab)
+        plot_title_expr <- vimp_plot_name_expr(this_outcome_name, one_nab = n_ab < 1)
         vimp_type_expr <- unlist(lapply(as.list(names(current_vimp_lst)), vimp_plot_type_expr))
         vimp_plot_titles <- unlist(lapply(vimp_type_expr, function(x) eval(bquote(expression(.(plot_title_expr)*.(x))))))
         grp_bool_lst <- as.list(grepl("grp", names(current_vimp_lst)))
