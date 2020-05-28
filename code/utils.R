@@ -15,7 +15,7 @@ relabel_library <- function(library_names){
     )
     all_included <- any(grepl("_All", library_names))
     for(i in seq_along(labels)){
-        library_names <- gsub(paste0(labels[[i]][1], ifelse(all_included, "_All", "")), 
+        library_names <- gsub(paste0(labels[[i]][1], ifelse(all_included, "_All", "")),
                               labels[[i]][2], library_names)
     }
     library_names <- gsub("Super Learner", "super learner", library_names)
@@ -906,7 +906,7 @@ get_outcome_names <- function(opts) {
 
 # get full learner fit names
 get_learner_fit_names <- function(all_fit_nms, opts) {
-    fit_nms <- all_fit_nms[grepl("fit_", all_fit_nms)]
+    fit_nms <- all_fit_nms[grepl("learner_", all_fit_nms)]
     if (length(opts$learner) == 1) {
         if (opts$cvtune & !opts$cvperf) {
             # do nothing
@@ -915,7 +915,7 @@ get_learner_fit_names <- function(all_fit_nms, opts) {
             # do nothing
         }
     }
-    fit_only_outcomes <- gsub(".rds", "", gsub("cv", "", gsub("fit_", "", fit_nms)))
+    fit_only_outcomes <- gsub(".rds", "", gsub("cv", "", gsub("learner_", "", fit_nms)))
     outcome_names <- get_outcome_names(opts)
     these_outcome_fit_nms <- fit_nms[!is.na(pmatch(fit_only_outcomes, outcome_names, duplicates.ok = TRUE))]
     return(these_outcome_fit_nms)
