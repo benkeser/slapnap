@@ -1,6 +1,5 @@
 ---
 title: "SLAPNAP Report: `r paste(format(strsplit(Sys.getenv('nab'), split = ';')[[1]], justify = 'none'), collapse = ', ')`"
-author: "SLAPNAP Team"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: bookdown::html_document2
 header-includes:
@@ -122,7 +121,7 @@ this_library <- make_sl_library_vector(opts)
 Description <- sapply(this_library, function(x){
   eval(parse(text = paste0("descr_", x)))
 })
-Description <- data.frame(Label = names(Description), Description = Description)
+Description <- data.frame(Label = relabel_library(names(Description)), Description = Description)
 row.names(Description) <- NULL
 kable(as.data.frame(Description), col.names = c("Label", "Description"),
              caption = ifelse(length(opts$learners) == 1,
@@ -203,9 +202,9 @@ kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_c
 
 `r if ((length(opts$nab) == 1) | !("ic50" %in% opts$outcomes)) "<!--"`
 
-Histograms of IC-50 for each individual neutralizing antibody are shown in Figure \@ref(fig:histic50). Related summary measures are shown in \@ref(tab:tableic50)
+Histograms of IC$_{50}$ for each individual neutralizing antibody are shown in Figure \@ref(fig:histic50). Related summary measures are shown in \@ref(tab:tableic50)
 
-```{r, histic50, eval = ("ic50" %in% opts$outcomes) & !one_nab, fig.cap = paste0("Distribution of IC-50 values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), ") for each neutralizing antibody."), fig.height=5}
+```{r, histic50, eval = ("ic50" %in% opts$outcomes) & !one_nab, fig.cap = paste0("Distribution of IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), ") for each neutralizing antibody."), fig.height=5}
 ic50_descr <- get_individual_nab_summaries("ic50", opts, dat_ic50)
 do.call(grid.arrange, ic50_descr$hist)
 # if saving figures was requested, save
@@ -221,28 +220,28 @@ if (is.null(dim(ic50_table))) {
   colnames(tmp) <- names(ic50_table)
   ic50_table <- tmp
 }
-row.names(ic50_table) <- c(paste0("IC-50 ", opts$nab))
+row.names(ic50_table) <- c(paste0("IC$_{50}$ ", opts$nab))
 kable(ic50_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC-50 values for individual bnAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)."))
+      caption = paste0("Summary statistics of IC$_{50}$ values for individual bnAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)."))
 ```
 
 `r if ((length(opts$nab) == 1) | !("ic50" %in% opts$outcomes)) "-->"`
 
 `r if (!("ic50" %in% opts$outcomes)) "<!--"`
-A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-50 for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic50).
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$ for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic50).
 
 ```{r makecapic50, eval = "ic50" %in% opts$outcomes}
 ic50_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IC-50 for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data).")
+  paste0("Histogram of IC$_{50}$ for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data).")
 }else{
-  paste0("Histogram of estimated IC-50 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data).")
+  paste0("Histogram of estimated IC$_{50}$ for the combined neutralizing antibodies. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data).")
 }
 ```
 
 ```{r histcombnic50, eval = "ic50" %in% opts$outcomes, fig.cap = ic50_figcap}
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", "IC-50", "Density")
-combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", bquote(log[10]~"(IC-50)"), "")
+combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", expression(IC[50]), "Density")
+combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", bquote(log[10]~"(IC"[50]~")"), "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -258,15 +257,15 @@ if ("figures" %in% opts$return) {
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting IC-50 are shown in Table \@ref(tab:ic50superlearnerweighttable).
+The weights assigned to each algorithm for Super Learner predicting IC$_{50}$ are shown in Table \@ref(tab:ic50superlearnerweighttable).
 
 ```{r ic50superlearnerweighttable, eval = ("ic50" %in% opts$outcomes) & (length(opts$learners) > 1)}
 weights_ic50 <- readRDS(paste0(slfits_dir, "slweights_fit_log10.pc.ic50.rds"))
-weight_table <- data.frame(Learner = this_library, Weight = weights_ic50)
+weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_ic50)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)."))
+             caption = paste0("Table of super learner weights for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)."))
 ```
 
 `r if (length(opts$learners) == 1  | !("ic50" %in% opts$outcomes)) "-->"`
@@ -281,24 +280,24 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if (!opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !("ic50" %in% opts$outcomes)) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab)) in predicting IC-50 are shown in Figure \@ref(fig:plotic50).
+The cross-validated $R^2$ of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab)) in predicting IC$_{50}$ are shown in Figure \@ref(fig:plotic50).
 
 `r if (!opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !("ic50" %in% opts$outcomes)) "-->"`
 
 `r if (!opts$cvperf | (length(opts$learners) > 1) | !("ic50" %in% opts$outcomes)) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic50).
+The cross-validated $R^2$ of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic50).
 
 `r if (!opts$cvperf | length(opts$learners) > 1 | !("ic50" %in% opts$outcomes)) "-->"`
 
 `r if (!opts$cvperf) "<!--"`
 
-```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)")}
-plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8,
+```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data)")}
+plot(fit_list_out$out$ic50, main_title = expression(IC[50]), xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
- ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic50, main_title = "IC-50", xlim1 = -0.05, xlim2 = 0.8,
+ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic50, main_title = expression(IC[50]), xlim1 = -0.05, xlim2 = 0.8,
       text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -306,13 +305,13 @@ if ("figures" %in% opts$return) {
 `r if(!opts$cvperf) "-->"`
 
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "<!--"`
-Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC-50 plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-50, colored by cross-validation fold.
+Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC$_{50}$ plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$, colored by cross-validation fold.
 
-```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 plotted against actual IC-50 values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
-plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_axis = FALSE)
+```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual IC$_{50}$ values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
+plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = expression(IC[50]), log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = "IC-50", log_axis = FALSE), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = expression(IC[50]), log_axis = FALSE), width = 20, height = 20, units = "cm")
 }
 ```
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "-->"`
@@ -331,7 +330,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic50" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
 
-The biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) for predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-50 is shown in Figure \@ref(fig:ic50groupvimp). Importance is defined using the difference in $R^2$ values.
+The biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) for predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$ is shown in Figure \@ref(fig:ic50groupvimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 ```{r ic50groupvimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)), fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, outcome = "ic50", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -353,7 +352,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic50" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
-We show the biological variable importance of individual features in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-50 in Figure \@ref(fig:ic50indivimp). Importance is defined using the difference in $R^2$ values.
+We show the biological variable importance of individual features in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$ in Figure \@ref(fig:ic50indivimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 ```{r ic50indivimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, "ic50", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -385,7 +384,7 @@ Table \@ref(tab:ic50-imp-table) shows the top `r n_imp_ft` features. `r ifelse("
 
 ```{r ic50-imp-table, eval = "ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
-      caption = paste0("The top ", n_imp_ft, " important features for predicting ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 as measured by their algorithm-specific importance."))
+      caption = paste0("The top ", n_imp_ft, " important features for predicting ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ as measured by their algorithm-specific importance."))
 ```
 
 `r if (!("ic50" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`
@@ -402,7 +401,7 @@ kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE
 
 Histograms of IC$_{80}$ for each individual neutralizing antibody are shown in Figure \@ref(fig:histic80). Related summary measures are shown in \@ref(tab:tableic80)
 
-```{r, histic80, eval = ("ic80" %in% opts$outcomes) & (!one_nab), fig.cap = paste0("Distribution of IC-80 values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), ") for each neutralizing antibody."), fig.height=5}
+```{r, histic80, eval = ("ic80" %in% opts$outcomes) & (!one_nab), fig.cap = paste0("Distribution of IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), ") for each neutralizing antibody."), fig.height=5}
 ic80_descr <- get_individual_nab_summaries("ic80", opts, dat_ic80)
 do.call(grid.arrange, ic80_descr$hist)
 # if saving figures was requested, save
@@ -413,28 +412,28 @@ if ("figures" %in% opts$return) {
 
 ```{r, tableic80, eval = ("ic80" %in% opts$outcomes) & (!one_nab)}
 ic80_table <- Reduce(rbind, ic80_descr$summary)
-row.names(ic80_table) <- c(paste0("IC-80 ", opts$nab))
+row.names(ic80_table) <- c(paste0("IC$_{80}$ ", opts$nab))
 kable(ic80_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC-80 values for individual bnAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)."))
+      caption = paste0("Summary statistics of IC$_{80}$ values for individual bnAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)."))
 ```
 
 `r if ((length(opts$nab) == 1) | !("ic80" %in% opts$outcomes)) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes)) "<!--"`
-A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-80 for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic80).
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic80).
 
 ```{r makecapic80, eval = "ic80" %in% opts$outcomes}
 ic80_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IC-80 for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log10 scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data).")
+  paste0("Histogram of IC$_{80}$ for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data).")
 }else{
-  paste0("Histogram of estimated IC-80 for the combined neutralizing antibodies. Top row = original scale; bottom row = log10 scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data).")
+  paste0("Histogram of estimated IC$_{80}$ for the combined neutralizing antibodies. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data).")
 }
 ```
 
 ```{r histcombnic80, eval = "ic80" %in% opts$outcomes, fig.cap = ic80_figcap}
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", "IC-80", "Density")
-combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", bquote(log[10]~"(IC-80)"), "")
+combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", expression(IC[80]), "Density")
+combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", bquote(log[10]~"(IC"[80]~")"), "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -448,15 +447,15 @@ if ("figures" %in% opts$return) {
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-80 are shown in Table \@ref(tab:ic80superlearnerweighttable).
+The weights assigned to each algorithm for Super Learner predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ are shown in Table \@ref(tab:ic80superlearnerweighttable).
 
 ```{r ic80superlearnerweighttable, eval = ("ic80" %in% opts$outcomes) & (length(opts$learners) > 1)}
 weights_ic80 <- readRDS(paste0(slfits_dir, "slweights_fit_log10.pc.ic80.rds"))
-weight_table <- data.frame(Learner = this_library, Weight = weights_ic80)
+weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_ic80)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)."))
+             caption = paste0("Table of super learner weights for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)."))
 ```
 
 `r if ((length(opts$learners) == 1) | !("ic80" %in% opts$outcomes)) "-->"`
@@ -469,22 +468,22 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if ((length(opts$learners) == 1 & !opts$cvtune) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-80 are shown in Figure \@ref(fig:plotic80).
+The cross-validated $R^2$ of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ are shown in Figure \@ref(fig:plotic80).
 
 `r if ((length(opts$learners) == 1 & !opts$cvtune) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
 `r if ((length(opts$learners) > 1) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic80).
+The cross-validated $R^2$ of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic80).
 
 `r if ((length(opts$learners) > 1) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
-```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC-80 (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)")}
-plot(fit_list_out$out$ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8,
+```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC$_{80}$ (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data)")}
+plot(fit_list_out$out$ic80, main_title = expression(IC[80]), xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 if ("figures" %in% opts$return) {
-ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic80, main_title = "IC-80", xlim1 = -0.05, xlim2 = 0.8,
+ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic80, main_title = expression(IC[80]), xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -492,13 +491,13 @@ ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = p
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
-Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-80 plotted against observed values of IC-80, colored by cross-validation fold.
+Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ plotted against observed values of IC$_{80}$, colored by cross-validation fold.
 
-```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
-plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_axis = FALSE)
+```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations with complete sequence data) . Colors correspond to cross-validation folds.")}
+plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = expression(IC[80]), log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = "IC-80", log_axis = FALSE), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = expression(IC[80]), log_axis = FALSE), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -522,7 +521,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic80" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
 
-We show the biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-80 in Figure \@ref(fig:ic80groupvimp). Importance is defined using the difference in $R^2$ values.
+We show the biological variable importance of groups of features (defined in Table \@ref(tab:vimpGroupTab)) in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ in Figure \@ref(fig:ic80groupvimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = TRUE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
@@ -546,7 +545,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic80" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
-We show the biological variable importance of individual features in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC-80 in Figure \@ref(fig:ic80indivimp). Importance is defined using the difference in $R^2$ values.
+We show the biological variable importance of individual features in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ in Figure \@ref(fig:ic80indivimp). Importance is defined using the difference in $R^2$ values.
 `r get_biological_importance_plot_description(opts, grp = FALSE)` `r (1-vimp_threshold)*100`\% confidence intervals and stars denoting p-values less than `r vimp_threshold` are displayed in blue.
 
 
@@ -578,7 +577,7 @@ Table \@ref(tab:ic80-imp-table) shows the top `r n_imp_ft` features. `r ifelse("
 
 ```{r ic80-imp-table, eval = "ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic80[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
-      caption = paste0("The top ", n_imp_ft, " important features for predicting ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80 as measured by their algorithm-specific importance."))
+      caption = paste0("The top ", n_imp_ft, " important features for predicting ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ as measured by their algorithm-specific importance."))
 ```
 
 `r if (!("ic80" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`
@@ -620,7 +619,7 @@ The weights assigned to each algorithm for Super Learner predicting IIP are show
 
 ```{r iipsuperlearnerweighttable, eval = ("iip" %in% opts$outcomes) & (length(opts$learners) > 1)}
 weights_iip <- readRDS(paste0(slfits_dir, "slweights_fit_iip.rds"))
-weight_table <- data.frame(Learner = this_library, Weight = weights_iip)
+weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_iip)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
@@ -637,13 +636,13 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if (!("iip" %in% opts$outcomes) | (!opts$cvperf) | (length(opts$learners) == 1 & !opts$cvtune)) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IIP are shown in Figure \@ref(fig:plotiip).
+The cross-validated $R^2$ of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab) in predicting IIP are shown in Figure \@ref(fig:plotiip).
 
 `r if (!("iip" %in% opts$outcomes) | (!opts$cvperf) | (length(opts$learners) == 1 & !opts$cvtune)) "-->"`
 
 `r if (!("iip" %in% opts$outcomes) | (!opts$cvperf) |(length(opts$learners) > 1)) "<!--"`
 
-The cross-validated performance, as measured by $R^2$, of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotiip).
+The cross-validated $R^2$ of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotiip).
 
 `r if (!("iip" %in% opts$outcomes) | (!opts$cvperf) |(length(opts$learners) > 1)) "-->"`
 
@@ -768,7 +767,7 @@ The weights assigned to each algorithm for Super Learner predicting `r est_filli
 
 ```{r sens1superlearnerweighttable, eval = ("sens1" %in% opts$outcomes) & (length(opts$learners) > 1) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]]}
 weights_sens1 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.1.rds"))
-weight_table <- data.frame(Learner = this_library, Weight = weights_sens1)
+weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_sens1)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
@@ -945,7 +944,7 @@ The weights assigned to each algorithm for Super Learner predicting multiple sen
 
 ```{r sens2superlearnerweighttable, eval = ("sens2" %in% opts$outcomes) & (length(opts$learners) > 1) & run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]]}
 weights_sens2 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.2.rds"))
-weight_table <- data.frame(Learner = this_library, Weight = weights_sens2)
+weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_sens2)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,

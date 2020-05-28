@@ -177,11 +177,11 @@ SL.glmnet.75 <- function(..., alpha = 0.75){
 	SL.glmnet.0(..., alpha = alpha)
 }
 
-descr_SL.glmnet <- "Elastic net with lambda selected by 5-fold CV and alpha equal to "
+descr_SL.glmnet <- "elastic net with $\\lambda$ selected by 5-fold CV and $\\alpha$ equal to "
 descr_SL.glmnet.50 <- paste0(descr_SL.glmnet, "0.5")
 descr_SL.glmnet.25 <- paste0(descr_SL.glmnet, "0.25")
 descr_SL.glmnet.75 <- paste0(descr_SL.glmnet, "0.75")
-descr_SL.glmnet.0 <- "Elastic net with lambda selected by CV and alpha equal to 0"
+descr_SL.glmnet.0 <- "elastic net with $\\lambda$ selected by CV and $\\alpha$ equal to 0"
 
 descr_SL.mean <- "intercept only regression"
 descr_SL.glm <- "main terms generalized linear model"
