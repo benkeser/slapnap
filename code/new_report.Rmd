@@ -83,10 +83,6 @@ We define the marginal biological importance of a subgroup of features as the di
 ## vimp_summary_tbl created in preamble
 vimp_summary_marg <- vimp_summary_tbl$grp_marg %>%
     select(-mn_rank, -matches("num_rank"))
-correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
-cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
-bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
-correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
 kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, ncompletes, vimp_threshold, importance_type = "marginal"))
 ```
@@ -102,10 +98,6 @@ We define the conditional biological importance of a subgroup of features for pr
 ## vimp_summary_tbl created in preamble
 vimp_summary_cond <- vimp_summary_tbl$grp_cond %>%
     select(-mn_rank, -matches("num_rank"))
-correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
-cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "$R^2$", paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
-bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
-correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
 kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, ncompletes, vimp_threshold, importance_type = "conditional"))
 ```
@@ -213,7 +205,7 @@ The cross-validated $R^2$ of the learner (with tuning parameters selected via cr
 
 `r if (!opts$cvperf) "<!--"`
 
-```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations)")}
+```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations)")}
 plot(fit_list_out$out$ic50, main_title = expression(IC[50]), xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 # if saving figures was requested, save
@@ -228,7 +220,7 @@ if ("figures" %in% opts$return) {
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "<!--"`
 Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC$_{50}$ plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$, colored by cross-validation fold.
 
-```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual IC$_{50}$ values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
+```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = expression(IC[50]), log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
@@ -400,7 +392,7 @@ The cross-validated $R^2$ of the learner (with tuning parameters selected via cr
 `r if ((length(opts$learners) > 1) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
-```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC$_{80}$ (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations)")}
+```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC$_{80}$ (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations)")}
 plot(fit_list_out$out$ic80, main_title = expression(IC[80]), xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 if ("figures" %in% opts$return) {
@@ -414,7 +406,7 @@ ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = p
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ plotted against observed values of IC$_{80}$, colored by cross-validation fold.
 
-```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations) . Colors correspond to cross-validation folds.")}
+```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = expression(IC[80]), log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {

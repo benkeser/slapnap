@@ -115,15 +115,15 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     complete_obs_txt <- all_obs_txt$complete
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
-    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, complete_obs_txt, " To estimate the prediction functions based on ", full_func_txt, full_obs_txt, " to estimate the prediction function based on ", redu_func_txt, redu_obs_txt, " Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.")
+    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, " Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.", " (", complete_obs_txt, "; for estimating the prediction functions based on ", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction functions based on ", redu_func_txt, ", ", redu_obs_txt, ")")
     return(descr)
 }
 # @param outcomes: can specify to only return text for a single outcome
 get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outcomes = "all") {
     if (length(unique(num_obs_fulls)) == 1) {
-        complete_obs_txt <- paste0(" A total of ", n_row_now, " pseudoviruses with complete information for the outcome", ifelse(length(opts$outcomes) > 1, "s", ""), " of interest were used in this analysis.")
-        full_obs_txt <- paste0(", we used ", num_obs_fulls[1], " observations;")
-        redu_obs_txt <- paste0(", we used the remaining ", num_obs_reds[1], "observations.")
+        complete_obs_txt <- paste0("n = ", n_row_now)
+        full_obs_txt <- paste0("n = ", num_obs_fulls[1])
+        redu_obs_txt <- paste0("n = ", num_obs_reds[1])
     } else {
         if (length(n_row_now) == 1) {
             ntot <- n_row_now
@@ -143,9 +143,9 @@ get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outco
             plural_txt <- ""
             postlim <- ""
         }
-        complete_obs_txt <- paste0(" A total of ", ntot, " pseudoviruses with complete information for ", outcomes_txt, plural_txt, ifelse(outcomes == "all", ",", ""), " were used in this analysis.")
-        full_obs_txt <- paste0(", we used ", full_prelim, " observations", postlim, ";")
-        redu_obs_txt <- paste0(", we used the remaining ", redu_prelim, " observations", postlim, ".")
+        complete_obs_txt <- paste0("n = ", ntot, postlim)
+        full_obs_txt <- paste0("n = ", full_prelim, postlim)
+        redu_obs_txt <- paste0("n = ", redu_prelim, postlim)
     }
     return(list(complete = complete_obs_txt, full = full_obs_txt, redu = redu_obs_txt))
 }
@@ -205,7 +205,9 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
     complete_obs_txt <- all_obs_txt$complete
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
-    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, complete_obs_txt, " To estimate the prediction function ", ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, "based on geographic confounders only", "based on all available features")), full_obs_txt, " to estimate the prediction function ", ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0("based on the ", inner_descr, " of interest plus geographic confounders"), paste0("based on the reduced set of features (defined by removing the ", inner_descr, " of interest)"))), redu_obs_txt)
+    full_func_txt <- ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, " based on geographic confounders only", " based on all available features"))
+    redu_func_txt <- ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0(" based on the ", inner_descr, " of interest plus geographic confounders"), paste0(" based on the reduced set of features (defined by removing the ", inner_descr, " of interest)")))
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
     return(cap)
 }
 
@@ -348,7 +350,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
 
     # re-label
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
-    all_labels <- c("IC$_{50}", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
+    all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
     tmp <- all_outcomes
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
@@ -362,7 +364,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
         rsqtab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
         if(is.null(dim(rsqtab))) rsqtab <- matrix(rsqtab, nrow = 1)
         row.names(rsqtab) <- tmp[cont_idx]
-        rsq_kab <- knitr::kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
+        rsq_kab <- knitr::kable(rsqtab, col.names = c("CV-R$^2$", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
     }
@@ -374,7 +376,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
         auctab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
         if(is.null(dim(auctab))) auctab <- matrix(auctab, nrow = 1)
         row.names(auctab) <- tmp[dich_idx]
-        auc_kab <- knitr::kable(auctab, col.names = c("CVAUC", "Lower 95% CI", "Upper 95% CI"),
+        auc_kab <- knitr::kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
     }
@@ -638,12 +640,16 @@ vimp_plot_name <- function(vimp_str, one_nab) {
     return(plot_nms)
 }
 vimp_plot_name_expr <- function(vimp_str, one_nab) {
-    plot_nms <- rep(NA, length(vimp_str))
-    plot_nms[grepl("iip", vimp_str)] <- expression(bold(paste("IIP: ")))
-    plot_nms[grepl("pc.ic50", vimp_str)] <- bquote(bold(.(ifelse(one_nab, "", "Estimated") ~ IC[50] ~ ": ")))
-    plot_nms[grepl("pc.ic80", vimp_str)] <- bquote(bold(.(ifelse(one_nab, "", "Estimated") ~ IC[80] ~ ": ")))
-    plot_nms[grepl("dichotomous.1", vimp_str)] <- ifelse(one_nab, expression(bold(paste("Sensitivity: "))), expression(bold(paste("Estimated sensitivity: "))))
-    plot_nms[grepl("dichotomous.2", vimp_str)] <- expression(bold(paste("Multiple sensitivity: ")))
+    plot_nms <- rep(as.list(rep(NA,2)), length(vimp_str))
+    plot_nms[grepl("iip", vimp_str)] <- bquote(bold("IIP: "))
+    plot_nms[grepl("pc.ic50", vimp_str)] <- bquote(bold(.(ifelse(one_nab, "", "Estimated") ~ IC[50]*": ")))
+    plot_nms[grepl("pc.ic80", vimp_str)] <- bquote(bold(.(ifelse(one_nab, "", "Estimated") ~ IC[80]*": ")))
+    if (one_nab) {
+        plot_nms[grepl("dichotomous.1", vimp_str)] <- bquote(bold("Sensitivity: "))
+    } else {
+        plot_nms[grepl("dichotomous.1", vimp_str)] <- bquote(bold("Estimated sensitivity: "))
+    }
+    plot_nms[grepl("dichotomous.2", vimp_str)] <- bquote(bold("Multiple sensitivity: "))
     return(plot_nms)
 }
 vimp_plot_type_expr <- function(str) {
