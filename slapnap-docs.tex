@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R.
 Borate, Peter B. Gilbert}
-\date{May 27, 2020}
+\date{May 28, 2020}
 
 \begin{document}
 \maketitle
@@ -344,6 +344,14 @@ Proper values should be determined based on scientific context.
   learner-level \texttt{"pred"}, marginal \texttt{"marg"} and
   conditional \texttt{"cond"}. The latter two take significant
   computation time to compute.
+\item
+  \textbf{\texttt{same\_subset}} If \texttt{"FALSE"} (default) all data
+  available for each outcome will be used in the analysis. If
+  \texttt{"TRUE"}, the data will be subset to just those sequences that
+  have measured IC\(_{50}\), IC\(_{80}\), and for which IIP can be
+  computed (i.e., measured IC\(_{50}\) and IC\(_{80}\) values are
+  different). Thus, if \texttt{"TRUE"} all outcomes will be fit on the
+  \texttt{same\_subset} of the CATNAP data.
 \item
   \textbf{\texttt{report\_name}}: A string indicating the desired name
   of the output report (default =

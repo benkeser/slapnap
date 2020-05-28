@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert" />
 
 
-<meta name="date" content="2020-05-27" />
+<meta name="date" content="2020-05-28" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -193,6 +193,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><strong><code>nfolds</code></strong>: A numeric string indicating the number of folds to use in cross-validation procedures (default = <code>&quot;2&quot;</code>).</li>
 <li><strong><code>importance_grp</code></strong>: A semicolon-separated string indicating which group-level variable importance measures should be computed. Possible values are none <code>&quot;&quot;</code> (default), marginal <code>&quot;marg&quot;</code>, conditional <code>&quot;cond&quot;</code>. See Section <a href="7-sec-methods.html#sec:biolimp">7.3.1</a> for details on these measures.</li>
 <li><strong><code>importance_ind</code></strong>: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none <code>&quot;&quot;</code> (default), learner-level <code>&quot;pred&quot;</code>, marginal <code>&quot;marg&quot;</code> and conditional <code>&quot;cond&quot;</code>. The latter two take significant computation time to compute.</li>
+<li><strong><code>same_subset</code></strong> If <code>&quot;FALSE&quot;</code> (default) all data available for each outcome will be used in the analysis. If <code>&quot;TRUE&quot;</code>, the data will be subset to just those sequences that have measured IC<span class="math inline">\(_{50}\)</span>, IC<span class="math inline">\(_{80}\)</span>, and for which IIP can be computed (i.e., measured IC<span class="math inline">\(_{50}\)</span> and IC<span class="math inline">\(_{80}\)</span> values are different). Thus, if <code>&quot;TRUE&quot;</code> all outcomes will be fit on the <code>same_subset</code> of the CATNAP data.</li>
 <li><strong><code>report_name</code></strong>: A string indicating the desired name of the output report (default = <code>report_[_-separated list of nabs]_[date].html</code>).</li>
 <li><strong><code>return</code></strong>: A semicolon-separated string of the desired output. Possible values are <code>&quot;report&quot;</code> (default), <code>&quot;learner&quot;</code> for the trained algorithm, <code>&quot;data&quot;</code> for the analysis dataset, <code>&quot;figures&quot;</code> for all figures from the report, and <code>&quot;vimp&quot;</code> for variable importance objects.</li>
 <li><strong><code>view_port</code></strong>: A boolean string indicating whether the compiled report should be made viewable on <code>localhost</code> (default <code>&quot;FALSE&quot;</code>). If <code>&quot;TRUE&quot;</code> then <code>-p</code> option should be used in the <code>docker run</code> command to identify the port. See example in Section <a href="#sec:webbrowse"><strong>??</strong></a> for details.</li>
