@@ -26,7 +26,7 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bNAbs)", "y (bNAb)")` 
 * out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` `r ifelse(iip_undef == 1, "has", "have")` the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and `r ifelse(iip_undef == 1, "its", "their")` exclusion from IIP analyses.
 `r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC$_{50}$ was less than `r opts$sens_thresh``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin`IC$_{50}$ was less than `r opts$sens_thresh``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
 * out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bNAb", " bNAbs")))`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bNAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bNAbs")))``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
@@ -171,7 +171,7 @@ if ("figures" %in% opts$return) {
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting IC$_{50}$ are shown in Table \@ref(tab:ic50superlearnerweighttable).
+The weights assigned to each algorithm for Super Learner predicting `r est_fillin`IC$_{50}$ are shown in Table \@ref(tab:ic50superlearnerweighttable).
 
 ```{r ic50superlearnerweighttable, eval = ("ic50" %in% opts$outcomes) & (length(opts$learners) > 1)}
 weights_ic50 <- readRDS(paste0(slfits_dir, "slweights_fit_log10.pc.ic50.rds"))
@@ -194,7 +194,7 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if (!opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !("ic50" %in% opts$outcomes)) "<!--"`
 
-The cross-validated $R^2$ of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab)) in predicting IC$_{50}$ are shown in Figure \@ref(fig:plotic50).
+The cross-validated $R^2$ of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab)) in predicting `r est_fillin`IC$_{50}$ are shown in Figure \@ref(fig:plotic50).
 
 `r if (!opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !("ic50" %in% opts$outcomes)) "-->"`
 
@@ -219,9 +219,9 @@ if ("figures" %in% opts$return) {
 `r if(!opts$cvperf) "-->"`
 
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "<!--"`
-Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC$_{50}$ plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$, colored by cross-validation fold.
+Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of `r est_fillin`IC$_{50}$ plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$, colored by cross-validation fold.
 
-```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
+```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual `r est_fillin`IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = ic50_lab, log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
@@ -406,7 +406,7 @@ ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = p
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
-Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ plotted against observed values of IC$_{80}$, colored by cross-validation fold.
+Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ plotted against observed values of `r est_fillin`IC$_{80}$, colored by cross-validation fold.
 
 ```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = ic80_lab, log_axis = FALSE)
@@ -666,7 +666,7 @@ kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 
 `r if (!("sens1" %in% opts$outcomes)) "<!--"`
 
-# Results for `r est_fillin` sensitivity
+# Results for `r est_fillin`sensitivity
 
 ## Descriptive statistics
 Out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC$_{50}$ was less than `r opts$sens_thresh`. `r ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
