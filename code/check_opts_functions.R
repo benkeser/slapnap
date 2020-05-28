@@ -3,7 +3,7 @@
 # check nab
 check_opts_nab <- function(nab_str) {
     shiny::validate(
-        shiny::need(nab_str, "Please enter at least one antibody with data in the CATNAP database. Multiple antibodies may be specified in a semicolon-separated list (e.g., 'VRC07-523-LS;PGT121')")
+        shiny::need(nab_str, "Please enter at least one bNAb with data in the CATNAP database. Multiple bNAbs may be specified in a semicolon-separated list (e.g., 'VRC07-523-LS;PGT121')")
     )
 }
 # check outcomes
@@ -17,7 +17,7 @@ check_opts_outcomes <- function(outcome_vec, all_outcomes, n_abs) {
     )
     if(n_abs == 1){
         shiny::validate(
-            shiny::need(!any(c("sens2") %in% outcome_vec), "If a single nAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
+            shiny::need(!any(c("sens2") %in% outcome_vec), "If a single bNAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
         )
     }
 }

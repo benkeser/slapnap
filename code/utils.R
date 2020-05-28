@@ -275,7 +275,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         out_summary[[i]] <- tmp_sum
         ct <- ct+1
         dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
-        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = bquote(log[10]*"(", if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"}  *.(paste0(ifelse(length(opts$nab) > 1, " ", ""), opts$nab[i]))*")"),
+        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = bquote(log[10]~"(", if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"}  *.(paste0(ifelse(length(opts$nab) > 1, " ", ""), opts$nab[i]))*")"),
                                           y_lab = "")
     }
     return(list(hist = out_hist, summary = out_summary))
@@ -554,9 +554,12 @@ get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     # replace sensitivity with sens1/2 labels
-    if(length(out$nab) == 1){
+    if (length(out$nab) == 1){
         out$outcomes <- gsub("sens", "sens1", out$outcomes)
-    } else{
+    } else {
+        if ("sens" %in% out$outcomes) {
+            stop("If multiple bNAbs are used, please specify 'estsens' and/or 'multsens' as the outcome, instead of 'sens'.")
+        }
         out$outcomes <- gsub("estsens", "sens1", out$outcomes)
         out$outcomes <- gsub("multsens", "sens2", out$outcomes)
     }
@@ -649,17 +652,22 @@ vimp_plot_name <- function(vimp_str, one_nab) {
     return(plot_nms)
 }
 vimp_plot_name_expr <- function(vimp_str, one_nab) {
-    plot_nms <- rep(as.list(rep(NA,2)), length(vimp_str))
-    plot_nms[grepl("iip", vimp_str)] <- bquote(bold(.("IIP: ")))
-    plot_nms[grepl("pc.ic50", vimp_str)] <- bquote(bold(.(ifelse(one_nab, "", "Estimated") ~ IC[50]*": ")))
-    plot_nms[grepl("pc.ic80", vimp_str)] <- bquote(bold(.(ifelse(one_nab, "", "Estimated") ~ IC[80]*": ")))
-    if (one_nab) {
-        plot_nms[grepl("dichotomous.1", vimp_str)] <- bquote(bold(.("Sensitivity: ")))
+    est_fillin <- ifelse(one_nab, "", "Estimated")
+    if (grepl("iip", vimp_str)) {
+        return(bquote("IIP: "))
+    } else if (grepl("pc.ic50", vimp_str)) {
+        return(bquote(.(est_fillin) ~ IC[50]*": "))
+    } else if (grepl("pc.ic80", vimp_str)) {
+        return(bquote(.(est_fillin) ~ IC[80]*": "))
+    } else if (grepl("dichotomous.1", vimp_str)) {
+        if (one_nab) {
+            return(bquote("Sensitivity: "))
+        } else {
+            return(bquote("Estimated sensitivity: "))
+        }
     } else {
-        plot_nms[grepl("dichotomous.1", vimp_str)] <- bquote(bold(.("Estimated sensitivity: ")))
+        return(bquote(bold(.("Multiple sensitivity: "))))
     }
-    plot_nms[grepl("dichotomous.2", vimp_str)] <- bquote(bold(.("Multiple sensitivity: ")))
-    return(plot_nms)
 }
 vimp_plot_type_expr <- function(str) {
     grp_nm <- rev(unlist(strsplit(str, "_", fixed = TRUE)))
@@ -667,7 +675,7 @@ vimp_plot_type_expr <- function(str) {
     nice_grp_ind <- gsub("ind", "Individual Variable Importance", nice_grp)
     nice_grp_ind_marg <- gsub("marginal", "Marginal ", nice_grp_ind)
     nice_grp_ind_marg_cond <- gsub("conditional", "Conditional ", nice_grp_ind_marg)
-    return(bquote(bold(.( paste(nice_grp_ind_marg_cond, collapse = "")))))
+    return(bquote(.( paste(nice_grp_ind_marg_cond, collapse = ""))))
 }
 vimp_nice_rownames <- function(vimp_obj, cv = FALSE) {
     mat_s <- vimp_obj$mat$s

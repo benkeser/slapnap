@@ -23,13 +23,13 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bNAbs)", "y (bNAb)")` 
 
 * `r paste0(get_complete_data_text(opts, ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, iip_undef), ifelse(any_dich, ";", "."))`
 `r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "<!--"`
-* out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` has the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and their exclusion from IIP analyses.
+* out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` `r ifelse(iip_undef == 1, "has", "have")` the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and `r ifelse(iip_undef == 1, "its", "their")` exclusion from IIP analyses.
 `r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC$_{50}$ was less than `r opts$sens_thresh``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC$_{50}$ was less than `r opts$sens_thresh``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " antibodies"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, "antibody", "antibodies")))`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " antibodies"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the antibodies", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the antibodies")))``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, "bNAb", "bNAbs")))`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bNAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bNAbs")))``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
@@ -154,7 +154,7 @@ ic50_figcap <- if(length(opts$nab) == 1){
 ```{r histcombnic50, eval = "ic50" %in% opts$outcomes, fig.cap = ic50_figcap}
 combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", expression(IC[50]), "Density")
-combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", bquote(log[10]~"(IC"[50]~")"), "")
+combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", bquote(log[10]~"(IC"[50]*")"), "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -346,7 +346,7 @@ ic80_figcap <- if(length(opts$nab) == 1){
 ```{r histcombnic80, eval = "ic80" %in% opts$outcomes, fig.cap = ic80_figcap}
 combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", expression(IC[80]), "Density")
-combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", bquote(log[10]~"(IC"[80]~")"), "")
+combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", bquote(log[10]~"(IC"[80]*")"), "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -667,7 +667,7 @@ kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 # Results for `r est_fillin` sensitivity
 
 ## Descriptive statistics
-Out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` sensitive to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC${_50}$ was less than `r opts$sens_thresh`. `r ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
+Out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC${_50}$ was less than `r opts$sens_thresh`. `r ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
 
 `r if (!("sens1" %in% opts$outcomes)) "-->"`
 
@@ -705,11 +705,11 @@ The cross-validated area under the ROC curve of super learner predictions of `r 
 The cross-validated area under the ROC curve of the learner with tuning parameters selected via cross-validation and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
 ```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = paste0("Cross-validated AUC for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")}
-plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Estimated sensitivity", "Sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
+plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
-ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Estimated sensitivity", "Sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
+ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -843,7 +843,7 @@ kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALS
 
 ## Descriptive statistics
 
-Out of the `r ncomplete_ic50` sequences, `r sum(dat_ic50$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete_ic50 - sum(dat_ic50$dichotomous.2)` were estimated to be sensitive.
+Out of the `r ncomplete_ic50` sequences, `r sum(dat_ic50$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ncomplete_ic50 - sum(dat_ic50$dichotomous.2)` were estimated to be sensitive.
 
 `r if (!("sens2" %in% opts$outcomes)) "-->"`
 
