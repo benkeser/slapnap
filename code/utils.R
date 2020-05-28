@@ -115,6 +115,10 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     complete_obs_txt <- all_obs_txt$complete
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
+    correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
+    cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
+    bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
+    correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
     descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, " Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.", " (", complete_obs_txt, "; for estimating the prediction functions based on ", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction functions based on ", redu_func_txt, ", ", redu_obs_txt, ")")
     return(descr)
 }
@@ -143,7 +147,7 @@ get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outco
             plural_txt <- ""
             postlim <- ""
         }
-        complete_obs_txt <- paste0("n = ", ntot, postlim)
+        complete_obs_txt <- paste0("overall n = ", ntot, postlim)
         full_obs_txt <- paste0("n = ", full_prelim, postlim)
         redu_obs_txt <- paste0("n = ", redu_prelim, postlim)
     }
@@ -244,19 +248,24 @@ make_nice_outcome <- function(outcome) {
 get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
     out_hist <- list()
     out_summary <- list()
-    # re-label
-    outcome_label <- if(outcome == "ic50"){
-        "IC$_{50}"
-    }else if(outcome == "ic80"){
-        "IC$_{80}$"
-    }else if(outcome == "iip"){
-        "IIP"
+    # re-label and grab correct column
+    if (outcome == "ic50") {
+        outcome_label <- "IC$_{50}"
+        name_prefix <- "nab_"
+        name_postfix <- ".ic50.imputed"
+    } else if (outcome == "ic80") {
+        outcome_label <- "IC$_{80}"
+        name_prefix <- "nab_"
+        name_postfix <- ".ic80.imputed"
+    } else {
+        outcome_label <- "IIP"
+        name_prefix <- ""
+        name_postfix <- ""
     }
-
     ct <- 0
     for(i in seq_along(opts$nab)){
         ct <- ct + 1
-        this_name <- gsub("-", ".", paste0("nab_", opts$nab[i], ".ic50.imputed"))
+        this_name <- gsub("-", ".", paste0(name_prefix, opts$nab[i], name_postfix))
         out_hist[[ct]] <- make_hist_plot(dat, var_name = this_name,
                                           x_lab = paste0(outcome_label," ", opts$nab[i]),
                                           y_lab = "Density")
@@ -266,8 +275,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         out_summary[[i]] <- tmp_sum
         ct <- ct+1
         dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
-        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name),
-                                          x_lab = bquote(log[10]~"(IC[50] "~.(opts$nab[i])~")"),
+        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = bquote(log[10]*"(", if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"},  *.(paste0(ifelse(length(opts$nab) > 1, " ", ""), opts$nab[i]))*")"),
                                           y_lab = "")
     }
     return(list(hist = out_hist, summary = out_summary))
@@ -318,29 +326,30 @@ get_learner_descriptions <- function(opts){
 
 get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
     tmp <- paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions of ")
-    if("ic50" %in% opts$outcomes){
+    if ("ic50" %in% opts$outcomes) {
         tmp <- paste0(tmp, "IC$_{50}$")
-        if(any(c("ic80", "iip") %in% opts$outcomes)){
-            if(n_row_ic50 != n_row_ic80){
-                tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
-            }else{
-                tmp <- paste0(tmp, ", ")
-            }
-            if("ic80" %in% opts$outcomes){
-                tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$"))
-                if(n_row_ic80 != n_row_iip | !("iip" %in% opts$outcomes)){
-                    tmp <- paste0(tmp, " (n = ", n_row_ic80, ")")
-                }
-                if("iip" %in% opts$outcomes){
-                    tmp <- paste0(tmp, ", and IIP (n = ", n_row_iip, ").")
-                }else{
-                    tmp <- paste0(tmp, ".")
-                }
-            }
-        }else{
-            tmp <- paste0(tmp, " (n = ", n_row_ic50, ").")
-        }
     }
+    if (any(c("ic80", "iip") %in% opts$outcomes)) {
+        if (n_row_ic50 != n_row_ic80) {
+            tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
+        } else {
+            tmp <- paste0(tmp, ", ")
+        }
+        if ("ic80" %in% opts$outcomes) {
+            tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, "IC$_{80}$", " and IC$_{80}$"))
+            if(n_row_ic80 != n_row_iip | !("iip" %in% opts$outcomes)){
+                tmp <- paste0(tmp, " (n = ", n_row_ic80, ")")
+            }
+        }
+        if("iip" %in% opts$outcomes){
+            tmp <- paste0(tmp, ", and IIP (n = ", n_row_iip, ").")
+        } else {
+            tmp <- paste0(tmp, ".")
+        }
+    } else {
+        tmp <- paste0(tmp, " (n = ", n_row_ic50, ").")
+    }
+    return(tmp)
 }
 # each entry in the output list is a kable that should be properly labeled.
 get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
@@ -1023,8 +1032,8 @@ describe_id_var <- function(var) {
 }
 # describe outcomes
 describe_outcome_var <- function(var, opts) {
-    predicted_text_ic50 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-50 for antibody $j$.")
-    predicted_text_ic80 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-80 for antibody $j$.")
+    predicted_text_ic50 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{50}$ for antibody $j$.")
+    predicted_text_ic80 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{80}$ for antibody $j$.")
     if (grepl("ic50", var)) {
         descr <- paste0("Outcome variable: IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
     } else if (grepl("ic80", var)) {
@@ -1081,7 +1090,7 @@ get_complete_data_description <- function(opts, ncomplete_ic50, ncomplete_ic80, 
     }
     if (print_ic80 & print_ic5080) {
         num_obs <- paste0(num_obs, ifelse(!print_ic50, "", ", "), ncomplete_ic80)
-        outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", ", "), ifelse(one_nab, "", est_fillin), "IC-80, ", " and both ", ifelse(one_nab, "", est_fillin), "IC$_{50}$ and ", ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
+        outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", ", "), ifelse(one_nab, "", est_fillin), "IC$_{80}$, ", " and both ", ifelse(one_nab, "", est_fillin), "IC$_{50}$ and ", ifelse(one_nab, "", est_fillin), "IC$_{80}$, respectively,")
     } else if (print_ic80) {
         num_obs <- paste0(num_obs, ifelse(!print_ic50, "", " and "), ncomplete_ic80)
         outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", " and "), ifelse(one_nab, "", est_fillin), "IC$_{80}$, respectively,")

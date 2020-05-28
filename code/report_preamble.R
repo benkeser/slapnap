@@ -188,7 +188,7 @@ iip_undef <- sum(dat_ic5080$log10.pc.ic80 == dat_ic5080$log10.pc.ic50)
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
 all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_ic50, ncomplete_ic50)
 names(all_ncomplete) <- all_outcomes
-all_labels <- c("IC-50", "IC-80", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
+all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
 nice_outcomes <- opts$outcomes
 for(i in seq_along(all_outcomes)){
     nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
