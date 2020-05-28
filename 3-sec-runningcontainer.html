@@ -136,7 +136,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.1</b> <code>slapnap</code> options</a></li>
 <li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.2</b> Mounting a local directory</a></li>
 <li class="chapter" data-level="3.3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:viewreport"><i class="fa fa-check"></i><b>3.3</b> Viewing report in web browser</a></li>
-<li class="chapter" data-level="3.4" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#interactive-sessions"><i class="fa fa-check"></i><b>3.4</b> Interactive sessions</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="4-sec-examples.html"><a href="4-sec-examples.html"><i class="fa fa-check"></i><b>4</b> Examples</a><ul>
 <li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-call-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic call to <code>slapnap</code></a></li>
@@ -144,6 +143,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.3</b> Super learning</a></li>
 <li class="chapter" data-level="4.4" data-path="4-sec-examples.html"><a href="4-sec-examples.html#train-an-algorithm"><i class="fa fa-check"></i><b>4.4</b> Train an algorithm</a></li>
 <li class="chapter" data-level="4.5" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.5</b> Pull and clean data</a></li>
+<li class="chapter" data-level="4.6" data-path="4-sec-examples.html"><a href="4-sec-examples.html#interactive-sessions"><i class="fa fa-check"></i><b>4.6</b> Interactive sessions</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-sec-report.html"><a href="5-sec-report.html"><i class="fa fa-check"></i><b>5</b> Report details</a></li>
 <li class="chapter" data-level="6" data-path="6-sec-data.html"><a href="6-sec-data.html"><i class="fa fa-check"></i><b>6</b> Data details</a></li>
@@ -201,18 +201,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="sec:mounting" class="section level2">
 <h2><span class="header-section-number">3.2</span> Mounting a local directory</h2>
-<p>At the end of a <code>slapnap</code> run, user-specified output will be saved (see option <code>return</code> in Section <a href="3-sec-runningcontainer.html#sec:opts">3.1</a>). To retrieve these files from inside the container, we can <a href="https://docs.docker.com/storage/bind-mounts/"><em>mount</em></a> a local directory to an output directory (<code>/home/output/</code>) in the container using the <code>-v</code> option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container <code>/home/output/</code>) will be available in the mounted directory.</p>
+<p>At the end of a <code>slapnap</code> run, user-specified output will be saved (see option <code>return</code> in Section <a href="3-sec-runningcontainer.html#sec:opts">3.1</a>). To retrieve these files from inside the container, there are two options: <a href="https://docs.docker.com/storage/bind-mounts/"><em>mounting</em></a> a local directory or, if the report is the only desired output, viewing the report in a web browser (Section <a href="3-sec-runningcontainer.html#sec:viewreport">3.3</a>).</p>
+<p>To mount a local directory to an output directory (<code>/home/output/</code>) in the container using the <code>-v</code> option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container <code>/home/output/</code>) will be available in the mounted directory.</p>
 <p>Suppose <code>/path/to/local/dir</code> is the file path on a local computer in which we wish to save the output files from a <code>slapnap</code> run. A <code>docker run</code> of <code>slapnap</code> would include the option <code>-v /path/to/local/dir:/home/output</code>. After a run completes, the requested output should be viewable in <code>/path/to/local/dir</code>. See Section <a href="4-sec-examples.html#sec:examples">4</a> for full syntax.</p>
 </div>
 <div id="sec:viewreport" class="section level2">
 <h2><span class="header-section-number">3.3</span> Viewing report in web browser</h2>
 <p>An alternative option to mounting local directories for viewing and downloading the report is to set the <code>view_port</code> option to <code>&quot;TRUE&quot;</code> and open a port to the container via the <code>-p</code> option in the <code>docker run</code> statement. In this case, rather than exiting upon completion of the analysis, the container will continuing to run and broadcast the compiled report to <code>localhost</code> at the specified port (see examples below). The report can be downloaded from the web browser directly in this way.</p>
-</div>
-<div id="interactive-sessions" class="section level2">
-<h2><span class="header-section-number">3.4</span> Interactive sessions</h2>
-<p>To simply enter the container and poke around, use an interactive session by including <code>-it</code> and overriding the container’s entry-point.</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -it slapnap/slapnap /bin/bash</code></pre></div>
-<p>This will enter you into the container in a bash terminal. This may be useful for exploring the file structure, examining versions of <code>R</code> packages that are included in the container, etc.</p>
 </div>
 </div>
 <div class="footnotes">

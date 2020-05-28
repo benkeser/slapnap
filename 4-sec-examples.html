@@ -136,7 +136,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.1</b> <code>slapnap</code> options</a></li>
 <li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.2</b> Mounting a local directory</a></li>
 <li class="chapter" data-level="3.3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:viewreport"><i class="fa fa-check"></i><b>3.3</b> Viewing report in web browser</a></li>
-<li class="chapter" data-level="3.4" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#interactive-sessions"><i class="fa fa-check"></i><b>3.4</b> Interactive sessions</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="4-sec-examples.html"><a href="4-sec-examples.html"><i class="fa fa-check"></i><b>4</b> Examples</a><ul>
 <li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-call-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic call to <code>slapnap</code></a></li>
@@ -144,6 +143,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.3</b> Super learning</a></li>
 <li class="chapter" data-level="4.4" data-path="4-sec-examples.html"><a href="4-sec-examples.html#train-an-algorithm"><i class="fa fa-check"></i><b>4.4</b> Train an algorithm</a></li>
 <li class="chapter" data-level="4.5" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.5</b> Pull and clean data</a></li>
+<li class="chapter" data-level="4.6" data-path="4-sec-examples.html"><a href="4-sec-examples.html#interactive-sessions"><i class="fa fa-check"></i><b>4.6</b> Interactive sessions</a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-sec-report.html"><a href="5-sec-report.html"><i class="fa fa-check"></i><b>5</b> Report details</a></li>
 <li class="chapter" data-level="6" data-path="6-sec-data.html"><a href="6-sec-data.html"><i class="fa fa-check"></i><b>6</b> Data details</a></li>
@@ -216,6 +216,19 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
            -e return=<span class="st">&quot;data&quot;</span> \
            slapnap/slapnap</code></pre></div>
+</div>
+<div id="interactive-sessions" class="section level2">
+<h2><span class="header-section-number">4.6</span> Interactive sessions</h2>
+<p>To simply enter the container and poke around, use an interactive session by including <code>-it</code> and overriding the container’s entry-point.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -it slapnap/slapnap /bin/bash</code></pre></div>
+<p>This will enter you into the container in a bash terminal prior to any portions of the analysis being run. This may be useful for exploring the file structure, examining versions of <code>R</code> packages that are included in the container, etc.</p>
+<p>To enter the container interactively <em>after</em> the analysis has run, you can execute the following commands. Here we add the <code>-d</code> option to start the container in <a href="https://docs.docker.com/engine/reference/run/#detached--d">detached mode</a>.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -d -p 80:80 -e view_port=<span class="st">&quot;TRUE&quot;</span> slapnap/slapnap
+
+<span class="co"># ...wait for analysis to finish...</span>
+
+<span class="co"># use this command to enter the container</span>
+<span class="ex">docker</span> exec -it /bin/bash</code></pre></div>
 </div>
 </div>
             </section>

@@ -374,14 +374,17 @@ Proper values should be determined based on scientific context.
 
 At the end of a \texttt{slapnap} run, user-specified output will be
 saved (see option \texttt{return} in Section \ref{sec:opts}). To
-retrieve these files from inside the container, we can
-\href{https://docs.docker.com/storage/bind-mounts/}{\emph{mount}} a
-local directory to an output directory (\texttt{/home/output/}) in the
-container using the \texttt{-v} option. That is, all files in the
-mounted local directory will be visible to programs running inside the
-container and any items saved to the output directory in the container
-(file path in the container \texttt{/home/output/}) will be available in
-the mounted directory.
+retrieve these files from inside the container, there are two options:
+\href{https://docs.docker.com/storage/bind-mounts/}{\emph{mounting}} a
+local directory or, if the report is the only desired output, viewing
+the report in a web browser (Section \ref{sec:viewreport}).
+
+To mount a local directory to an output directory
+(\texttt{/home/output/}) in the container using the \texttt{-v} option.
+That is, all files in the mounted local directory will be visible to
+programs running inside the container and any items saved to the output
+directory in the container (file path in the container
+\texttt{/home/output/}) will be available in the mounted directory.
 
 Suppose \texttt{/path/to/local/dir} is the file path on a local computer
 in which we wish to save the output files from a \texttt{slapnap} run. A
@@ -400,22 +403,6 @@ exiting upon completion of the analysis, the container will continuing
 to run and broadcast the compiled report to \texttt{localhost} at the
 specified port (see examples below). The report can be downloaded from
 the web browser directly in this way.
-
-\subsection{Interactive sessions}\label{interactive-sessions}
-
-To simply enter the container and poke around, use an interactive
-session by including \texttt{-it} and overriding the container's
-entry-point.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\ExtensionTok{docker}\NormalTok{ run -it slapnap/slapnap /bin/bash}
-\end{Highlighting}
-\end{Shaded}
-
-This will enter you into the container in a bash terminal. This may be
-useful for exploring the file structure, examining versions of
-\texttt{R} packages that are included in the container, etc.
 
 \section{Examples}\label{sec:examples}
 
@@ -542,6 +529,40 @@ all \texttt{outcomes} are included in the resultant data set.
 \end{Highlighting}
 \end{Shaded}
 
+\subsection{Interactive sessions}\label{interactive-sessions}
+
+To simply enter the container and poke around, use an interactive
+session by including \texttt{-it} and overriding the container's
+entry-point.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{docker}\NormalTok{ run -it slapnap/slapnap /bin/bash}
+\end{Highlighting}
+\end{Shaded}
+
+This will enter you into the container in a bash terminal prior to any
+portions of the analysis being run. This may be useful for exploring the
+file structure, examining versions of \texttt{R} packages that are
+included in the container, etc.
+
+To enter the container interactively \emph{after} the analysis has run,
+you can execute the following commands. Here we add the \texttt{-d}
+option to start the container in
+\href{https://docs.docker.com/engine/reference/run/\#detached--d}{detached
+mode}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{docker}\NormalTok{ run -d -p 80:80 -e view_port=}\StringTok{"TRUE"}\NormalTok{ slapnap/slapnap}
+
+\CommentTok{# ...wait for analysis to finish...}
+
+\CommentTok{# use this command to enter the container}
+\ExtensionTok{docker}\NormalTok{ exec -it /bin/bash}
+\end{Highlighting}
+\end{Shaded}
+
 \section{Report details}\label{sec:report}
 
 \section{Data details}\label{sec:data}
@@ -549,6 +570,15 @@ all \texttt{outcomes} are included in the resultant data set.
 \section{Method details}\label{sec:methods}
 
 \subsection{Outcome definitions}\label{sec:outcomedefs}
+
+For single antibodies and antibody combinations measured directly in the
+CATNAP database, IC\(_{50}\) and IC\(_{80}\) are available. Based on the
+measured IC\(_{50}\) a binary sensitive/resistant endpoint is created
+(if \texttt{sens} is included in the \texttt{-e\ outcomes} option). A
+pseudovirus is defined as \emph{resistant} (\texttt{sens\ =\ 1}) if its
+measured IC\(_{50}\) is greater than the user-specified sensitivity
+threshold (specified in the \texttt{-e\ sens\_thresh} option) and
+\emph{sensitive} otherwise (\texttt{sens\ =\ 0}).
 
 \subsection{Super learner details}\label{sec:sldetails}
 

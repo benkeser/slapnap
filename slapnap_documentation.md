@@ -52,24 +52,15 @@ __-e options for `slapnap`__
 
 ## Mounting a local directory {#sec:mounting}
 
-At the end of a `slapnap` run, user-specified output will be saved (see option `return` in Section \@ref(sec:opts)). To retrieve these files from inside the container, we can [*mount*](https://docs.docker.com/storage/bind-mounts/) a local directory to an output directory (`/home/output/`) in the container using the `-v` option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory.
+At the end of a `slapnap` run, user-specified output will be saved (see option `return` in Section \@ref(sec:opts)). To retrieve these files from inside the container, there are two options: [*mounting*](https://docs.docker.com/storage/bind-mounts/) a local directory or, if the report is the only desired output, viewing the report in a web browser (Section \@ref(sec:viewreport)). 
+
+To mount a local directory to an output directory (`/home/output/`) in the container using the `-v` option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory.
 
 Suppose `/path/to/local/dir` is the file path on a local computer in which we wish to save the output files from a `slapnap` run. A `docker run` of `slapnap` would include the option `-v /path/to/local/dir:/home/output`. After a run completes, the requested output should be viewable in `/path/to/local/dir`. See Section \@ref(sec:examples) for full syntax.
 
 ## Viewing report in web browser {#sec:viewreport}
 
 An alternative option to mounting local directories for viewing and downloading the report is to set the `view_port` option to `"TRUE"` and open a port to the container via the `-p` option in the `docker run` statement. In this case, rather than exiting upon completion of the analysis, the container will continuing to run and broadcast the compiled report to `localhost` at the specified port (see examples below). The report can be downloaded from the web browser directly in this way.
-
-## Interactive sessions
-
-To simply enter the container and poke around, use an interactive session by including `-it` and overriding the container's entry-point.
-
-
-```bash
-docker run -it slapnap/slapnap /bin/bash
-```
-
-This will enter you into the container in a bash terminal. This may be useful for exploring the file structure, examining versions of `R` packages that are included in the container, etc.
 
 # Examples {#sec:examples}
 
@@ -141,6 +132,29 @@ docker run -v /path/to/local/dir:/home/output \
            slapnap/slapnap
 ```
 
+## Interactive sessions
+
+To simply enter the container and poke around, use an interactive session by including `-it` and overriding the container's entry-point.
+
+
+```bash
+docker run -it slapnap/slapnap /bin/bash
+```
+
+This will enter you into the container in a bash terminal prior to any portions of the analysis being run. This may be useful for exploring the file structure, examining versions of `R` packages that are included in the container, etc.
+
+To enter the container interactively *after* the analysis has run, you can execute the following commands. Here we add the `-d` option to start the container in [detached mode](https://docs.docker.com/engine/reference/run/#detached--d). 
+
+
+```bash
+docker run -d -p 80:80 -e view_port="TRUE" slapnap/slapnap
+
+# ...wait for analysis to finish...
+
+# use this command to enter the container
+docker exec -it /bin/bash
+```
+
 # Report details {#sec:report}
 
 
@@ -150,6 +164,8 @@ docker run -v /path/to/local/dir:/home/output \
 # Method details {#sec:methods}
 
 ## Outcome definitions {#sec:outcomedefs}
+
+For single antibodies and antibody combinations measured directly in the CATNAP database, IC$_{50}$ and IC$_{80}$ are available. Based on the measured IC$_{50}$ a binary sensitive/resistant endpoint is created (if `sens` is included in the `-e outcomes` option). A pseudovirus is defined as *resistant* (`sens = 1`) if its measured IC$_{50}$ is greater than the user-specified sensitivity threshold (specified in the `-e sens_thresh` option) and *sensitive* otherwise (`sens = 0`). 
 
 ## Super learner details {#sec:sldetails}
 
