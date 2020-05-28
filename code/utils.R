@@ -637,13 +637,13 @@ vimp_plot_name_expr <- function(vimp_str, one_nab) {
     plot_nms[grepl("dichotomous.2", vimp_str)] <- expression(bold(paste("Multiple sensitivity: ")))
     return(plot_nms)
 }
-vimp_plot_type <- function(str) {
+vimp_plot_type_expr <- function(str) {
     grp_nm <- rev(unlist(strsplit(str, "_", fixed = TRUE)))
     nice_grp <- gsub("grp", "Group Variable Importance", grp_nm)
     nice_grp_ind <- gsub("ind", "Individual Variable Importance", nice_grp)
     nice_grp_ind_marg <- gsub("marginal", "Marginal ", nice_grp_ind)
     nice_grp_ind_marg_cond <- gsub("conditional", "Conditional ", nice_grp_ind_marg)
-    return(paste(nice_grp_ind_marg_cond, collapse = ""))
+    return(bquote(bold(.( paste(nice_grp_ind_marg_cond, collapse = "")))))
 }
 vimp_nice_rownames <- function(vimp_obj, cv = FALSE) {
     mat_s <- vimp_obj$mat$s
