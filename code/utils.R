@@ -454,7 +454,7 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
                           ifelse(ic80_pres | iip_pres, "IC-80 ", ""), collapse = "")
             tmp1_5 <- ifelse((ic50_pres & ic80_pres) | iip_pres, "were ", "was ")
             tmp2 <- paste0("computed based on the additive model of @wagh2016optimal; ",
-                           "for $J$ antibodies, it is computed as \\[ \\mbox{predicted IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
+                           "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
                            " where $\\mbox{IC}_j$ denotes the measured ",
                            paste0(ifelse(ic50_pres, "IC-50 ", ""),
                                   ifelse(ic50_pres & ic80_pres, "or ", ""),
@@ -464,14 +464,14 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
         }
         if(iip_pres){
             tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
-                          "\\[ \\frac{10^m}{\\mbox{predicted IC$_{50}$}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{predicted IC}_{80}) - \\mbox{log}_{10}(\\mbox{predicted IC}_{50}))$ ",
-                          "and predicted IC$_{50}$ and IC$_{80}$ are computed as described above. ",
+                          "\\[ \\frac{10^m}{\\mbox{estimated IC$_{50}$}^m + 10^m} \ , \\]",
+                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{estimated IC}_{80}) - \\mbox{log}_{10}(\\mbox{estimated IC}_{50}))$ ",
+                          "and estimated IC$_{50}$ and IC$_{80}$ are computed as described above. ",
                           collapse = "")
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres){
-            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that predicted IC$_{50}$ < ", opts$sens_thresh, ". ")
+            tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that estimated IC$_{50}$ < ", opts$sens_thresh, ". ")
         }
         if(sens2_pres){
             tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies.")
@@ -907,14 +907,6 @@ get_outcome_names <- function(opts) {
 # get full learner fit names
 get_learner_fit_names <- function(all_fit_nms, opts) {
     fit_nms <- all_fit_nms[grepl("learner_", all_fit_nms)]
-    if (length(opts$learner) == 1) {
-        if (opts$cvtune & !opts$cvperf) {
-            # do nothing
-        }
-        if (opts$cvperf) {
-            # do nothing
-        }
-    }
     fit_only_outcomes <- gsub(".rds", "", gsub("cv", "", gsub("learner_", "", fit_nms)))
     outcome_names <- get_outcome_names(opts)
     these_outcome_fit_nms <- fit_nms[!is.na(pmatch(fit_only_outcomes, outcome_names, duplicates.ok = TRUE))]
@@ -1016,14 +1008,14 @@ describe_id_var <- function(var) {
 }
 # describe outcomes
 describe_outcome_var <- function(var, opts) {
-    predicted_text_ic50 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{predicted IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-50 for antibody $j$.")
-    predicted_text_ic80 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{predicted IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-80 for antibody $j$.")
+    predicted_text_ic50 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-50 for antibody $j$.")
+    predicted_text_ic80 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-80 for antibody $j$.")
     if (grepl("ic50", var)) {
         descr <- paste0("Outcome variable: IC-50 (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
     } else if (grepl("ic80", var)) {
         descr <- paste0("Outcome variable: IC-80 (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
     } else if (grepl("iip", var)) {
-        descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "predicted"), " IC-50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "predicted"), " IC-80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "predicted"), " IC-50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "predicted"), " IC-50 and IC-80 are computed as described above. ", collapse = "")
+        descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 and IC-80 are computed as described above. ", collapse = "")
     } else if (var == "sens" | var == "estsens") {
         descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 < ", opts$sens_thresh, ". Note that in the dataset, 1 denotes resistant (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC-50 > ", opts$sens_thresh, ") while 0 denotes sensitive.")
     } else if (var == "multsens") {

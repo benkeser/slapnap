@@ -31,8 +31,7 @@ if (any(grepl("learner", opts$return))) {
     fit_renames <- gsub("log10.pc.ic50", "ic50", fit_renames)
     fit_renames <- gsub("log10.pc.ic80", "ic80", fit_renames)
     fit_renames <- gsub("fit_", "learner_", fit_renames)
-    file.rename(paste0("/home/slfits/", fit_names), paste0("/home/slfits/", fit_renames))
-    file.copy(paste0("/home/slfits/", fit_renames), paste0("/home/output/", fit_renames))
+    file.copy(paste0("/home/slfits/", fit_names), paste0("/home/output/", fit_renames))
 }
 #------------------------------------
 # figures are saved directly from
