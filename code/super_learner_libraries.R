@@ -426,8 +426,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
                            SL.library = "SL.mean",
                            ...){
   # three cases to worry about in terms of how to deal with missing data
-  # 1. same_subset requested, but only studying ic80 or only studying ic50-derived outcomes, 
-  #    in which case, we will ignore your same_subset request because you're only studying 
+  # 1. same_subset requested, but only studying ic80 or only studying ic50-derived outcomes,
+  #    in which case, we will ignore your same_subset request because you're only studying
   #    endpoints based entirely on ic50 or entirely on ic80
   # 2. same_subset requested and studying mix of ic50(-derived) and ic80 endpoints, in which
   #    case we will subset down to sequences with both ic50 and ic80
@@ -465,11 +465,13 @@ sl_one_outcome <- function(complete_dat, outcome_name,
       saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
       # save super learner weights
       saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
-    } else if(length(opts$learners) == 1 & opts$cvtune) {
+  } else if(length(opts$learners) == 1 & ((opts$cvtune & !opts$cvperf) | opts$cvperf)) {
       # save CV-selected learner predictions
       saveRDS(fit$library.predict[ , which.min(fit$cvRisk)],
               file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
-    } else {
+      # save CV-selected learner
+      saveRDS(fit$fitLibrary[, which.min(fit$cvRisk)], file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "learner_", fit_name))))
+  } else {
         # don't save anything
     }
   } else {

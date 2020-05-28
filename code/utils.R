@@ -20,7 +20,7 @@ get_complete_data_text <- function(opts, ncomplete_ic50,
             tmp <- paste0(tmp, "Amongst these sequences, ", iip_undef, " had the same IC$_{50}$ and IC$_{80}$ and thus were excluded from the analysis.",
                           "Since `same_subset` was set to TRUE in the call to `slapnap`, there were a total of ", ncomplete_ic5080 - iip_undef, " sequences included in the analysis of each endpoint")
         }else{
-            tmp <- paste0(tmp, "Since `same_subset` was set to TRUE in the call to `slapnap`, this was the total number of sequences included in the analysis of each endpoint")            
+            tmp <- paste0(tmp, "Since `same_subset` was set to TRUE in the call to `slapnap`, this was the total number of sequences included in the analysis of each endpoint")
         }
     }
     return(tmp)
@@ -411,8 +411,8 @@ load_cv_fits <- function(opts, run_sls, code_dir){
     }else{
         n_row_ic80
     }
-    
-    return(list(out = out_list, V = V, n_row_ic50 = n_row_ic50, 
+
+    return(list(out = out_list, V = V, n_row_ic50 = n_row_ic50,
                 n_row_ic80 = n_row_ic80, n_row_iip = n_row_iip))
 }
 
@@ -886,6 +886,14 @@ get_outcome_names <- function(opts) {
 # get full learner fit names
 get_learner_fit_names <- function(all_fit_nms, opts) {
     fit_nms <- all_fit_nms[grepl("fit_", all_fit_nms)]
+    if (length(opts$learner) == 1) {
+        if (opts$cvtune & !opts$cvperf) {
+            # do nothing
+        }
+        if (opts$cvperf) {
+            # do nothing
+        }
+    }
     fit_only_outcomes <- gsub(".rds", "", gsub("cv", "", gsub("fit_", "", fit_nms)))
     outcome_names <- get_outcome_names(opts)
     these_outcome_fit_nms <- fit_nms[!is.na(pmatch(fit_only_outcomes, outcome_names, duplicates.ok = TRUE))]
