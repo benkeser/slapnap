@@ -36,6 +36,12 @@ pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 
 # get names of outcomes
 outcome_names <- get_outcome_names(opts)
+all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
+all_labels <- c("IC-50", "IC-80", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
+nice_outcomes <- opts$outcomes
+for(i in seq_along(all_outcomes)){
+    nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
+}
 
 # get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)
@@ -71,6 +77,7 @@ for (i in 1:length(outcome_names)) {
     set.seed(123125)
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name, V = V)
+    print(paste0("Fitting ", nice_outcomes[i]))
     ## do the fitting, if there are enough outcomes
     if (run_sl_vimp_bools2$run_sl[i]) {
         sl_fit_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library,
@@ -112,6 +119,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
             for (j in 1:length(all_var_groups)) {
                 if (length(all_var_groups[j]) != 0) {
                     this_group_name <- names(all_var_groups)[j]
+                    print(paste0("Fitting reduced learners for group variable importance of ", this_group_name, " and outcome ", nice_outcomes[i]))
                     ## fit based on removing group of interest
                     if ("cond" %in% opts$importance_grp) {
                         sl_fit_ij <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name,
@@ -167,6 +175,7 @@ if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
         set.seed(1234)
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
+        print(paste0("Fitting reduced learners for individual variable importance for outcome ", nice_outcomes[i]))
         if (run_sl_vimp_bools2$run_vimp[i]) {
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
             for (j in 1:length(var_inds)) {
