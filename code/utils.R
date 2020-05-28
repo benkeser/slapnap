@@ -275,7 +275,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         out_summary[[i]] <- tmp_sum
         ct <- ct+1
         dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
-        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = bquote(log[10]*"(", if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"},  *.(paste0(ifelse(length(opts$nab) > 1, " ", ""), opts$nab[i]))*")"),
+        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = bquote(log[10]*"(", if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"}  *.(paste0(ifelse(length(opts$nab) > 1, " ", ""), opts$nab[i]))*")"),
                                           y_lab = "")
     }
     return(list(hist = out_hist, summary = out_summary))
@@ -650,15 +650,15 @@ vimp_plot_name <- function(vimp_str, one_nab) {
 }
 vimp_plot_name_expr <- function(vimp_str, one_nab) {
     plot_nms <- rep(as.list(rep(NA,2)), length(vimp_str))
-    plot_nms[grepl("iip", vimp_str)] <- bquote(bold("IIP: "))
+    plot_nms[grepl("iip", vimp_str)] <- bquote(bold(.("IIP: ")))
     plot_nms[grepl("pc.ic50", vimp_str)] <- bquote(bold(.(ifelse(one_nab, "", "Estimated") ~ IC[50]*": ")))
     plot_nms[grepl("pc.ic80", vimp_str)] <- bquote(bold(.(ifelse(one_nab, "", "Estimated") ~ IC[80]*": ")))
     if (one_nab) {
-        plot_nms[grepl("dichotomous.1", vimp_str)] <- bquote(bold("Sensitivity: "))
+        plot_nms[grepl("dichotomous.1", vimp_str)] <- bquote(bold(.("Sensitivity: ")))
     } else {
-        plot_nms[grepl("dichotomous.1", vimp_str)] <- bquote(bold("Estimated sensitivity: "))
+        plot_nms[grepl("dichotomous.1", vimp_str)] <- bquote(bold(.("Estimated sensitivity: ")))
     }
-    plot_nms[grepl("dichotomous.2", vimp_str)] <- bquote(bold("Multiple sensitivity: "))
+    plot_nms[grepl("dichotomous.2", vimp_str)] <- bquote(bold(.("Multiple sensitivity: ")))
     return(plot_nms)
 }
 vimp_plot_type_expr <- function(str) {
