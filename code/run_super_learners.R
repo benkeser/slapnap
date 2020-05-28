@@ -36,6 +36,7 @@ pred_names <- colnames(dat)[geog_idx:ncol(dat)]
 
 # get names of outcomes
 outcome_names <- get_outcome_names(opts)
+one_nab <- length(opts$nab) == 1
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
 all_labels <- c("IC-50", "IC-80", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
 nice_outcomes <- opts$outcomes
