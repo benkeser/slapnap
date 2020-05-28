@@ -628,13 +628,13 @@ vimp_nice_ind_names <- function(nm_vec) {
     return(no_1mer)
 }
 ## nice plotting names
-vimp_plot_name <- function(vimp_str, one_nab) {
+vimp_plot_name_expr <- function(vimp_str, one_nab) {
     plot_nms <- rep(NA, length(vimp_str))
-    plot_nms[grepl("iip", vimp_str)] <- "IIP"
-    plot_nms[grepl("pc.ic50", vimp_str)] <- "IC[50]"
-    plot_nms[grepl("pc.ic80", vimp_str)] <- "IC[80]"
-    plot_nms[grepl("dichotomous.1", vimp_str)] <- ifelse(one_nab, "Sensitivity", "Estimated sensitivity")
-    plot_nms[grepl("dichotomous.2", vimp_str)] <- "Multiple sensitivity"
+    plot_nms[grepl("iip", vimp_str)] <- expression(bold(paste("IIP: ")))
+    plot_nms[grepl("pc.ic50", vimp_str)] <- expression(bold(paste(IC[50], ": ", sep = "")))
+    plot_nms[grepl("pc.ic80", vimp_str)] <- expression(bold(paste(IC[80], ": ", sep = "")))
+    plot_nms[grepl("dichotomous.1", vimp_str)] <- ifelse(one_nab, expression(bold(paste("Sensitivity: "))), expression(bold(paste("Estimated sensitivity: "))))
+    plot_nms[grepl("dichotomous.2", vimp_str)] <- expression(bold(paste("Multiple sensitivity: ")))
     return(plot_nms)
 }
 vimp_plot_type <- function(str) {
