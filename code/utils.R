@@ -124,32 +124,45 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
 }
 # @param outcomes: can specify to only return text for a single outcome
 get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outcomes = "all") {
-    if (length(unique(num_obs_fulls)) == 1) {
+    if (length(unique(n_row_now)) == 1) {
         complete_obs_txt <- paste0("n = ", n_row_now)
         full_obs_txt <- paste0("n = ", num_obs_fulls[1])
         redu_obs_txt <- paste0("n = ", num_obs_reds[1])
     } else {
+        outcomes_txt <- gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE)
+        plural_txt <- ", respectively"
         if (length(n_row_now) == 1) {
             ntot <- n_row_now
+            tot_postlim <- " for all outcomes "
         } else {
             ntot <- paste0(paste0(n_row_now[-length(n_row_now)], collapse = ", "), " and ", n_row_now[length(n_row_now)])
+            tot_postlim <- paste0(" for ", outcomes_txt, plural_txt)
         }
         if (outcomes == "all") {
-            full_prelim <- paste0(paste0(num_obs_fulls[-length(num_obs_fulls)], collapse = ", "), " and ", num_obs_fulls[length(num_obs_fulls)])
-            redu_prelim <- paste0(paste0(num_obs_reds[-length(num_obs_reds)], collapse = ", "), " and ", num_obs_reds[length(num_obs_reds)])
-            outcomes_txt <- gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE)
-            plural_txt <- ", respectively"
-            postlim <- paste0(" for ", outcomes_txt, plural_txt)
+            if (length(unique(num_obs_fulls)) == 1) {
+                full_prelim <- num_obs_fulls[1]
+                full_postlim <- " for all outcomes"
+            } else {
+                full_prelim <- paste0(paste0(num_obs_fulls[-length(num_obs_fulls)], collapse = ", "), " and ", num_obs_fulls[length(num_obs_fulls)])
+                full_postlim <- paste0(" for ", outcomes_txt, plural_txt)
+            }
+            if (length(unique(num_obs_reds)) == 1) {
+                redu_prelim <- num_obs_reds[1]
+                redu_postlim <- " for all outcomes"
+            } else {
+                redu_prelim <- paste0(paste0(num_obs_reds[-length(num_obs_reds)], collapse = ", "), " and ", num_obs_reds[length(num_obs_reds)])
+                redu_postlim <- paste0(" for ", outcomes_txt, plural_txt)
+            }
         } else {
             full_prelim <- num_obs_fulls[grepl(outcomes, names(num_obs_fulls))]
             redu_prelim <- num_obs_reds[grepl(outcomes, names(num_obs_reds))]
             outcomes_txt <- make_nice_outcome(outcomes)
             plural_txt <- ""
-            postlim <- ""
+            full_postlim <- redu_postlim <- ""
         }
-        complete_obs_txt <- paste0("overall n = ", ntot, postlim)
-        full_obs_txt <- paste0("n = ", full_prelim, postlim)
-        redu_obs_txt <- paste0("n = ", redu_prelim, postlim)
+        complete_obs_txt <- paste0("overall n = ", ntot, tot_postlim)
+        full_obs_txt <- paste0("n = ", full_prelim, full_postlim)
+        redu_obs_txt <- paste0("n = ", redu_prelim, redu_postlim)
     }
     return(list(complete = complete_obs_txt, full = full_obs_txt, redu = redu_obs_txt))
 }
@@ -243,6 +256,27 @@ make_nice_outcome <- function(outcome) {
     }
 }
 
+make_xlab <- function(outcome, nab, transformation = "none") {
+    if (outcome == "ic50") {
+        if (transformation == "none") {
+            return(bquote(IC[50]~.(nab)))
+        } else {
+            return(bquote(log[10*"("*IC[50]~.(nab)*")"]))
+        }
+    } else if (outcome == "ic80") {
+        if (transformation == "none") {
+            return(bquote(IC[80]~.(nab)))
+        } else {
+            return(bquote(log[10*"("*IC[80]~.(nab)*")"]))
+        }
+    } else {
+        if (transformation == "none") {
+            return(bquote("IIP"~.(nab)))
+        } else {
+            return(bquote(log[10*"(IIP"~.(nab)*")"]))
+        }
+    }
+}
 # for a given outcome make a panel histogram of the individual
 # nabs and a summary table
 get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
@@ -267,7 +301,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         ct <- ct + 1
         this_name <- gsub("-", ".", paste0(name_prefix, opts$nab[i], name_postfix))
         out_hist[[ct]] <- make_hist_plot(dat, var_name = this_name,
-                                          x_lab = bquote(.(if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"})~.(opts$nab[i])),
+                                          x_lab = make_xlab(outcome, opts$nab[i], "none"),
                                           y_lab = "Density")
         tmp_sum <- summary(dat[, this_name])[1:6] # to ignore NA columns
         tmp_sum <- c(tmp_sum[1:3], 10^mean(log10(dat[, this_name])), tmp_sum[4:6])
@@ -275,7 +309,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         out_summary[[i]] <- tmp_sum
         ct <- ct+1
         dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
-        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = bquote(log[10]~"(", .(if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"})  *.(paste0(ifelse(length(opts$nab) > 1, " ", ""), opts$nab[i]))*")"),
+        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = make_xlab(outcome, opts$nab[i], "log10"),
                                           y_lab = "")
     }
     return(list(hist = out_hist, summary = out_summary))
