@@ -109,7 +109,7 @@ plot_cv_predictions <- function(cv_fit,
     p <- ggplot(d, aes(x = prediction, y = outcome, color = factor(cv_folds))) +
       geom_point() + theme_bw() +
       scale_color_manual(values = cv_fold_palette) +
-      labs(x = "Cross-Validated prediction", y = outcome_name, col = "CV fold") +
+      labs(x = "Cross-validated prediction", y = outcome_name, col = "CV fold") +
       geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5) +
       annotate("text", -Inf, Inf, label = paste0("Pearson corr. = ", round(these_corr[1], 2), "\n",
                                                  "Spearman corr. = ", round(these_corr[2], 2)),
@@ -122,7 +122,7 @@ plot_cv_predictions <- function(cv_fit,
     p <- ggplot(d, aes(x = prediction, y = residual, color = factor(cv_folds))) +
       geom_point() + theme_bw() +
       scale_color_manual(values = cv_fold_palette) +
-      labs(x = "Cross-Validated prediction", y = "Residual", col = "CV fold") +
+      labs(x = "Cross-validated prediction", y = "Residual", col = "CV fold") +
       geom_abline(intercept = 0, slope = 1, linetype = "dashed", size=0.5)
   }
   if(zoom){
@@ -136,7 +136,8 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
                                      rgb(90,177,187, alpha = 255/2, maxColorValue = 255),
                                      rgb(165, 200, 130, alpha = 255/2, maxColorValue = 255)),
                             opts) {
-  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = as.character(Algorithm))
+  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = relabel_library(as.character(Algorithm)))
+  colnames(cv_fit[["library.predict"]]) <- relabel_library(colnames(cv_fit[["library.predict"]]))
 
   # if CV.super learner then top two rows will be super learner and DSL
   if(length(opts$learners) > 1){
@@ -145,8 +146,8 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
     sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
 
     predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
-      bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
-      bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Super Learner"))) %>%
+      bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("cv selector"))) %>%
+      bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("super learner"))) %>%
       bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y"))) %>%
       gather("algo", "pred", -Y) %>%
       filter(algo %in% sortedAlgos$Algorithm[1:(2+topRank)])
@@ -159,7 +160,7 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
       colnames(predict)[1] <- "pred"
     }else{
       # if here, then just want to show discrete super learner curve
-      predict <- bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
+      predict <- bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("cv selector"))) %>%
       bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
       predict$algo <- "Discrete SL"
       colnames(predict)[1] <- "pred"
@@ -180,12 +181,12 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
     theme_bw() +
     theme(legend.position = "top") +
     scale_color_manual(values = cols) +
-    labs(x = "Cross-Validated False Positive Rate", y = "Cross-Validated True Positive Rate", col = "Algorithm")
+    labs(x = "Cross-validated False Positive Rate", y = "Cross-validated True Positive Rate", col = "Algorithm")
 }
 
 plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
-  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = as.character(Algorithm))
-
+  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = relabel_library(as.character(Algorithm)))
+  colnames(cv_fit[["library.predict"]]) <- relabel_library(colnames(cv_fit[["library.predict"]]))
   # if CV.super learner then top two rows will be super learner and DSL
   if(length(opts$learners) > 1){
     # if super learner show ROC for SL, DSL, and top topRank algorithms
@@ -193,8 +194,8 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
     sortedAlgos <- rbind(allAlgos[1:2,], allCandidates[1:topRank,])
 
     predict <- cv_fit[["library.predict"]] %>% as.data.frame() %>%
-      bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
-      bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Super Learner"))) %>%
+      bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("cv selector"))) %>%
+      bind_cols(cv_fit[["SL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("super learner"))) %>%
       bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y"))) %>%
       gather("algo", "pred", -Y) %>%
       filter(algo %in% sortedAlgos$Algorithm[1:(2+topRank)])
@@ -217,9 +218,9 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
       predict$cv_folds <- cv_folds
     }else{
       # if here, then just want to show discrete super learner curve
-      predict <- bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("Discrete SL"))) %>%
+      predict <- bind_cols(cv_fit[["discreteSL.predict"]] %>% as.data.frame() %>% `colnames<-`(c("cv selector"))) %>%
       bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
-      predict$algo <- "Discrete SL"
+      predict$algo <- "cv selector"
       colnames(predict)[1] <- "pred"
       cv_folds <- rep(NA, length(cv_fit$Y))
       for(v in seq_along(cv_fit$folds)){
@@ -265,18 +266,10 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
       logit_se <- sqrt(se^2 * grad^2)
       Lower <- plogis(qlogis(Mean) - constant * logit_se); Upper <- plogis(qlogis(Mean) + constant * logit_se)
     }
-    assign("d", data.frame(Y = Mean, X = sumx$Table$Algorithm,
+    relab_lib <- relabel_library(sumx$Table$Algorithm)
+    factor_relab_lib <- factor(relab_lib, levels = relab_lib)
+    assign("d", data.frame(Y = Mean, X = factor_relab_lib,
         Lower = Lower, Upper = Upper))
-    if (package == "lattice") {
-        .SL.require("lattice")
-        p <- lattice::dotplot(X ~ Y, data = d, xlim = c(min(d$Lower) -
-            0.02, max(d$Upper) + 0.02), xlab = "V-fold CV Risk Estimate",
-            ylab = "Method", panel = function(x, y) {
-                lattice::panel.xyplot(x, y, pch = 16, cex = 1)
-                lattice::panel.segments(d$Lower, y, d$Upper,
-                  y, lty = 1)
-            })
-    }
     if (package == "ggplot2") {
       this_y_lab <- if(Rsquared){
         expression("CV-"*R^2*" (95% CI)")
@@ -451,7 +444,7 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
     par(mai=c(1.2,1.3,0.5,0.5))
     par(xpd = T, mar = par()$mar + c(0,0,14,0))
     plot(perfBest, lwd=3, avg="vertical",xlim=c(0,1),# main="ROC Curves for Best Vaccine Models",
-         col="orange",spread.estimate="stderror", legacy.axes = FALSE,show.spread.at= seq(0.09, 0.89, by=0.1),ylab="Cross-Validated True Positive Rate", cex=1.5) +
+         col="orange",spread.estimate="stderror", legacy.axes = FALSE,show.spread.at= seq(0.09, 0.89, by=0.1),ylab="Cross-validated True Positive Rate", cex=1.5) +
       plot(perf2, lwd=3, avg="vertical",xlim=c(0,1), col="red", legacy.axes = FALSE,add=T,spread.estimate="stderror")  +  #,spread.estimate="stderror")
       plot(perf3, lwd=3, avg="vertical",xlim=c(0,1), col="cyan", legacy.axes = FALSE,add=T,spread.estimate="stderror")  +
       plot(perf.sl, lwd=3, avg="vertical",xlim=c(0,1), col="blue", legacy.axes = FALSE,add=T,spread.estimate="stderror")
@@ -475,7 +468,7 @@ create_CVROC_plots = function(dataset, fit, SL.library, outcome, covarX, plotFil
     par(mai=c(1.2,1.3,0.5,0.5))
     par(xpd = T, mar = par()$mar + c(0,0,14,0))
     plot(perfBest, lwd=3, avg="vertical",xlim=c(0,1),# main="ROC Curves for Best Vaccine Models",
-         col="orange",spread.estimate="stderror", legacy.axes = FALSE,show.spread.at= seq(0.09, 0.89, by=0.1),ylab="Cross-Validated True Positive Rate") +
+         col="orange",spread.estimate="stderror", legacy.axes = FALSE,show.spread.at= seq(0.09, 0.89, by=0.1),ylab="Cross-validated True Positive Rate") +
       plot(perf2, lwd=3, avg="vertical",xlim=c(0,1), col="red", legacy.axes = FALSE,add=T,spread.estimate="stderror")  +  #,spread.estimate="stderror")
       plot(perf3, lwd=3, avg="vertical",xlim=c(0,1), col="cyan", legacy.axes = FALSE,add=T,spread.estimate="stderror")  +
       plot(perf.sl, lwd=3, avg="vertical",xlim=c(0,1), col="blue", legacy.axes = FALSE,add=T,spread.estimate="stderror")

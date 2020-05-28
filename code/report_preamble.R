@@ -7,6 +7,12 @@ knitr::opts_chunk$set(warning = FALSE)
 
 options(stringsAsFactors = FALSE)
 
+#---------------------
+# Some set up
+#---------------------
+slfits_dir <- "/home/slfits/"
+data_dir <- "/home/dat/"
+
 library(grid)
 library(magrittr)
 library(ggplot2)
@@ -29,6 +35,12 @@ source(paste0(code_dir, "var_import_plot.R"))
 source(paste0(code_dir, "vimp_executive_summary_table.R"))
 source(paste0(code_dir, "plot_one_vimp.R"))
 source(paste0(code_dir, "variable_groups.R"))
+
+# get biological importance
+vimp_threshold <- 0.05
+
+# set number of predictive importance features to show
+n_imp_ft <- 20
 
 #---------------------
 # Permanent options
@@ -120,3 +132,74 @@ run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
 if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
     source(paste0(code_dir, "biological_importance.R"), local = TRUE)
 }
+
+#-------------------------------------------------------
+# other variables and objects needed throughout report
+#-------------------------------------------------------
+
+# boolean of single nab
+one_nab <- length(opts$nab) == 1
+est_fillin <- ifelse(one_nab, "", "estimated ")
+any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
+any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
+# read in number of observations
+nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
+ncomplete_features <- readRDS(paste0(slfits_dir,"ncomplete_features.rds"))
+ncomplete_ic50 <- readRDS(paste0(slfits_dir,"ncomplete_ic50.rds"))
+ncomplete_ic80 <- readRDS(paste0(slfits_dir,"ncomplete_ic80.rds"))
+ncomplete_ic5080 <- readRDS(paste0(slfits_dir,"ncomplete_ic5080.rds"))
+
+# read in data
+analysis_data_names <- list.files("/home/dat/analysis")
+analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
+dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
+
+# first covariate column
+min_cov_col_idx <- min(grep("geographic", colnames(dat)))
+ncol_data_final <- ncol(dat)
+# number with complete sequence/geog information
+complete_features_idx <- complete.cases(dat[ , min_cov_col_idx:ncol_data_final])
+
+# data with complete features
+dat_comp_ft <- dat[complete_features_idx, ]
+
+# iip column
+iip_col_idx <- which(colnames(dat_comp_ft) == "iip")
+# data used for ic50-related analyses
+if(opts$same_subset){
+  dat_ic50 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+}else{
+  dat_ic50 <- dat_comp_ft[!is.na(dat_comp_ft$pc.ic50), ]
+}
+# data used for ic80-related analyses
+if(!opts$same_subset | !("ic80" %in% opts$outcomes & length(opts$outcomes) > 1)){
+  dat_ic80 <- dat_comp_ft[!is.na(dat_comp_ft$pc.ic80), ]
+}else{
+  dat_ic80 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+}
+
+dat_ic5080 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+
+# compute number of sequences with same ic50 and ic80,
+# these guys do not have IIP defined
+iip_undef <- sum(dat_ic5080$log10.pc.ic80 == dat_ic5080$log10.pc.ic50)
+
+# make nice outcome names
+all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
+all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_ic50, ncomplete_ic50)
+names(all_ncomplete) <- all_outcomes
+all_labels <- c("IC-50", "IC-80", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
+nice_outcomes <- opts$outcomes
+for(i in seq_along(all_outcomes)){
+    nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
+}
+outcome_names <- get_outcome_names(opts)
+ncompletes <- all_ncomplete[names(all_ncomplete) %in% opts$outcomes]
+run_sl_vimp_bools <- check_outcomes(dat_ic50, outcome_names, as.numeric(opts$nfolds))
+# now format continuous outcomes table
+cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
+bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
+cont_nms <- nice_outcomes[cont_idx]
+bin_nms <- nice_outcomes[bin_idx]
+# postfix for naming plots
+postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b%Y"))

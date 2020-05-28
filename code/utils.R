@@ -1,3 +1,29 @@
+relabel_library <- function(library_names){
+    labels <- list(
+      c("SL.ranger.reg", "rf_default"),
+      c("SL.ranger.small", "rf_tune1"),
+      c("SL.ranger.large", "rf_tune2"),
+      c("SL.xgboost.4", "xgboost_default"),
+      c("SL.xgboost.2", "xgboost_tune1"),
+      c("SL.xgboost.6", "xgboost_tune2"),
+      c("SL.xgboost.8", "xgboost_tune3"),
+      c("SL.glmnet.0", "lasso_default"),
+      c("SL.glmnet.25", "lasso_tune1"),
+      c("SL.glmnet.50", "lasso_tune2"),
+      c("SL.glmnet.75", "lasso_tune3"),
+      c("SL.mean", "mean")
+    )
+    all_included <- any(grepl("_All", library_names))
+    for(i in seq_along(labels)){
+        library_names <- gsub(paste0(labels[[i]][1], ifelse(all_included, "_All", "")), 
+                              labels[[i]][2], library_names)
+    }
+    library_names <- gsub("Super Learner", "super learner", library_names)
+    library_names <- gsub("Discrete SL", "cv selector", library_names)
+
+    return(library_names)
+}
+
 get_complete_data_text <- function(opts, ncomplete_ic50,
                                    ncomplete_ic80,
                                    ncomplete_ic5080,
@@ -317,12 +343,7 @@ get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
 # each entry in the output list is a kable that should be properly labeled.
 get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
     fit_list <- fit_list_out$out
-<<<<<<< HEAD
-    V <- opts$nfolds
-    n_row_now <- fit_list_out$n_row_now
-=======
     V <- fit_list_out$V
->>>>>>> upstream/master
     table_list <- lapply(fit_list[!is.na(names(fit_list))], summary.myCV.SuperLearner, opts = opts)
 
     # re-label
