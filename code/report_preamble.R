@@ -203,3 +203,16 @@ cont_nms <- nice_outcomes[cont_idx]
 bin_nms <- nice_outcomes[bin_idx]
 # postfix for naming plots
 postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b%Y"))
+
+# for plotting IC50, IC80
+if (length(opts$nab) == 1) {
+    ic50_lab <- bquote(IC[50])
+    ic50_loglab <- bquote(log[10]~"(IC"[50]*")")
+    ic80_lab <- bquote(IC[80])
+    ic80_loglab <- bquote(log[10]~"(IC"[80]*")")
+} else {
+    ic50_lab <- bquote("Estimated"~IC[50])
+    ic50_loglab <- bquote(log[10]~"(Estimated IC"[50]*")")
+    ic80_lab <- bquote("Estimated"~IC[80])
+    ic80_loglab <- bquote(log[10]~"(Estimated IC"[80]*")")
+}

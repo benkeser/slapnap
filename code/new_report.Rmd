@@ -152,9 +152,10 @@ ic50_figcap <- if(length(opts$nab) == 1){
 ```
 
 ```{r histcombnic50, eval = "ic50" %in% opts$outcomes, fig.cap = ic50_figcap}
+# labs are created in report_preamble
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", expression(IC[50]), "Density")
-combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", bquote(log[10]~"(IC"[50]*")"), "")
+combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", ic50_lab, "Density")
+combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", ic50_loglab, "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -206,11 +207,11 @@ The cross-validated $R^2$ of the learner (with tuning parameters selected via cr
 `r if (!opts$cvperf) "<!--"`
 
 ```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations)")}
-plot(fit_list_out$out$ic50, main_title = expression(IC[50]), xlim1 = -0.05, xlim2 = 0.8,
+plot(fit_list_out$out$ic50, main_title = ic50_lab, xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
- ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic50, main_title = expression(IC[50]), xlim1 = -0.05, xlim2 = 0.8,
+ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic50, main_title = ic50_lab, xlim1 = -0.05, xlim2 = 0.8,
       text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -221,10 +222,10 @@ if ("figures" %in% opts$return) {
 Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC$_{50}$ plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$, colored by cross-validation fold.
 
 ```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
-plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = expression(IC[50]), log_axis = FALSE)
+plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = ic50_lab, log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = expression(IC[50]), log_axis = FALSE), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = ic50_lab, log_axis = FALSE), width = 20, height = 20, units = "cm")
 }
 ```
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "-->"`
@@ -344,9 +345,10 @@ ic80_figcap <- if(length(opts$nab) == 1){
 ```
 
 ```{r histcombnic80, eval = "ic80" %in% opts$outcomes, fig.cap = ic80_figcap}
+# labs are created in report_preamble
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", expression(IC[80]), "Density")
-combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", bquote(log[10]~"(IC"[80]*")"), "")
+combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", ic80_lab, "Density")
+combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", ic80_loglab, "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -393,10 +395,10 @@ The cross-validated $R^2$ of the learner (with tuning parameters selected via cr
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 ```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC$_{80}$ (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations)")}
-plot(fit_list_out$out$ic80, main_title = expression(IC[80]), xlim1 = -0.05, xlim2 = 0.8,
+plot(fit_list_out$out$ic80, main_title = ic80_lab, xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 if ("figures" %in% opts$return) {
-ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic80, main_title = expression(IC[80]), xlim1 = -0.05, xlim2 = 0.8,
+ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic80, main_title = ic80_lab, xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -407,10 +409,10 @@ ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = p
 Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ plotted against observed values of IC$_{80}$, colored by cross-validation fold.
 
 ```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations) . Colors correspond to cross-validation folds.")}
-plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = expression(IC[80]), log_axis = FALSE)
+plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = ic80_lab, log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = expression(IC[80]), log_axis = FALSE), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = ic80_lab, log_axis = FALSE), width = 20, height = 20, units = "cm")
 }
 ```
 
