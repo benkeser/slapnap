@@ -6,6 +6,7 @@ slfits/*
 dat/*
 docs/_book/*
 local_production_runs/*
+run_analyses_locally.sh
 2019*
 test/*
 static_reports/*
