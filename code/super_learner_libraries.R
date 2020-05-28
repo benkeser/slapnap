@@ -475,7 +475,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         saveRDS(fit$library.predict[, which.min(fit$cvRisk)], file = paste0(save_dir, fitted_name))
         # save learner
         if (save_full_object) {
-            saveRDS(fit$fitLibrary[which.min(fit$cvRisk)], file = paste0(save_dir, learner_name))
+            saveRDS(fit$fitLibrary[[which.min(fit$cvRisk)]]$object, file = paste0(save_dir, learner_name))
         }
     } else {
         # don't save anything
