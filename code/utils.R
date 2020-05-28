@@ -267,7 +267,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         ct <- ct + 1
         this_name <- gsub("-", ".", paste0(name_prefix, opts$nab[i], name_postfix))
         out_hist[[ct]] <- make_hist_plot(dat, var_name = this_name,
-                                          x_lab = paste0(outcome_label," ", opts$nab[i]),
+                                          x_lab = bquote(.(if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"})~.(opts$nab[i])),
                                           y_lab = "Density")
         tmp_sum <- summary(dat[, this_name])[1:6] # to ignore NA columns
         tmp_sum <- c(tmp_sum[1:3], 10^mean(log10(dat[, this_name])), tmp_sum[4:6])
@@ -275,7 +275,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         out_summary[[i]] <- tmp_sum
         ct <- ct+1
         dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
-        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = bquote(log[10]~"(", if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"}  *.(paste0(ifelse(length(opts$nab) > 1, " ", ""), opts$nab[i]))*")"),
+        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = bquote(log[10]~"(", .(if (outcome == "ic50") {IC[50]} else if (outcome == "ic80") {IC[80]} else {"IIP"})  *.(paste0(ifelse(length(opts$nab) > 1, " ", ""), opts$nab[i]))*")"),
                                           y_lab = "")
     }
     return(list(hist = out_hist, summary = out_summary))
@@ -663,7 +663,7 @@ vimp_plot_name_expr <- function(vimp_str, one_nab) {
             return(bquote("Estimated sensitivity: "))
         }
     } else {
-        return(bquote(bold(.("Multiple sensitivity: "))))
+        return(bquote(.("Multiple sensitivity: ")))
     }
 }
 vimp_plot_type_expr <- function(str) {
