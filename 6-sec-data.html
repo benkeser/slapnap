@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert" />
 
 
-<meta name="date" content="2020-05-28" />
+<meta name="date" content="2020-05-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -175,6 +175,30 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="sec:data" class="section level1">
 <h1><span class="header-section-number">6</span> Data details</h1>
+<p>The analysis dataset includes neutralization outcomes for the requested bNAb(s) and AA sequence features for the gp160 protein. If a single bNAb is requested, then the possible outcomes are:</p>
+<ul>
+<li>IC<span class="math inline">\(_{50}\)</span>: the half maximal inhibitory concentration;</li>
+<li>IC<span class="math inline">\(_{80}\)</span>: the 80% maximal inhibitory concentration;</li>
+<li>IIP <span class="citation">(Shen et al. 2008, <span class="citation">Wagh et al. (2016)</span>)</span>: the instantaneous inhibitory potential, computed as \[ \frac{10<sup>m}{\mbox{IC<span class="math inline">\(_{50}\)</span>}</sup>m + 10^m}  , \], where $m = \mbox{log}<em>{10}(4) / (\mbox{log}</em>{10}(\mbox{IC}<em>{80}) - \mbox{log}</em>{10}(\mbox{IC}_{50})); and</li>
+<li>sensitivity: the binary indicator that IC$_{50} &lt; $ the user-specified sensitivity threshold (<code>sens_thresh</code>).</li>
+</ul>
+<p>If multiple bNAbs are requested, then the possible outcomes are:</p>
+<ul>
+<li>estimated IC<span class="math inline">\(_{50}\)</span>: for <span class="math inline">\(J\)</span> bNAbs, \[ \mbox{estimated IC_{50}} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \, \] where <span class="math inline">\(\\mbox{IC}_{50,j}\)</span> denotes the measured IC<span class="math inline">\(_{50}\)</span> for antibody <span class="math inline">\(j\)</span> <span class="citation">(Wagh et al. 2016)</span>;</li>
+<li>estimated IC<span class="math inline">\(_{50}\)</span>: for <span class="math inline">\(J\)</span> bNAbs, \[ \mbox{estimated IC_{50}} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \, \] where <span class="math inline">\(\\mbox{IC}_{50,j}\)</span> denotes the measured IC<span class="math inline">\(_{50}\)</span> for antibody <span class="math inline">\(j\)</span> <span class="citation">(Wagh et al. 2016)</span>;</li>
+<li>IIP: computed as \[ \frac{10^m}{\mbox{estimated IC<span class="math inline">\(_{50}\)</span>}^m + 10^m}  , \], where $m = \mbox{log}<em>{10}(4) / (\mbox{log}</em>{10}(\mbox{estimated IC}<em>{80}) - \mbox{log}</em>{10}(\mbox{estimated IC}_{50})); and</li>
+<li>estimated sensitivity: the binary indicator that estimated IC$_{50} &lt; $ the sensitivity threshold (<code>sens_thresh</code>); and</li>
+<li>multiple sensitivity: the binary indicator that measured IC<span class="math inline">\(_{50}\)</span> is less than the sensitivity threshold (<code>sens_thresh</code>) for a number of bNAbs defined by <code>multsens_nab</code>.</li>
+</ul>
+<p>The features include:</p>
+<ul>
+<li>geographic confounders: binary indicator variables describing the geographic region of origin for the given pseudovirus;</li>
+<li>subtype: binary indicator variables denoting the subtype for the given pseudovirus;</li>
+<li>AA sequence features: binary indicator variables denoting presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160;</li>
+<li>viral geometry features: length of Env, gp120, V2, V3, V5;</li>
+<li>numbers of sequons: number of sequons in Env, gp120, V2, V3, V5; and</li>
+<li>numbers of cysteines: number of cysteines in Env, gp120, V2, V3, V5.</li>
+</ul>
 </div>
             </section>
 

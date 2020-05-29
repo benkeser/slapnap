@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert" />
 
 
-<meta name="date" content="2020-05-28" />
+<meta name="date" content="2020-05-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -175,6 +175,23 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="sec:report" class="section level1">
 <h1><span class="header-section-number">5</span> Report details</h1>
+<p>The <code>slapnap</code> report consists of an executive summary followed by results for each requested outcome.</p>
+<p>The executive summary contains:</p>
+<ul>
+<li>descriptions of the requested outcomes (including how the outcomes are generated, if they are derived from IC<span class="math inline">\(_{50}\)</span> or IC<span class="math inline">\(_{80}\)</span>);</li>
+<li>descriptive statistics detailing the number of sequences extracted from CATNAP, the number of sequences with complete feature and outcome information, and the number of estimated sensitive and resistant sequences (defined based on sensitivity, estimated sensitivity, and/or multiple sensitivity);</li>
+<li>a table with the algorithms used to predict each outcome;</li>
+<li>a table of cross-validated prediction performance for each outcome (if <code>cvperf = TRUE</code>);</li>
+<li>a table of ranked marginal biological prediction performance for each feature group and outcome (if <code>&quot;marg&quot;</code> is specified in <code>importance_grp</code>); and</li>
+<li>a table of ranked conditional biological prediction performance for each feature group and outcome (if <code>&quot;cond&quot;</code> is specified in <code>importance_grp</code>).</li>
+</ul>
+<p>By default, the results section for each requested outcome contains descriptive statistics and references. The descriptive statistics include summaries of the distribution of the outcome (raw and log-transformed) for each bNAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to <code>slapnap</code>, the following subsections may also be present:</p>
+<ul>
+<li>a table of super learner weights if an ensemble is used;</li>
+<li>cross-validated prediction performance for the fitted learner (or ensemble): figures showing cross-validated prediction performance (all outcomes), cross-validated receiver operating characteristic (ROC) curves (binary outcomes), and cross-validated predicted probabilities of resistance (binary outcomes); and</li>
+<li>variable importance: biological importance (group and individual) and predictive importance.</li>
+</ul>
+<p>Finally, if group biological importance is requested, then the variable groups are displayed in a section immediately preceeding the references.</p>
 </div>
             </section>
 

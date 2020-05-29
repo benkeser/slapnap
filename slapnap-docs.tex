@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R.
 Borate, Peter B. Gilbert}
-\date{May 28, 2020}
+\date{May 29, 2020}
 
 \begin{document}
 \maketitle
@@ -419,19 +419,18 @@ following command.
 \end{Shaded}
 
 Note that this call mounts the local directory
-\texttt{path/to/local/dir} to receive output from the container (Section
-\ref{sec:mounting}).
+\texttt{path/to/local/dir} to receive output from the container (see
+Section \ref{sec:mounting}).
 
 When this command is executed, messages will print to indicate the
 progress of the container. The first message will report the name of the
 log file, which will appear in \texttt{/path/to/local/dir}. The
 container will then compile an analytic data set from the CATNAP
-database for the default antibody (VRC01), train the default learner
-(random forest \citep{breiman2001}) for the default outcomes
-(\texttt{ic50} and \texttt{sens}), evaluate its performance using
-two-fold (default for \texttt{nfolds}) cross-validation, and compile a
-report detailing the results, and place the compiled report in
-\texttt{path/to/local/dir}.
+database for the default bNAb (VRC01), train the default learner (random
+forest \citep{breiman2001}) for the default outcomes (\texttt{ic50} and
+\texttt{sens}), evaluate its performance using two-fold (default for
+\texttt{nfolds}) cross-validation, and compile a report detailing the
+results, and place the compiled report in \texttt{path/to/local/dir}.
 
 \subsection{Viewing results in a web browser
 \{sec:webbrowse\}}\label{viewing-results-in-a-web-browser-secwebbrowse}
@@ -499,7 +498,7 @@ of this below using sensitivity as the outcome.
 \NormalTok{           -e learners=}\StringTok{"rf"}\NormalTok{ \textbackslash{}}
 \NormalTok{           -e return=}\StringTok{"learner"}\NormalTok{ \textbackslash{}}
 \NormalTok{           -e cvperf=}\StringTok{"FALSE"}\NormalTok{ \textbackslash{}}
-\NormalTok{           -e outcome=}\StringTok{"sens"}\NormalTok{ \textbackslash{}}
+\NormalTok{           -e outcomes=}\StringTok{"sens"}\NormalTok{ \textbackslash{}}
 \NormalTok{           slapnap/slapnap}
 \end{Highlighting}
 \end{Shaded}
@@ -565,7 +564,150 @@ mode}.
 
 \section{Report details}\label{sec:report}
 
+The \texttt{slapnap} report consists of an executive summary followed by
+results for each requested outcome.
+
+The executive summary contains:
+
+\begin{itemize}
+\tightlist
+\item
+  descriptions of the requested outcomes (including how the outcomes are
+  generated, if they are derived from IC\(_{50}\) or IC\(_{80}\));
+\item
+  descriptive statistics detailing the number of sequences extracted
+  from CATNAP, the number of sequences with complete feature and outcome
+  information, and the number of estimated sensitive and resistant
+  sequences (defined based on sensitivity, estimated sensitivity, and/or
+  multiple sensitivity);
+\item
+  a table with the algorithms used to predict each outcome;
+\item
+  a table of cross-validated prediction performance for each outcome (if
+  \texttt{cvperf\ =\ TRUE});
+\item
+  a table of ranked marginal biological prediction performance for each
+  feature group and outcome (if \texttt{"marg"} is specified in
+  \texttt{importance\_grp}); and
+\item
+  a table of ranked conditional biological prediction performance for
+  each feature group and outcome (if \texttt{"cond"} is specified in
+  \texttt{importance\_grp}).
+\end{itemize}
+
+By default, the results section for each requested outcome contains
+descriptive statistics and references. The descriptive statistics
+include summaries of the distribution of the outcome (raw and
+log-transformed) for each bNAb for continuous outcomes and number
+sensitive/resistant for binary outcomes. Based on the specific options
+passed to \texttt{slapnap}, the following subsections may also be
+present:
+
+\begin{itemize}
+\tightlist
+\item
+  a table of super learner weights if an ensemble is used;
+\item
+  cross-validated prediction performance for the fitted learner (or
+  ensemble): figures showing cross-validated prediction performance (all
+  outcomes), cross-validated receiver operating characteristic (ROC)
+  curves (binary outcomes), and cross-validated predicted probabilities
+  of resistance (binary outcomes); and
+\item
+  variable importance: biological importance (group and individual) and
+  predictive importance.
+\end{itemize}
+
+Finally, if group biological importance is requested, then the variable
+groups are displayed in a section immediately preceeding the references.
+
 \section{Data details}\label{sec:data}
+
+The analysis dataset includes neutralization outcomes for the requested
+bNAb(s) and AA sequence features for the gp160 protein. If a single bNAb
+is requested, then the possible outcomes are:
+
+\begin{itemize}
+\tightlist
+\item
+  IC\(_{50}\): the half maximal inhibitory concentration;
+\item
+  IC\(_{80}\): the 80\% maximal inhibitory concentration;
+\item
+  IIP \citep[\citet{wagh2016optimal}]{shen2008dose}: the instantaneous
+  inhibitory potential, computed as \textbackslash{}{[}
+  \textbackslash{}frac\{10\textsuperscript{m\}\{\textbackslash{}mbox\{IC\(_{50}\)\}}m
+  + 10\^{}m\} ~, \textbackslash{}{]}, where \$m =
+  \textbackslash{}mbox\{log\}\emph{\{10\}(4) /
+  (\textbackslash{}mbox\{log\}}\{10\}(\textbackslash{}mbox\{IC\}\emph{\{80\})
+  -
+  \textbackslash{}mbox\{log\}}\{10\}(\textbackslash{}mbox\{IC\}\_\{50\}));
+  and
+\item
+  sensitivity: the binary indicator that IC\$\_\{50\} \textless{} \$ the
+  user-specified sensitivity threshold (\texttt{sens\_thresh}).
+\end{itemize}
+
+If multiple bNAbs are requested, then the possible outcomes are:
+
+\begin{itemize}
+\tightlist
+\item
+  estimated IC\(_{50}\): for \(J\) bNAbs, \textbackslash{}{[}
+  \textbackslash{}mbox\{estimated IC\_\{50\}\} = \textbackslash{}left(
+  \textbackslash{}sum\_\{j=1\}\^{}J
+  \textbackslash{}mbox\{IC\}\_\{50,j\}\^{}\{-1\}
+  \textbackslash{}right)\^{}\{-1\} \textbackslash{}, \textbackslash{}{]}
+  where \(\\mbox{IC}_{50,j}\) denotes the measured IC\(_{50}\) for
+  antibody \(j\) \citep{wagh2016optimal};
+\item
+  estimated IC\(_{50}\): for \(J\) bNAbs, \textbackslash{}{[}
+  \textbackslash{}mbox\{estimated IC\_\{50\}\} = \textbackslash{}left(
+  \textbackslash{}sum\_\{j=1\}\^{}J
+  \textbackslash{}mbox\{IC\}\_\{50,j\}\^{}\{-1\}
+  \textbackslash{}right)\^{}\{-1\} \textbackslash{}, \textbackslash{}{]}
+  where \(\\mbox{IC}_{50,j}\) denotes the measured IC\(_{50}\) for
+  antibody \(j\) \citep{wagh2016optimal};
+\item
+  IIP: computed as \textbackslash{}{[}
+  \textbackslash{}frac\{10\^{}m\}\{\textbackslash{}mbox\{estimated
+  IC\(_{50}\)\}\^{}m + 10\^{}m\} ~, \textbackslash{}{]}, where \$m =
+  \textbackslash{}mbox\{log\}\emph{\{10\}(4) /
+  (\textbackslash{}mbox\{log\}}\{10\}(\textbackslash{}mbox\{estimated
+  IC\}\emph{\{80\}) -
+  \textbackslash{}mbox\{log\}}\{10\}(\textbackslash{}mbox\{estimated
+  IC\}\_\{50\})); and
+\item
+  estimated sensitivity: the binary indicator that estimated
+  IC\$\_\{50\} \textless{} \$ the sensitivity threshold
+  (\texttt{sens\_thresh}); and
+\item
+  multiple sensitivity: the binary indicator that measured IC\(_{50}\)
+  is less than the sensitivity threshold (\texttt{sens\_thresh}) for a
+  number of bNAbs defined by \texttt{multsens\_nab}.
+\end{itemize}
+
+The features include:
+
+\begin{itemize}
+\tightlist
+\item
+  geographic confounders: binary indicator variables describing the
+  geographic region of origin for the given pseudovirus;
+\item
+  subtype: binary indicator variables denoting the subtype for the given
+  pseudovirus;
+\item
+  AA sequence features: binary indicator variables denoting presence or
+  absence of a residue containing a specific AA at each HXB2-referenced
+  site in gp160;
+\item
+  viral geometry features: length of Env, gp120, V2, V3, V5;
+\item
+  numbers of sequons: number of sequons in Env, gp120, V2, V3, V5; and
+\item
+  numbers of cysteines: number of cysteines in Env, gp120, V2, V3, V5.
+\end{itemize}
 
 \section{Method details}\label{sec:methods}
 
@@ -599,31 +741,32 @@ by passing \texttt{"marg"} and \texttt{"cond"}, respectively, to one of
 the importance variables. Both types of biological importance are based
 on the population prediction potential of features
 \citep{williamson2020}. We measure prediction potential using
-nonparametric \(R^2\) for continuous outcomes (i.e., IC-50, IC-80, or
-IIP) and using the nonparametric area under the receiver operating
-characteristic curve (AUC) for binary outcomes (i.e., sensitivity,
-estimated sensitivity, or multiple sensitivity). In both marginal and
-conditional importance, we compare the population prediction potential
-including the feature(s) of interest to the population prediction
-potential excluding the feature(s) or interest; this provides a measure
-of the biological importance of the feature(s). The two types of
-biological importance differ only in the other adjustment variables that
-we consider: conditional importance compares the prediction potential of
-all features to the prediction potential of all features excluding the
-feature(s) of interest, and thus importance must be interpreted
-conditionally; whereas marginal importance compares the prediction
-potential of the feature(s) of interest plus geographic confounders to
-the prediction potential of the geographic confounders alone.
+nonparametric \(R^2\) for continuous outcomes (i.e., IC\(_{50}\),
+IC\(_{80}\), or IIP) and using the nonparametric area under the receiver
+operating characteristic curve (AUC) for binary outcomes (i.e.,
+sensitivity, estimated sensitivity, or multiple sensitivity). In both
+marginal and conditional importance, we compare the population
+prediction potential including the feature(s) of interest to the
+population prediction potential excluding the feature(s) or interest;
+this provides a measure of the biological importance of the feature(s).
+The two types of biological importance differ only in the other
+adjustment variables that we consider: conditional importance compares
+the prediction potential of all features to the prediction potential of
+all features excluding the feature(s) of interest, and thus importance
+must be interpreted conditionally; whereas marginal importance compares
+the prediction potential of the feature(s) of interest plus geographic
+confounders to the prediction potential of the geographic confounders
+alone.
 
 Both marginal and conditional biological importance can be computed for
 groups of features or individual features. The available feature groups
-are detailed in \ref{sec:data}. Execution time may increase dramatically
-when biological importance is requested: a separate \texttt{learner} (or
-super learner ensemble) must be trained for each feature group (or
-individual feature) of interest. Marginal importance tends to be
-computed more quickly than conditional importance, but both types of
-importance provide useful information about the population of interest
-and the underlying biology.
+are detailed in Section \ref{sec:data}. Execution time may increase
+dramatically when biological importance is requested: a separate
+\texttt{learner} (or super learner ensemble) must be trained for each
+feature group (or individual feature) of interest. Marginal importance
+tends to be computed more quickly than conditional importance, but both
+types of importance provide useful information about the population of
+interest and the underlying biology.
 
 If feature importance is requested, then point estimates, confidence
 intervals, and p-values (for a test of the null hypothesis that the
@@ -631,9 +774,10 @@ biological importance is equal to zero) will be computed and displayed
 for each feature or group of features of interest.
 
 In the following command, we request marginal biological importance for
-the feature groups defined in \ref{sec:data}. We do not specify a super
-learner ensemble to reduce computation time; however, in most problems
-we recommend an ensemble to protect against model misspecification.
+the feature groups defined in Section \ref{sec:data}. We do not specify
+a super learner ensemble to reduce computation time; however, in most
+problems we recommend an ensemble to protect against model
+misspecification.
 
 \begin{Shaded}
 \begin{Highlighting}[]
