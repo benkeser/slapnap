@@ -3,7 +3,7 @@
 # check nab
 check_opts_nab <- function(nab_str) {
     shiny::validate(
-        shiny::need(nab_str, "Please enter at least one antibody with data in the CATNAP database. Multiple antibodies may be specified in a semicolon-separated list (e.g., 'VRC07-523-LS;PGT121')")
+        shiny::need(nab_str, "Please enter at least one bNAb with data in the CATNAP database. Multiple bNAbs may be specified in a semicolon-separated list (e.g., 'VRC07-523-LS;PGT121')")
     )
 }
 # check outcomes
@@ -11,15 +11,19 @@ check_opts_outcomes <- function(outcome_vec, all_outcomes, n_abs) {
     shiny::validate(
         shiny::need(outcome_vec, "Please enter at least one outcome (one of 'ic50', 'ic80', 'iip', 'estsens', 'multsens', 'sens') or a semicolon-separated list of outcomes (e.g., 'ic50;ic80').")
     )
+    if(n_abs == 1){
+        shiny::validate(
+            shiny::need(!any(c("sens2") %in% outcome_vec), "If a single bNAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
+        )
+    } else {
+        shiny::validate(
+            shiny::need(!("sens" %in% Sys.getenv("outcomes")), "If multiple bNAbs are used, please specify 'estsens' and/or 'multsens' as the outcome, instead of 'sens'.")
+        )
+    }
     shiny::validate(
         shiny::need(outcome_vec != '', "Please enter at least one outcome (one of 'ic50'; 'ic80'; 'iip'; 'estsens' and/or 'multsens' [for combination bnAb regimens]; or 'sens' [for single/multispecific bnAbs]) or a semicolon-separated list of outcomes (e.g., 'ic50;ic80')."),
         shiny::need(length(setdiff(outcome_vec, all_outcomes)) == 0, "You have entered one or more outcomes that are not supported at this time. Please enter at least one of the currently supported outcomes ('ic50'; 'ic80'; 'iip'; 'estsens' and/or 'multsens' [for combination bnAb regimens]; or 'sens' [for single/multispecific bnAbs]) or a semicolon-separated list of outcomes (e.g., 'ic50;ic80').")
     )
-    if(n_abs == 1){
-        shiny::validate(
-            shiny::need(!any(c("sens2") %in% outcome_vec), "If a single nAb is used, please specify 'sens' as the outcome, instead of 'estsens' or 'multsens'.")
-        )
-    }
 }
 # check learners
 check_opts_learners <- function(learner_vec, all_learners) {

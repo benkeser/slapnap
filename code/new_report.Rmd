@@ -15,7 +15,7 @@ source(paste0(code_dir, "report_preamble.R"), local = TRUE)
 
 # Executive summary
 
-The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of neutralization sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
+The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bNAbs)", "y (bNAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of neutralization sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bNAbs", "bNAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
 
 * `r nprevious` sequences were extracted from the CATNAP database [@yoon2015catnap];
 
@@ -23,13 +23,13 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` 
 
 * `r paste0(get_complete_data_text(opts, ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, iip_undef), ifelse(any_dich, ";", "."))`
 `r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "<!--"`
-* out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` has the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and their exclusion from IIP analyses.
+* out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` `r ifelse(iip_undef == 1, "has", "have")` the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and `r ifelse(iip_undef == 1, "its", "their")` exclusion from IIP analyses.
 `r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC$_{50}$ was less than `r opts$sens_thresh``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin`IC$_{50}$ was less than `r opts$sens_thresh``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens1")``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " antibodies"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, "antibody", "antibodies")))`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " antibodies"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the antibodies", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the antibodies")))``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
+* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bNAb", " bNAbs")))`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bNAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bNAbs")))``r check_sl_vimp_bin(opts, run_sl_vimp_bools, "sens2")`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
@@ -83,10 +83,6 @@ We define the marginal biological importance of a subgroup of features as the di
 ## vimp_summary_tbl created in preamble
 vimp_summary_marg <- vimp_summary_tbl$grp_marg %>%
     select(-mn_rank, -matches("num_rank"))
-correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
-cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
-bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
-correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
 kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, ncompletes, vimp_threshold, importance_type = "marginal"))
 ```
@@ -102,10 +98,6 @@ We define the conditional biological importance of a subgroup of features for pr
 ## vimp_summary_tbl created in preamble
 vimp_summary_cond <- vimp_summary_tbl$grp_cond %>%
     select(-mn_rank, -matches("num_rank"))
-correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
-cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, "$R^2$", paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
-bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, "AUC", paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
-correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
 ## make the table
 kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, ncompletes, vimp_threshold, importance_type = "conditional"))
 ```
@@ -123,9 +115,9 @@ kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_c
 
 `r if ((length(opts$nab) == 1) | !("ic50" %in% opts$outcomes)) "<!--"`
 
-Histograms of IC$_{50}$ for each individual neutralizing antibody are shown in Figure \@ref(fig:histic50). Related summary measures are shown in \@ref(tab:tableic50)
+Histograms of IC$_{50}$ for each individual bNAb are shown in Figure \@ref(fig:histic50). Related summary measures are shown in \@ref(tab:tableic50)
 
-```{r, histic50, eval = ("ic50" %in% opts$outcomes) & !one_nab, fig.cap = paste0("Distribution of IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), ") for each neutralizing antibody."), fig.height=5}
+```{r, histic50, eval = ("ic50" %in% opts$outcomes) & !one_nab, fig.cap = paste0("Distribution of IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), ") for each bNAb."), fig.height=5}
 ic50_descr <- get_individual_nab_summaries("ic50", opts, dat_ic50)
 do.call(grid.arrange, ic50_descr$hist)
 # if saving figures was requested, save
@@ -143,26 +135,27 @@ if (is.null(dim(ic50_table))) {
 }
 row.names(ic50_table) <- c(paste0("IC$_{50}$ ", opts$nab))
 kable(ic50_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC$_{50}$ values for individual bnAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations)."))
+      caption = paste0("Summary statistics of IC$_{50}$ values for individual bNAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations)."))
 ```
 
 `r if ((length(opts$nab) == 1) | !("ic50" %in% opts$outcomes)) "-->"`
 
 `r if (!("ic50" %in% opts$outcomes)) "<!--"`
-A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$ for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic50).
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$ for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected bNAb`r ifelse(length(opts$nab) == 1, "", "s")` is shown in Figure \@ref(fig:histcombnic50).
 
 ```{r makecapic50, eval = "ic50" %in% opts$outcomes}
 ic50_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IC$_{50}$ for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations).")
+  paste0("Histogram of IC$_{50}$ for the selected bNAb. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations).")
 }else{
-  paste0("Histogram of estimated IC$_{50}$ for the combined neutralizing antibodies. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations).")
+  paste0("Histogram of estimated IC$_{50}$ for the combined bNAbs. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations).")
 }
 ```
 
 ```{r histcombnic50, eval = "ic50" %in% opts$outcomes, fig.cap = ic50_figcap}
+# labs are created in report_preamble
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", expression(IC[50]), "Density")
-combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", bquote(log[10]~"(IC"[50]~")"), "")
+combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", ic50_lab, "Density")
+combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", ic50_loglab, "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -178,7 +171,7 @@ if ("figures" %in% opts$return) {
 
 ## Super learner results
 
-The weights assigned to each algorithm for Super Learner predicting IC$_{50}$ are shown in Table \@ref(tab:ic50superlearnerweighttable).
+The weights assigned to each algorithm for Super Learner predicting `r est_fillin`IC$_{50}$ are shown in Table \@ref(tab:ic50superlearnerweighttable).
 
 ```{r ic50superlearnerweighttable, eval = ("ic50" %in% opts$outcomes) & (length(opts$learners) > 1)}
 weights_ic50 <- readRDS(paste0(slfits_dir, "slweights_fit_log10.pc.ic50.rds"))
@@ -201,7 +194,7 @@ kable(as.data.frame(weight_table), digits = 2,
 
 `r if (!opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !("ic50" %in% opts$outcomes)) "<!--"`
 
-The cross-validated $R^2$ of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab)) in predicting IC$_{50}$ are shown in Figure \@ref(fig:plotic50).
+The cross-validated $R^2$ of the super learner and constituent algorithms (descriptions of algorithms shown in Table \@ref(tab:sllibtab)) in predicting `r est_fillin`IC$_{50}$ are shown in Figure \@ref(fig:plotic50).
 
 `r if (!opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !("ic50" %in% opts$outcomes)) "-->"`
 
@@ -213,12 +206,12 @@ The cross-validated $R^2$ of the learner (with tuning parameters selected via cr
 
 `r if (!opts$cvperf) "<!--"`
 
-```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations)")}
-plot(fit_list_out$out$ic50, main_title = expression(IC[50]), xlim1 = -0.05, xlim2 = 0.8,
+```{r plotic50, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations)")}
+plot(fit_list_out$out$ic50, main_title = ic50_lab, xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
- ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic50, main_title = expression(IC[50]), xlim1 = -0.05, xlim2 = 0.8,
+ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic50, main_title = ic50_lab, xlim1 = -0.05, xlim2 = 0.8,
       text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -226,13 +219,13 @@ if ("figures" %in% opts$return) {
 `r if(!opts$cvperf) "-->"`
 
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "<!--"`
-Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of IC$_{50}$ plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$, colored by cross-validation fold.
+Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of `r est_fillin`IC$_{50}$ plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$, colored by cross-validation fold.
 
-```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual IC$_{50}$ values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
-plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = expression(IC[50]), log_axis = FALSE)
+```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual `r est_fillin`IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
+plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = ic50_lab, log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = expression(IC[50]), log_axis = FALSE), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = ic50_lab, log_axis = FALSE), width = 20, height = 20, units = "cm")
 }
 ```
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "-->"`
@@ -320,9 +313,9 @@ kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE
 
 `r if ((length(opts$nab) == 1) | !("ic80" %in% opts$outcomes)) "<!--"`
 
-Histograms of IC$_{80}$ for each individual neutralizing antibody are shown in Figure \@ref(fig:histic80). Related summary measures are shown in \@ref(tab:tableic80)
+Histograms of IC$_{80}$ for each individual bNAb are shown in Figure \@ref(fig:histic80). Related summary measures are shown in \@ref(tab:tableic80)
 
-```{r, histic80, eval = ("ic80" %in% opts$outcomes) & (!one_nab), fig.cap = paste0("Distribution of IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), ") for each neutralizing antibody."), fig.height=5}
+```{r, histic80, eval = ("ic80" %in% opts$outcomes) & (!one_nab), fig.cap = paste0("Distribution of IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), ") for each bNAb."), fig.height=5}
 ic80_descr <- get_individual_nab_summaries("ic80", opts, dat_ic80)
 do.call(grid.arrange, ic80_descr$hist)
 # if saving figures was requested, save
@@ -335,26 +328,27 @@ if ("figures" %in% opts$return) {
 ic80_table <- Reduce(rbind, ic80_descr$summary)
 row.names(ic80_table) <- c(paste0("IC$_{80}$ ", opts$nab))
 kable(ic80_table, row.names = TRUE, digits = 3,
-      caption = paste0("Summary statistics of IC$_{80}$ values for individual bnAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations)."))
+      caption = paste0("Summary statistics of IC$_{80}$ values for individual bNAbs (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations)."))
 ```
 
 `r if ((length(opts$nab) == 1) | !("ic80" %in% opts$outcomes)) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes)) "<!--"`
-A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombnic80).
+A summary of the distribution of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ for the `r ifelse(length(opts$nab) == 1, "", "combination of")` selected bNAb`r ifelse(length(opts$nab) == 1, "", "s")` is shown in Figure \@ref(fig:histcombnic80).
 
 ```{r makecapic80, eval = "ic80" %in% opts$outcomes}
 ic80_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IC$_{80}$ for the selected broadly neutralizing antibody. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations).")
+  paste0("Histogram of IC$_{80}$ for the selected bNAb. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations).")
 }else{
-  paste0("Histogram of estimated IC$_{80}$ for the combined neutralizing antibodies. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations).")
+  paste0("Histogram of estimated IC$_{80}$ for the combined bNAbs. Top row = original scale; bottom row = log$_{10}$ scale (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations).")
 }
 ```
 
 ```{r histcombnic80, eval = "ic80" %in% opts$outcomes, fig.cap = ic80_figcap}
+# labs are created in report_preamble
 combn_hist <- list()
-combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", expression(IC[80]), "Density")
-combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", bquote(log[10]~"(IC"[80]~")"), "")
+combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", ic80_lab, "Density")
+combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", ic80_loglab, "")
 do.call(grid.arrange, combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
@@ -400,11 +394,11 @@ The cross-validated $R^2$ of the learner (with tuning parameters selected via cr
 `r if ((length(opts$learners) > 1) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
-```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC$_{80}$ (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations)")}
-plot(fit_list_out$out$ic80, main_title = expression(IC[80]), xlim1 = -0.05, xlim2 = 0.8,
+```{r plotic80, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated $R^2$ for ", ifelse(length(opts$nab) == 1, "", "estimated "), "IC$_{80}$ (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations)")}
+plot(fit_list_out$out$ic80, main_title = ic80_lab, xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts)
 if ("figures" %in% opts$return) {
-ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic80, main_title = expression(IC[80]), xlim1 = -0.05, xlim2 = 0.8,
+ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$ic80, main_title = ic80_lab, xlim1 = -0.05, xlim2 = 0.8,
      text_size = 9, method = "method.CC_LS", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -412,13 +406,13 @@ ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = p
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
-Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ plotted against observed values of IC$_{80}$, colored by cross-validation fold.
+Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ plotted against observed values of `r est_fillin`IC$_{80}$, colored by cross-validation fold.
 
-```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ values (", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations) . Colors correspond to cross-validation folds.")}
-plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = expression(IC[80]), log_axis = FALSE)
+```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations) . Colors correspond to cross-validation folds.")}
+plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = ic80_lab, log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = expression(IC[80]), log_axis = FALSE), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_cvpred_vs_outcomes_", postfix, ".png"), plot = plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = ic80_lab, log_axis = FALSE), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -511,13 +505,13 @@ kable(imp_ic80[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE
 
 ## Descriptive statistics
 
-A summary of the distribution of IIP for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected broadly neutralizing `r ifelse(length(opts$nab) == 1, "antibody", "antibodies")` is shown in Figure \@ref(fig:histcombniip).
+A summary of the distribution of IIP for the `r ifelse(length(opts$nab) == 1, "", "combination of")`selected bNAb`r ifelse(length(opts$nab) == 1, "", "s")` is shown in Figure \@ref(fig:histcombniip).
 
 ```{r makecapiip, eval = "iip" %in% opts$outcomes}
 iip_figcap <- if(length(opts$nab) == 1){
-  paste0("Histogram of IIP for the selected broadly neutralizing antibody (n = ", ncomplete_ic5080, " observations).")
+  paste0("Histogram of IIP for the selected bNAb (n = ", ncomplete_ic5080, " observations).")
 }else{
-  paste0("Histogram of estimated IIP for the combined neutralizing antibodies (n = ", ncomplete_ic5080, " observations).")
+  paste0("Histogram of estimated IIP for the combined bNAbs (n = ", ncomplete_ic5080, " observations).")
 }
 ```
 
@@ -672,10 +666,10 @@ kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 
 `r if (!("sens1" %in% opts$outcomes)) "<!--"`
 
-# Results for `r est_fillin` sensitivity
+# Results for `r est_fillin`sensitivity
 
 ## Descriptive statistics
-Out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` sensitive to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC${_50}$ was less than `r opts$sens_thresh`. `r ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
+Out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC$_{50}$ was less than `r opts$sens_thresh`. `r ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
 
 `r if (!("sens1" %in% opts$outcomes)) "-->"`
 
@@ -713,11 +707,11 @@ The cross-validated area under the ROC curve of super learner predictions of `r 
 The cross-validated area under the ROC curve of the learner with tuning parameters selected via cross-validation and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
 ```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], fig.cap = paste0("Cross-validated AUC for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")}
-plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Estimated sensitivity", "Sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
+plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
-ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Estimated sensitivity", "Sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
+ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -851,7 +845,7 @@ kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALS
 
 ## Descriptive statistics
 
-Out of the `r ncomplete_ic50` sequences, `r sum(dat_ic50$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of antibodies", "antibody")`, while `r ncomplete_ic50 - sum(dat_ic50$dichotomous.2)` were estimated to be sensitive.
+Out of the `r ncomplete_ic50` sequences, `r sum(dat_ic50$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ncomplete_ic50 - sum(dat_ic50$dichotomous.2)` were estimated to be sensitive.
 
 `r if (!("sens2" %in% opts$outcomes)) "-->"`
 

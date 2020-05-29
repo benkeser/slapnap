@@ -15,7 +15,7 @@ relabel_library <- function(library_names){
     )
     all_included <- any(grepl("_All", library_names))
     for(i in seq_along(labels)){
-        library_names <- gsub(paste0(labels[[i]][1], ifelse(all_included, "_All", "")), 
+        library_names <- gsub(paste0(labels[[i]][1], ifelse(all_included, "_All", "")),
                               labels[[i]][2], library_names)
     }
     library_names <- gsub("Super Learner", "super learner", library_names)
@@ -46,7 +46,7 @@ get_complete_data_text <- function(opts, ncomplete_ic50,
             tmp <- paste0(tmp, "Amongst these sequences, ", iip_undef, " had the same IC$_{50}$ and IC$_{80}$ and thus were excluded from the analysis.",
                           "Since `same_subset` was set to TRUE in the call to `slapnap`, there were a total of ", ncomplete_ic5080 - iip_undef, " sequences included in the analysis of each endpoint")
         }else{
-            tmp <- paste0(tmp, "Since `same_subset` was set to TRUE in the call to `slapnap`, this was the total number of sequences included in the analysis of each endpoint")            
+            tmp <- paste0(tmp, "Since `same_subset` was set to TRUE in the call to `slapnap`, this was the total number of sequences included in the analysis of each endpoint")
         }
     }
     return(tmp)
@@ -115,37 +115,54 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     complete_obs_txt <- all_obs_txt$complete
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
-    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, complete_obs_txt, " To estimate the prediction functions based on ", full_func_txt, full_obs_txt, " to estimate the prediction function based on ", redu_func_txt, redu_obs_txt, " Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.")
+    correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
+    cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
+    bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
+    correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
+    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, " Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.", " (", complete_obs_txt, "; for estimating the prediction functions based on ", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction functions based on ", redu_func_txt, ", ", redu_obs_txt, ")")
     return(descr)
 }
 # @param outcomes: can specify to only return text for a single outcome
 get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outcomes = "all") {
-    if (length(unique(num_obs_fulls)) == 1) {
-        complete_obs_txt <- paste0(" A total of ", n_row_now, " pseudoviruses with complete information for the outcome", ifelse(length(opts$outcomes) > 1, "s", ""), " of interest were used in this analysis.")
-        full_obs_txt <- paste0(", we used ", num_obs_fulls[1], " observations;")
-        redu_obs_txt <- paste0(", we used the remaining ", num_obs_reds[1], "observations.")
+    if (length(unique(n_row_now)) == 1) {
+        complete_obs_txt <- paste0("n = ", n_row_now)
+        full_obs_txt <- paste0("n = ", num_obs_fulls[1])
+        redu_obs_txt <- paste0("n = ", num_obs_reds[1])
     } else {
+        outcomes_txt <- gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE)
+        plural_txt <- ", respectively"
         if (length(n_row_now) == 1) {
             ntot <- n_row_now
+            tot_postlim <- " for all outcomes "
         } else {
             ntot <- paste0(paste0(n_row_now[-length(n_row_now)], collapse = ", "), " and ", n_row_now[length(n_row_now)])
+            tot_postlim <- paste0(" for ", outcomes_txt, plural_txt)
         }
         if (outcomes == "all") {
-            full_prelim <- paste0(paste0(num_obs_fulls[-length(num_obs_fulls)], collapse = ", "), " and ", num_obs_fulls[length(num_obs_fulls)])
-            redu_prelim <- paste0(paste0(num_obs_reds[-length(num_obs_reds)], collapse = ", "), " and ", num_obs_reds[length(num_obs_reds)])
-            outcomes_txt <- gsub(".", "", get_comma_sep_outcomes(opts), fixed = TRUE)
-            plural_txt <- ", respectively"
-            postlim <- paste0(" for ", outcomes_txt, plural_txt)
+            if (length(unique(num_obs_fulls)) == 1) {
+                full_prelim <- num_obs_fulls[1]
+                full_postlim <- " for all outcomes"
+            } else {
+                full_prelim <- paste0(paste0(num_obs_fulls[-length(num_obs_fulls)], collapse = ", "), " and ", num_obs_fulls[length(num_obs_fulls)])
+                full_postlim <- paste0(" for ", outcomes_txt, plural_txt)
+            }
+            if (length(unique(num_obs_reds)) == 1) {
+                redu_prelim <- num_obs_reds[1]
+                redu_postlim <- " for all outcomes"
+            } else {
+                redu_prelim <- paste0(paste0(num_obs_reds[-length(num_obs_reds)], collapse = ", "), " and ", num_obs_reds[length(num_obs_reds)])
+                redu_postlim <- paste0(" for ", outcomes_txt, plural_txt)
+            }
         } else {
             full_prelim <- num_obs_fulls[grepl(outcomes, names(num_obs_fulls))]
             redu_prelim <- num_obs_reds[grepl(outcomes, names(num_obs_reds))]
             outcomes_txt <- make_nice_outcome(outcomes)
             plural_txt <- ""
-            postlim <- ""
+            full_postlim <- redu_postlim <- ""
         }
-        complete_obs_txt <- paste0(" A total of ", ntot, " pseudoviruses with complete information for ", outcomes_txt, plural_txt, ifelse(outcomes == "all", ",", ""), " were used in this analysis.")
-        full_obs_txt <- paste0(", we used ", full_prelim, " observations", postlim, ";")
-        redu_obs_txt <- paste0(", we used the remaining ", redu_prelim, " observations", postlim, ".")
+        complete_obs_txt <- paste0("overall n = ", ntot, tot_postlim)
+        full_obs_txt <- paste0("n = ", full_prelim, full_postlim)
+        redu_obs_txt <- paste0("n = ", redu_prelim, redu_postlim)
     }
     return(list(complete = complete_obs_txt, full = full_obs_txt, redu = redu_obs_txt))
 }
@@ -205,30 +222,86 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
     complete_obs_txt <- all_obs_txt$complete
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
-    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, complete_obs_txt, " To estimate the prediction function ", ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, "based on geographic confounders only", "based on all available features")), full_obs_txt, " to estimate the prediction function ", ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0("based on the ", inner_descr, " of interest plus geographic confounders"), paste0("based on the reduced set of features (defined by removing the ", inner_descr, " of interest)"))), redu_obs_txt)
+    full_func_txt <- ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, " based on geographic confounders only", " based on all available features"))
+    redu_func_txt <- ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0(" based on the ", inner_descr, " of interest plus geographic confounders"), paste0(" based on the reduced set of features (defined by removing the ", inner_descr, " of interest)")))
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
     return(cap)
 }
 
+make_nice_outcome <- function(outcome) {
+    if (outcome == "ic50") {
+        if (length(opts$nab) > 1) {
+            "estimated IC$_{50}$"
+        } else {
+            "IC$_{50}$"
+        }
+    } else if (outcome == "ic80") {
+        if (length(opts$nab) > 1) {
+            "estimated IC$_{80}$"
+        } else {
+            "IC$_{80}$"
+        }
+    } else if (outcome == "iip") {
+        "IIP"
+    } else if (outcome == "sens1") {
+        if(length(opts$nab) > 1){
+          "estimated sensitivity"
+        }else{
+            "sensitivity"
+        }
+    } else if (outcome == "sens2") {
+        "multiple sensitivity"
+    } else {
+        ""
+    }
+}
+
+make_xlab <- function(outcome, nab, transformation = "none") {
+    if (outcome == "ic50") {
+        if (transformation == "none") {
+            return(bquote(IC[50]~.(nab)))
+        } else {
+            return(bquote(log[10]*"("*IC[50]~.(nab)*")"))
+        }
+    } else if (outcome == "ic80") {
+        if (transformation == "none") {
+            return(bquote(IC[80]~.(nab)))
+        } else {
+            return(bquote(log[10]*"("*IC[80]~.(nab)*")"))
+        }
+    } else {
+        if (transformation == "none") {
+            return(bquote("IIP"~.(nab)))
+        } else {
+            return(bquote(log[10*"(IIP"~.(nab)*")"]))
+        }
+    }
+}
 # for a given outcome make a panel histogram of the individual
 # nabs and a summary table
 get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
     out_hist <- list()
     out_summary <- list()
-    # re-label
-    outcome_label <- if(outcome == "ic50"){
-        "IC-50"
-    }else if(outcome == "ic80"){
-        "IC-80"
-    }else if(outcome == "iip"){
-        "IIP"
+    # re-label and grab correct column
+    if (outcome == "ic50") {
+        outcome_label <- "IC$_{50}$"
+        name_prefix <- "nab_"
+        name_postfix <- ".ic50.imputed"
+    } else if (outcome == "ic80") {
+        outcome_label <- "IC$_{80}"
+        name_prefix <- "nab_"
+        name_postfix <- ".ic80.imputed"
+    } else {
+        outcome_label <- "IIP"
+        name_prefix <- ""
+        name_postfix <- ""
     }
-
     ct <- 0
     for(i in seq_along(opts$nab)){
         ct <- ct + 1
-        this_name <- gsub("-", ".", paste0("nab_", opts$nab[i], ".ic50.imputed"))
+        this_name <- gsub("-", ".", paste0(name_prefix, opts$nab[i], name_postfix))
         out_hist[[ct]] <- make_hist_plot(dat, var_name = this_name,
-                                          x_lab = paste0(outcome_label," ", opts$nab[i]),
+                                          x_lab = make_xlab(outcome, opts$nab[i], "none"),
                                           y_lab = "Density")
         tmp_sum <- summary(dat[, this_name])[1:6] # to ignore NA columns
         tmp_sum <- c(tmp_sum[1:3], 10^mean(log10(dat[, this_name])), tmp_sum[4:6])
@@ -236,8 +309,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
         out_summary[[i]] <- tmp_sum
         ct <- ct+1
         dat[,paste0("log10_",this_name)] <- log10(dat[, this_name])
-        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name),
-                                          x_lab = bquote(log[10]~"(IC-50 "~.(opts$nab[i])~")"),
+        out_hist[[ct]] <- make_hist_plot(dat, var_name = paste0("log10_",this_name), x_lab = make_xlab(outcome, opts$nab[i], "log10"),
                                           y_lab = "")
     }
     return(list(hist = out_hist, summary = out_summary))
@@ -288,29 +360,30 @@ get_learner_descriptions <- function(opts){
 
 get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
     tmp <- paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions of ")
-    if("ic50" %in% opts$outcomes){
+    if ("ic50" %in% opts$outcomes) {
         tmp <- paste0(tmp, "IC$_{50}$")
-        if(any(c("ic80", "iip") %in% opts$outcomes)){
-            if(n_row_ic50 != n_row_ic80){
-                tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
-            }else{
-                tmp <- paste0(tmp, ", ")
-            }
-            if("ic80" %in% opts$outcomes){
-                tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$"))
-                if(n_row_ic80 != n_row_iip | !("iip" %in% opts$outcomes)){
-                    tmp <- paste0(tmp, " (n = ", n_row_ic80, ")")
-                }
-                if("iip" %in% opts$outcomes){
-                    tmp <- paste0(tmp, ", and IIP (n = ", n_row_iip, ").")
-                }else{
-                    tmp <- paste0(tmp, ".")
-                }
-            }
-        }else{
-            tmp <- paste0(tmp, " (n = ", n_row_ic50, ").")
-        }
     }
+    if (any(c("ic80", "iip") %in% opts$outcomes)) {
+        if (n_row_ic50 != n_row_ic80) {
+            tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
+        } else {
+            tmp <- paste0(tmp, ", ")
+        }
+        if ("ic80" %in% opts$outcomes) {
+            tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, "IC$_{80}$", " and IC$_{80}$"))
+            if(n_row_ic80 != n_row_iip | !("iip" %in% opts$outcomes)){
+                tmp <- paste0(tmp, " (n = ", n_row_ic80, ")")
+            }
+        }
+        if("iip" %in% opts$outcomes){
+            tmp <- paste0(tmp, ", and IIP (n = ", n_row_iip, ").")
+        } else {
+            tmp <- paste0(tmp, ".")
+        }
+    } else {
+        tmp <- paste0(tmp, " (n = ", n_row_ic50, ").")
+    }
+    return(tmp)
 }
 # each entry in the output list is a kable that should be properly labeled.
 get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
@@ -320,7 +393,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
 
     # re-label
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
-    all_labels <- c("IC-50", "IC-80", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
+    all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
     tmp <- all_outcomes
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
@@ -334,7 +407,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
         rsqtab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
         if(is.null(dim(rsqtab))) rsqtab <- matrix(rsqtab, nrow = 1)
         row.names(rsqtab) <- tmp[cont_idx]
-        rsq_kab <- knitr::kable(rsqtab, col.names = c(expression(CV-R^2), "Lower 95% CI", "Upper 95% CI"),
+        rsq_kab <- knitr::kable(rsqtab, col.names = c("CV-R$^2$", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
     }
@@ -346,7 +419,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
         auctab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
         if(is.null(dim(auctab))) auctab <- matrix(auctab, nrow = 1)
         row.names(auctab) <- tmp[dich_idx]
-        auc_kab <- knitr::kable(auctab, col.names = c("CVAUC", "Lower 95% CI", "Upper 95% CI"),
+        auc_kab <- knitr::kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
     }
@@ -404,8 +477,8 @@ load_cv_fits <- function(opts, run_sls, code_dir){
     }else{
         n_row_ic80
     }
-    
-    return(list(out = out_list, V = V, n_row_ic50 = n_row_ic50, 
+
+    return(list(out = out_list, V = V, n_row_ic50 = n_row_ic50,
                 n_row_ic80 = n_row_ic80, n_row_iip = n_row_iip))
 }
 
@@ -426,12 +499,12 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
                           ifelse(ic80_pres | iip_pres, "IC$_{80}$ ", ""), collapse = "")
             tmp1_5 <- ifelse((ic50_pres & ic80_pres) | iip_pres, "were ", "was ")
             tmp2 <- paste0("computed based on the additive model of @wagh2016optimal; ",
-                           "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
+                           "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
                            " where $\\mbox{IC}_j$ denotes the measured ",
                            paste0(ifelse(ic50_pres, "IC$_{50}$ ", ""),
                                   ifelse(ic50_pres & ic80_pres, "or ", ""),
                                   ifelse(ic80_pres, "IC$_{80}$ ", ""), collapse = ""),
-                           "for antibody $j$. ")
+                           "for bNAb $j$. ")
             tmp_text <- c(tmp_text, paste0(tmp, tmp1_5, tmp2, collapse = ""))
         }
         if(iip_pres){
@@ -446,7 +519,7 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
             tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that estimated IC$_{50}$ < ", opts$sens_thresh, ". ")
         }
         if(sens2_pres){
-            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies.")
+            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs.")
         }
     } else {
         if(iip_pres){
@@ -461,7 +534,7 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
         }
         # should no longer ever occur
         # if(sens2_pres){
-        #     tmp_text <- c(tmp_text, "Since only one antibody was specified for this analysis, multiple sensitivity is the same as estimated sensitivity.")
+        #     tmp_text <- c(tmp_text, "Since only one bNAb was specified for this analysis, multiple sensitivity is the same as estimated sensitivity.")
         # }
     }
     if (collapse) {
@@ -515,9 +588,9 @@ get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     # replace sensitivity with sens1/2 labels
-    if(length(out$nab) == 1){
+    if (length(out$nab) == 1){
         out$outcomes <- gsub("sens", "sens1", out$outcomes)
-    } else{
+    } else {
         out$outcomes <- gsub("estsens", "sens1", out$outcomes)
         out$outcomes <- gsub("multsens", "sens2", out$outcomes)
     }
@@ -603,19 +676,37 @@ vimp_nice_ind_names <- function(nm_vec) {
 vimp_plot_name <- function(vimp_str, one_nab) {
     plot_nms <- rep(NA, length(vimp_str))
     plot_nms[grepl("iip", vimp_str)] <- "IIP"
-    plot_nms[grepl("pc.ic50", vimp_str)] <- "IC-50"
-    plot_nms[grepl("pc.ic80", vimp_str)] <- "IC-80"
+    plot_nms[grepl("pc.ic50", vimp_str)] <- paste0(ifelse(one_nab, "", "Estimated "), "IC$_{50}$")
+    plot_nms[grepl("pc.ic80", vimp_str)] <- paste0(ifelse(one_nab, "", "Estimated "), "IC$_{80}$")
     plot_nms[grepl("dichotomous.1", vimp_str)] <- ifelse(one_nab, "Sensitivity", "Estimated sensitivity")
     plot_nms[grepl("dichotomous.2", vimp_str)] <- "Multiple sensitivity"
     return(plot_nms)
 }
-vimp_plot_type <- function(str) {
+vimp_plot_name_expr <- function(vimp_str, one_nab) {
+    est_fillin <- ifelse(one_nab, "", "Estimated")
+    if (grepl("iip", vimp_str)) {
+        return(bquote("IIP: "))
+    } else if (grepl("pc.ic50", vimp_str)) {
+        return(bquote(.(est_fillin) ~ IC[50]*": "))
+    } else if (grepl("pc.ic80", vimp_str)) {
+        return(bquote(.(est_fillin) ~ IC[80]*": "))
+    } else if (grepl("dichotomous.1", vimp_str)) {
+        if (one_nab) {
+            return(bquote("Sensitivity: "))
+        } else {
+            return(bquote("Estimated sensitivity: "))
+        }
+    } else {
+        return(bquote(.("Multiple sensitivity: ")))
+    }
+}
+vimp_plot_type_expr <- function(str) {
     grp_nm <- rev(unlist(strsplit(str, "_", fixed = TRUE)))
     nice_grp <- gsub("grp", "Group Variable Importance", grp_nm)
     nice_grp_ind <- gsub("ind", "Individual Variable Importance", nice_grp)
     nice_grp_ind_marg <- gsub("marginal", "Marginal ", nice_grp_ind)
     nice_grp_ind_marg_cond <- gsub("conditional", "Conditional ", nice_grp_ind_marg)
-    return(paste(nice_grp_ind_marg_cond, collapse = ""))
+    return(bquote(.( paste(nice_grp_ind_marg_cond, collapse = ""))))
 }
 vimp_nice_rownames <- function(vimp_obj, cv = FALSE) {
     mat_s <- vimp_obj$mat$s
@@ -878,8 +969,8 @@ get_outcome_names <- function(opts) {
 
 # get full learner fit names
 get_learner_fit_names <- function(all_fit_nms, opts) {
-    fit_nms <- all_fit_nms[grepl("fit_", all_fit_nms)]
-    fit_only_outcomes <- gsub(".rds", "", gsub("cv", "", gsub("fit_", "", fit_nms)))
+    fit_nms <- all_fit_nms[grepl("learner_", all_fit_nms)]
+    fit_only_outcomes <- gsub(".rds", "", gsub("cv", "", gsub("learner_", "", fit_nms)))
     outcome_names <- get_outcome_names(opts)
     these_outcome_fit_nms <- fit_nms[!is.na(pmatch(fit_only_outcomes, outcome_names, duplicates.ok = TRUE))]
     return(these_outcome_fit_nms)
@@ -962,7 +1053,7 @@ create_metadata <- function(dataset, opts) {
     return(metadata_tib)
 }
 make_nice_outcomes <- function(outcome_nms) {
-    gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC-80", gsub("ic50", "IC-50", outcome_nms))))))
+    gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC$_{50}$", gsub("ic50", "IC$_{50}$", outcome_nms))))))
 }
 # describe id variables
 describe_id_var <- function(var) {
@@ -980,8 +1071,8 @@ describe_id_var <- function(var) {
 }
 # describe outcomes
 describe_outcome_var <- function(var, opts) {
-    predicted_text_ic50 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-50 for antibody $j$.")
-    predicted_text_ic80 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ antibodies, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC-80 for antibody $j$.")
+    predicted_text_ic50 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{50}$ for bNAb $j$.")
+    predicted_text_ic80 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{80}$ for bNAb $j$.")
     if (grepl("ic50", var)) {
         descr <- paste0("Outcome variable: IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
     } else if (grepl("ic80", var)) {
@@ -991,7 +1082,7 @@ describe_outcome_var <- function(var, opts) {
     } else if (var == "sens" | var == "estsens") {
         descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50} < $", opts$sens_thresh, ". Note that in the dataset, 1 denotes sensitive (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ") while 0 denotes resistant")
     } else if (var == "multsens") {
-        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured IC$_{50} < $ ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies. note that in the dataset, 1 denotes multiple sensitivity (i.e., measured IC$_{50}$ < ", opts$sens_thresh, " for $\\ge$ ", min(c(length(opts$nab), opts$multsens_nab)) ," antibodies).")
+        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured IC$_{50} < $ ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs. note that in the dataset, 1 denotes multiple sensitivity (i.e., measured IC$_{50}$ < ", opts$sens_thresh, " for $\\ge$ ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs).")
     }
     return(descr)
 }
@@ -1038,10 +1129,10 @@ get_complete_data_description <- function(opts, ncomplete_ic50, ncomplete_ic80, 
     }
     if (print_ic80 & print_ic5080) {
         num_obs <- paste0(num_obs, ifelse(!print_ic50, "", ", "), ncomplete_ic80)
-        outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", ", "), ifelse(one_nab, "", est_fillin), "IC-80, ", " and both ", ifelse(one_nab, "", est_fillin), "IC$_{50}$ and ", ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
+        outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", ", "), ifelse(one_nab, "", est_fillin), "IC$_{80}$, ", " and both ", ifelse(one_nab, "", est_fillin), "IC$_{50}$ and ", ifelse(one_nab, "", est_fillin), "IC$_{80}$, respectively,")
     } else if (print_ic80) {
         num_obs <- paste0(num_obs, ifelse(!print_ic50, "", " and "), ncomplete_ic80)
-        outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", " and "), ifelse(one_nab, "", est_fillin), "IC-80, respectively,")
+        outcome_txt <- paste0(outcome_txt, ifelse(!print_ic50, "", " and "), ifelse(one_nab, "", est_fillin), "IC$_{80}$, respectively,")
     } else {
         # do nothing
     }

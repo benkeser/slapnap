@@ -426,8 +426,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
                            SL.library = "SL.mean",
                            ...){
   # three cases to worry about in terms of how to deal with missing data
-  # 1. same_subset requested, but only studying ic80 or only studying ic50-derived outcomes, 
-  #    in which case, we will ignore your same_subset request because you're only studying 
+  # 1. same_subset requested, but only studying ic80 or only studying ic50-derived outcomes,
+  #    in which case, we will ignore your same_subset request because you're only studying
   #    endpoints based entirely on ic50 or entirely on ic80
   # 2. same_subset requested and studying mix of ic50(-derived) and ic80 endpoints, in which
   #    case we will subset down to sequences with both ic50 and ic80
@@ -445,11 +445,16 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   }
   # subset data to only complete outcome and pred_names
   dat <- complete_dat[complete_cases_idx, ]
-
   newdat <- subset(dat, outer_bool)
-
   pred <- newdat[ , pred_names]
+  # grab args
   L <- list(...)
+  # make names for the full learner, cv learner, fitted values, cv fitted values, etc.
+  learner_name <- gsub("fit_", "learner_", fit_name)
+  fitted_name <- gsub("fit_", "fitted_", fit_name)
+  cv_fitted_name <- gsub("cvfit_", "cvfitted_", cv_fit_name)
+  cv_folds_name <- gsub("cvfit_", "cvfolds_", cv_fit_name)
+  cv_learner_name <- gsub("cvfit_", "cvlearner_", cv_fit_name)
   # unless we do not want to tune using CV nor evaluate performance using CV,
   # we will make a call to super learner
   if (!(opts$cvtune == FALSE & opts$cvperf == FALSE)) {
@@ -458,17 +463,20 @@ sl_one_outcome <- function(complete_dat, outcome_name,
     fit$Y <- newdat[ , outcome_name]
     if (save_full_object) {
         saveRDS(fit, file = paste0(save_dir, fit_name))
+        saveRDS(fit, file = paste0(save_dir, learner_name))
     }
-
-    if(length(opts$learners) > 1 | (length(opts$learners) == 1 & !opts$cvtune)) {
+    if (length(opts$learners) > 1) {
       # save super learner predictions
-      saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+      saveRDS(fit$SL.predict, file = paste0(save_dir, fitted_name))
       # save super learner weights
       saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
-    } else if(length(opts$learners) == 1 & opts$cvtune) {
-      # save CV-selected learner predictions
-      saveRDS(fit$library.predict[ , which.min(fit$cvRisk)],
-              file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+    } else if (length(opts$learners) == 1) {
+        # save learner predictions (these are cv-selected if cvtune = TRUE)
+        saveRDS(fit$library.predict[, which.min(fit$cvRisk)], file = paste0(save_dir, fitted_name))
+        # save learner
+        if (save_full_object) {
+            saveRDS(fit$fitLibrary[[which.min(fit$cvRisk)]]$object, file = paste0(save_dir, learner_name))
+        }
     } else {
         # don't save anything
     }
@@ -490,9 +498,10 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         fit$Y <- newdat[ , outcome_name]
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))
+            saveRDS(fit, file = paste0(save_dir, learner_name))
         }
         # save super learner predictions
-        saveRDS(fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+        saveRDS(fit$SL.predict, file = paste0(save_dir, fitted_name))
         # save super learner weights
         saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
     } else {
@@ -506,11 +515,12 @@ sl_one_outcome <- function(complete_dat, outcome_name,
             this_learner <- SL.library[grepl("xgboost", SL.library)][1]
         }
         fit <- do.call(this_learner, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
-        saveRDS(fit$pred, file = paste0(save_dir, gsub(".RData", ".rds", gsub("fit_", "fitted_", fit_name))))
+        saveRDS(fit$pred, file = paste0(save_dir, fitted_name))
         # this will be an object with class native to what the individual learner is
         # i.e., if rf is desired, it'll be ranger object
         if (save_full_object) {
             saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
+            saveRDS(fit$fit$object, file = paste0(save_dir, learner_name))
         }
     }
   }
@@ -523,22 +533,22 @@ sl_one_outcome <- function(complete_dat, outcome_name,
     # note that if either opts$cvtune AND/OR opts$cvperf is FALSE then everything we need
     # will already be in the SuperLearner fit object.
     cv_fit <- do.call(CV.SuperLearner, new_arg_list)
-    # cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+        saveRDS(cv_fit, file = paste0(save_dir, cv_learner_name))
     }
-    saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
-    saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
+    saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, cv_fitted_name))
+    saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
   } else if (length(opts$learners) > 1 & opts$cvperf) {
     # if multiple learners, then we are fitting a super learner so need CV superlearner
     # unless cvperf = FALSE
     cv_fit <- do.call(CV.SuperLearner, new_arg_list)
-    # cv_fit <- CV.SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
     if (save_full_object) {
         saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+        saveRDS(cv_fit, file = paste0(save_dir, cv_learner_name))
     }
-    saveRDS(cv_fit$SL.predict, file = paste0(save_dir, gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name))))
-    saveRDS(cv_fit$folds, file = paste0(save_dir, gsub("cvfitted_", "cvfolds_", gsub(".RData", ".rds", gsub("cvfit_", "cvfitted_", cv_fit_name)))))
+    saveRDS(cv_fit$SL.predict, file = paste0(save_dir, cv_fitted_name))
+    saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
 } else {
     # do nothing
 }
