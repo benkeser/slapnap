@@ -95,7 +95,7 @@ SL.ranger.small <- function(..., X, mtry = floor(sqrt(ncol(X)) * 1/2)){
 SL.ranger.large <- function(..., X, mtry = floor(sqrt(ncol(X)) * 2)){
 	SL.ranger.imp(..., X = X, mtry = mtry)
 }
-descr_SL.ranger.imp <- "random forest with mtry equal to "
+descr_SL.ranger.imp <- "random forest with `mtry` equal to "
 descr_SL.ranger.reg <- paste0(descr_SL.ranger.imp, "square root of number of predictors")
 descr_SL.ranger.small <- paste0(descr_SL.ranger.imp, "one-half times square root of number of predictors")
 descr_SL.ranger.large <- paste0(descr_SL.ranger.imp, "two times square root of number of predictors")

@@ -34,7 +34,7 @@ The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutraliz
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, the relevant data are selected and processed into a format that is amenable for predictive machine learning analyses. The CATNAP data are updated periodically. To check the date the raw data were pulled from CATNAP to `slapnap`, you can check the date of the `latest` build [here](https://hub.docker.com/repository/registry-1.docker.io/slapnap/slapnap/tags?page=1).
 
-# Running the `slapnap` container {#sec:runningcontainer}
+# Running `slapnap` {#sec:runningcontainer}
 
 To run the `slapnap` container, we make use of the [`docker run`](https://docs.docker.com/engine/reference/run/) command. Note that administrator (`sudo`) privileges are needed to execute this command.
 
@@ -52,10 +52,10 @@ __-e options for `slapnap`__
 * __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (included in default), `"ic80"`, `"iip"`, `"sens"` (included in default), `"estsens"`, `"multsens"`. If only a single `nab` is specified, use `sens` to include a dichotomous endpoint. If multiple `nab`s are specified, use `estsens` and/or `multsens`. For detailed definitions of outcomes see Section \@ref(sec:outcomedefs)).
 * __`sens_thresh`__ A numeric value defining the IC$_{50}$ threshold for defining a sensitive versus resistant pseudovirus (default = 1). The dichotomous sensitivity/resistant `outcome`s are defined as the indicator that (estimated) IC$_{50}$ is greater than or equal to `sens_thresh`.
 * __`multsens_nab`__ A numeric value used for defining whether a pseudovirus is resistant to a multi-nAb cocktail. The dichotomous outcome `multsens` is defined as the indicator that a virus has (estimated) $IC_{50}$ greater than `sens_thresh` for at least `multsens_nab` nAbs.
-* __`learners`__: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient boosting), and `"lasso"` (elastic net). If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section \@ref(sec:sldetails)).
-* __`cvtune`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` should be tuned using cross-validation and a small grid search. Defaults to `"FALSE"`. If multiple `learners` are specified, then the super learner ensemble includes three versions of each of the requested `learners` with different tuning parameters.
-* __`cvperf`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` performance should be evaluated using cross-validation. If `cvtune="TRUE"` or `learners` includes multiple algorithms, then nested cross-validation is used to evaluate the performance of the cross-validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively.
-* __`nfolds`__: A numeric string indicating the number of folds to use in cross-validation procedures (default = `"2"`).
+* __`learners`__: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient boosting), and `"lasso"` (elastic net). See Section \@ref(sec:learnerdetails) for details on how tuning parameters are chosen. If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section \@ref(sec:sldetails)).
+* __`cvtune`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` should be tuned using cross validation and a small grid search. Defaults to `"FALSE"`. If multiple `learners` are specified, then the super learner ensemble includes three versions of each of the requested `learners` with different tuning parameters.
+* __`cvperf`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` performance should be evaluated using cross validation. If `cvtune="TRUE"` or `learners` includes multiple algorithms, then nested cross validation is used to evaluate the performance of the cross validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively.
+* __`nfolds`__: A numeric string indicating the number of folds to use in cross validation procedures (default = `"2"`).
 * __`importance_grp`__: A semicolon-separated string indicating which group-level variable importance measures should be computed. Possible values are none `""` (default), marginal `"marg"`, conditional `"cond"`. See Section \@ref(sec:biolimp) for details on these measures.
 * __`importance_ind`__: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none `""` (default), learner-level `"pred"`, marginal `"marg"` and conditional `"cond"`. The latter two take significant computation time to compute.
 * __`same_subset`__ If `"FALSE"` (default) all data available for each outcome will be used in the analysis. If `"TRUE"`, the data will be subset to just those sequences that have measured IC$_{50}$, IC$_{80}$, and for which IIP can be computed (i.e., measured IC$_{50}$ and IC$_{80}$ values are different). Thus, if `"TRUE"` all outcomes will be fit on the `same_subset` of the CATNAP data.
@@ -87,9 +87,9 @@ docker run -v /path/to/local/dir:/home/output slapnap/slapnap
 
 Note that this call mounts the local directory `path/to/local/dir` to receive output from the container (see Section \@ref(sec:mounting)).
 
-When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir`. The container will then compile an analytic data set from the CATNAP database for the default bNAb (VRC01), train the default learner (random forest [@breiman2001]) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross-validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir`.
+When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir`. The container will then compile an analytic data set from the CATNAP database for the default bNAb (VRC01), train the default learner (random forest [@breiman2001]) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir`.
 
-## Viewing results in a web browser {sec:webbrowse}
+## Viewing results in browser {#sec:webbrowse}
 
 To have the results viewable in a web browser execute the following command (note the use of `\` to break the `bash` command over multiple lines).
 
@@ -107,7 +107,7 @@ Note that in the above command, we have still mounted a local directory, which m
 
 ## Super learning
 
-If multiple `learner`s are specified, then a super learner ensemble [@vanderlaan2007] is constructed. In the following command, we construct an ensemble based on a random forest [@breiman2001] and elastic net [@zou2005]. Note that the execution time for super learners can be considerably greater than for single `learner`s because of the extra layer of cross-validation needed to construct the ensemble.
+If multiple `learner`s are specified, then a super learner ensemble [@vanderlaan2007] is constructed based on the requested `learner`s and a predictor that simply returns the empirical average of the outcome (i.e., ignores all features entirely). In the following command, we construct an ensemble based on a random forest [@breiman2001] and elastic net [@zou2005]. Note that the execution time for super learners can be considerably greater than for single `learner`s because of the extra layer of cross validation needed to construct the ensemble.
 
 ```{bash, eval = FALSE}
 docker run -v /path/to/local/dir:/home/output \
@@ -115,9 +115,11 @@ docker run -v /path/to/local/dir:/home/output \
            slapnap/slapnap
 ```
 
+For specific details on the super learner algorithms implemented in `slapnap`, see Section \@ref(sec:sldetails). 
+
 ## Train an algorithm
 
-The previous commands train learners and evaluate their performance using cross-validation. However, at times we may wish only to use `slapnap` to train a particular algorithm, while avoiding the additional computational time associated with evaluating its cross-validated performance and compiling a report. We show an example of this below using sensitivity as the outcome.
+The previous commands train learners and evaluate their performance using cross validation. However, at times we may wish only to use `slapnap` to train a particular algorithm, while avoiding the additional computational time associated with evaluating its cross-validated performance and compiling a report. We show an example of this below using sensitivity as the outcome.
 
 ```{bash, eval = FALSE}
 docker run -v /path/to/local/dir:/home/output \
@@ -161,30 +163,11 @@ docker run -d -p 80:80 -e view_port="TRUE" slapnap/slapnap
 docker exec -it /bin/bash
 ```
 
-# Report details {#sec:report}
+# Method details {#sec:methods}
 
-The `slapnap` report consists of an executive summary followed by results for each requested outcome.
+## Outcome definitions {#sec:outcomedefs}
 
-The executive summary contains:
-
-* descriptions of the requested outcomes (including how the outcomes are generated, if they are derived from IC$_{50}$ or IC$_{80}$);
-* descriptive statistics detailing the number of sequences extracted from CATNAP, the number of sequences with complete feature and outcome information, and the number of estimated sensitive and resistant sequences (defined based on sensitivity, estimated sensitivity, and/or multiple sensitivity);
-* a table with the algorithms used to predict each outcome;
-* a table of cross-validated prediction performance for each outcome (if `cvperf = TRUE`);
-* a table of ranked marginal biological prediction performance for each feature group and outcome (if `"marg"` is specified in `importance_grp`); and
-* a table of ranked conditional biological prediction performance for each feature group and outcome (if `"cond"` is specified in `importance_grp`).
-
-By default, the results section for each requested outcome contains descriptive statistics and references. The descriptive statistics include summaries of the distribution of the outcome (raw and log-transformed) for each bNAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to `slapnap`, the following subsections may also be present:
-
-* a table of super learner weights if an ensemble is used;
-* cross-validated prediction performance for the fitted learner (or ensemble): figures showing cross-validated prediction performance (all outcomes), cross-validated receiver operating characteristic (ROC) curves (binary outcomes), and cross-validated predicted probabilities of resistance (binary outcomes); and
-* variable importance: biological importance (group and individual) and predictive importance.
-
-Finally, if group biological importance is requested, then the variable groups are displayed in a section immediately preceeding the references.
-
-# Data details {#sec:data}
-
-The analysis dataset includes neutralization outcomes for the requested bNAb(s) and AA sequence features for the gp160 protein. If a single bNAb is requested, then the possible outcomes are:
+If a single bNAb (or combination of bNAbs that are measured directly in the CATNAP data) is requested, then the possible outcomes are:
 
 * IC$_{50}$: the half maximal inhibitory concentration;
 * IC$_{80}$: the 80% maximal inhibitory concentration;
@@ -194,31 +177,54 @@ The analysis dataset includes neutralization outcomes for the requested bNAb(s) 
 If multiple bNAbs are requested, then the possible outcomes are:
 
 * estimated IC$_{50}$: for $J$ bNAbs, \\[ \\mbox{estimated IC_{50}} = \\left( \\sum_{j=1}^J \\mbox{IC}_{50,j}^{-1} \\right)^{-1} \\, \\] where $\\mbox{IC}_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
-* estimated IC$_{50}$: for $J$ bNAbs, \\[ \\mbox{estimated IC_{50}} = \\left( \\sum_{j=1}^J \\mbox{IC}_{50,j}^{-1} \\right)^{-1} \\, \\] where $\\mbox{IC}_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
+* estimated IC$_{80}$: for $J$ bNAbs, \\[ \\mbox{estimated IC_{80}} = \\left( \\sum_{j=1}^J \\mbox{IC}_{80,j}^{-1} \\right)^{-1} \\, \\] where $\\mbox{IC}_{80,j}$ denotes the measured IC$_{80}$ for antibody $j$ [@wagh2016optimal];
 * IIP: computed as \\[ \\frac{10^m}{\\mbox{estimated IC$_{50}$}^m + 10^m} \ , \\], where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{estimated  IC}_{80}) - \\mbox{log}_{10}(\\mbox{estimated  IC}_{50})); and
-* estimated sensitivity: the binary indicator that estimated IC$_{50} < $ the sensitivity threshold (`sens_thresh`); and
+* estimated sensitivity: the binary indicator that estimated IC$_{50} < $ `sens_thresh`; and
 * multiple sensitivity: the binary indicator that measured IC$_{50}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bNAbs defined by `multsens_nab`.
 
-The features include:
+## Learner details {#sec:learnerdetails}
 
-* geographic confounders: binary indicator variables describing the geographic region of origin for the given pseudovirus;
-* subtype: binary indicator variables denoting the subtype for the given pseudovirus;
-* AA sequence features: binary indicator variables denoting presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160;
-* viral geometry features: length of Env, gp120, V2, V3, V5;
-* numbers of sequons: number of sequons in Env, gp120, V2, V3, V5; and
-* numbers of cysteines: number of cysteines in Env, gp120, V2, V3, V5.
+There are three possible `learners` available in `slapnap`: random forests [@breiman2001]  (as implemented in the `R` package `ranger` [@rangerpkg]) elastic net [@zou2005]  (as implemented in `glmnet` [@glmnetpkg]), and boosted trees [@friedman2001; @chen2016]  (as implemented in `xgboost` [@xgboostpkg]). 
 
-# Method details {#sec:methods}
+For each `learner`, there is a `default` choice of tuning parameters that is implemented if `cvtune="FALSE"`. If instead `cvtune="TRUE"`, then there are several choices of tuning parameters that are evaluated using `nfold` cross validation, Table \@ref(tab:learners). 
 
-## Outcome definitions {#sec:outcomedefs}
+```{r learners, echo = FALSE}
+xgboost_names <- paste0("`xgboost", c("_default`", "_1`", "_2`", "_3`"))
+xgboost_descr <- paste0("maximum tree depth equal to ", c(4, 2, 6, 8))
+rf_names <- paste0("`rf", c("_default`", "_1`", "_2`"))
+rf_descr <- paste0("`mtry` equal to ", c("square root of number of predictors",
+                                         "one-half times square root of number of predictors",
+                                         "two times square root of number of predictors"))
+lasso_names <- paste0("`lasso", c("_default`", "_1`", "_2`", "_3`"))
+lasso_descr <- paste0("$\\lambda$ selected by 5-fold CV and $\\alpha$ equal to ", c(0, 0.25, 0.5, 0.75))
 
-For single antibodies and antibody combinations measured directly in the CATNAP database, IC$_{50}$ and IC$_{80}$ are available. Based on the measured IC$_{50}$ a binary sensitive/resistant endpoint is created (if `sens` is included in the `-e outcomes` option). A pseudovirus is defined as *resistant* (`sens = 1`) if its measured IC$_{50}$ is greater than the user-specified sensitivity threshold (specified in the `-e sens_thresh` option) and *sensitive* otherwise (`sens = 0`). 
+descr_table <- data.frame("learner" = c(rf_names, xgboost_names, lasso_names),
+                          "Tuning parameters" = c(rf_descr, xgboost_descr, lasso_descr))
+knitr::kable(descr_table,
+             col.names = c("`learner`", "Tuning parameters"),
+             caption = "Labels for `learners` in report and description of their respective tuning parameters")
+```
+
+Tuning parameters not mentioned in the table are set as follows:
+
+* `rf`: `num.trees = 500`, `min.node.size = 5` for continuous outcomes and `= 1` for binary outcomes;
+* `xgboost`: `nrounds = 1000`, `eta = 0.1`, `min_child_weight = 10`, objective = `binary:logistic`.
 
 ## Super learner details {#sec:sldetails}
 
+If multiple `learners` are specified, then a super learner ensemble [@vanderlaan2007] is constructed using `nfold` cross validation (as implemented in the `R` package `SuperLearner` [@superlearnerpkg]). Specifically, the data are randomly partitioned into `nfold` chunks of approximately equal size. For binary outcomes, this partitioning is done in such a way as to ensure an approximately even number of sensitive/resistant pseudoviruses in each chunk. A so-called super learner *library* of candidate algorithms is constructed by including different `learners`: 
+
+* the algorithm `mean`, which reports back the sample mean as prediction for all observations is always included;
+* if `cvtune="FALSE"` then the `default` version of each `learner` (Section \@ref(sec:learnerdetails)) is included; 
+* if `cvtune="TRUE"` then each choice of tuning parameters for the selected `learners` in Table \@ref(tab:learners) is included. 
+
+The cross-validated risk of each algorithm in the library is computed. For binary outcomes, mean negative log-likelihood loss is used; for continuous outcomes, mean squared-error is used. The single algorithm with the smallest cross-validated risk is reported as the `cv selector` (also known as the *discrete* super learner). The super learner ensemble is constructed by selecting convex weights (i.e., each algorithm is assigned a non-negative weight and the weights sum to one) that minimize cross-validated risk. 
+
+When `cvperf="TRUE"` and a super learner is constructed, an additional layer of cross validation is used to evaluate the predictive performance of the super learner and of the `cv selector`. 
+
 ## Variable importance details
 
-If `importance_grp` or `importance_ind` is specified, then variable importance estimates are computed based on the fitted `learner`s. Both biological and prediction importance can be obtained; we discuss each in the following two sections.
+If `importance_grp` or `importance_ind` is specified, then variable importance estimates are computed based on the fitted `learners`. Both biological and prediction importance can be obtained; we discuss each in the following two sections.
 
 ### Biological importance {#sec:biolimp}
 
@@ -249,5 +255,41 @@ docker run -v /path/to/local/dir:/home/output \
            -e importance_ind="pred" \
            slapnap/slapnap
 ```
+
+# Report details {#sec:report}
+
+The `slapnap` report consists of an executive summary followed by results for each requested outcome.
+
+The executive summary contains:
+
+* descriptions of `outcomes` (including how any derived outcomes are generated);
+* descriptive statistics detailing the number of sequences extracted from CATNAP, the number of sequences with complete feature and outcome information, and the number of estimated sensitive and resistant sequences (defined based on sensitivity, estimated sensitivity, and/or multiple sensitivity);
+* a table describing the `learners` used to predict each outcome;
+* a table of cross-validated prediction performance for each outcome (if `cvperf = TRUE`);
+* a table of ranked marginal biological prediction performance for each feature group and outcome (if `"marg"` is included in `importance_grp`); and
+* a table of ranked conditional biological prediction performance for each feature group and outcome (if `"cond"` is included in `importance_grp`).
+
+The rest of the report is organized by outcome. Each of these sections contains descriptive statistics including summaries of the distribution of the outcome (raw and log-transformed) for each bNAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to `slapnap`, the following subsections may also be present:
+
+* a table of super learner weights (Section \@ref(sec:sldetails)) if an ensemble is used;
+* cross-validated prediction performance for the fitted learner (or super learner): figures showing cross-validated prediction performance (all outcomes), cross-validated receiver operating characteristic (ROC) curves (binary outcomes), and cross-validated predicted probabilities of resistance (binary outcomes); and
+* variable importance: biological importance (group and individual) and predictive importance.
+
+Finally, if group biological importance is requested, then the variable groups are displayed in a section immediately preceding the references.
+
+
+# Data details {#sec:data}
+
+The analysis dataset includes neutralization outcomes for the requested bNAb(s) and AA sequence features for the gp160 protein. The possible outcomes are described in Section \@ref(sec:outcomedefs). 
+
+The additional variables in the data include:
+
+* geographic information: binary indicator variables describing the region of origin of each pseudovirus;
+* subtype: binary indicator variables denoting the HIV-1 subtype for the given pseudovirus;
+* AA sequence features: binary indicator variables denoting presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160;
+* viral geometry features: length of Env, gp120, V2, V3, V5;
+* numbers of sequons: number of sequons in Env, gp120, V2, V3, V5; and
+* numbers of cysteines: number of cysteines in Env, gp120, V2, V3, V5.
+
 
 # References {#sec:refs}
