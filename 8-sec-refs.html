@@ -24,14 +24,14 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert" />
 
 
-<meta name="date" content="2020-05-29" />
+<meta name="date" content="2020-05-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="7-sec-methods.html"/>
+<link rel="prev" href="7-sec-data.html"/>
 
 <script src="assets/jquery-2.2.3/jquery.min.js"></script>
 <link href="assets/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -132,29 +132,30 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Welcome</a></li>
 <li class="chapter" data-level="1" data-path="1-sec-docker.html"><a href="1-sec-docker.html"><i class="fa fa-check"></i><b>1</b> Docker</a></li>
 <li class="chapter" data-level="2" data-path="2-sec-catnap.html"><a href="2-sec-catnap.html"><i class="fa fa-check"></i><b>2</b> CATNAP Database</a></li>
-<li class="chapter" data-level="3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html"><i class="fa fa-check"></i><b>3</b> Running the <code>slapnap</code> container</a><ul>
+<li class="chapter" data-level="3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html"><i class="fa fa-check"></i><b>3</b> Running <code>slapnap</code></a><ul>
 <li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.1</b> <code>slapnap</code> options</a></li>
 <li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.2</b> Mounting a local directory</a></li>
 <li class="chapter" data-level="3.3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:viewreport"><i class="fa fa-check"></i><b>3.3</b> Viewing report in web browser</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="4-sec-examples.html"><a href="4-sec-examples.html"><i class="fa fa-check"></i><b>4</b> Examples</a><ul>
 <li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-call-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic call to <code>slapnap</code></a></li>
-<li class="chapter" data-level="4.2" data-path="4-sec-examples.html"><a href="4-sec-examples.html#viewing-results-in-a-web-browser-secwebbrowse"><i class="fa fa-check"></i><b>4.2</b> Viewing results in a web browser {sec:webbrowse}</a></li>
+<li class="chapter" data-level="4.2" data-path="4-sec-examples.html"><a href="4-sec-examples.html#sec:webbrowse"><i class="fa fa-check"></i><b>4.2</b> Viewing results in browser</a></li>
 <li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.3</b> Super learning</a></li>
 <li class="chapter" data-level="4.4" data-path="4-sec-examples.html"><a href="4-sec-examples.html#train-an-algorithm"><i class="fa fa-check"></i><b>4.4</b> Train an algorithm</a></li>
 <li class="chapter" data-level="4.5" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.5</b> Pull and clean data</a></li>
 <li class="chapter" data-level="4.6" data-path="4-sec-examples.html"><a href="4-sec-examples.html#interactive-sessions"><i class="fa fa-check"></i><b>4.6</b> Interactive sessions</a></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="5-sec-report.html"><a href="5-sec-report.html"><i class="fa fa-check"></i><b>5</b> Report details</a></li>
-<li class="chapter" data-level="6" data-path="6-sec-data.html"><a href="6-sec-data.html"><i class="fa fa-check"></i><b>6</b> Data details</a></li>
-<li class="chapter" data-level="7" data-path="7-sec-methods.html"><a href="7-sec-methods.html"><i class="fa fa-check"></i><b>7</b> Method details</a><ul>
-<li class="chapter" data-level="7.1" data-path="7-sec-methods.html"><a href="7-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>7.1</b> Outcome definitions</a></li>
-<li class="chapter" data-level="7.2" data-path="7-sec-methods.html"><a href="7-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>7.2</b> Super learner details</a></li>
-<li class="chapter" data-level="7.3" data-path="7-sec-methods.html"><a href="7-sec-methods.html#variable-importance-details"><i class="fa fa-check"></i><b>7.3</b> Variable importance details</a><ul>
-<li class="chapter" data-level="7.3.1" data-path="7-sec-methods.html"><a href="7-sec-methods.html#sec:biolimp"><i class="fa fa-check"></i><b>7.3.1</b> Biological importance</a></li>
-<li class="chapter" data-level="7.3.2" data-path="7-sec-methods.html"><a href="7-sec-methods.html#predictive-importance"><i class="fa fa-check"></i><b>7.3.2</b> Predictive importance</a></li>
+<li class="chapter" data-level="5" data-path="5-sec-methods.html"><a href="5-sec-methods.html"><i class="fa fa-check"></i><b>5</b> Method details</a><ul>
+<li class="chapter" data-level="5.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>5.1</b> Outcome definitions</a></li>
+<li class="chapter" data-level="5.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:learnerdetails"><i class="fa fa-check"></i><b>5.2</b> Learner details</a></li>
+<li class="chapter" data-level="5.3" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>5.3</b> Super learner details</a></li>
+<li class="chapter" data-level="5.4" data-path="5-sec-methods.html"><a href="5-sec-methods.html#variable-importance-details"><i class="fa fa-check"></i><b>5.4</b> Variable importance details</a><ul>
+<li class="chapter" data-level="5.4.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:biolimp"><i class="fa fa-check"></i><b>5.4.1</b> Biological importance</a></li>
+<li class="chapter" data-level="5.4.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#predictive-importance"><i class="fa fa-check"></i><b>5.4.2</b> Predictive importance</a></li>
 </ul></li>
 </ul></li>
+<li class="chapter" data-level="6" data-path="6-sec-report.html"><a href="6-sec-report.html"><i class="fa fa-check"></i><b>6</b> Report details</a></li>
+<li class="chapter" data-level="7" data-path="7-sec-data.html"><a href="7-sec-data.html"><i class="fa fa-check"></i><b>7</b> Data details</a></li>
 <li class="chapter" data-level="8" data-path="8-sec-refs.html"><a href="8-sec-refs.html"><i class="fa fa-check"></i><b>8</b> References</a></li>
 </ul>
 
@@ -178,31 +179,46 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <div id="refs" class="references">
 <div>
-<p>Breiman, Leo. 2001. “Random Forests.” <em>Machine Learning</em> 45 (1). Springer: 5–32.</p>
+<p>Breiman, Leo. 2001. “Random Forests.” <em>Machine Learning</em> 45 (1). Springer: 5–32. doi:<a href="https://doi.org/10.1023/A:1010933404324">10.1023/A:1010933404324</a>.</p>
 </div>
 <div>
-<p>Chen, Tianqi, and Carlos Guestrin. 2016. “Xgboost: A Scalable Tree Boosting System.” In <em>Proceedings of the 22nd Acm Sigkdd International Conference on Knowledge Discovery and Data Mining</em>, 785–94.</p>
+<p>Chen, Tianqi, and Carlos Guestrin. 2016. “Xgboost: A Scalable Tree Boosting System.” In <em>Proceedings of the 22nd Acm Sigkdd International Conference on Knowledge Discovery and Data Mining</em>, 785–94. doi:<a href="https://doi.org/10.1145/2939672.2939785">10.1145/2939672.2939785</a>.</p>
+</div>
+<div>
+<p>Chen, Tianqi, Tong He, Michael Benesty, Vadim Khotilovich, Yuan Tang, Hyunsu Cho, Kailong Chen, et al. 2019. <em>xgboost: Extreme Gradient Boosting</em>. <a href="https://CRAN.R-project.org/package=xgboost" class="uri">https://CRAN.R-project.org/package=xgboost</a>.</p>
+</div>
+<div>
+<p>Friedman, Jerome H. 2001. “Greedy Function Approximation: A Gradient Boosting Machine.” <em>Annals of Statistics</em>. JSTOR, 1189–1232. doi:<a href="https://doi.org/10.1214/aos/1013203451">10.1214/aos/1013203451</a>.</p>
+</div>
+<div>
+<p>Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. 2010. “Regularization Paths for Generalized Linear Models via Coordinate Descent.” <em>Journal of Statistical Software</em> 33 (1): 1–22. doi:<a href="https://doi.org/10.18637/jss.v033.i01">10.18637/jss.v033.i01</a>.</p>
 </div>
 <div>
 <p>Magaret, Craig A, David C Benkeser, Brian D Williamson, Bhavesh R Borate, Lindsay N Carpp, Ivelin S Georgiev, Ian Setliff, et al. 2019. “Prediction of Vrc01 Neutralization Sensitivity by HIV-1 gp160 Sequence Features.” <em>PLoS Computational Biology</em> 15 (4). Public Library of Science: e1006952. doi:<a href="https://doi.org/10.1371/journal.pcbi.1006952">10.1371/journal.pcbi.1006952</a>.</p>
 </div>
 <div>
+<p>Polley, Eric, Erin LeDell, Chris Kennedy, and Mark van der Laan. 2019. <em>SuperLearner: Super Learner Prediction</em>. <a href="https://CRAN.R-project.org/package=SuperLearner" class="uri">https://CRAN.R-project.org/package=SuperLearner</a>.</p>
+</div>
+<div>
 <p>Shen, Lin, Susan Peterson, Ahmad R Sedaghat, Moira A McMahon, Marc Callender, Haili Zhang, Yan Zhou, et al. 2008. “Dose-Response Curve Slope Sets Class-Specific Limits on Inhibitory Potential of anti-HIV Drugs.” <em>Nature Medicine</em> 14 (7). Nature Publishing Group: 762–66. doi:<a href="https://doi.org/10.1038/nm1777">10.1038/nm1777</a>.</p>
 </div>
 <div>
-<p>van der Laan, Mark J, Eric C Polley, and Alan E Hubbard. 2007. “Super Learner.” <em>Statistical Applications in Genetics and Molecular Biology</em> 6 (1). De Gruyter.</p>
+<p>van der Laan, Mark J, Eric C Polley, and Alan E Hubbard. 2007. “Super Learner.” <em>Statistical Applications in Genetics and Molecular Biology</em> 6 (1). De Gruyter. doi:<a href="https://doi.org/10.2202/1544-6115.1309">10.2202/1544-6115.1309</a>.</p>
 </div>
 <div>
 <p>Wagh, Kshitij, Tanmoy Bhattacharya, Carolyn Williamson, Alex Robles, Madeleine Bayne, Jetta Garrity, Michael Rist, et al. 2016. “Optimal Combinations of Broadly Neutralizing Antibodies for Prevention and Treatment of HIV-1 Clade C Infection.” <em>PLoS Pathogens</em> 12 (3). Public Library of Science. doi:<a href="https://doi.org/10.1371/journal.ppat.1005520">10.1371/journal.ppat.1005520</a>.</p>
 </div>
 <div>
-<p>Williamson, Brian D, Peter B Gilbert, Noah R Simon, and Marco Carone. 2020. “A Unified Approach for Inference on Algorithm-Agnostic Variable Importance.” <em>arXiv Preprint arXiv:2004.03683</em>.</p>
+<p>Williamson, Brian D, Peter B Gilbert, Noah R Simon, and Marco Carone. 2020. “A Unified Approach for Inference on Algorithm-Agnostic Variable Importance.” <em>arXiv Preprint</em>. <a href="https://arxiv.org/abs/2004.03683" class="uri">https://arxiv.org/abs/2004.03683</a>.</p>
+</div>
+<div>
+<p>Wright, Marvin N., and Andreas Ziegler. 2017. “ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R.” <em>Journal of Statistical Software</em> 77 (1): 1–17. doi:<a href="https://doi.org/10.18637/jss.v077.i01">10.18637/jss.v077.i01</a>.</p>
 </div>
 <div>
 <p>Yoon, Hyejin, Jennifer Macke, Anthony P West Jr, Brian Foley, Pamela J Bjorkman, Bette Korber, and Karina Yusim. 2015. “CATNAP: A Tool to Compile, Analyze and Tally Neutralizing Antibody Panels.” <em>Nucleic Acids Research</em> 43 (W1). Oxford University Press: W213–W219. doi:<a href="https://doi.org/10.1093/nar/gkv404">10.1093/nar/gkv404</a>.</p>
 </div>
 <div>
-<p>Zou, Hui, and Trevor Hastie. 2005. “Regularization and Variable Selection via the Elastic Net.” <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 67 (2). Wiley Online Library: 301–20.</p>
+<p>Zou, Hui, and Trevor Hastie. 2005. “Regularization and Variable Selection via the Elastic Net.” <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 67 (2). Wiley Online Library: 301–20. doi:<a href="https://doi.org/10.1111/j.1467-9868.2005.00503.x">10.1111/j.1467-9868.2005.00503.x</a>.</p>
 </div>
 </div>
 </div>
@@ -217,7 +233,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           </div>
         </div>
       </div>
-<a href="7-sec-methods.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="7-sec-data.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
 
     </div>
   </div>
