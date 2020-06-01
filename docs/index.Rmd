@@ -3,6 +3,7 @@ title: "`slapnap`: Super LeArner Prediction of NAb Panels"
 author: "David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 bibliography: refs.bib
+link-citations: true
 ---
 
 ```{r, echo = FALSE}

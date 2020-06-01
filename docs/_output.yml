@@ -20,6 +20,7 @@ bookdown::gitbook:
   includes:
     in_header: mathjax_number.html
   css: slapnap_style.css
+  highlight: pygments
 
 
 bookdown::pdf_book:
