@@ -15,11 +15,13 @@ docker pull slapnap/slapnap
 
 This command pulls the image from [DockerHub](https://hub.docker.com/). Once the image has been downloaded, we are ready to learn about how to execute `slapnap` jobs. The next section contains information on the source data used by `slapnap`. Users familiar with the CATNAP data may wish to skip directly to Section \@ref(sec:opts).
 
-# CATNAP Database {#sec:catnap}
+# CATNAP {#sec:catnap}
 
 The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/index.html) is a web server hosted by Los Alamos National Laboratory [@yoon2015catnap]. The database integrates antibody neutralization and HIV-1 sequence data from published studies. Neutralization is measured in terms of half maximal inhibitory concentration (IC$_{50}$) and 80\% inhibitory concentration (IC$_{80}$). These measures of neutralization against HIV envelope pseudoviruses are available for many broadly neutralizing antibodies (bNAbs) and for some combination bNAbs. Also available on each pseudovirus are amino acid (AA) sequence features for the gp160 protein. These are detailed in Section \@ref(sec:data).
 
-During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, the relevant data are selected and processed into a format that is amenable for predictive machine learning analyses. The CATNAP data are updated periodically. To check the date the raw data were pulled from CATNAP to `slapnap`, you can check the date of the `latest` build [here](https://hub.docker.com/repository/registry-1.docker.io/slapnap/slapnap/tags?page=1).
+During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
+
+The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on June 01, 2020. 
 
 # Running `slapnap` {#sec:runningcontainer}
 
@@ -27,7 +29,7 @@ To run the `slapnap` container, we make use of the [`docker run`](https://docs.d
 
 There are several options that are necessary to include in this command to control the behavior of `slapnap`. These are discussed in separate subsections below.
 
-## `slapnap` options {#sec:opts}
+## `slapnap` run options {#sec:opts}
 
 The user has control over many aspects of `slapnap`'s behavior. These options are passed in using the `-e` option^[This sets an environment variable in the container environment. These variables are accessed by the various `R` and `bash` scripts in the container to dictate how the container executes code.]. Semi-colon separated strings are used to set options. For example, to provide input for the option `option_name`, we would used `-e option_name="a;semi-colon;separated;string"`. Note that there are no spaces between the option name and its value and no spaces after semi-colons in the separated list. See Section \@ref(sec:examples) for full syntax.
 
@@ -50,15 +52,17 @@ __-e options for `slapnap`__
 * __`return`__: A semicolon-separated string of the desired output. Possible values are `"report"` (default), `"learner"` for the trained algorithm, `"data"` for the analysis dataset, `"figures"` for all figures from the report, and `"vimp"` for variable importance objects.
 * __`view_port`__: A boolean string indicating whether the compiled report should be made viewable on `localhost` (default `"FALSE"`). If `"TRUE"` then `-p` option should be used in the `docker run` command to identify the port. See example in Section \@ref(sec:webbrowse) for details.
 
-## Mounting a local directory {#sec:mounting}
+## Returning output 
 
-At the end of a `slapnap` run, user-specified output will be saved (see option `return` in Section \@ref(sec:opts)). To retrieve these files from inside the container, there are two options: [*mounting*](https://docs.docker.com/storage/bind-mounts/) a local directory or, if the report is the only desired output, viewing the report in a web browser (Section \@ref(sec:viewreport)). 
+At the end of a `slapnap` run, user-specified output will be saved (see option `return` in Section \@ref(sec:opts)). To retrieve these files from the container, there are two options:  mounting a local directory (Section \@ref(sec:mounting) or, if the report is the __only__ desired output, viewing and saving the report in a web browser (Section \@ref(sec:viewreport)). 
 
-To mount a local directory to an output directory (`/home/output/`) in the container using the `-v` option. That is, all files in the mounted local directory will be visible to programs running inside the container and any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory.
+### Mounting a local directory {#sec:mounting}
+
+To [mount](https://docs.docker.com/storage/bind-mounts/) a local directory to the output directory in the container (`/home/output/`), use the `-v` option. Any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory. Conversely, all files in the mounted local directory will be visible to programs running inside the container. To avoid possible naming conflicts in the mounted directory, we recommend mounting an empty directory to store the output. 
 
 Suppose `/path/to/local/dir` is the file path on a local computer in which we wish to save the output files from a `slapnap` run. A `docker run` of `slapnap` would include the option `-v /path/to/local/dir:/home/output`. After a run completes, the requested output should be viewable in `/path/to/local/dir`. See Section \@ref(sec:examples) for full syntax.
 
-## Viewing report in web browser {#sec:viewreport}
+### Viewing report in browser {#sec:viewreport}
 
 An alternative option to mounting local directories for viewing and downloading the report is to set the `view_port` option to `"TRUE"` and open a port to the container via the `-p` option in the `docker run` statement. In this case, rather than exiting upon completion of the analysis, the container will continuing to run and broadcast the compiled report to `localhost` at the specified port (see examples below). The report can be downloaded from the web browser directly in this way.
 
@@ -77,7 +81,7 @@ Note that this call mounts the local directory `path/to/local/dir` to receive ou
 
 When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir`. The container will then compile an analytic data set from the CATNAP database for the default bNAb (VRC01), train the default learner (random forest [@breiman2001]) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir`.
 
-## Viewing results in browser {#sec:webbrowse}
+## Viewing report in browser {#sec:webbrowse}
 
 To have the results viewable in a web browser execute the following command (note the use of `\` to break the `bash` command over multiple lines).
 
@@ -157,28 +161,32 @@ docker run -d -p 80:80 -e view_port="TRUE" slapnap/slapnap
 docker exec -it /bin/bash
 ```
 
-# Method details {#sec:methods}
+# Methods {#sec:methods}
 
-## Outcome definitions {#sec:outcomedefs}
+## Outcomes {#sec:outcomedefs}
+
+### Single bNAb
 
 If a single bNAb (or combination of bNAbs that are measured directly in the CATNAP data) is requested, then the possible outcomes are:
 
 * IC$_{50}$: the half maximal inhibitory concentration;
 * IC$_{80}$: the 80% maximal inhibitory concentration;
-* IIP [@shen2008dose, @wagh2016optimal]: the instantaneous inhibitory potential, computed as \\[ \\frac{10^m}{\\mbox{IC$_{50}$}^m + 10^m} \ , \\], where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC}_{80}) - \\mbox{log}_{10}(\\mbox{IC}_{50})); and
-* sensitivity: the binary indicator that IC$_{50} < $ the user-specified sensitivity threshold (`sens_thresh`).
+* IIP [@shen2008dose, @wagh2016optimal]: the instantaneous inhibitory potential, computed as $$ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))$; and
+* sensitivity: the binary indicator that IC$_{50}$ $<$ `sens_thresh`, the user-specified sensitivity threshold.
+
+### Multiple bNAbs
 
 If multiple bNAbs are requested, then the possible outcomes are:
 
-* estimated IC$_{50}$: for $J$ bNAbs, \\[ \\mbox{estimated IC_{50}} = \\left( \\sum_{j=1}^J \\mbox{IC}_{50,j}^{-1} \\right)^{-1} \\, \\] where $\\mbox{IC}_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
-* estimated IC$_{80}$: for $J$ bNAbs, \\[ \\mbox{estimated IC_{80}} = \\left( \\sum_{j=1}^J \\mbox{IC}_{80,j}^{-1} \\right)^{-1} \\, \\] where $\\mbox{IC}_{80,j}$ denotes the measured IC$_{80}$ for antibody $j$ [@wagh2016optimal];
-* IIP: computed as \\[ \\frac{10^m}{\\mbox{estimated IC$_{50}$}^m + 10^m} \ , \\], where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{estimated  IC}_{80}) - \\mbox{log}_{10}(\\mbox{estimated  IC}_{50})); and
-* estimated sensitivity: the binary indicator that estimated IC$_{50} < $ `sens_thresh`; and
+* estimated IC$_{50}$: for $J$ bNAbs, $$ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , $$ where IC$_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
+* estimated IC$_{80}$: for $J$ bNAbs, $$ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , $$ where IC$_{80,j}$ denotes the measured IC$_{80}$ for antibody $j$ [@wagh2016optimal];
+* IIP: computed as $$ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{estimated  IC}_{80}) - \mbox{log}_{10}(\mbox{estimated  IC}_{50}))$; and
+* estimated sensitivity: the binary indicator that estimated IC$_{50}$ $<$ `sens_thresh`; and
 * multiple sensitivity: the binary indicator that measured IC$_{50}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bNAbs defined by `multsens_nab`.
 
-## Learner details {#sec:learnerdetails}
+## Learners {#sec:learnerdetails}
 
-There are three possible `learners` available in `slapnap`: random forests [@breiman2001]  (as implemented in the `R` package `ranger` [@rangerpkg]) elastic net [@zou2005]  (as implemented in `glmnet` [@glmnetpkg]), and boosted trees [@friedman2001; @chen2016]  (as implemented in `xgboost` [@xgboostpkg]). 
+There are three possible `learners` available in `slapnap`: random forests [@breiman2001], as implemented in the `R` package `ranger` [@rangerpkg]; elastic net [@zou2005] as implemented in `glmnet` [@glmnetpkg]; and boosted trees [@friedman2001; @chen2016] as implemented in `xgboost` [@xgboostpkg]. 
 
 For each `learner`, there is a `default` choice of tuning parameters that is implemented if `cvtune="FALSE"`. If instead `cvtune="TRUE"`, then there are several choices of tuning parameters that are evaluated using `nfold` cross validation, Table \@ref(tab:learners). 
 
@@ -218,11 +226,11 @@ For each `learner`, there is a `default` choice of tuning parameters that is imp
 Tuning parameters not mentioned in the table are set as follows:
 
 * `rf`: `num.trees = 500`, `min.node.size = 5` for continuous outcomes and `= 1` for binary outcomes;
-* `xgboost`: `nrounds = 1000`, `eta = 0.1`, `min_child_weight = 10`, objective = `binary:logistic`.
+* `xgboost`: `nrounds = 1000`, `eta = 0.1`, `min_child_weight = 10`, objective = `binary:logistic` for binary outcomes and `objective=reg:squarederror` for continuous outcomes.
 
-## Super learner details {#sec:sldetails}
+## Super learner {#sec:sldetails}
 
-If multiple `learners` are specified, then a super learner ensemble [@vanderlaan2007] is constructed using `nfold` cross validation (as implemented in the `R` package `SuperLearner` [@superlearnerpkg]). Specifically, the data are randomly partitioned into `nfold` chunks of approximately equal size. For binary outcomes, this partitioning is done in such a way as to ensure an approximately even number of sensitive/resistant pseudoviruses in each chunk. A so-called super learner *library* of candidate algorithms is constructed by including different `learners`: 
+If multiple `learners` are specified, then a super learner ensemble [@vanderlaan2007] is constructed using `nfold` cross validation, as implemented in the `R` package `SuperLearner` [@superlearnerpkg]. Specifically, the data are randomly partitioned into `nfold` chunks of approximately equal size. For binary outcomes, this partitioning is done in such a way as to ensure an approximately even number of sensitive/resistant pseudoviruses in each chunk. A so-called super learner *library* of candidate algorithms is constructed by including different `learners`: 
 
 * the algorithm `mean`, which reports back the sample mean as prediction for all observations is always included;
 * if `cvtune="FALSE"` then the `default` version of each `learner` (Section \@ref(sec:learnerdetails)) is included; 
@@ -232,9 +240,9 @@ The cross-validated risk of each algorithm in the library is computed. For binar
 
 When `cvperf="TRUE"` and a super learner is constructed, an additional layer of cross validation is used to evaluate the predictive performance of the super learner and of the `cv selector`. 
 
-## Variable importance details
+## Variable importance
 
-If `importance_grp` or `importance_ind` is specified, then variable importance estimates are computed based on the fitted `learners`. Both biological and prediction importance can be obtained; we discuss each in the following two sections.
+If `importance_grp` or `importance_ind` is specified, variable importance estimates are computed based on the `learners`. Both biological and prediction importance can be obtained; we discuss each in the following two sections.
 
 ### Biological importance {#sec:biolimp}
 
@@ -257,9 +265,19 @@ The raw `R` objects (saved as `.rds` files) containing the point estimates, conf
 
 ### Predictive importance
 
-In addition to the biological importance, it may be of interest to understand how the fitted `learner` depends on the measured features. Learner-level predictive importance may be obtained by passing `"pred"` to the variable `importance_ind`. If a single `learner` is fit, then the predictive importance is the `R` default for that type of learner: for the elastic net, importance is defined using the absolute value of the estimated regression coefficient; for random forests, importance is defined using the Gini index (binary outcomes) or the variance of the outcome (continuous outcomes); for eXtreme gradient boosting [@chen2016], importance is defined using the fractional contribution of total gain of the feature's splits. If a super learner ensemble is fit, then the best-fitting algorithm in the ensemble is used to compute the predictive importance.
+`learner`-level predictive importance may be obtained by including `"pred"` in the `importance_ind` option. If a single `learner` is fit, then the predictive importance is the `R` default for that type of learner: 
 
-In the following command, we request predictive importance for a simple scenario. Predictive importance is displayed for the top 20 features.
+* `rf`: the `impurity` importance from `ranger` [@rangerpkg] is returned. The impurity importance for a given feature is computed by taking a normalized sum of the decrease in impurity (i.e., Gini index for binary outcomes; mean squared-error for continuous outcomes) over all nodes in the forest at which a split on that feature has been conducted.
+* `xgboost`: the `gain` importance from `xgboost` [@xgboostpkg] is returned. Interpretation is essentially the same as for `rf`'s `impurity` importance.
+* `lasso`: the absolute value of the estimated regression coefficient at the cross-validation-selected $\lambda$ is returned. 
+
+Note that these importance measures each have important limitations: the `rf` and `xgboost` measures will tend to favor features with many levels, while the `lasso` variable importance will tend to favor features with few levels. Nevertheless, these commonly reported measures can provide some insight into how a given learner is making predictions. 
+
+If multiple `learners` are used, and thus a super learner is constructed, then the importance measures for the `learner` with the highest weight in the super learner are reported. 
+
+If a single `learner` is used, but `cvtune="TRUE"` then importance measures for the `cv selector` are reported. 
+
+In the following command, we request predictive importance for a simple scenario. Predictive importance is displayed for the top 15 features.
 
 
 ```bash
@@ -268,7 +286,7 @@ docker run -v /path/to/local/dir:/home/output \
            slapnap/slapnap
 ```
 
-# Report details {#sec:report}
+# Report {#sec:report}
 
 The `slapnap` report consists of an executive summary followed by results for each requested outcome.
 
@@ -290,18 +308,18 @@ The rest of the report is organized by outcome. Each of these sections contains 
 Finally, if group biological importance is requested, then the variable groups are displayed in a section immediately preceding the references.
 
 
-# Data details {#sec:data}
+# Data {#sec:data}
 
 The analysis dataset includes neutralization outcomes for the requested bNAb(s) and AA sequence features for the gp160 protein. The possible outcomes are described in Section \@ref(sec:outcomedefs). 
 
-The additional variables in the data include:
+The additional groups of variables in the data include:
 
-* geographic information: binary indicator variables describing the region of origin of each pseudovirus;
-* subtype: binary indicator variables denoting the HIV-1 subtype for the given pseudovirus;
-* AA sequence features: binary indicator variables denoting presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160;
-* viral geometry features: length of Env, gp120, V2, V3, V5;
-* numbers of sequons: number of sequons in Env, gp120, V2, V3, V5; and
-* numbers of cysteines: number of cysteines in Env, gp120, V2, V3, V5.
+* __geographic information__: binary indicator variables describing the region of origin of each pseudovirus;
+* __subtype__: binary indicator variables denoting the HIV-1 subtype for the given pseudovirus;
+* __AA sequence features__: binary indicator variables denoting presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160;
+* __viral geometry features__: length of Env, gp120, V2, V3, V5;
+* __numbers of sequons__: number of sequons in Env, gp120, V2, V3, V5; and
+* __numbers of cysteines__: number of cysteines in Env, gp120, V2, V3, V5.
 
 
 # References {#sec:refs}

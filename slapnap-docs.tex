@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R.
 Borate, Peter B. Gilbert}
-\date{May 30, 2020}
+\date{June 01, 2020}
 
 \begin{document}
 \maketitle
@@ -215,7 +215,7 @@ jobs. The next section contains information on the source data used by
 \texttt{slapnap}. Users familiar with the CATNAP data may wish to skip
 directly to Section \ref{sec:opts}.
 
-\section{CATNAP Database}\label{sec:catnap}
+\section{CATNAP}\label{sec:catnap}
 
 The
 \href{https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/index.html}{CATNAP
@@ -230,12 +230,14 @@ Also available on each pseudovirus are amino acid (AA) sequence features
 for the gp160 protein. These are detailed in Section \ref{sec:data}.
 
 During each build of the \texttt{slapnap} container, all raw data are
-downloaded from CATNAP. At run time, the relevant data are selected and
-processed into a format that is amenable for predictive machine learning
-analyses. The CATNAP data are updated periodically. To check the date
-the raw data were pulled from CATNAP to \texttt{slapnap}, you can check
-the date of the \texttt{latest} build
-\href{https://hub.docker.com/repository/registry-1.docker.io/slapnap/slapnap/tags?page=1}{here}.
+downloaded from CATNAP. At run time, pseudovirus features are derived
+and measured sensitivity outcomes are derived from the raw CATNAP
+database files and merged into a \texttt{.csv} file that is used in
+subsequent predictive analyses.
+
+The CATNAP data are updated periodically. The data are downloaded into
+the \texttt{slapnap} container at every build. The most recent build
+occurred on June 01, 2020.
 
 \section{\texorpdfstring{Running
 \texttt{slapnap}}{Running slapnap}}\label{sec:runningcontainer}
@@ -249,8 +251,8 @@ There are several options that are necessary to include in this command
 to control the behavior of \texttt{slapnap}. These are discussed in
 separate subsections below.
 
-\subsection{\texorpdfstring{\texttt{slapnap}
-options}{slapnap options}}\label{sec:opts}
+\subsection{\texorpdfstring{\texttt{slapnap} run
+options}{slapnap run options}}\label{sec:opts}
 
 The user has control over many aspects of \texttt{slapnap}'s behavior.
 These options are passed in using the \texttt{-e} option\footnote{This
@@ -371,21 +373,26 @@ Proper values should be determined based on scientific context.
   example in Section \ref{sec:webbrowse} for details.
 \end{itemize}
 
-\subsection{Mounting a local directory}\label{sec:mounting}
+\subsection{Returning output}\label{returning-output}
 
 At the end of a \texttt{slapnap} run, user-specified output will be
 saved (see option \texttt{return} in Section \ref{sec:opts}). To
-retrieve these files from inside the container, there are two options:
-\href{https://docs.docker.com/storage/bind-mounts/}{\emph{mounting}} a
-local directory or, if the report is the only desired output, viewing
-the report in a web browser (Section \ref{sec:viewreport}).
+retrieve these files from the container, there are two options: mounting
+a local directory (Section \ref{sec:mounting} or, if the report is the
+\textbf{only} desired output, viewing and saving the report in a web
+browser (Section \ref{sec:viewreport}).
 
-To mount a local directory to an output directory
-(\texttt{/home/output/}) in the container using the \texttt{-v} option.
-That is, all files in the mounted local directory will be visible to
-programs running inside the container and any items saved to the output
-directory in the container (file path in the container
+\subsubsection{Mounting a local directory}\label{sec:mounting}
+
+To \href{https://docs.docker.com/storage/bind-mounts/}{mount} a local
+directory to the output directory in the container
+(\texttt{/home/output/}), use the \texttt{-v} option. Any items saved to
+the output directory in the container (file path in the container
 \texttt{/home/output/}) will be available in the mounted directory.
+Conversely, all files in the mounted local directory will be visible to
+programs running inside the container. To avoid possible naming
+conflicts in the mounted directory, we recommend mounting an empty
+directory to store the output.
 
 Suppose \texttt{/path/to/local/dir} is the file path on a local computer
 in which we wish to save the output files from a \texttt{slapnap} run. A
@@ -394,7 +401,7 @@ in which we wish to save the output files from a \texttt{slapnap} run. A
 requested output should be viewable in \texttt{/path/to/local/dir}. See
 Section \ref{sec:examples} for full syntax.
 
-\subsection{Viewing report in web browser}\label{sec:viewreport}
+\subsubsection{Viewing report in browser}\label{sec:viewreport}
 
 An alternative option to mounting local directories for viewing and
 downloading the report is to set the \texttt{view\_port} option to
@@ -433,7 +440,7 @@ forest \citep{breiman2001}) for the default outcomes (\texttt{ic50} and
 \texttt{nfolds}) cross validation, and compile a report detailing the
 results, and place the compiled report in \texttt{path/to/local/dir}.
 
-\subsection{Viewing results in browser}\label{sec:webbrowse}
+\subsection{Viewing report in browser}\label{sec:webbrowse}
 
 To have the results viewable in a web browser execute the following
 command (note the use of \texttt{\textbackslash{}} to break the
@@ -567,9 +574,11 @@ mode}.
 \end{Highlighting}
 \end{Shaded}
 
-\section{Method details}\label{sec:methods}
+\section{Methods}\label{sec:methods}
 
-\subsection{Outcome definitions}\label{sec:outcomedefs}
+\subsection{Outcomes}\label{sec:outcomedefs}
+
+\subsubsection{Single bNAb}\label{single-bnab}
 
 If a single bNAb (or combination of bNAbs that are measured directly in
 the CATNAP data) is requested, then the possible outcomes are:
@@ -582,65 +591,53 @@ the CATNAP data) is requested, then the possible outcomes are:
   IC\(_{80}\): the 80\% maximal inhibitory concentration;
 \item
   IIP \citep[\citet{wagh2016optimal}]{shen2008dose}: the instantaneous
-  inhibitory potential, computed as \textbackslash{}{[}
-  \textbackslash{}frac\{10\textsuperscript{m\}\{\textbackslash{}mbox\{IC\(_{50}\)\}}m
-  + 10\^{}m\} ~, \textbackslash{}{]}, where \$m =
-  \textbackslash{}mbox\{log\}\emph{\{10\}(4) /
-  (\textbackslash{}mbox\{log\}}\{10\}(\textbackslash{}mbox\{IC\}\emph{\{80\})
-  -
-  \textbackslash{}mbox\{log\}}\{10\}(\textbackslash{}mbox\{IC\}\_\{50\}));
+  inhibitory potential, computed as
+  \[ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , \] where
+  \(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))\);
   and
 \item
-  sensitivity: the binary indicator that IC\$\_\{50\} \textless{} \$ the
-  user-specified sensitivity threshold (\texttt{sens\_thresh}).
+  sensitivity: the binary indicator that IC\(_{50}\) \(<\)
+  \texttt{sens\_thresh}, the user-specified sensitivity threshold.
 \end{itemize}
+
+\subsubsection{Multiple bNAbs}\label{multiple-bnabs}
 
 If multiple bNAbs are requested, then the possible outcomes are:
 
 \begin{itemize}
 \tightlist
 \item
-  estimated IC\(_{50}\): for \(J\) bNAbs, \textbackslash{}{[}
-  \textbackslash{}mbox\{estimated IC\_\{50\}\} = \textbackslash{}left(
-  \textbackslash{}sum\_\{j=1\}\^{}J
-  \textbackslash{}mbox\{IC\}\_\{50,j\}\^{}\{-1\}
-  \textbackslash{}right)\^{}\{-1\} \textbackslash{}, \textbackslash{}{]}
-  where \(\\mbox{IC}_{50,j}\) denotes the measured IC\(_{50}\) for
-  antibody \(j\) \citep{wagh2016optimal};
+  estimated IC\(_{50}\): for \(J\) bNAbs,
+  \[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]
+  where IC\(_{50,j}\) denotes the measured IC\(_{50}\) for antibody
+  \(j\) \citep{wagh2016optimal};
 \item
-  estimated IC\(_{80}\): for \(J\) bNAbs, \textbackslash{}{[}
-  \textbackslash{}mbox\{estimated IC\_\{80\}\} = \textbackslash{}left(
-  \textbackslash{}sum\_\{j=1\}\^{}J
-  \textbackslash{}mbox\{IC\}\_\{80,j\}\^{}\{-1\}
-  \textbackslash{}right)\^{}\{-1\} \textbackslash{}, \textbackslash{}{]}
-  where \(\\mbox{IC}_{80,j}\) denotes the measured IC\(_{80}\) for
-  antibody \(j\) \citep{wagh2016optimal};
+  estimated IC\(_{80}\): for \(J\) bNAbs,
+  \[ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , \]
+  where IC\(_{80,j}\) denotes the measured IC\(_{80}\) for antibody
+  \(j\) \citep{wagh2016optimal};
 \item
-  IIP: computed as \textbackslash{}{[}
-  \textbackslash{}frac\{10\^{}m\}\{\textbackslash{}mbox\{estimated
-  IC\(_{50}\)\}\^{}m + 10\^{}m\} ~, \textbackslash{}{]}, where \$m =
-  \textbackslash{}mbox\{log\}\emph{\{10\}(4) /
-  (\textbackslash{}mbox\{log\}}\{10\}(\textbackslash{}mbox\{estimated
-  IC\}\emph{\{80\}) -
-  \textbackslash{}mbox\{log\}}\{10\}(\textbackslash{}mbox\{estimated
-  IC\}\_\{50\})); and
+  IIP: computed as
+  \[ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , \] where
+  \(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{estimated IC}_{80}) - \mbox{log}_{10}(\mbox{estimated IC}_{50}))\);
+  and
 \item
-  estimated sensitivity: the binary indicator that estimated
-  IC\$\_\{50\} \textless{} \$ \texttt{sens\_thresh}; and
+  estimated sensitivity: the binary indicator that estimated IC\(_{50}\)
+  \(<\) \texttt{sens\_thresh}; and
 \item
   multiple sensitivity: the binary indicator that measured IC\(_{50}\)
   is less than the sensitivity threshold (\texttt{sens\_thresh}) for a
   number of bNAbs defined by \texttt{multsens\_nab}.
 \end{itemize}
 
-\subsection{Learner details}\label{sec:learnerdetails}
+\subsection{Learners}\label{sec:learnerdetails}
 
 There are three possible \texttt{learners} available in
-\texttt{slapnap}: random forests \citep{breiman2001} (as implemented in
-the \texttt{R} package \texttt{ranger} \citep{rangerpkg}) elastic net
-\citep{zou2005} (as implemented in \texttt{glmnet} \citep{glmnetpkg}),
-and boosted trees \citep{friedman2001, chen2016} (as implemented in
-\texttt{xgboost} \citep{xgboostpkg}).
+\texttt{slapnap}: random forests \citep{breiman2001}, as implemented in
+the \texttt{R} package \texttt{ranger} \citep{rangerpkg}; elastic net
+\citep{zou2005} as implemented in \texttt{glmnet} \citep{glmnetpkg}; and
+boosted trees \citep{friedman2001, chen2016} as implemented in
+\texttt{xgboost} \citep{xgboostpkg}.
 
 For each \texttt{learner}, there is a \texttt{default} choice of tuning
 parameters that is implemented if \texttt{cvtune="FALSE"}. If instead
@@ -691,15 +688,16 @@ Tuning parameters not mentioned in the table are set as follows:
 \item
   \texttt{xgboost}: \texttt{nrounds\ =\ 1000}, \texttt{eta\ =\ 0.1},
   \texttt{min\_child\_weight\ =\ 10}, objective =
-  \texttt{binary:logistic}.
+  \texttt{binary:logistic} for binary outcomes and
+  \texttt{objective=reg:squarederror} for continuous outcomes.
 \end{itemize}
 
-\subsection{Super learner details}\label{sec:sldetails}
+\subsection{Super learner}\label{sec:sldetails}
 
 If multiple \texttt{learners} are specified, then a super learner
 ensemble \citep{vanderlaan2007} is constructed using \texttt{nfold}
-cross validation (as implemented in the \texttt{R} package
-\texttt{SuperLearner} \citep{superlearnerpkg}). Specifically, the data
+cross validation, as implemented in the \texttt{R} package
+\texttt{SuperLearner} \citep{superlearnerpkg}. Specifically, the data
 are randomly partitioned into \texttt{nfold} chunks of approximately
 equal size. For binary outcomes, this partitioning is done in such a way
 as to ensure an approximately even number of sensitive/resistant
@@ -734,11 +732,10 @@ When \texttt{cvperf="TRUE"} and a super learner is constructed, an
 additional layer of cross validation is used to evaluate the predictive
 performance of the super learner and of the \texttt{cv\ selector}.
 
-\subsection{Variable importance
-details}\label{variable-importance-details}
+\subsection{Variable importance}\label{variable-importance}
 
 If \texttt{importance\_grp} or \texttt{importance\_ind} is specified,
-then variable importance estimates are computed based on the fitted
+variable importance estimates are computed based on the
 \texttt{learners}. Both biological and prediction importance can be
 obtained; we discuss each in the following two sections.
 
@@ -803,23 +800,45 @@ importance can be saved by passing \texttt{"vimp"} to \texttt{return}.
 
 \subsubsection{Predictive importance}\label{predictive-importance}
 
-In addition to the biological importance, it may be of interest to
-understand how the fitted \texttt{learner} depends on the measured
-features. Learner-level predictive importance may be obtained by passing
-\texttt{"pred"} to the variable \texttt{importance\_ind}. If a single
-\texttt{learner} is fit, then the predictive importance is the
-\texttt{R} default for that type of learner: for the elastic net,
-importance is defined using the absolute value of the estimated
-regression coefficient; for random forests, importance is defined using
-the Gini index (binary outcomes) or the variance of the outcome
-(continuous outcomes); for eXtreme gradient boosting \citep{chen2016},
-importance is defined using the fractional contribution of total gain of
-the feature's splits. If a super learner ensemble is fit, then the
-best-fitting algorithm in the ensemble is used to compute the predictive
-importance.
+\texttt{learner}-level predictive importance may be obtained by
+including \texttt{"pred"} in the \texttt{importance\_ind} option. If a
+single \texttt{learner} is fit, then the predictive importance is the
+\texttt{R} default for that type of learner:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{rf}: the \texttt{impurity} importance from \texttt{ranger}
+  \citep{rangerpkg} is returned. The impurity importance for a given
+  feature is computed by taking a normalized sum of the decrease in
+  impurity (i.e., Gini index for binary outcomes; mean squared-error for
+  continuous outcomes) over all nodes in the forest at which a split on
+  that feature has been conducted.
+\item
+  \texttt{xgboost}: the \texttt{gain} importance from \texttt{xgboost}
+  \citep{xgboostpkg} is returned. Interpretation is essentially the same
+  as for \texttt{rf}'s \texttt{impurity} importance.
+\item
+  \texttt{lasso}: the absolute value of the estimated regression
+  coefficient at the cross-validation-selected \(\lambda\) is returned.
+\end{itemize}
+
+Note that these importance measures each have important limitations: the
+\texttt{rf} and \texttt{xgboost} measures will tend to favor features
+with many levels, while the \texttt{lasso} variable importance will tend
+to favor features with few levels. Nevertheless, these commonly reported
+measures can provide some insight into how a given learner is making
+predictions.
+
+If multiple \texttt{learners} are used, and thus a super learner is
+constructed, then the importance measures for the \texttt{learner} with
+the highest weight in the super learner are reported.
+
+If a single \texttt{learner} is used, but \texttt{cvtune="TRUE"} then
+importance measures for the \texttt{cv\ selector} are reported.
 
 In the following command, we request predictive importance for a simple
-scenario. Predictive importance is displayed for the top 20 features.
+scenario. Predictive importance is displayed for the top 15 features.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -829,7 +848,7 @@ scenario. Predictive importance is displayed for the top 20 features.
 \end{Highlighting}
 \end{Shaded}
 
-\section{Report details}\label{sec:report}
+\section{Report}\label{sec:report}
 
 The \texttt{slapnap} report consists of an executive summary followed by
 results for each requested outcome.
@@ -888,32 +907,34 @@ subsections may also be present:
 Finally, if group biological importance is requested, then the variable
 groups are displayed in a section immediately preceding the references.
 
-\section{Data details}\label{sec:data}
+\section{Data}\label{sec:data}
 
 The analysis dataset includes neutralization outcomes for the requested
 bNAb(s) and AA sequence features for the gp160 protein. The possible
 outcomes are described in Section \ref{sec:outcomedefs}.
 
-The additional variables in the data include:
+The additional groups of variables in the data include:
 
 \begin{itemize}
 \tightlist
 \item
-  geographic information: binary indicator variables describing the
-  region of origin of each pseudovirus;
+  \textbf{geographic information}: binary indicator variables describing
+  the region of origin of each pseudovirus;
 \item
-  subtype: binary indicator variables denoting the HIV-1 subtype for the
-  given pseudovirus;
+  \textbf{subtype}: binary indicator variables denoting the HIV-1
+  subtype for the given pseudovirus;
 \item
-  AA sequence features: binary indicator variables denoting presence or
-  absence of a residue containing a specific AA at each HXB2-referenced
-  site in gp160;
+  \textbf{AA sequence features}: binary indicator variables denoting
+  presence or absence of a residue containing a specific AA at each
+  HXB2-referenced site in gp160;
 \item
-  viral geometry features: length of Env, gp120, V2, V3, V5;
+  \textbf{viral geometry features}: length of Env, gp120, V2, V3, V5;
 \item
-  numbers of sequons: number of sequons in Env, gp120, V2, V3, V5; and
+  \textbf{numbers of sequons}: number of sequons in Env, gp120, V2, V3,
+  V5; and
 \item
-  numbers of cysteines: number of cysteines in Env, gp120, V2, V3, V5.
+  \textbf{numbers of cysteines}: number of cysteines in Env, gp120, V2,
+  V3, V5.
 \end{itemize}
 
 \section{References}\label{sec:refs}
