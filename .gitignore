@@ -5,6 +5,7 @@ sandbox/*
 slfits/*
 dat/*
 docs/_book/*
+docs/*.rds
 local_production_runs/*
 run_analyses_locally.sh
 2019*
