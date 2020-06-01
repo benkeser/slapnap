@@ -219,7 +219,7 @@ for (var.index in 1:ncol(data.final)) {
 data.final <- data.final[ , filter.insertions]
 
 # name our outfile and save
-filename <- paste0("multiab_catnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
+filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
 setwd(path.data.analysis)
 write.csv(data.final, file=filename, row.names=F)
 

@@ -9,12 +9,10 @@
 #' @param opts the options
 #' @param ... other args
 extract_importance <- function(fit_sl, opts, ...){
-    if (length(opts$learners) > 1 & (opts$cvperf & opts$cvtune)) {
+    if (length(opts$learners) > 1) {
         # find index of one with highest weight
         biggest_weight_idx <- which.max(fit_sl$coef)
         fit_object <- fit_sl$fitLibrary[[biggest_weight_idx]]$object
-    } else if (length(opts$learners) > 1 & !(opts$cvperf & opts$cvtune)) {
-        fit_object <- fit_sl$fitLibrary[[which.min(fit_sl$cvRisk)]]$object
     } else if (length(opts$learners) == 1 & opts$cvtune) {
         # find best fit
         best_fit_idx <- which.min(fit_sl$cvRisk)
