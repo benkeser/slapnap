@@ -21,10 +21,10 @@
   
   
 
-<meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert" />
+<meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert" />
 
 
-<meta name="date" content="2020-06-01" />
+<meta name="date" content="2020-06-05" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -190,12 +190,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="sec:webbrowse" class="section level2">
 <h2><span class="header-section-number">4.2</span> Viewing report in browser</h2>
-<p>To have the results viewable in a web browser execute the following command (note the use of <code>\</code> to break the <code>bash</code> command over multiple lines).</p>
+<p>To have the results viewable in a web browser execute the following command<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
            -e view_port=<span class="st">&quot;TRUE&quot;</span> -p 80:80 \
            slapnap/slapnap</code></pre></div>
 <p>This command opens port 80 on the container. Once the report has been compiled, the container will not close down automatically. Instead it will continue to run, broadcasting the report to port 80. Open a web browser on your computer and navigate to <code>localhost:80</code> and you should see the compiled report. Many web browsers should allow downloading of the report (e.g., by right-clicking and selecting save <code>Save As...</code>).</p>
-<p>The container will continue to run until you tell it to <code>stop</code>. To do that, retrieve the container ID by executing <code>docker container ps</code>. Copy the ID of the running container (say <code>MY_CONTAINER_ID</code>) and then execute <code>docker stop MY_CONTAINER_ID</code> to shut down the container.</p>
+<p>The container will continue to run until you tell it to <code>stop</code>. To do that, retrieve the container ID by executing <code>docker container ps</code><a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>. Copy the ID of the running container, which will be a string of numbers and letters (say <code>a1b2c3d4</code>) and then execute <code>docker stop a1b2c3d4</code> to shut down the container.</p>
 <p>Note that in the above command, we have still mounted a local directory, which may be considered best practice in case other output besides the report is desired to be returned.</p>
 </div>
 <div id="super-learning" class="section level2">
@@ -215,7 +215,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
            -e cvperf=<span class="st">&quot;FALSE&quot;</span> \
            -e outcomes=<span class="st">&quot;sens&quot;</span> \
            slapnap/slapnap</code></pre></div>
-<p>After completion of this run, <code>learner_sens.rds</code> will appear in <code>/path/to/local/dir</code> that contains an <code>R</code> object of class <code>ranger</code> (the package used by <code>slapnap</code> to fit random forests).</p>
+<p>After completion of this run, <code>learner_sens.rds</code> will appear in <code>/path/to/local/dir</code> that contains an <code>R</code> object of class <code>ranger</code> (the <code>R</code> package used by <code>slapnap</code> to fit random forests). You can confirm this from the command line by executing</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">Rscript</span> -e <span class="st">&quot;learner &lt;- readRDS(&#39;/path/to/local/dir/learner_sens.rds&#39;); class(learner)&quot;</span></code></pre></div>
 </div>
 <div id="pull-and-clean-data" class="section level2">
 <h2><span class="header-section-number">4.5</span> Pull and clean data</h2>
@@ -236,6 +237,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <span class="co"># use this command to enter the container</span>
 <span class="ex">docker</span> exec -it /bin/bash</code></pre></div>
+<p>To close the interactive session type <code>exit</code> at the container command prompt and hit <code>Return</code>. This will close the container and stop its running.</p>
 </div>
 </div>
 <h3> References</h3>
@@ -249,6 +251,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="ref-zou2005">
 <p>Zou, Hui, and Trevor Hastie. 2005. “Regularization and Variable Selection via the Elastic Net.” <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 67 (2). Wiley Online Library: 301–20. doi:<a href="https://doi.org/10.1111/j.1467-9868.2005.00503.x">10.1111/j.1467-9868.2005.00503.x</a>.</p>
 </div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="2">
+<li id="fn2"><p>In this command, we use the escape character <code>\</code> to break the command over multiple lines, which will work on Linux and Mac OS. In Windows Command Prompt, the equivalent escape character is <code>^</code>. In both cases, take care not to include a space after the escape character.<a href="4-sec-examples.html#fnref2">↩</a></p></li>
+<li id="fn3"><p>To execute this command, you will need to hit <code>control + c</code> to return to the command prompt in the current shell or open a new shell. Alternatively, you could add the <code>-d</code> option to the <code>docker run</code> command, which will run the container in <a href="https://docs.docker.com/engine/reference/run/#detached-vs-foreground">detached mode</a>.<a href="4-sec-examples.html#fnref3">↩</a></p></li>
+</ol>
 </div>
             </section>
 

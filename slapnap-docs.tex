@@ -25,7 +25,7 @@
 \usepackage[unicode=true]{hyperref}
 \hypersetup{
             pdftitle={slapnap: Super LeArner Prediction of NAb Panels},
-            pdfauthor={David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R. Borate, Peter B. Gilbert},
+            pdfauthor={David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
@@ -111,9 +111,9 @@
 
 
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
-\author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Bhavesh R.
-Borate, Peter B. Gilbert}
-\date{June 01, 2020}
+\author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam,
+Peter B. Gilbert}
+\date{June 05, 2020}
 
 \begin{document}
 \maketitle
@@ -240,7 +240,7 @@ subsequent predictive analyses.
 
 The CATNAP data are updated periodically. The data are downloaded into
 the \texttt{slapnap} container at every build. The most recent build
-occurred on June 01, 2020.
+occurred on June 05, 2020.
 
 \section{\texorpdfstring{Running
 \texttt{slapnap}}{Running slapnap}}\label{sec:runningcontainer}
@@ -271,8 +271,8 @@ for full syntax.
 
 Each description below lists the default value that is assumed if the
 option is not specified. Note that many of the default values are chosen
-simply so that na\{"i\}ve calls to \texttt{slapnap} compile quickly.
-Proper values should be determined based on scientific context.
+simply so that naive calls to \texttt{slapnap} compile quickly. Proper
+values should be determined based on scientific context.
 
 \textbf{-e options for \texttt{slapnap}}
 
@@ -304,10 +304,12 @@ Proper values should be determined based on scientific context.
   IC\(_{50}\) is greater than or equal to \texttt{sens\_thresh}.
 \item
   \textbf{\texttt{multsens\_nab}} A numeric value used for defining
-  whether a pseudovirus is resistant to a multi-nAb cocktail. The
-  dichotomous outcome \texttt{multsens} is defined as the indicator that
-  a virus has (estimated) \(IC_{50}\) greater than \texttt{sens\_thresh}
-  for at least \texttt{multsens\_nab} nAbs.
+  whether a pseudovirus is resistant to a multi-nAb cocktail. Only used
+  if \texttt{multsens} is included in \texttt{outcome} and more than one
+  \texttt{nab} is requested. The dichotomous \texttt{outcome}
+  \texttt{multsens} is defined as the indicator that a virus has
+  (estimated) IC\(_{50}\) greater than \texttt{sens\_thresh} for at
+  least \texttt{multsens\_nab} nAbs.
 \item
   \textbf{\texttt{learners}}: A semicolon-separated string of machine
   learning algorithms to include in the analysis. Possible values
@@ -353,10 +355,12 @@ Proper values should be determined based on scientific context.
 \item
   \textbf{\texttt{same\_subset}} If \texttt{"FALSE"} (default) all data
   available for each outcome will be used in the analysis. If
-  \texttt{"TRUE"}, the data will be subset to just those sequences that
-  have measured IC\(_{50}\), IC\(_{80}\), and for which IIP can be
-  computed (i.e., measured IC\(_{50}\) and IC\(_{80}\) values are
-  different). Thus, if \texttt{"TRUE"} all outcomes will be fit on the
+  \texttt{"TRUE"}, when multiple \texttt{outcomes} are requested, the
+  data will be subset to just those sequences that have all measured
+  \texttt{outcome}, and, if \texttt{iip} is requested, for which
+  \texttt{iip} can be computed (i.e., measured IC\(_{50}\) and
+  IC\(_{80}\) values are different). Thus, if \texttt{"TRUE"} all
+  requested \texttt{outcomes} will be evaluated using the
   \texttt{same\_subset} of the CATNAP data.
 \item
   \textbf{\texttt{report\_name}}: A string indicating the desired name
@@ -365,9 +369,11 @@ Proper values should be determined based on scientific context.
 \item
   \textbf{\texttt{return}}: A semicolon-separated string of the desired
   output. Possible values are \texttt{"report"} (default),
-  \texttt{"learner"} for the trained algorithm, \texttt{"data"} for the
-  analysis dataset, \texttt{"figures"} for all figures from the report,
-  and \texttt{"vimp"} for variable importance objects.
+  \texttt{"learner"} for a \texttt{.rds} object that contains the
+  algorithm for each endpoint trained using the full analysis data,
+  \texttt{"data"} for the analysis dataset, \texttt{"figures"} for all
+  figures from the report, and \texttt{"vimp"} for variable importance
+  objects.
 \item
   \textbf{\texttt{view\_port}}: A boolean string indicating whether the
   compiled report should be made viewable on \texttt{localhost} (default
@@ -393,9 +399,7 @@ directory to the output directory in the container
 the output directory in the container (file path in the container
 \texttt{/home/output/}) will be available in the mounted directory.
 Conversely, all files in the mounted local directory will be visible to
-programs running inside the container. To avoid possible naming
-conflicts in the mounted directory, we recommend mounting an empty
-directory to store the output.
+programs running inside the container.
 
 Suppose \texttt{/path/to/local/dir} is the file path on a local computer
 in which we wish to save the output files from a \texttt{slapnap} run. A
@@ -403,6 +407,10 @@ in which we wish to save the output files from a \texttt{slapnap} run. A
 \texttt{-v\ /path/to/local/dir:/home/output}. After a run completes, the
 requested output should be viewable in \texttt{/path/to/local/dir}. See
 Section \ref{sec:examples} for full syntax.
+
+To avoid possible naming conflicts and file overwrites in the mounted
+directory, \textbf{we recommend mounting an empty directory} to store
+the output.
 
 \subsubsection{Viewing report in browser}\label{sec:viewreport}
 
@@ -446,8 +454,11 @@ results, and place the compiled report in \texttt{path/to/local/dir}.
 \subsection{Viewing report in browser}\label{sec:webbrowse}
 
 To have the results viewable in a web browser execute the following
-command (note the use of \texttt{\textbackslash{}} to break the
-\texttt{bash} command over multiple lines).
+command\footnote{In this command, we use the escape character
+  \texttt{\textbackslash{}} to break the command over multiple lines,
+  which will work on Linux and Mac OS. In Windows Command Prompt, the
+  equivalent escape character is \texttt{\^{}}. In both cases, take care
+  not to include a space after the escape character.}.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -467,9 +478,15 @@ downloading of the report (e.g., by right-clicking and selecting save
 
 The container will continue to run until you tell it to \texttt{stop}.
 To do that, retrieve the container ID by executing
-\texttt{docker\ container\ ps}. Copy the ID of the running container
-(say \texttt{MY\_CONTAINER\_ID}) and then execute
-\texttt{docker\ stop\ MY\_CONTAINER\_ID} to shut down the container.
+\texttt{docker\ container\ ps}\footnote{To execute this command, you
+  will need to hit \texttt{control\ +\ c} to return to the command
+  prompt in the current shell or open a new shell. Alternatively, you
+  could add the \texttt{-d} option to the \texttt{docker\ run} command,
+  which will run the container in
+  \href{https://docs.docker.com/engine/reference/run/\#detached-vs-foreground}{detached
+  mode}.}. Copy the ID of the running container, which will be a string
+of numbers and letters (say \texttt{a1b2c3d4}) and then execute
+\texttt{docker\ stop\ a1b2c3d4} to shut down the container.
 
 Note that in the above command, we have still mounted a local directory,
 which may be considered best practice in case other output besides the
@@ -520,8 +537,14 @@ of this below using sensitivity as the outcome.
 
 After completion of this run, \texttt{learner\_sens.rds} will appear in
 \texttt{/path/to/local/dir} that contains an \texttt{R} object of class
-\texttt{ranger} (the package used by \texttt{slapnap} to fit random
-forests).
+\texttt{ranger} (the \texttt{R} package used by \texttt{slapnap} to fit
+random forests). You can confirm this from the command line by executing
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{Rscript}\NormalTok{ -e }\StringTok{"learner <- readRDS('/path/to/local/dir/learner_sens.rds'); class(learner)"}
+\end{Highlighting}
+\end{Shaded}
 
 \subsection{Pull and clean data}\label{pull-and-clean-data}
 
@@ -577,60 +600,72 @@ mode}.
 \end{Highlighting}
 \end{Shaded}
 
+To close the interactive session type \texttt{exit} at the container
+command prompt and hit \texttt{Return}. This will close the container
+and stop its running.
+
 \section{Methods}\label{sec:methods}
 
 \subsection{Outcomes}\label{sec:outcomedefs}
 
 \subsubsection{Single bNAb}\label{single-bnab}
 
-If a single bNAb (or combination of bNAbs that are measured directly in
-the CATNAP data) is requested, then the possible outcomes are:
+If a single bNAb or combination of bNAbs that are measured directly in
+the CATNAP data is requested (i.e., the \texttt{nab} option is a single
+string of a single bNAb or measured combination of bNAbs from the CATNAP
+database), then the possible outcomes are:
 
 \begin{itemize}
 \tightlist
 \item
-  IC\(_{50}\): the half maximal inhibitory concentration;
+  \texttt{ic50} = IC\(_{50}\): the half maximal inhibitory
+  concentration;
 \item
-  IC\(_{80}\): the 80\% maximal inhibitory concentration;
+  \texttt{ic80} = IC\(_{80}\): the 80\% maximal inhibitory
+  concentration;
 \item
-  IIP \citep[\citet{wagh2016optimal}]{shen2008dose}: the instantaneous
-  inhibitory potential, computed as
+  \texttt{iip} = IIP \citep[\citet{wagh2016optimal}]{shen2008dose}: the
+  instantaneous inhibitory potential, computed as
   \[ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , \] where
   \(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))\);
   and
 \item
-  sensitivity: the binary indicator that IC\(_{50}\) \(<\)
-  \texttt{sens\_thresh}, the user-specified sensitivity threshold.
+  \texttt{sens} = sensitivity: the binary indicator that IC\(_{50}\)
+  \(<\) \texttt{sens\_thresh}, the user-specified sensitivity threshold.
 \end{itemize}
 
 \subsubsection{Multiple bNAbs}\label{multiple-bnabs}
 
-If multiple bNAbs are requested, then the possible outcomes are:
+If multiple bNAbs are requested (i.e., the \texttt{nab} option is a
+semi-colon separated string of more than one bNAb from CATNAP), then the
+possible \texttt{outcomes} that can be requested are:
 
 \begin{itemize}
 \tightlist
 \item
-  estimated IC\(_{50}\): for \(J\) bNAbs,
+  \texttt{ic50} = estimated IC\(_{50}\): for \(J\) bNAbs,
   \[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]
   where IC\(_{50,j}\) denotes the measured IC\(_{50}\) for antibody
   \(j\) \citep{wagh2016optimal};
 \item
-  estimated IC\(_{80}\): for \(J\) bNAbs,
+  \texttt{ic80} = estimated IC\(_{80}\): for \(J\) bNAbs,
   \[ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , \]
   where IC\(_{80,j}\) denotes the measured IC\(_{80}\) for antibody
   \(j\) \citep{wagh2016optimal};
 \item
-  IIP: computed as
+  \texttt{iip} = IIP: computed as
   \[ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , \] where
   \(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{estimated IC}_{80}) - \mbox{log}_{10}(\mbox{estimated IC}_{50}))\);
   and
 \item
-  estimated sensitivity: the binary indicator that estimated IC\(_{50}\)
-  \(<\) \texttt{sens\_thresh}; and
+  \texttt{estsens} = estimated sensitivity: the binary indicator that
+  estimated IC\(_{50}\) (defined above) is less than
+  \texttt{sens\_thresh}; and
 \item
-  multiple sensitivity: the binary indicator that measured IC\(_{50}\)
-  is less than the sensitivity threshold (\texttt{sens\_thresh}) for a
-  number of bNAbs defined by \texttt{multsens\_nab}.
+  \texttt{multsens} = multiple sensitivity: the binary indicator that
+  measured IC\(_{50}\) is less than the sensitivity threshold
+  (\texttt{sens\_thresh}) for a number of bNAbs defined by
+  \texttt{multsens\_nab}.
 \end{itemize}
 
 \subsection{Learners}\label{sec:learnerdetails}

@@ -21,7 +21,7 @@ The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutraliz
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
 
-The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on June 01, 2020. 
+The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on June 05, 2020. 
 
 # Running `slapnap` {#sec:runningcontainer}
 
@@ -33,23 +33,23 @@ There are several options that are necessary to include in this command to contr
 
 The user has control over many aspects of `slapnap`'s behavior. These options are passed in using the `-e` option^[This sets an environment variable in the container environment. These variables are accessed by the various `R` and `bash` scripts in the container to dictate how the container executes code.]. Semi-colon separated strings are used to set options. For example, to provide input for the option `option_name`, we would used `-e option_name="a;semi-colon;separated;string"`. Note that there are no spaces between the option name and its value and no spaces after semi-colons in the separated list. See Section \@ref(sec:examples) for full syntax.
 
-Each description below lists the default value that is assumed if the option is not specified. Note that many of the default values are chosen simply so that na{\"i}ve calls to `slapnap` compile quickly. Proper values should be determined based on scientific context.
+Each description below lists the default value that is assumed if the option is not specified. Note that many of the default values are chosen simply so that naive calls to `slapnap` compile quickly. Proper values should be determined based on scientific context.
 
 __-e options for `slapnap`__
 
 * __`nab`__: A semicolon-separated list of bNAbs (default = `"VRC01"`). A list of possible bNAbs can be found [here](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp). If multiple bNAbs are listed, it is assumed that the analysis should be of estimated `outcomes` for a combination of bNAbs (see Section \@ref(sec:outcomedefs) for details on how estimated outcomes for multiple bNAbs are computed).
 * __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (included in default), `"ic80"`, `"iip"`, `"sens"` (included in default), `"estsens"`, `"multsens"`. If only a single `nab` is specified, use `sens` to include a dichotomous endpoint. If multiple `nab`s are specified, use `estsens` and/or `multsens`. For detailed definitions of outcomes see Section \@ref(sec:outcomedefs)).
 * __`sens_thresh`__ A numeric value defining the IC$_{50}$ threshold for defining a sensitive versus resistant pseudovirus (default = 1). The dichotomous sensitivity/resistant `outcome`s are defined as the indicator that (estimated) IC$_{50}$ is greater than or equal to `sens_thresh`.
-* __`multsens_nab`__ A numeric value used for defining whether a pseudovirus is resistant to a multi-nAb cocktail. The dichotomous outcome `multsens` is defined as the indicator that a virus has (estimated) $IC_{50}$ greater than `sens_thresh` for at least `multsens_nab` nAbs.
+* __`multsens_nab`__ A numeric value used for defining whether a pseudovirus is resistant to a multi-nAb cocktail. Only used if `multsens` is included in `outcome` and more than one `nab` is requested. The dichotomous `outcome` `multsens` is defined as the indicator that a virus has (estimated) IC$_{50}$ greater than `sens_thresh` for at least `multsens_nab` nAbs.
 * __`learners`__: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient boosting), and `"lasso"` (elastic net). See Section \@ref(sec:learnerdetails) for details on how tuning parameters are chosen. If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section \@ref(sec:sldetails)).
 * __`cvtune`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` should be tuned using cross validation and a small grid search. Defaults to `"FALSE"`. If multiple `learners` are specified, then the super learner ensemble includes three versions of each of the requested `learners` with different tuning parameters.
 * __`cvperf`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` performance should be evaluated using cross validation. If `cvtune="TRUE"` or `learners` includes multiple algorithms, then nested cross validation is used to evaluate the performance of the cross validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively.
 * __`nfolds`__: A numeric string indicating the number of folds to use in cross validation procedures (default = `"2"`).
 * __`importance_grp`__: A semicolon-separated string indicating which group-level variable importance measures should be computed. Possible values are none `""` (default), marginal `"marg"`, conditional `"cond"`. See Section \@ref(sec:biolimp) for details on these measures.
 * __`importance_ind`__: A semicolon-separated string indicating which individual-level variable importance measures should be computed. Possible values are none `""` (default), learner-level `"pred"`, marginal `"marg"` and conditional `"cond"`. The latter two take significant computation time to compute.
-* __`same_subset`__ If `"FALSE"` (default) all data available for each outcome will be used in the analysis. If `"TRUE"`, the data will be subset to just those sequences that have measured IC$_{50}$, IC$_{80}$, and for which IIP can be computed (i.e., measured IC$_{50}$ and IC$_{80}$ values are different). Thus, if `"TRUE"` all outcomes will be fit on the `same_subset` of the CATNAP data.
+* __`same_subset`__ If `"FALSE"` (default) all data available for each outcome will be used in the analysis. If `"TRUE"`, when multiple `outcomes` are requested, the data will be subset to just those sequences that have all measured `outcome`, and, if `iip` is requested, for which `iip` can be computed (i.e., measured IC$_{50}$ and IC$_{80}$ values are different). Thus, if `"TRUE"` all requested `outcomes` will be evaluated using the `same_subset` of the CATNAP data.
 * __`report_name`__: A string indicating the desired name of the output report (default = `report_[_-separated list of nabs]_[date].html`).
-* __`return`__: A semicolon-separated string of the desired output. Possible values are `"report"` (default), `"learner"` for the trained algorithm, `"data"` for the analysis dataset, `"figures"` for all figures from the report, and `"vimp"` for variable importance objects.
+* __`return`__: A semicolon-separated string of the desired output. Possible values are `"report"` (default), `"learner"` for a `.rds` object that contains the algorithm for each endpoint trained using the full analysis data, `"data"` for the analysis dataset, `"figures"` for all figures from the report, and `"vimp"` for variable importance objects.
 * __`view_port`__: A boolean string indicating whether the compiled report should be made viewable on `localhost` (default `"FALSE"`). If `"TRUE"` then `-p` option should be used in the `docker run` command to identify the port. See example in Section \@ref(sec:webbrowse) for details.
 
 ## Returning output 
@@ -58,9 +58,11 @@ At the end of a `slapnap` run, user-specified output will be saved (see option `
 
 ### Mounting a local directory {#sec:mounting}
 
-To [mount](https://docs.docker.com/storage/bind-mounts/) a local directory to the output directory in the container (`/home/output/`), use the `-v` option. Any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory. Conversely, all files in the mounted local directory will be visible to programs running inside the container. To avoid possible naming conflicts in the mounted directory, we recommend mounting an empty directory to store the output. 
+To [mount](https://docs.docker.com/storage/bind-mounts/) a local directory to the output directory in the container (`/home/output/`), use the `-v` option. Any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory. Conversely, all files in the mounted local directory will be visible to programs running inside the container. 
 
 Suppose `/path/to/local/dir` is the file path on a local computer in which we wish to save the output files from a `slapnap` run. A `docker run` of `slapnap` would include the option `-v /path/to/local/dir:/home/output`. After a run completes, the requested output should be viewable in `/path/to/local/dir`. See Section \@ref(sec:examples) for full syntax.
+
+To avoid possible naming conflicts and file overwrites in the mounted directory, __we recommend mounting an empty directory__ to store the output. 
 
 ### Viewing report in browser {#sec:viewreport}
 
@@ -83,7 +85,7 @@ When this command is executed, messages will print to indicate the progress of t
 
 ## Viewing report in browser {#sec:webbrowse}
 
-To have the results viewable in a web browser execute the following command (note the use of `\` to break the `bash` command over multiple lines).
+To have the results viewable in a web browser execute the following command^[In this command, we use the escape character `\` to break the command over multiple lines, which will work on Linux and Mac OS. In Windows Command Prompt, the equivalent escape character is `^`. In both cases, take care not to include a space after the escape character.].
 
 
 ```bash
@@ -94,7 +96,7 @@ docker run -v /path/to/local/dir:/home/output \
 
 This command opens port 80 on the container. Once the report has been compiled, the container will not close down automatically. Instead it will continue to run, broadcasting the report to port 80. Open a web browser on your computer and navigate to `localhost:80` and you should see the compiled report. Many web browsers should allow downloading of the report (e.g., by right-clicking and selecting save `Save As...`).
 
-The container will continue to run until you tell it to `stop`. To do that, retrieve the container ID by executing `docker container ps`. Copy the ID of the running container (say `MY_CONTAINER_ID`) and then execute `docker stop MY_CONTAINER_ID` to shut down the container.
+The container will continue to run until you tell it to `stop`. To do that, retrieve the container ID by executing `docker container ps`^[To execute this command, you will need to hit `control + c` to return to the command prompt in the current shell or open a new shell. Alternatively, you could add the `-d` option to the `docker run` command, which will run the container in [detached mode](https://docs.docker.com/engine/reference/run/#detached-vs-foreground).]. Copy the ID of the running container, which will be a string of numbers and letters (say `a1b2c3d4`) and then execute `docker stop a1b2c3d4` to shut down the container.
 
 Note that in the above command, we have still mounted a local directory, which may be considered best practice in case other output besides the report is desired to be returned.
 
@@ -125,7 +127,12 @@ docker run -v /path/to/local/dir:/home/output \
            slapnap/slapnap
 ```
 
-After completion of this run, `learner_sens.rds` will appear in `/path/to/local/dir` that contains an `R` object of class `ranger` (the package used by `slapnap` to fit random forests).
+After completion of this run, `learner_sens.rds` will appear in `/path/to/local/dir` that contains an `R` object of class `ranger` (the `R` package used by `slapnap` to fit random forests). You can confirm this from the command line by executing 
+
+
+```bash
+Rscript -e "learner <- readRDS('/path/to/local/dir/learner_sens.rds'); class(learner)"
+```
 
 ## Pull and clean data
 
@@ -161,28 +168,30 @@ docker run -d -p 80:80 -e view_port="TRUE" slapnap/slapnap
 docker exec -it /bin/bash
 ```
 
+To close the interactive session type `exit` at the container command prompt and hit `Return`. This will close the container and stop its running. 
+
 # Methods {#sec:methods}
 
 ## Outcomes {#sec:outcomedefs}
 
 ### Single bNAb
 
-If a single bNAb (or combination of bNAbs that are measured directly in the CATNAP data) is requested, then the possible outcomes are:
+If a single bNAb or combination of bNAbs that are measured directly in the CATNAP data is requested (i.e., the `nab` option is a single string of a single bNAb or measured combination of bNAbs from the CATNAP database), then the possible outcomes are:
 
-* IC$_{50}$: the half maximal inhibitory concentration;
-* IC$_{80}$: the 80% maximal inhibitory concentration;
-* IIP [@shen2008dose, @wagh2016optimal]: the instantaneous inhibitory potential, computed as $$ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))$; and
-* sensitivity: the binary indicator that IC$_{50}$ $<$ `sens_thresh`, the user-specified sensitivity threshold.
+* `ic50` = IC$_{50}$: the half maximal inhibitory concentration;
+* `ic80` = IC$_{80}$: the 80% maximal inhibitory concentration;
+* `iip` = IIP [@shen2008dose, @wagh2016optimal]: the instantaneous inhibitory potential, computed as $$ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))$; and
+* `sens` = sensitivity: the binary indicator that IC$_{50}$ $<$ `sens_thresh`, the user-specified sensitivity threshold.
 
 ### Multiple bNAbs
 
-If multiple bNAbs are requested, then the possible outcomes are:
+If multiple bNAbs are requested (i.e., the `nab` option is a semi-colon separated string of more than one bNAb from CATNAP), then the possible `outcomes` that can be requested are:
 
-* estimated IC$_{50}$: for $J$ bNAbs, $$ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , $$ where IC$_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
-* estimated IC$_{80}$: for $J$ bNAbs, $$ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , $$ where IC$_{80,j}$ denotes the measured IC$_{80}$ for antibody $j$ [@wagh2016optimal];
-* IIP: computed as $$ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{estimated  IC}_{80}) - \mbox{log}_{10}(\mbox{estimated  IC}_{50}))$; and
-* estimated sensitivity: the binary indicator that estimated IC$_{50}$ $<$ `sens_thresh`; and
-* multiple sensitivity: the binary indicator that measured IC$_{50}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bNAbs defined by `multsens_nab`.
+* `ic50` = estimated IC$_{50}$: for $J$ bNAbs, $$ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , $$ where IC$_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
+* `ic80` = estimated IC$_{80}$: for $J$ bNAbs, $$ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , $$ where IC$_{80,j}$ denotes the measured IC$_{80}$ for antibody $j$ [@wagh2016optimal];
+* `iip` = IIP: computed as $$ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{estimated  IC}_{80}) - \mbox{log}_{10}(\mbox{estimated  IC}_{50}))$; and
+* `estsens` = estimated sensitivity: the binary indicator that estimated IC$_{50}$ (defined above) is less than `sens_thresh`; and
+* `multsens` = multiple sensitivity: the binary indicator that measured IC$_{50}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bNAbs defined by `multsens_nab`.
 
 ## Learners {#sec:learnerdetails}
 
