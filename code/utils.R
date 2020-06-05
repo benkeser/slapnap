@@ -28,7 +28,7 @@ get_complete_data_text <- function(opts, ncomplete_ic50,
                                    ncomplete_ic80,
                                    ncomplete_ic5080,
                                    iip_undef){
-    if(!opts$same_subset | !("ic80" %in% opts$outcomes & length(opts$outcomes) > 1)){
+    if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
         if(all(opts$outcomes == "ic80")){
             tmp <- paste0(ncomplete_ic80, " of these sequences had measured IC$_{80}$.")
         }else{

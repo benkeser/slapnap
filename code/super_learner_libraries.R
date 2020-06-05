@@ -432,7 +432,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   # 2. same_subset requested and studying mix of ic50(-derived) and ic80 endpoints, in which
   #    case we will subset down to sequences with both ic50 and ic80
   # 3. no same_subset requested, in which case we use all data available on each outcome
-  if(!opts$same_subset | !("ic80" %in% opts$outcomes & length(opts$outcomes) > 1)){
+  if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
     complete_cases_idx <- complete.cases(complete_dat[,c(outcome_name,pred_names)])
   }else{
     complete_cases_idx <- complete.cases(complete_dat)
