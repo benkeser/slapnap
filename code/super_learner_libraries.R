@@ -453,7 +453,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   learner_name <- gsub("fit_", "learner_", fit_name)
   fitted_name <- gsub("fit_", "fitted_", fit_name)
   cv_fitted_name <- gsub("cvfit_", "cvfitted_", cv_fit_name)
-  cv_folds_name <- gsub("cvfit_", "cvfolds_", cv_fit_name)
+  cv_folds_name <- gsub("cvfitted_", "cvfolds_", gsub("cvfit_", "cvfolds_", cv_fit_name))
   cv_learner_name <- gsub("cvfit_", "cvlearner_", cv_fit_name)
   # unless we do not want to tune using CV nor evaluate performance using CV,
   # we will make a call to super learner

@@ -45,7 +45,9 @@ V <- as.numeric(opts$nfolds)
 
 # check the outcomes to see if we can run them or not
 run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
-
+run_sl_vimp_bools2 <- lapply(run_sl_vimp_bools, function(x){
+    x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
+})
 ## ---------------------------------------------------------------------------
 ## get variable importance! but only run if one of opts$importance_grp or opts$importance_ind is not empty
 ## ---------------------------------------------------------------------------
@@ -57,7 +59,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
     for (i in 1:length(outcome_names)) {
         this_outcome_name <- outcome_names[i]
         vimp_opts <- get_vimp_options(this_outcome_name)
-        if (run_sl_vimp_bools$run_vimp[i]) {
+        if (run_sl_vimp_bools2$run_vimp[i]) {
             ## create output list
             eval(parse(text = paste0(this_outcome_name, '_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
             eval(parse(text = paste0(this_outcome_name, '_cv_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
@@ -203,5 +205,5 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             eval(parse(text = paste0("saveRDS(", this_outcome_name, "_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_vimp"), ".rds')")))
             eval(parse(text = paste0("saveRDS(", this_outcome_name, "_cv_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_cv_vimp"), ".rds')")))
         }
-        }
+    }
 }
