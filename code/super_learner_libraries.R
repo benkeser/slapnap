@@ -434,7 +434,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   # 3. no same_subset requested, in which case we use all data available on each outcome
   if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
     complete_cases_idx <- complete.cases(complete_dat[,c(outcome_name,pred_names)])
-  }else{
+  } else{
     complete_cases_idx <- complete.cases(complete_dat)
   }
 
