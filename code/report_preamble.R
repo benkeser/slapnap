@@ -126,6 +126,7 @@ var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 V <- as.numeric(opts$nfolds)
 
 # check the outcomes to see if we can run them or not
+run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
 run_sl_vimp_bools2 <- lapply(check_outcomes(dat, outcome_names, V), function(x){
     x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
 })
