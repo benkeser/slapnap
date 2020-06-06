@@ -21,8 +21,7 @@ opts <- get_global_options()
 # load data and subset to complete cases
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
-dat <- dat[complete.cases(dat),]
+complete_dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
 
 # make super learner library
 SL.library <- make_sl_library_vector(opts = opts)
@@ -59,6 +58,13 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
     for (i in 1:length(outcome_names)) {
         this_outcome_name <- outcome_names[i]
         vimp_opts <- get_vimp_options(this_outcome_name)
+        # subset to the complete data for this outcome (or all outcomes, if specified)
+        if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
+          complete_cases_idx <- complete.cases(complete_dat[, c(this_outcome_name, pred_names)])
+        } else {
+          complete_cases_idx <- complete.cases(complete_dat)
+        }
+        dat <- complete_dat[complete_cases_idx, ]
         if (run_sl_vimp_bools2$run_vimp[i]) {
             ## create output list
             eval(parse(text = paste0(this_outcome_name, '_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
