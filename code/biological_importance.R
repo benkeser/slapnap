@@ -50,14 +50,14 @@ if (opts$cvperf) {
         switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_cv_vimp_lst),
         switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_cv_vimp_lst),
         switch("iip" %in% outcome_names + 1, NULL, iip_cv_vimp_lst),
-        switch((("dichotomous.1" %in% outcome_names) & (ran_dichot1)) + 1, NULL, dichotomous.1_cv_vimp_lst),
-        switch((("dichotomous.2" %in% outcome_names) & (ran_dichot2)) + 1, NULL, dichotomous.2_cv_vimp_lst),
+        switch((("dichotomous.1" %in% outcome_names) & (ran_vimp_dichot1)) + 1, NULL, dichotomous.1_cv_vimp_lst),
+        switch((("dichotomous.2" %in% outcome_names) & (ran_vimp_dichot2)) + 1, NULL, dichotomous.2_cv_vimp_lst),
         threshold = vimp_threshold, outcome_names = all_outcome_names, cv = TRUE, opts = opts)
 } else {
     vimp_summary_tbl <- make_vimp_executive_summary_table(switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_vimp_lst),
     switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_vimp_lst),
     switch("iip" %in% outcome_names + 1, NULL, iip_vimp_lst),
-    switch((("dichotomous.1" %in% outcome_names) & (ran_dichot1)) + 1, NULL, dichotomous.1_vimp_lst),
-    switch((("dichotomous.2" %in% outcome_names) & (ran_dichot2)) + 1, NULL, dichotomous.2_vimp_lst),
+    switch((("dichotomous.1" %in% outcome_names) & (ran_vimp_dichot1)) + 1, NULL, dichotomous.1_vimp_lst),
+    switch((("dichotomous.2" %in% outcome_names) & (ran_vimp_dichot2)) + 1, NULL, dichotomous.2_vimp_lst),
     threshold = vimp_threshold, outcome_names = all_outcome_names, cv = FALSE, opts = opts)
 }
