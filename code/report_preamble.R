@@ -126,7 +126,9 @@ var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 V <- as.numeric(opts$nfolds)
 
 # check the outcomes to see if we can run them or not
-run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
+run_sl_vimp_bools <- lapply(check_outcomes(dat, outcome_names, V), function(x){
+    x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
+})
 
 ## get biological importance
 if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
@@ -195,7 +197,9 @@ for(i in seq_along(all_outcomes)){
 }
 outcome_names <- get_outcome_names(opts)
 ncompletes <- all_ncomplete[names(all_ncomplete) %in% opts$outcomes]
-run_sl_vimp_bools <- check_outcomes(dat_ic50, outcome_names, as.numeric(opts$nfolds))
+run_sl_vimp_bools <- lapply(check_outcomes(dat, outcome_names, V), function(x){
+    x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
+})
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
 bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
@@ -216,3 +220,9 @@ if (length(opts$nab) == 1) {
     ic80_lab <- bquote("Estimated"~IC[80])
     ic80_loglab <- bquote(log[10]~"(Estimated IC"[80]*")")
 }
+
+# for if we ran sl for dichotomous endpoints
+ran_sl_dichot1 <- run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))]
+ran_sl_dichot2 <- run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))]
+ran_sl_dichot1 <- ifelse(length(ran_sl_dichot1) == 0, FALSE, ran_sl_dichot1)
+ran_sl_dichot2 <- ifelse(length(ran_sl_dichot2) == 0, FALSE, ran_sl_dichot2)

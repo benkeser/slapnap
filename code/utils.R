@@ -169,13 +169,14 @@ get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outco
 
 # check whether or not vimp or sls were run for estimated/multiple sensitivity
 #' @param opts options
-#' @param run_sl_vimp_bools the true/false vector
+#' @param ran_sl did we run sl for the given outcome?
+#' @param ran_vimp did we run vimp for the given outcome?
 #' @param outcome_nm the outcome of interest ("sens1" or "sens2")
-check_sl_vimp_bin <- function(opts, run_sl_vimp_bools, outcome_nm) {
+check_sl_vimp_bin <- function(opts, ran_sl, ran_vimp, outcome_nm) {
     if (outcome_nm == "sens1") {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
+        ifelse(!ran_sl, paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!ran_vimp, paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
     } else {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
+        ifelse(!ran_sl, ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!ran_vimp, ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
     }
 }
 
