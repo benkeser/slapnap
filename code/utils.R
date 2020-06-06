@@ -521,7 +521,8 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
             tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that estimated IC$_{50}$ < ", opts$sens_thresh, ". ")
         }
         if(sens2_pres){
-            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs.")
+            min_num <- min(c(length(opts$nab), opts$multsens_nab))
+            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min_num, " bNAb", ifelse(min_num == 1, ".", "s."))
         }
     } else {
         if(iip_pres){
