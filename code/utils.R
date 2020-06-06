@@ -116,6 +116,7 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
     correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
+    cont_nms <- ifelse(length(opts$nab) == 1, cont_nms, paste0("estimated ", cont_nms))
     cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
     bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
     correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
@@ -125,7 +126,7 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
 # @param outcomes: can specify to only return text for a single outcome
 get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outcomes = "all") {
     if (length(unique(n_row_now)) == 1) {
-        complete_obs_txt <- paste0("n = ", n_row_now)
+        complete_obs_txt <- paste0("n = ", n_row_now[1])
         full_obs_txt <- paste0("n = ", num_obs_fulls[1])
         redu_obs_txt <- paste0("n = ", num_obs_reds[1])
     } else {
