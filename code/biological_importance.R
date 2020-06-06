@@ -16,7 +16,7 @@ names(num_obs_fulls) <- opts$outcomes
 names(num_obs_reds) <- opts$outcomes
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- outcome_names[i]
-    if (run_sl_vimp_bools$run_vimp[i]) {
+    if (run_sl_vimp_bools2$run_vimp[i]) {
         if (grepl("dichot", this_outcome_name)) {
             this_x_lab <- x_lab_binary
         } else {
