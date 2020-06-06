@@ -41,8 +41,8 @@ for (i in 1:length(outcome_names)) {
 }
 
 ## make table for executive summary
-ran_vimp_dichot1 <- run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))]
-ran_vimp_dichot2 <- run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))]
+ran_vimp_dichot1 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools2$run_vimp))]
+ran_vimp_dichot2 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_vimp))]
 ran_vimp_dichot1 <- ifelse(length(ran_vimp_dichot1) == 0, FALSE, ran_vimp_dichot1)
 ran_vimp_dichot2 <- ifelse(length(ran_vimp_dichot2) == 0, FALSE, ran_vimp_dichot2)
 if (opts$cvperf) {
