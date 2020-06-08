@@ -21,21 +21,20 @@ opts <- get_global_options()
 # load data and subset to complete cases
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
-dat <- dat[complete.cases(dat),]
+complete_dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
 
 # make super learner library
 SL.library <- make_sl_library_vector(opts = opts)
 
 # get names of predictors
-geog_idx <- min(grep("geographic.region.of", colnames(dat))) # geography seems to be first column of relevant data
-pred_names <- colnames(dat)[geog_idx:ncol(dat)]
+geog_idx <- min(grep("geographic.region.of", colnames(complete_dat))) # geography seems to be first column of relevant data
+pred_names <- colnames(complete_dat)[geog_idx:ncol(complete_dat)]
 
 # get names of outcomes
 outcome_names <- get_outcome_names(opts)
 
 # get variable groups
-all_var_groups <- get_variable_groups(dat, pred_names)
+all_var_groups <- get_variable_groups(complete_dat, pred_names)
 all_geog_vars <- pred_names[grepl("geog", pred_names)]
 num_covs <- length(pred_names) - length(all_geog_vars)
 var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
@@ -44,8 +43,10 @@ var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 V <- as.numeric(opts$nfolds)
 
 # check the outcomes to see if we can run them or not
-run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
-
+run_sl_vimp_bools <- check_outcomes(complete_dat, outcome_names, V)
+run_sl_vimp_bools2 <- lapply(run_sl_vimp_bools, function(x){
+    x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
+})
 ## ---------------------------------------------------------------------------
 ## get variable importance! but only run if one of opts$importance_grp or opts$importance_ind is not empty
 ## ---------------------------------------------------------------------------
@@ -57,7 +58,14 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
     for (i in 1:length(outcome_names)) {
         this_outcome_name <- outcome_names[i]
         vimp_opts <- get_vimp_options(this_outcome_name)
-        if (run_sl_vimp_bools$run_vimp[i]) {
+        # subset to the complete data for this outcome (or all outcomes, if specified)
+        if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
+          complete_cases_idx <- complete.cases(complete_dat[, c(this_outcome_name, pred_names)])
+        } else {
+          complete_cases_idx <- complete.cases(complete_dat)
+        }
+        dat <- complete_dat[complete_cases_idx, ]
+        if (run_sl_vimp_bools2$run_vimp[i]) {
             ## create output list
             eval(parse(text = paste0(this_outcome_name, '_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
             eval(parse(text = paste0(this_outcome_name, '_cv_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
@@ -203,5 +211,5 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             eval(parse(text = paste0("saveRDS(", this_outcome_name, "_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_vimp"), ".rds')")))
             eval(parse(text = paste0("saveRDS(", this_outcome_name, "_cv_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_cv_vimp"), ".rds')")))
         }
-        }
+    }
 }

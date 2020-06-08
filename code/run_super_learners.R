@@ -87,7 +87,12 @@ for (i in 1:length(outcome_names)) {
     if (run_sl_vimp_bools2$run_vimp[i]) {
         ## if we need any type of importance, generate splits for VIM hypothesis testing
         if (!((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
-            outer_folds <- make_folds(dat[, this_outcome_name], V = 2, stratified = grepl("dichot", this_outcome_name))
+            if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
+              complete_cases_idx <- complete.cases(dat[, c(this_outcome_name, pred_names)])
+            } else{
+              complete_cases_idx <- complete.cases(dat)
+            }
+            outer_folds <- make_folds(dat[complete_cases_idx, this_outcome_name], V = 2, stratified = grepl("dichot", this_outcome_name))
             saveRDS(outer_folds, file = paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
         }
         ## if conditional importance is desired, fit the full regression

@@ -116,6 +116,7 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
     correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
+    cont_nms <- ifelse(length(opts$nab) == 1, cont_nms, paste0("estimated ", cont_nms))
     cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
     bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
     correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
@@ -125,7 +126,7 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
 # @param outcomes: can specify to only return text for a single outcome
 get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outcomes = "all") {
     if (length(unique(n_row_now)) == 1) {
-        complete_obs_txt <- paste0("n = ", n_row_now)
+        complete_obs_txt <- paste0("n = ", n_row_now[1])
         full_obs_txt <- paste0("n = ", num_obs_fulls[1])
         redu_obs_txt <- paste0("n = ", num_obs_reds[1])
     } else {
@@ -169,13 +170,14 @@ get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outco
 
 # check whether or not vimp or sls were run for estimated/multiple sensitivity
 #' @param opts options
-#' @param run_sl_vimp_bools the true/false vector
+#' @param ran_sl did we run sl for the given outcome?
+#' @param ran_vimp did we run vimp for the given outcome?
 #' @param outcome_nm the outcome of interest ("sens1" or "sens2")
-check_sl_vimp_bin <- function(opts, run_sl_vimp_bools, outcome_nm) {
+check_sl_vimp_bin <- function(opts, ran_sl, ran_vimp, outcome_nm) {
     if (outcome_nm == "sens1") {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools$run_sl))][[1]], paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
+        ifelse(!ran_sl, paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!ran_vimp, paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
     } else {
-        ifelse(!run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!run_sl_vimp_bools$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools$run_sl))][[1]], ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
+        ifelse(!ran_sl, ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!ran_vimp, ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
     }
 }
 
@@ -519,7 +521,8 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
             tmp_text <- c(tmp_text, "Estimated sensitivity is defined by the binary indicator that estimated IC$_{50}$ < ", opts$sens_thresh, ". ")
         }
         if(sens2_pres){
-            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs.")
+            min_num <- min(c(length(opts$nab), opts$multsens_nab))
+            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min_num, " bNAb", ifelse(min_num == 1, ".", "s."))
         }
     } else {
         if(iip_pres){

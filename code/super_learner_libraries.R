@@ -421,7 +421,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
                            fit_name = paste0("fit_", outcome_name, ".rds"),
                            cv_fit_name = paste0("cvfit_", outcome_name, ".rds"),
                            save_full_object = TRUE,
-                           outer_folds = rep(1, length(dat[, outcome_name])),
+                           outer_folds = rep(1, length(complete_dat[, outcome_name])),
                            full_fit = TRUE,
                            SL.library = "SL.mean",
                            ...){
@@ -434,14 +434,16 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   # 3. no same_subset requested, in which case we use all data available on each outcome
   if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
     complete_cases_idx <- complete.cases(complete_dat[,c(outcome_name,pred_names)])
-  }else{
+  } else {
     complete_cases_idx <- complete.cases(complete_dat)
   }
-
+  if (all(outer_folds == 1)) {
+      outer_folds <- outer_folds[complete_cases_idx]
+  }
   if (full_fit) {
-      outer_bool <- outer_folds[complete_cases_idx] == 1
+      outer_bool <- outer_folds == 1
   } else {
-      outer_bool <- outer_folds[complete_cases_idx] == 2
+      outer_bool <- outer_folds == 2
   }
   # subset data to only complete outcome and pred_names
   dat <- complete_dat[complete_cases_idx, ]
@@ -453,7 +455,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   learner_name <- gsub("fit_", "learner_", fit_name)
   fitted_name <- gsub("fit_", "fitted_", fit_name)
   cv_fitted_name <- gsub("cvfit_", "cvfitted_", cv_fit_name)
-  cv_folds_name <- gsub("cvfit_", "cvfolds_", cv_fit_name)
+  cv_folds_name <- gsub("cvfitted_", "cvfolds_", gsub("cvfit_", "cvfolds_", cv_fit_name))
   cv_learner_name <- gsub("cvfit_", "cvlearner_", cv_fit_name)
   # unless we do not want to tune using CV nor evaluate performance using CV,
   # we will make a call to super learner

@@ -34,7 +34,7 @@ The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutraliz
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
 
-The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on `r format(Sys.Date(), '%B %d, %Y')`. 
+The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on `r format(Sys.Date(), '%B %d, %Y')`.
 
 # Running `slapnap` {#sec:runningcontainer}
 
@@ -51,9 +51,9 @@ Each description below lists the default value that is assumed if the option is 
 __-e options for `slapnap`__
 
 * __`nab`__: A semicolon-separated list of bNAbs (default = `"VRC01"`). A list of possible bNAbs can be found [here](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp). If multiple bNAbs are listed, it is assumed that the analysis should be of estimated `outcomes` for a combination of bNAbs (see Section \@ref(sec:outcomedefs) for details on how estimated outcomes for multiple bNAbs are computed).
-* __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (included in default), `"ic80"`, `"iip"`, `"sens"` (included in default), `"estsens"`, `"multsens"`. If only a single `nab` is specified, use `sens` to include a dichotomous endpoint. If multiple `nab`s are specified, use `estsens` and/or `multsens`. For detailed definitions of outcomes see Section \@ref(sec:outcomedefs)).
+* __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (included in default), `"ic80"`, `"iip"`, `"sens"` (included in default), `"estsens"`, `"multsens"`. If only a single `nab` is specified, use `sens` to include a dichotomous endpoint. If multiple `nab`s are specified, use `estsens` and/or `multsens`. For detailed definitions of outcomes see Section \@ref(sec:outcomedefs).
 * __`sens_thresh`__ A numeric value defining the IC$_{50}$ threshold for defining a sensitive versus resistant pseudovirus (default = 1). The dichotomous sensitivity/resistant `outcome`s are defined as the indicator that (estimated) IC$_{50}$ is greater than or equal to `sens_thresh`.
-* __`multsens_nab`__ A numeric value used for defining whether a pseudovirus is resistant to a multi-nAb cocktail. Only used if `multsens` is included in `outcome` and more than one `nab` is requested. The dichotomous `outcome` `multsens` is defined as the indicator that a virus has (estimated) IC$_{50}$ greater than `sens_thresh` for at least `multsens_nab` nAbs.
+* __`multsens_nab`__ A numeric value used for defining whether a pseudovirus is resistant to a multi-nAb cocktail. Only used if `multsens` is included in `outcome` and more than one `nab` is requested. The dichotomous `outcome` `multsens` is defined as the indicator that a virus has IC$_{50}$ greater than `sens_thresh` for at least `multsens_nab` nAbs.
 * __`learners`__: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient boosting), and `"lasso"` (elastic net). See Section \@ref(sec:learnerdetails) for details on how tuning parameters are chosen. If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section \@ref(sec:sldetails)).
 * __`cvtune`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` should be tuned using cross validation and a small grid search. Defaults to `"FALSE"`. If multiple `learners` are specified, then the super learner ensemble includes three versions of each of the requested `learners` with different tuning parameters.
 * __`cvperf`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` performance should be evaluated using cross validation. If `cvtune="TRUE"` or `learners` includes multiple algorithms, then nested cross validation is used to evaluate the performance of the cross validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively.
@@ -65,17 +65,17 @@ __-e options for `slapnap`__
 * __`return`__: A semicolon-separated string of the desired output. Possible values are `"report"` (default), `"learner"` for a `.rds` object that contains the algorithm for each endpoint trained using the full analysis data, `"data"` for the analysis dataset, `"figures"` for all figures from the report, and `"vimp"` for variable importance objects.
 * __`view_port`__: A boolean string indicating whether the compiled report should be made viewable on `localhost` (default `"FALSE"`). If `"TRUE"` then `-p` option should be used in the `docker run` command to identify the port. See example in Section \@ref(sec:webbrowse) for details.
 
-## Returning output 
+## Returning output
 
-At the end of a `slapnap` run, user-specified output will be saved (see option `return` in Section \@ref(sec:opts)). To retrieve these files from the container, there are two options:  mounting a local directory (Section \@ref(sec:mounting) or, if the report is the __only__ desired output, viewing and saving the report in a web browser (Section \@ref(sec:viewreport)). 
+At the end of a `slapnap` run, user-specified output will be saved (see option `return` in Section \@ref(sec:opts)). To retrieve these files from the container, there are two options:  mounting a local directory (Section \@ref(sec:mounting)) or, if the report is the __only__ desired output, viewing and saving the report in a web browser (Section \@ref(sec:viewreport)).
 
 ### Mounting a local directory {#sec:mounting}
 
-To [mount](https://docs.docker.com/storage/bind-mounts/) a local directory to the output directory in the container (`/home/output/`), use the `-v` option. Any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory. Conversely, all files in the mounted local directory will be visible to programs running inside the container. 
+To [mount](https://docs.docker.com/storage/bind-mounts/) a local directory to the output directory in the container (`/home/output/`), use the `-v` option. Any items saved to the output directory in the container (file path in the container `/home/output/`) will be available in the mounted directory. Conversely, all files in the mounted local directory will be visible to programs running inside the container.
 
 Suppose `/path/to/local/dir` is the file path on a local computer in which we wish to save the output files from a `slapnap` run. A `docker run` of `slapnap` would include the option `-v /path/to/local/dir:/home/output`. After a run completes, the requested output should be viewable in `/path/to/local/dir`. See Section \@ref(sec:examples) for full syntax.
 
-To avoid possible naming conflicts and file overwrites in the mounted directory, __we recommend mounting an empty directory__ to store the output. 
+To avoid possible naming conflicts and file overwrites in the mounted directory, __we recommend mounting an empty directory__ to store the output.
 
 ### Viewing report in browser {#sec:viewreport}
 
@@ -121,7 +121,7 @@ docker run -v /path/to/local/dir:/home/output \
            slapnap/slapnap
 ```
 
-For specific details on the super learner algorithms implemented in `slapnap`, see Section \@ref(sec:sldetails). 
+For specific details on the super learner algorithms implemented in `slapnap`, see Section \@ref(sec:sldetails).
 
 ## Train an algorithm
 
@@ -136,7 +136,7 @@ docker run -v /path/to/local/dir:/home/output \
            slapnap/slapnap
 ```
 
-After completion of this run, `learner_sens.rds` will appear in `/path/to/local/dir` that contains an `R` object of class `ranger` (the `R` package used by `slapnap` to fit random forests). You can confirm this from the command line by executing 
+After completion of this run, `learner_sens.rds` will appear in `/path/to/local/dir` that contains an `R` object of class `ranger` (the `R` package used by `slapnap` to fit random forests). You can confirm this from the command line by executing
 
 ```{bash, eval = FALSE}
 Rscript -e "learner <- readRDS('/path/to/local/dir/learner_sens.rds'); class(learner)"
@@ -162,7 +162,7 @@ docker run -it slapnap/slapnap /bin/bash
 
 This will enter you into the container in a bash terminal prior to any portions of the analysis being run. This may be useful for exploring the file structure, examining versions of `R` packages that are included in the container, etc.
 
-To enter the container interactively *after* the analysis has run, you can execute the following commands. Here we add the `-d` option to start the container in [detached mode](https://docs.docker.com/engine/reference/run/#detached--d). 
+To enter the container interactively *after* the analysis has run, you can execute the following commands. Here we add the `-d` option to start the container in [detached mode](https://docs.docker.com/engine/reference/run/#detached--d).
 
 ```{bash, eval = FALSE}
 docker run -d -p 80:80 -e view_port="TRUE" slapnap/slapnap
@@ -173,7 +173,7 @@ docker run -d -p 80:80 -e view_port="TRUE" slapnap/slapnap
 docker exec -it /bin/bash
 ```
 
-To close the interactive session type `exit` at the container command prompt and hit `Return`. This will close the container and stop its running. 
+To close the interactive session type `exit` at the container command prompt and hit `Return`. This will close the container and stop its running.
 
 # Methods {#sec:methods}
 
@@ -200,9 +200,9 @@ If multiple bNAbs are requested (i.e., the `nab` option is a semi-colon separate
 
 ## Learners {#sec:learnerdetails}
 
-There are three possible `learners` available in `slapnap`: random forests [@breiman2001], as implemented in the `R` package `ranger` [@rangerpkg]; elastic net [@zou2005] as implemented in `glmnet` [@glmnetpkg]; and boosted trees [@friedman2001; @chen2016] as implemented in `xgboost` [@xgboostpkg]. 
+There are three possible `learners` available in `slapnap`: random forests [@breiman2001], as implemented in the `R` package `ranger` [@rangerpkg]; elastic net [@zou2005] as implemented in `glmnet` [@glmnetpkg]; and boosted trees [@friedman2001; @chen2016] as implemented in `xgboost` [@xgboostpkg].
 
-For each `learner`, there is a `default` choice of tuning parameters that is implemented if `cvtune="FALSE"`. If instead `cvtune="TRUE"`, then there are several choices of tuning parameters that are evaluated using `nfold` cross validation, Table \@ref(tab:learners). 
+For each `learner`, there is a `default` choice of tuning parameters that is implemented if `cvtune="FALSE"`. If instead `cvtune="TRUE"`, then there are several choices of tuning parameters that are evaluated using `nfold` cross validation, Table \@ref(tab:learners).
 
 ```{r learners, echo = FALSE}
 xgboost_names <- paste0("`xgboost", c("_default`", "_1`", "_2`", "_3`"))
@@ -228,15 +228,15 @@ Tuning parameters not mentioned in the table are set as follows:
 
 ## Super learner {#sec:sldetails}
 
-If multiple `learners` are specified, then a super learner ensemble [@vanderlaan2007] is constructed using `nfold` cross validation, as implemented in the `R` package `SuperLearner` [@superlearnerpkg]. Specifically, the data are randomly partitioned into `nfold` chunks of approximately equal size. For binary outcomes, this partitioning is done in such a way as to ensure an approximately even number of sensitive/resistant pseudoviruses in each chunk. A so-called super learner *library* of candidate algorithms is constructed by including different `learners`: 
+If multiple `learners` are specified, then a super learner ensemble [@vanderlaan2007] is constructed using `nfold` cross validation, as implemented in the `R` package `SuperLearner` [@superlearnerpkg]. Specifically, the data are randomly partitioned into `nfold` chunks of approximately equal size. For binary outcomes, this partitioning is done in such a way as to ensure an approximately even number of sensitive/resistant pseudoviruses in each chunk. A so-called super learner *library* of candidate algorithms is constructed by including different `learners`:
 
 * the algorithm `mean`, which reports back the sample mean as prediction for all observations is always included;
-* if `cvtune="FALSE"` then the `default` version of each `learner` (Section \@ref(sec:learnerdetails)) is included; 
-* if `cvtune="TRUE"` then each choice of tuning parameters for the selected `learners` in Table \@ref(tab:learners) is included. 
+* if `cvtune="FALSE"` then the `default` version of each `learner` (Section \@ref(sec:learnerdetails)) is included;
+* if `cvtune="TRUE"` then each choice of tuning parameters for the selected `learners` in Table \@ref(tab:learners) is included.
 
-The cross-validated risk of each algorithm in the library is computed. For binary outcomes, mean negative log-likelihood loss is used; for continuous outcomes, mean squared-error is used. The single algorithm with the smallest cross-validated risk is reported as the `cv selector` (also known as the *discrete* super learner). The super learner ensemble is constructed by selecting convex weights (i.e., each algorithm is assigned a non-negative weight and the weights sum to one) that minimize cross-validated risk. 
+The cross-validated risk of each algorithm in the library is computed. For binary outcomes, mean negative log-likelihood loss is used; for continuous outcomes, mean squared-error is used. The single algorithm with the smallest cross-validated risk is reported as the `cv selector` (also known as the *discrete* super learner). The super learner ensemble is constructed by selecting convex weights (i.e., each algorithm is assigned a non-negative weight and the weights sum to one) that minimize cross-validated risk.
 
-When `cvperf="TRUE"` and a super learner is constructed, an additional layer of cross validation is used to evaluate the predictive performance of the super learner and of the `cv selector`. 
+When `cvperf="TRUE"` and a super learner is constructed, an additional layer of cross validation is used to evaluate the predictive performance of the super learner and of the `cv selector`.
 
 ## Variable importance
 
@@ -244,11 +244,11 @@ If `importance_grp` or `importance_ind` is specified, variable importance estima
 
 ### Biological importance {#sec:biolimp}
 
-Biological importance may be obtained by specifying `importance_grp`, `importance_ind`, or both. We provide two types of biological importance: marginal and conditional, accessed by passing `"marg"` and `"cond"`, respectively, to one of the importance variables. Both types of biological importance are based on the population prediction potential of features [@williamson2020]. We measure prediction potential using nonparametric $R^2$ for continuous outcomes (i.e., IC$_{50}$, IC$_{80}$, or IIP) and using the nonparametric area under the receiver operating characteristic curve (AUC) for binary outcomes (i.e., sensitivity, estimated sensitivity, or multiple sensitivity). In both marginal and conditional importance, we compare the population prediction potential including the feature(s) of interest to the population prediction potential excluding the feature(s) or interest; this provides a measure of the biological importance of the feature(s). The two types of biological importance differ only in the other adjustment variables that we consider: conditional importance compares the prediction potential of all features to the prediction potential of all features excluding the feature(s) of interest, and thus importance must be interpreted conditionally; whereas marginal importance compares the prediction potential of the feature(s) of interest plus geographic confounders to the prediction potential of the geographic confounders alone.
+Biological importance may be obtained by specifying `importance_grp`, `importance_ind`, or both. We provide two types of biological importance: marginal and conditional, accessed by passing `"marg"` and `"cond"`, respectively, to one of the importance variables. Both types of biological importance are based on the population prediction potential of features [@williamson2020], as implemented in the `R` package `vimp` [@vimppkg]. We measure prediction potential using nonparametric $R^2$ for continuous outcomes (i.e., IC$_{50}$, IC$_{80}$, or IIP) and using the nonparametric area under the receiver operating characteristic curve (AUC) for binary outcomes (i.e., sensitivity, estimated sensitivity, or multiple sensitivity). In both marginal and conditional importance, we compare the population prediction potential including the feature(s) of interest to the population prediction potential excluding the feature(s) or interest; this provides a measure of the biological importance of the feature(s). The two types of biological importance differ only in the other adjustment variables that we consider: conditional importance compares the prediction potential of all features to the prediction potential of all features excluding the feature(s) of interest, and thus importance must be interpreted conditionally; whereas marginal importance compares the prediction potential of the feature(s) of interest plus geographic confounders to the prediction potential of the geographic confounders alone.
 
-Both marginal and conditional biological importance can be computed for groups of features or individual features. The available feature groups are detailed in Section \@ref(sec:data). Execution time may increase dramatically when biological importance is requested: a separate `learner` (or super learner ensemble) must be trained for each feature group (or individual feature) of interest. Marginal importance tends to be computed more quickly than conditional importance, but both types of importance provide useful information about the population of interest and the underlying biology.
+Both marginal and conditional biological importance can be computed for groups of features or individual features. The available feature groups are detailed in Section \@ref(sec:data). Execution time may increase when biological importance is requested, depending upon the other options passed to `slapnap`: a separate `learner` (or super learner ensemble) must be trained for each feature group (or individual feature) of interest. Marginal importance tends to be computed more quickly than conditional importance, but both types of importance provide useful information about the population of interest and the underlying biology.
 
-If feature importance is requested, then point estimates, confidence intervals, and p-values (for a test of the null hypothesis that the biological importance is equal to zero) will be computed and displayed for each feature or group of features of interest.
+If biological importance is requested, then point estimates, confidence intervals, and p-values (for a test of the null hypothesis that the biological importance is equal to zero) will be computed and displayed for each feature or group of features of interest. All results are based on first creating two independent splits of the data: the population prediction potential including the feature(s) of interest is estimated on one half of the data, while the population prediction potential excluding the feature(s) of interest is estimated on the remaining half. This ensures that the procedure has the desired type I error rate.
 
 In the following command, we request marginal biological importance for the feature groups defined in Section \@ref(sec:data). We do not specify a super learner ensemble to reduce computation time; however, in most problems we recommend an ensemble to protect against model misspecification.
 
@@ -262,17 +262,17 @@ The raw `R` objects (saved as `.rds` files) containing the point estimates, conf
 
 ### Predictive importance
 
-`learner`-level predictive importance may be obtained by including `"pred"` in the `importance_ind` option. If a single `learner` is fit, then the predictive importance is the `R` default for that type of learner: 
+`learner`-level predictive importance may be obtained by including `"pred"` in the `importance_ind` option. If a single `learner` is fit, then the predictive importance is the `R` default for that type of learner:
 
 * `rf`: the `impurity` importance from `ranger` [@rangerpkg] is returned. The impurity importance for a given feature is computed by taking a normalized sum of the decrease in impurity (i.e., Gini index for binary outcomes; mean squared-error for continuous outcomes) over all nodes in the forest at which a split on that feature has been conducted.
 * `xgboost`: the `gain` importance from `xgboost` [@xgboostpkg] is returned. Interpretation is essentially the same as for `rf`'s `impurity` importance.
-* `lasso`: the absolute value of the estimated regression coefficient at the cross-validation-selected $\lambda$ is returned. 
+* `lasso`: the absolute value of the estimated regression coefficient at the cross-validation-selected $\lambda$ is returned.
 
-Note that these importance measures each have important limitations: the `rf` and `xgboost` measures will tend to favor features with many levels, while the `lasso` variable importance will tend to favor features with few levels. Nevertheless, these commonly reported measures can provide some insight into how a given learner is making predictions. 
+Note that these importance measures each have important limitations: the `rf` and `xgboost` measures will tend to favor features with many levels, while the `lasso` variable importance will tend to favor features with few levels. Nevertheless, these commonly reported measures can provide some insight into how a given learner is making predictions.
 
-If multiple `learners` are used, and thus a super learner is constructed, then the importance measures for the `learner` with the highest weight in the super learner are reported. 
+If multiple `learners` are used, and thus a super learner is constructed, then the importance measures for the `learner` with the highest weight in the super learner are reported.
 
-If a single `learner` is used, but `cvtune="TRUE"` then importance measures for the `cv selector` are reported. 
+If a single `learner` is used, but `cvtune="TRUE"` then importance measures for the `cv selector` are reported.
 
 In the following command, we request predictive importance for a simple scenario. Predictive importance is displayed for the top 15 features.
 
@@ -306,7 +306,7 @@ Finally, if group biological importance is requested, then the variable groups a
 
 # Data {#sec:data}
 
-The analysis dataset includes neutralization outcomes for the requested bNAb(s) and AA sequence features for the gp160 protein. The possible outcomes are described in Section \@ref(sec:outcomedefs). 
+The analysis dataset includes neutralization outcomes for the requested bNAb(s) and AA sequence features for the gp160 protein. The possible outcomes are described in Section \@ref(sec:outcomedefs).
 
 The additional groups of variables in the data include:
 
