@@ -45,8 +45,8 @@ command line.
 docker pull slapnap/slapnap
 ```
 
-SLAPNAP is executed using the docker run command. For example, the
-following code will instruct SLAPNAP to create and evaluate a
+`slapnap` is executed using the docker run command. For example, the
+following code will instruct `slapnap` to create and evaluate a
 neutralization predictor for the bnAb combination VRC07-523-LS and
 PGT121:
 
@@ -71,7 +71,7 @@ and the types of variable importance to compute (`importance_grp`, for
 groups of variables; `importance_ind`, for individual variables). Other
 output (e.g., the formatted analysis dataset and the fitted learners)
 can be requested via the `return` option. A full list of options and
-their syntax are available in the [SLAPNAP
+their syntax are available in the [`slapnap`
 documentation](https://benkeser.github.io/slapnap/3-sec-runningcontainer.html).
 
 Complete documentation is available
