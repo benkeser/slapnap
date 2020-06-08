@@ -71,8 +71,8 @@ and the types of variable importance to compute (`importance_grp`, for
 groups of variables; `importance_ind`, for individual variables). Other
 output (e.g., the formatted analysis dataset and the fitted learners)
 can be requested via the `return` option. A full list of options and
-their syntax are available in the SLAPNAP documentation
-(<https://benkeser.github.io/slapnap/3-sec-runningcontainer.html>).
+their syntax are available in the [SLAPNAP
+documentation](https://benkeser.github.io/slapnap/3-sec-runningcontainer.html).
 
 Complete documentation is available
 [here](https://benkeser.github.io/slapnap/).
