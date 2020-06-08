@@ -295,7 +295,7 @@ values should be determined based on scientific context.
   \texttt{sens} to include a dichotomous endpoint. If multiple
   \texttt{nab}s are specified, use \texttt{estsens} and/or
   \texttt{multsens}. For detailed definitions of outcomes see Section
-  \ref{sec:outcomedefs}).
+  \ref{sec:outcomedefs}.
 \item
   \textbf{\texttt{sens\_thresh}} A numeric value defining the
   IC\(_{50}\) threshold for defining a sensitive versus resistant
@@ -308,8 +308,8 @@ values should be determined based on scientific context.
   if \texttt{multsens} is included in \texttt{outcome} and more than one
   \texttt{nab} is requested. The dichotomous \texttt{outcome}
   \texttt{multsens} is defined as the indicator that a virus has
-  (estimated) IC\(_{50}\) greater than \texttt{sens\_thresh} for at
-  least \texttt{multsens\_nab} nAbs.
+  IC\(_{50}\) greater than \texttt{sens\_thresh} for at least
+  \texttt{multsens\_nab} nAbs.
 \item
   \textbf{\texttt{learners}}: A semicolon-separated string of machine
   learning algorithms to include in the analysis. Possible values
@@ -387,7 +387,7 @@ values should be determined based on scientific context.
 At the end of a \texttt{slapnap} run, user-specified output will be
 saved (see option \texttt{return} in Section \ref{sec:opts}). To
 retrieve these files from the container, there are two options: mounting
-a local directory (Section \ref{sec:mounting} or, if the report is the
+a local directory (Section \ref{sec:mounting}) or, if the report is the
 \textbf{only} desired output, viewing and saving the report in a web
 browser (Section \ref{sec:viewreport}).
 
@@ -785,7 +785,8 @@ two types of biological importance: marginal and conditional, accessed
 by passing \texttt{"marg"} and \texttt{"cond"}, respectively, to one of
 the importance variables. Both types of biological importance are based
 on the population prediction potential of features
-\citep{williamson2020}. We measure prediction potential using
+\citep{williamson2020}, as implemented in the \texttt{R} package
+\texttt{vimp} \citep{vimppkg}. We measure prediction potential using
 nonparametric \(R^2\) for continuous outcomes (i.e., IC\(_{50}\),
 IC\(_{80}\), or IIP) and using the nonparametric area under the receiver
 operating characteristic curve (AUC) for binary outcomes (i.e.,
@@ -805,18 +806,24 @@ alone.
 
 Both marginal and conditional biological importance can be computed for
 groups of features or individual features. The available feature groups
-are detailed in Section \ref{sec:data}. Execution time may increase
-dramatically when biological importance is requested: a separate
-\texttt{learner} (or super learner ensemble) must be trained for each
-feature group (or individual feature) of interest. Marginal importance
-tends to be computed more quickly than conditional importance, but both
-types of importance provide useful information about the population of
-interest and the underlying biology.
+are detailed in Section \ref{sec:data}. Execution time may increase when
+biological importance is requested, depending upon the other options
+passed to \texttt{slapnap}: a separate \texttt{learner} (or super
+learner ensemble) must be trained for each feature group (or individual
+feature) of interest. Marginal importance tends to be computed more
+quickly than conditional importance, but both types of importance
+provide useful information about the population of interest and the
+underlying biology.
 
-If feature importance is requested, then point estimates, confidence
+If biological importance is requested, then point estimates, confidence
 intervals, and p-values (for a test of the null hypothesis that the
 biological importance is equal to zero) will be computed and displayed
-for each feature or group of features of interest.
+for each feature or group of features of interest. All results are based
+on first creating two independent splits of the data: the population
+prediction potential including the feature(s) of interest is estimated
+on one half of the data, while the population prediction potential
+excluding the feature(s) of interest is estimated on the remaining half.
+This ensures that the procedure has the desired type I error rate.
 
 In the following command, we request marginal biological importance for
 the feature groups defined in Section \ref{sec:data}. We do not specify
