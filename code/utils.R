@@ -69,7 +69,7 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
 
     # if random forest
     if(!is_sl & "rf" %in% opts$learners){
-        text_out <- paste0("Specifically, random forest variable permutation-based variable importance measures were computed and the top ", n_ft, " features are shown. The permutation-based importance measures the decrease in predictive accuracy when making out-of-bag predictions and randomly permuting a given feature from its original values.")
+        text_out <- paste0("Specifically, random forest impurity importance for a given feature is computed by taking a normalized sum of the decrease in impurity (i.e., Gini index for binary outcomes; mean squared-error for continuous outcomes) over all nodes in the forest at which a split on that feature has been conducted.")
         if(is_tuned){
             text_out <- paste0(text_out, " These measures are shown for the choice of tuning parameters with the best model fit, as chosen by cross-validation.")
         }
@@ -86,9 +86,9 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
         text_out <- paste0(text_out, " Overall, there were ", sum(abs(imp_df$Importance) > 0), " features that had non-zero coefficient in the final fit.")
     }else{
         text_out <- "Specifically, the algorithm with the largest weight in the super learner ensemble was selected and associated variable importance metrics for this algorithm are shown."
-        text_out <- paste0(text_out, " In this case, the highest weight was assigned to a ", algo_with_highest_wt, " algorithm, and thus the variable importance measures presented correspond to ")
+        text_out <- paste0(text_out, " In this case, the highest weight was assigned to a `", algo_with_highest_wt, "` algorithm, and thus the variable importance measures presented correspond to ")
         if(algo_with_highest_wt == "rf"){
-            text_out <- paste0(text_out, "random forest variable permutation-based variable importance measures were computed and are shown by their rank. The permutation-based importance measures the decrease in predictive accuracy when making out-of-bag predictions and randomly permuting a given feature from its original values.")
+            text_out <- paste0(text_out, "random forest impurity importance measures. Impurity is computed by taking a normalized sum of the decrease in impurity (i.e., Gini index for binary outcomes; mean squared-error for continuous outcomes) over all nodes in the forest at which a split on that feature has been conducted.")
         }else if(algo_with_highest_wt == "lasso"){
             text_out <- paste0(text_out, "the magnitude of the coefficient for the model with $\\lambda$ chosen via cross-validation.")
             text_out <- paste0(text_out, " Overall, there were ", sum(abs(imp_df$Importance) > 0), " features that had non-zero coefficient in the final lasso fit.")

@@ -294,7 +294,7 @@ fit_ic50 <- readRDS(paste0(slfits_dir, "fit_log10.pc.ic50.rds"))
 imp_ic50 <- extract_importance(fit_ic50, opts)
 ```
 
-Table \@ref(tab:ic50-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_ic50), "")`
+Table \@ref(tab:ic50-imp-table) shows the top `r n_imp_ft` features in terms of their predictive importance. `r ifelse("ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_ic50), "")`
 
 ```{r ic50-imp-table, eval = "ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
@@ -488,7 +488,7 @@ fit_ic80 <- readRDS(paste0(slfits_dir, "fit_log10.pc.ic80.rds"))
 imp_ic80 <- extract_importance(fit_ic80, opts)
 ```
 
-Table \@ref(tab:ic80-imp-table) shows the top `r n_imp_ft` features. `r ifelse("ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_ic80), "")`
+Table \@ref(tab:ic80-imp-table) shows the top `r n_imp_ft` features in terms of their predictive importance. `r ifelse("ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_ic80), "")`
 
 ```{r ic80-imp-table, eval = "ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic80[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
@@ -653,7 +653,7 @@ fit_iip <- readRDS(paste0(slfits_dir, "fit_iip.rds"))
 imp_iip <- extract_importance(fit_iip, opts)
 ```
 
-Table \@ref(tab:iip-imp-table) shows the top `r n_imp_ft` features. `r ifelse("iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_iip), "")`
+Table \@ref(tab:iip-imp-table) shows the top `r n_imp_ft` features in terms of their predictive importance. `r ifelse("iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind), get_importance_text(opts = opts, imp_df = imp_iip), "")`
 
 ```{r iip-imp-table, eval = "iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
@@ -827,7 +827,7 @@ fit_sens1 <- readRDS(paste0(slfits_dir, "fit_dichotomous.1.rds"))
 imp_sens1 <- extract_importance(fit_sens1, opts)
 ```
 
-Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], get_importance_text(opts = opts, imp_df = imp_sens1), "")`
+Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features in terms of their predictive importance. `r ifelse("sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]], get_importance_text(opts = opts, imp_df = imp_sens1), "")`
 
 ```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools$run_vimp))][[1]]}
 kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
@@ -1003,7 +1003,7 @@ fit_sens2 <- readRDS(paste0(slfits_dir, "fit_dichotomous.2.rds"))
 imp_sens2 <- extract_importance(fit_sens2, opts)
 ```
 
-Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features. `r ifelse("sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]], get_importance_text(opts = opts, imp_df = imp_sens2), "")`
+Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features in terms of their predictive importance. `r ifelse("sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]], get_importance_text(opts = opts, imp_df = imp_sens2), "")`
 
 ```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & run_sl_vimp_bools$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools$run_vimp))][[1]]}
 kable(imp_sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
