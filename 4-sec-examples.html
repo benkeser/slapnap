@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert" />
 
 
-<meta name="date" content="2020-06-08" />
+<meta name="date" content="2020-06-17" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -186,7 +186,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>A call to <code>slapnap</code> with all default options can be run using the following command.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output slapnap/slapnap</code></pre></div>
 <p>Note that this call mounts the local directory <code>path/to/local/dir</code> to receive output from the container (see Section <a href="3-sec-runningcontainer.html#sec:mounting">3.2.1</a>).</p>
-<p>When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in <code>/path/to/local/dir</code>. The container will then compile an analytic data set from the CATNAP database for the default bNAb (VRC01), train the default learner (random forest <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span>) for the default outcomes (<code>ic50</code> and <code>sens</code>), evaluate its performance using two-fold (default for <code>nfolds</code>) cross validation, and compile a report detailing the results, and place the compiled report in <code>path/to/local/dir</code>.</p>
+<p>When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in <code>/path/to/local/dir</code> (note that the name of the log file is based on the current time, which is in UTC+0). The container will then compile an analytic data set from the CATNAP database for the default bNAb (VRC01), train the default learner (random forest <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span>) for the default outcomes (<code>ic50</code> and <code>sens</code>), evaluate its performance using two-fold (default for <code>nfolds</code>) cross validation, and compile a report detailing the results, and place the compiled report in <code>path/to/local/dir</code> (note that the default name of the report is based on the current time, which is in UTC+0).</p>
 </div>
 <div id="sec:webbrowse" class="section level2">
 <h2><span class="header-section-number">4.2</span> Viewing report in browser</h2>
@@ -224,6 +224,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
            -e return=<span class="st">&quot;data&quot;</span> \
            slapnap/slapnap</code></pre></div>
+<p>Note that the data set returned by <code>slapnap</code> contains the <code>outcomes</code> used by <code>slapnap</code>; in other words, (estimated) IC<span class="math inline">\(_{50}\)</span>, (estimated) IC<span class="math inline">\(_{80}\)</span>, and IIP are all log-transformed (see Section <a href="5-sec-methods.html#sec:outcomedefs">5.1</a> for more details).</p>
 </div>
 <div id="interactive-sessions" class="section level2">
 <h2><span class="header-section-number">4.6</span> Interactive sessions</h2>
