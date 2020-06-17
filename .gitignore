@@ -1,7 +1,8 @@
 .DS_Store
+README.html
 code/refs.bib
 .dockerignore
-sandbox/*
+sandbox
 slfits/*
 dat/*
 docs/_book/*
@@ -9,7 +10,7 @@ docs/*.rds
 local_production_runs/*
 run_analyses_locally.sh
 2019*
-test/*
+tests
 static_reports/*
 code/R-*
 code/*.tar.gz
