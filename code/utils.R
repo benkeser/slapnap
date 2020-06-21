@@ -945,12 +945,7 @@ clean_analysis_dataset <- function(input_data, opts) {
     if (length(opts$nab) == 1) {
         corrected_nms <- gsub("dichotomous.1", "sens", correct_ic50_ic80_nms)
     } else {
-        if ("estsens" %in% opts$outcomes) {
-            corrected_nms <- gsub("dichotomous.1", "estsens", correct_ic50_ic80_nms)
-        }
-        if ("multsens" %in% opts$outcomes) {
-            corrected_nms <- gsub("dichotomous.2", "multsens", correct_ic50_ic80_nms)
-        }
+        corrected_nms <- gsub("dichotomous.2", "multsens", gsub("dichotomous.1", "estsens", correct_ic50_ic80_nms))
     }
     corrected_cols <- setNames(minus_nab_cols, corrected_nms)
     # drop unneccessary cols
