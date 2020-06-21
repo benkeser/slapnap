@@ -464,7 +464,7 @@ load_cv_fits <- function(opts, run_sls, code_dir){
         V <- out_list[[1]]$V
     }
     # figure out number
-    n_row_ic50 <- if("ic50" %in% opts$outcomes){
+    n_row_ic50 <- if("ic50" %in% opts$outcomes | grepl("sens", opts$outcomes)){
         length(out_list$ic50$Y)
     }else{
         NULL
