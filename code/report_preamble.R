@@ -134,6 +134,9 @@ run_sl_vimp_bools2 <- lapply(check_outcomes(dat, outcome_names, V), function(x){
 ## get biological importance
 if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
     source(paste0(code_dir, "biological_importance.R"), local = TRUE)
+} else {
+    ran_vimp_dichot1 <- FALSE
+    ran_vimp_dichot2 <- FALSE
 }
 
 #-------------------------------------------------------

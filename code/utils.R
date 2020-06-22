@@ -466,7 +466,11 @@ load_cv_fits <- function(opts, run_sls, code_dir){
     # figure out number
     n_row_ic50 <- if("ic50" %in% opts$outcomes){
         length(out_list$ic50$Y)
-    }else{
+    } else if ("sens1" %in% opts$outcomes) {
+        length(out_list$sens1$Y)
+    } else if ("sens2" %in% opts$outcomes) {
+        length(out_list$sens2$Y)
+    } else {
         NULL
     }
     n_row_ic80 <- if("ic80" %in% opts$outcomes){
@@ -945,12 +949,7 @@ clean_analysis_dataset <- function(input_data, opts) {
     if (length(opts$nab) == 1) {
         corrected_nms <- gsub("dichotomous.1", "sens", correct_ic50_ic80_nms)
     } else {
-        if ("estsens" %in% opts$outcomes) {
-            corrected_nms <- gsub("dichotomous.1", "estsens", correct_ic50_ic80_nms)
-        }
-        if ("multsens" %in% opts$outcomes) {
-            corrected_nms <- gsub("dichotomous.2", "multsens", correct_ic50_ic80_nms)
-        }
+        corrected_nms <- gsub("dichotomous.2", "multsens", gsub("dichotomous.1", "estsens", correct_ic50_ic80_nms))
     }
     corrected_cols <- setNames(minus_nab_cols, corrected_nms)
     # drop unneccessary cols
