@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert" />
 
 
-<meta name="date" content="2020-06-22" />
+<meta name="date" content="2020-06-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -213,6 +213,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>To <a href="https://docs.docker.com/storage/bind-mounts/">mount</a> a local directory to the output directory in the container (<code>/home/output/</code>), use the <code>-v</code> option. Any items saved to the output directory in the container (file path in the container <code>/home/output/</code>) will be available in the mounted directory. Conversely, all files in the mounted local directory will be visible to programs running inside the container.</p>
 <p>Suppose <code>/path/to/local/dir</code> is the file path on a local computer in which we wish to save the output files from a <code>slapnap</code> run. A <code>docker run</code> of <code>slapnap</code> would include the option <code>-v /path/to/local/dir:/home/output</code>. After a run completes, the requested output should be viewable in <code>/path/to/local/dir</code>. See Section <a href="4-sec-examples.html#sec:examples">4</a> for full syntax.</p>
 <p>To avoid possible naming conflicts and file overwrites in the mounted directory, <strong>we recommend mounting an empty directory</strong> to store the output.</p>
+<p>Widows users need to <a href="https://docs.docker.com/docker-for-windows/troubleshoot/#volume-mounting-requires-shared-drives-for-linux-containers">enable shared drives</a> by clicking <code>Settings &gt; Shared Drives</code> in the Docker Desktop Daemon and sharing the drive that contains <code>path/to/local/dir</code>.</p>
 </div>
 <div id="sec:viewreport" class="section level3">
 <h3><span class="header-section-number">3.2.2</span> Viewing report in browser</h3>

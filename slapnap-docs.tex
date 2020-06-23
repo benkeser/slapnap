@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam,
 Peter B. Gilbert}
-\date{June 22, 2020}
+\date{June 23, 2020}
 
 \begin{document}
 \maketitle
@@ -240,7 +240,7 @@ subsequent predictive analyses.
 
 The CATNAP data are updated periodically. The data are downloaded into
 the \texttt{slapnap} container at every build. The most recent build
-occurred on June 22, 2020.
+occurred on June 23, 2020.
 
 \section{\texorpdfstring{Running
 \texttt{slapnap}}{Running slapnap}}\label{sec:runningcontainer}
@@ -414,6 +414,12 @@ To avoid possible naming conflicts and file overwrites in the mounted
 directory, \textbf{we recommend mounting an empty directory} to store
 the output.
 
+Widows users need to
+\href{https://docs.docker.com/docker-for-windows/troubleshoot/\#volume-mounting-requires-shared-drives-for-linux-containers}{enable
+shared drives} by clicking
+\texttt{Settings\ \textgreater{}\ Shared\ Drives} in the Docker Desktop
+Daemon and sharing the drive that contains \texttt{path/to/local/dir}.
+
 \subsubsection{Viewing report in browser}\label{sec:viewreport}
 
 An alternative option to mounting local directories for viewing and
@@ -462,8 +468,9 @@ To have the results viewable in a web browser execute the following
 command\footnote{In this command, we use the escape character
   \texttt{\textbackslash{}} to break the command over multiple lines,
   which will work on Linux and Mac OS. In Windows Command Prompt, the
-  equivalent escape character is \texttt{\^{}}. In both cases, take care
-  not to include a space after the escape character.}.
+  equivalent escape character is \texttt{\^{}}; in Windows Powershell,
+  the equivalent escape character is \texttt{\textasciigrave{}}. In all
+  cases, take care not to include a space after the escape character.}.
 
 \begin{Shaded}
 \begin{Highlighting}[]

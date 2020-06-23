@@ -21,7 +21,7 @@ The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutraliz
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
 
-The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on June 22, 2020.
+The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on June 23, 2020.
 
 # Running `slapnap` {#sec:runningcontainer}
 
@@ -64,6 +64,8 @@ Suppose `/path/to/local/dir` is the file path on a local computer in which we wi
 
 To avoid possible naming conflicts and file overwrites in the mounted directory, __we recommend mounting an empty directory__ to store the output.
 
+Widows users need to [enable shared drives](https://docs.docker.com/docker-for-windows/troubleshoot/#volume-mounting-requires-shared-drives-for-linux-containers) by clicking  `Settings > Shared Drives` in the Docker Desktop Daemon and sharing the drive that contains `path/to/local/dir`.  
+
 ### Viewing report in browser {#sec:viewreport}
 
 An alternative option to mounting local directories for viewing and downloading the report is to set the `view_port` option to `"TRUE"` and open a port to the container via the `-p` option in the `docker run` statement. In this case, rather than exiting upon completion of the analysis, the container will continuing to run and broadcast the compiled report to `localhost` at the specified port (see examples below). The report can be downloaded from the web browser directly in this way.
@@ -85,7 +87,7 @@ When this command is executed, messages will print to indicate the progress of t
 
 ## Viewing report in browser {#sec:webbrowse}
 
-To have the results viewable in a web browser execute the following command^[In this command, we use the escape character `\` to break the command over multiple lines, which will work on Linux and Mac OS. In Windows Command Prompt, the equivalent escape character is `^`. In both cases, take care not to include a space after the escape character.].
+To have the results viewable in a web browser execute the following command^[In this command, we use the escape character `\` to break the command over multiple lines, which will work on Linux and Mac OS. In Windows Command Prompt, the equivalent escape character is `^`; in Windows Powershell, the equivalent escape character is `` ` ``. In all cases, take care not to include a space after the escape character.].
 
 
 ```bash
