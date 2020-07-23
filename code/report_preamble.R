@@ -208,7 +208,7 @@ bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
 cont_nms <- nice_outcomes[cont_idx]
 bin_nms <- nice_outcomes[bin_idx]
 # postfix for naming plots
-postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.time(), "%d%b%Y"))
+postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(Sys.getenv('current_date'), "%d%b%Y"))
 
 # for plotting IC50, IC80
 if (length(opts$nab) == 1) {
