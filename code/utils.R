@@ -922,12 +922,11 @@ get_est_and_ci <- function(idx, fit_list, Rsquared = FALSE, constant = qnorm(0.9
 get_analysis_dataset_name <- function(all_nms, opts) {
     if (length(all_nms) > 1) {
         nms_with_requested_nabs <- all_nms[grepl(paste(opts$nab, collapse = "_"), all_nms)]
-        nms_with_only_requested_nabs <- nms_with_requested_nabs[unlist(lapply(strsplit(nms_with_requested_nabs, "_", fixed = TRUE), function(x) length(x) == 3 + length(opts$nab)))]
-        nm_lst <- strsplit(nms_with_only_requested_nabs, "_", fixed = TRUE)
-        # return the one that most closely matches the current date
-        all_dates <- unlist(lapply(nm_lst, function(x) strsplit(x[length(x)], ".", fixed = TRUE)[[1]][1]))
-        current_date <- format(Sys.time(), "%d%b%Y")
-        closest_date <- which.min(as.Date(current_date, "%d%b%Y") - as.Date(all_dates, "%d%b%Y"))
+        nms_with_only_requested_nabs <- nms_with_requested_nabs[unlist(lapply(strsplit(nms_with_requested_nabs, "_", fixed = TRUE), function(x) length(x) == 2 + length(opts$nab)))]
+        date_nab_only <- gsub(".csv", "", gsub("slapnap_", "", nms_with_requested_nabs))
+        date_only <- gsub(paste0(paste(opts$nab, sep = "_"), "_"), "", date_nab_only)
+        current_date <- format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y")
+        closest_date <- which.min(as.Date(current_date, "%d%b%Y") - as.Date(date_only, "%d%b%Y"))
         nm <- nms_with_only_requested_nabs[closest_date]
     } else {
         nm <- all_nms

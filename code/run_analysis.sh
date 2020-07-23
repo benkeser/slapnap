@@ -7,6 +7,7 @@
 set -e
 # set up a log file to print out to
 current_date=$(date "+%d%b%Y")
+export current_date
 log_file_init=($(echo ${nab//'/'/'-'}"_"$current_date".log"))
 log_file=($(echo "/home/output/"${log_file_init//';'/'_'}))
 printf "Starting SLAPNAP \n"
