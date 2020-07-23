@@ -1081,9 +1081,9 @@ describe_outcome_var <- function(var, opts) {
     } else if (grepl("iip", var)) {
         descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ and IC$_{80}$ are computed as described above. ", collapse = "")
     } else if (var == "sens" | var == "estsens") {
-        descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50} < $", opts$sens_thresh, ". Note that in the dataset, 1 denotes sensitive (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ") while 0 denotes resistant")
+        descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ". Note that in the dataset, 1 denotes sensitive (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ") while 0 denotes resistant")
     } else if (var == "multsens") {
-        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured IC$_{50} < $ ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs. note that in the dataset, 1 denotes multiple sensitivity (i.e., measured IC$_{50}$ < ", opts$sens_thresh, " for $\\ge$ ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs).")
+        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs. note that in the dataset, 1 denotes multiple sensitivity (i.e., measured IC$_{50}$ < ", opts$sens_thresh, " for $\\ge$ ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs).")
     }
     return(descr)
 }

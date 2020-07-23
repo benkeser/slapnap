@@ -182,6 +182,10 @@ ran_sl_dichot1 <- run_sl_vimp_bools2$run_sl[grepl("dichotomous.1", names(run_sl_
 ran_sl_dichot2 <- run_sl_vimp_bools2$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_sl))]
 ran_sl_dichot1 <- ifelse(length(ran_sl_dichot1) == 0, FALSE, ran_sl_dichot1)
 ran_sl_dichot2 <- ifelse(length(ran_sl_dichot2) == 0, FALSE, ran_sl_dichot2)
+ran_vimp_dichot1 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools2$run_vimp))]
+ran_vimp_dichot2 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_vimp))]
+ran_vimp_dichot1 <- ifelse(length(ran_vimp_dichot1) == 0, FALSE, ran_vimp_dichot1)
+ran_vimp_dichot2 <- ifelse(length(ran_vimp_dichot2) == 0, FALSE, ran_vimp_dichot2)
 
 ```
 
