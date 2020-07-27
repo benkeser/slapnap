@@ -1,7 +1,7 @@
 ---
 title: "SLAPNAP Metadata: `r paste(format(strsplit(Sys.getenv('nab'), split = ';')[[1]], justify = 'none'), collapse = ', ')`"
 author: "SLAPNAP Team"
-date: "`r format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), '%d %B, %Y')`"
+date: "`r format(as.Date(Sys.getenv('current_date'), '%d%b%Y'), '%d %B, %Y')`"
 output: bookdown::html_document2
 header-includes:
    - \usepackage{subfig}
