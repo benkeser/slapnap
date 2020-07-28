@@ -61,7 +61,7 @@ run_sl_vimp_bools2 <- lapply(run_sl_vimp_bools, function(x){
 
 # print a message for any that are false (first SL, then vimp)
 for (i in 1:length(outcome_names)) {
-    this_outcome_name <- opts$outcomes[i]
+    this_outcome_name <- nice_outcomes[i]
     if (!run_sl_vimp_bools2$run_sl[i]) {
         print(paste0("There are fewer observations in one or more classes than the number of CV folds for requested outcome '", this_outcome_name, "'. The SuperLearner will not be run for this outcome."))
     }
