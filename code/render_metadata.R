@@ -4,7 +4,7 @@
 antibody_string <- Sys.getenv("nab")
 antibodies <- strsplit(gsub("/", "-", antibody_string), split = ";")[[1]]
 
-current_date <- format(Sys.time(), "%d%b%Y")# get report name from environment
+current_date <- format(as.Date(Sys.getenv('current_date'), '%d%b%Y'), "%d%b%Y")# get report name from environment
 metadata_name <- paste0("metadata_", paste (antibodies, collapse = "_"), "_", current_date)
 
 

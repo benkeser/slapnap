@@ -72,4 +72,5 @@ then
     nginx -g "daemon off;"
 fi
 
+printf "Closing down SLAPNAP. Check your output directory for requested objects."
 echo "--- END --- " >> $log_file
