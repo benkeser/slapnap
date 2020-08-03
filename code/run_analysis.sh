@@ -9,7 +9,8 @@ set -e
 current_date=$(date "+%d%b%Y")
 export current_date
 # make the nab string suitable for naming files, promote to system env var
-nab_str=${nab//'/'/'-'}
+remove_slashes=${nab//'/'/'-'}
+nab_str=${remove_slashes//';'/'_'}
 export nab_str
 # set up a log file to print out to
 log_file_init=($(echo $nab_str"_"$current_date".log"))
