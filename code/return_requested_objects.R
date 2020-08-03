@@ -8,6 +8,8 @@ source("/home/lib/utils.R")
 #---------------------
 # read in options
 opts <- get_global_options()
+filename <- Sys.getenv("nab_str")
+postfix <- paste0(filename, "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
 
 #-------------------------------------------------
 # save analysis dataset, if requested
@@ -31,7 +33,7 @@ if (any(grepl("learner", opts$return))) {
     fit_renames <- gsub("log10.pc.ic50", "ic50", fit_renames)
     fit_renames <- gsub("log10.pc.ic80", "ic80", fit_renames)
     fit_renames <- gsub("fit_", "learner_", fit_renames)
-    file.copy(paste0("/home/slfits/", fit_names), paste0("/home/output/", fit_renames), overwrite = TRUE)
+    file.copy(paste0("/home/slfits/", fit_names), paste0("/home/output/", fit_renames, "_", postfix), overwrite = TRUE)
 }
 #------------------------------------
 # figures are saved directly from
@@ -48,5 +50,5 @@ if (any(grepl("vimp", opts$return))) {
     vimp_renames <- gsub("dichotomous.2", "multsens", vimp_renames)
     vimp_renames <- gsub("log10.pc.ic50", "ic50", vimp_renames)
     vimp_renames <- gsub("log10.pc.ic80", "ic80", vimp_renames)
-    file.copy(paste0("/home/slfits/", vimp_names), paste0("/home/output/", vimp_renames), overwrite = TRUE)
+    file.copy(paste0("/home/slfits/", vimp_names), paste0("/home/output/", vimp_renames, postfix), overwrite = TRUE)
 }
