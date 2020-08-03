@@ -93,7 +93,7 @@ RUN chmod +x /home/lib/compile_analysis_dataset.R /home/lib/run_super_learners.R
 RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 
 # copy report Rmd
-COPY code/new_report.Rmd /home/lib/new_report.Rmd
+COPY code/report.Rmd /home/lib/report.Rmd
 COPY docs/refs.bib /home/lib/refs.bib
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
@@ -175,7 +175,7 @@ ENV return="report"
 # endpoints as (estimated/multiple) IC-50 < sens_thresh
 ENV sens_thresh="1"
 
-# number of sensitive abs needed to declare a pseudovirus sensitive 
+# number of sensitive abs needed to declare a pseudovirus sensitive
 ENV multsens_nab="1"
 
 # option to view output on exposed port

@@ -246,7 +246,7 @@ ncomplete_ic80 <- sum(!is.na(data.final$pc.ic80[complete_features_idx]))
 # number with complete IC50 and IC80 + complete features
 ncomplete_ic5080 <- sum(!is.na(data.final$pc.ic50[complete_features_idx]) & !is.na(data.final$pc.ic80[complete_features_idx]))
 
-saveRDS(ncomplete_features, "/home/slfits/ncomplete_features.rds"))
+saveRDS(ncomplete_features, "/home/slfits/ncomplete_features.rds")
 saveRDS(ncomplete_ic50, "/home/slfits/ncomplete_ic50.rds")
 saveRDS(ncomplete_ic80, "/home/slfits/ncomplete_ic80.rds")
 saveRDS(ncomplete_ic5080, "/home/slfits/ncomplete_ic5080.rds")

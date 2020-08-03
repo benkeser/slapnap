@@ -15,7 +15,7 @@ if(report_name == ""){
 objects_to_return <- Sys.getenv("return")
 if (objects_to_return == "" | grepl("report", objects_to_return)) {
     # name report
-    rmarkdown::render('/home/lib/new_report.Rmd', output_file = paste0('/home/output/', report_name, ".html"))
+    rmarkdown::render('/home/lib/report.Rmd', output_file = paste0('/home/output/', report_name, ".html"))
 } else {
-    rmarkdown::render('/home/lib/new_report.Rmd')
+    rmarkdown::render('/home/lib/report.Rmd')
 }
