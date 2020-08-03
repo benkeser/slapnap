@@ -5,11 +5,16 @@
 #-----------------------------------------------------
 # allow errors to propagate up to container
 set -e
-# set up a log file to print out to
+# grab the current date, promote to system environment variable
 current_date=$(date "+%d%b%Y")
 export current_date
-log_file_init=($(echo ${nab//'/'/'-'}"_"$current_date".log"))
+# make the nab string suitable for naming files, promote to system env var
+nab_str=${nab//'/'/'-'}
+export nab_str
+# set up a log file to print out to
+log_file_init=($(echo $nab_str"_"$current_date".log"))
 log_file=($(echo "/home/output/"${log_file_init//';'/'_'}))
+# start SLAPNAP
 printf "Starting SLAPNAP \n"
 printf "Messages, warnings, and errors (if any) will appear in your output directory under ${log_file//'/home/output/'/''} \n"
 

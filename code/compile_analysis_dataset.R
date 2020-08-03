@@ -18,7 +18,7 @@ antibody_string <- Sys.getenv("nab")
 sensitivity.threshold <- Sys.getenv("sens_thresh")
 multiple.sensitivity.threshold <- Sys.getenv("multsens_nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
-
+filename <- Sys.getenv("nab_str")
 
 # ---------------------------------------------------------------------------- #
 # STEP 0:  load and prepare our data
@@ -220,13 +220,14 @@ data.final <- data.final[ , filter.insertions]
 
 # name our outfile and save
 current_date <- as.Date(Sys.getenv('current_date'), "%d%b%Y")
-filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(current_date, "%d%b%Y"), ".csv")
+# filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(current_date, "%d%b%Y"), ".csv")
+final_filename <- paste0("slapnap_", filename, "_", format(current_date, "%d%b%Y"), ".csv")
 setwd(path.data.analysis)
-write.csv(data.final, file=filename, row.names=F)
+write.csv(data.final, file=final_filename, row.names=F)
 
 # save missing data stats for report compilation later
 nprevious <- length(data.final[,1])
-saveRDS(nprevious, "/home/slfits/nprevious.rds")
+saveRDS(nprevious, paste0("/home/slfits/nprevious_", filename, ".rds"))
 
 # first covariate column
 min_cov_col_idx <- min(grep("geographic", colnames(data.final)))
@@ -245,10 +246,10 @@ ncomplete_ic80 <- sum(!is.na(data.final$pc.ic80[complete_features_idx]))
 # number with complete IC50 and IC80 + complete features
 ncomplete_ic5080 <- sum(!is.na(data.final$pc.ic50[complete_features_idx]) & !is.na(data.final$pc.ic80[complete_features_idx]))
 
-saveRDS(ncomplete_features, "/home/slfits/ncomplete_features.rds")
-saveRDS(ncomplete_ic50, "/home/slfits/ncomplete_ic50.rds")
-saveRDS(ncomplete_ic80, "/home/slfits/ncomplete_ic80.rds")
-saveRDS(ncomplete_ic5080, "/home/slfits/ncomplete_ic5080.rds")
+saveRDS(ncomplete_features, paste0("/home/slfits/ncomplete_features_", filename, ".rds"))
+saveRDS(ncomplete_ic50, paste0("/home/slfits/ncomplete_ic50_", filename, ".rds")
+saveRDS(ncomplete_ic80, paste0("/home/slfits/ncomplete_ic80_", filename, ".rds"))
+saveRDS(ncomplete_ic5080, paste0("/home/slfits/ncomplete_ic5080_", filename, ".rds"))
 # ---------------------------------------------------------------------------- #
 #                                    - 30 -
 # ---------------------------------------------------------------------------- #
