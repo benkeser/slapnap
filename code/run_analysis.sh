@@ -14,7 +14,7 @@ nab_str=${remove_slashes//';'/'_'}
 export nab_str
 # set up a log file to print out to
 log_file_init=($(echo $nab_str"_"$current_date".log"))
-log_file=($(echo "/home/output/"${log_file_init//';'/'_'}))
+log_file=($(echo "/home/output/"$nab_str))
 # start SLAPNAP
 printf "Starting SLAPNAP \n"
 printf "Messages, warnings, and errors (if any) will appear in your output directory under ${log_file//'/home/output/'/''} \n"
