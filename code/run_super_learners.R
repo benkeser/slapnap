@@ -21,6 +21,7 @@ source("/home/lib/utils.R")
 #---------------------
 # read in options
 opts <- get_global_options()
+filename <- Sys.getenv("nab_str")
 
 # load data and subset to complete cases
 analysis_data_names <- list.files("/home/dat/analysis")
