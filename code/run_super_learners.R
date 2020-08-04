@@ -181,8 +181,8 @@ if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
         set.seed(1234)
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
-        print(paste0("Fitting reduced learners for individual variable importance for outcome ", nice_outcomes[i]))
         if (run_sl_vimp_bools2$run_vimp[i]) {
+            print(paste0("Fitting reduced learners for individual variable importance for outcome ", nice_outcomes[i]))
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
             for (j in 1:length(var_inds)) {
                 this_var_name <- var_inds[j]
