@@ -1001,6 +1001,7 @@ check_outcome <- function(dat, outcome_nm, V) {
     } else {
         run_sl <- TRUE
         run_vimp <- TRUE
+        outcome_tbl <- length(dat[, outcome_nm])
     }
     return(list(run_sl = run_sl, run_vimp = run_vimp, num_obs = outcome_tbl))
 }
