@@ -63,10 +63,12 @@ run_sl_vimp_bools2 <- lapply(run_sl_vimp_bools, function(x){
 for (i in 1:length(outcome_names)) {
     this_outcome_name <- nice_outcomes[i]
     if (!run_sl_vimp_bools2$run_sl[i]) {
-        print(paste0("There are fewer observations in one or more classes than the number of CV folds for requested outcome '", this_outcome_name, "'. The SuperLearner will not be run for this outcome."))
+        this_class <- (0:1)[which.min(run_sl_vimp_bools2$num_obs)]
+        print(paste0("The number of observations in class ", this_class," are less than or equal to the number of CV folds for requested outcome '", this_outcome_name, "'. The SuperLearner will not be run for this outcome."))
     }
     if (!run_sl_vimp_bools2$run_vimp[i]) {
-        print(paste0("There are not enough observations in one or more classes to run population variable importance for requested outcome '", this_outcome_name, "'."))
+        this_class <- (0:1)[which.min(run_sl_vimp_bools2$num_obs)]
+        print(paste0("The number of observations in class ", this_class, " is too small to run population variable importance for requested outcome '", this_outcome_name, "'."))
     }
 }
 

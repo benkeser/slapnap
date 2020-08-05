@@ -992,17 +992,17 @@ check_outcome <- function(dat, outcome_nm, V) {
         outcome_tbl <- table(dat[, outcome_nm])
         run_sl <- TRUE
         run_vimp <- TRUE
-        if (any(outcome_tbl < V)) { # need to be able to split into outer folds with at least one of each class per fold
+        if (any(outcome_tbl <= V)) { # need to be able to split into outer folds with at least one of each class per fold
             run_sl <- FALSE
         }
-        if (any(outcome_tbl < 3 * V)) { # need to be able to split into outer folds (half of the data in each, for hypothesis testing); then split into outer folds with at least V of each class per fold; then split into inner folds with at least one of each class per fold
+        if (any(outcome_tbl <= 3 * V)) { # need to be able to split into outer folds (half of the data in each, for hypothesis testing); then split into outer folds with at least V of each class per fold; then split into inner folds with at least one of each class per fold
             run_vimp <- FALSE
         }
     } else {
         run_sl <- TRUE
         run_vimp <- TRUE
     }
-    return(list(run_sl = run_sl, run_vimp = run_vimp))
+    return(list(run_sl = run_sl, run_vimp = run_vimp, num_obs = outcome_tbl))
 }
 check_outcomes <- function(dat, outcome_names, V) {
     checked_outcomes <- lapply(as.list(outcome_names), function(x) check_outcome(dat, x, V))
