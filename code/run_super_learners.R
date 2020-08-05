@@ -80,9 +80,9 @@ for (i in 1:length(outcome_names)) {
     set.seed(123125)
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name, V = V)
-    print(paste0("Fitting ", nice_outcomes[i]))
     ## do the fitting, if there are enough outcomes
     if (run_sl_vimp_bools2$run_sl[i]) {
+        print(paste0("Fitting ", nice_outcomes[i]))
         sl_fit_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library,
             cvControl = sl_opts$ctrl, method = sl_opts$method, opts = opts)
     }
