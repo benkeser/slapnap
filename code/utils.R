@@ -1011,7 +1011,7 @@ check_outcomes <- function(dat, outcome_names, V) {
     all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
     all_other_outcomes <- all_outcome_names[!(all_outcome_names %in% outcome_names)]
     checked_other_outcomes <- sapply(all_other_outcomes,
-                                     FUN = function(x) list(run_sl = FALSE, run_vimp = FALSE),
+                                     FUN = function(x) list(run_sl = FALSE, run_vimp = FALSE, num_obs = NA),
                                      simplify = FALSE)
     names(checked_other_outcomes) <- all_other_outcomes
     run_sls <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[1]))[c("log10.pc.ic50.run_sl", "log10.pc.ic80.run_sl", "iip.run_sl", "dichotomous.1.run_sl", "dichotomous.2.run_sl")]
