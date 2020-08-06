@@ -57,20 +57,20 @@ kable(as.data.frame(Description), col.names = c("Label", "Description"),
 ```{r getcvfits}
 if (opts$cvperf) {
     fit_list_out <- load_cv_fits(opts, run_sl_vimp_bools$run_sl, slfits_dir)
-    cv_outcomes <- get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, opts)
+    cv_outcomes <- get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, run_sl_vimp_bools2$run_sl, opts)
 }
 ```
 
 The predictive ability of the learner was assessed using cross-validation. `r if(any_cont & opts$cvperf) paste0("The estimated cross-validated $R^2$ of the super learner for predicting ", ifelse(length(cont_nms) == 1, paste0(cont_nms, " is"), "continuous outcomes are"), " shown in Table \\@ref(tab:rsquaredtable).")` `r if(any_dich & opts$cvperf) paste0("The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting ", ifelse(length(bin_nms) == 1, paste0(tolower(bin_nms), " is"), "binary sensitivity measures are "), " shown in Table \\@ref(tab:auctable).")`
 
 ```{r rsquaredtable, eval = any_cont & opts$cvperf}
-get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, opts)[[1]]
+get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, run_sl_vimp_bools2$run_sl, opts)[[1]]
 ```
 
 ```{r auctable, eval = any_dich & opts$cvperf}
 # apparently no way around calling this function multiple times
 # otherwise the labeling messes up
-get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, opts)[[2]]
+get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, run_sl_vimp_bools2$run_sl, opts)[[2]]
 ```
 
 `r if(!opts$cvperf) "-->"`

@@ -388,20 +388,30 @@ get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
     return(tmp)
 }
 # each entry in the output list is a kable that should be properly labeled.
-get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
+get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
     fit_list <- fit_list_out$out
     V <- fit_list_out$V
     table_list <- lapply(fit_list[!is.na(names(fit_list))], summary.myCV.SuperLearner, opts = opts)
+    all_possible_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
+    if (any(is.na(names(fit_list)))) {
+        na_list <- rep(list(NA), sum(is.na(names(fit_list))))
+        names(na_list) <- all_possible_outcomes[!run_sls]
+        table_list2 <- c(table_list, na_list)
+        table_list3 <- list(ic50 = table_list2$ic50, ic80 = table_list2$ic80, iip = table_list2$iip, sens1 = table_list2$sens1, sens2 = table_list2$sens2)
+        table_list <- table_list3
+    }
 
     # re-label
-    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
-    all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
+    # all_outcomes <- all_possible_outcomes[run_sls]
+    # all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
+    all_outcomes <- all_possible_outcomes
+    all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
     tmp <- all_outcomes
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
     # now format continuous outcomes table
-    cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
+    cont_idx <- which((opts$outcomes %in% c("ic50", "ic80", "iip")) & run_sls2)
     rsq_kab <- NULL
 
     if(length(cont_idx) > 0){
@@ -414,7 +424,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
               caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
     }
     # now format dichotomous outcomes table
-    dich_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
+    dich_idx <- which((opts$outcomes %in% c("sens1", "sens2")) & run_sls2)
     auc_kab <- NULL
     if(length(dich_idx) > 0){
         list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list, Rsquared = FALSE, simplify = FALSE)
