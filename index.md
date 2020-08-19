@@ -1,7 +1,7 @@
 ---
 title: "`slapnap`: Super LeArner Prediction of NAb Panels"
 author: "David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert"
-date: "June 23, 2020"
+date: "August 19, 2020"
 bibliography: refs.bib
 link-citations: true
 ---
