@@ -28,7 +28,7 @@ RUN apt-get install -y vim
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc && apt-get install -y pandoc-citeproc
 
-RUN apt install git-all
+RUN apt-get install -y git-all
 RUN cd /tmp && git clone --depth 1 --branch v2.0.1 https://github.com/bdwilliamson/vimp
 
 # install R libraries needed for analysis
