@@ -1,4 +1,5 @@
 # boosted algorithms
+
 SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, ntrees = 1000,
     max_depth = 4, shrinkage = 0.1, minobspernode = 10, params = list(),
     nthread = 1, verbose = 0, save_period = NULL, ...)
