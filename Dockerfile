@@ -28,9 +28,12 @@ RUN apt-get install -y vim
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc && apt-get install -y pandoc-citeproc
 
+RUN apt install git-all
+RUN cd /tmp && git clone --depth 1 --branch v2.0.1 https://github.com/bdwilliamson/vimp
+
 # install R libraries needed for analysis
-RUN Rscript -e 'source("https://install-github.me/r-lib/remotes")'
-RUN Rscript -e 'remotes::install_github("bdwilliamson/vimp@v2.0.1")'
+RUN Rscript -e 'setwd("/tmp"); install.packages("vimp", type = "source", repos = NULL)'
+# RUN Rscript -e 'remotes::install_github("bdwilliamson/vimp@v2.0.1")'
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("rmarkdown", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bookdown", repos="https://cran.rstudio.com")'
@@ -52,7 +55,6 @@ RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("tibble", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("remotes", repos="https://cran.rstudio.com")'
 
 # install nginx for static website hosting
 RUN apt-get install -y nginx
