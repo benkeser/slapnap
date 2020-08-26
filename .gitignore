@@ -8,12 +8,14 @@ dat/*
 docs/_book/*
 docs/*.rds
 local_production_runs/*
+local_code/*
 run_analyses_locally.sh
 2019*
 tests
 static_reports/*
 code/R-*
 code/*.tar.gz
+test/*
 test_run.txt
 .Rproj.user
 *.Rproj

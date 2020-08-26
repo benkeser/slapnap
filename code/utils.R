@@ -388,20 +388,35 @@ get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
     return(tmp)
 }
 # each entry in the output list is a kable that should be properly labeled.
-get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
+get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
     fit_list <- fit_list_out$out
     V <- fit_list_out$V
     table_list <- lapply(fit_list[!is.na(names(fit_list))], summary.myCV.SuperLearner, opts = opts)
+    all_possible_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
+    if (any(is.na(names(fit_list))) | length(fit_list) < length(all_possible_outcomes)) {
+        if (any(is.na(names(fit_list)))) {
+            na_list <- rep(list(NA), sum(is.na(names(fit_list))))
+            names(na_list) <- all_possible_outcomes[!run_sls]
+        } else {
+            na_list <- rep(list(NA), length(all_possible_outcomes) - length(fit_list))
+            names(na_list) <- all_possible_outcomes[!(names(fit_list) %in% all_possible_outcomes)]
+        }
+        table_list2 <- c(table_list, na_list)
+        table_list3 <- list(ic50 = table_list2$ic50, ic80 = table_list2$ic80, iip = table_list2$iip, sens1 = table_list2$sens1, sens2 = table_list2$sens2)
+        table_list <- table_list3
+    }
 
     # re-label
-    all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
-    all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
+    # all_outcomes <- all_possible_outcomes[run_sls]
+    # all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")[run_sls]
+    all_outcomes <- all_possible_outcomes
+    all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
     tmp <- all_outcomes
     for(i in seq_along(all_outcomes)){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
     # now format continuous outcomes table
-    cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
+    cont_idx <- which((opts$outcomes %in% c("ic50", "ic80", "iip")) & run_sls2)
     rsq_kab <- NULL
 
     if(length(cont_idx) > 0){
@@ -414,7 +429,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, opts){
               caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
     }
     # now format dichotomous outcomes table
-    dich_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
+    dich_idx <- which((opts$outcomes %in% c("sens1", "sens2")) & run_sls2)
     auc_kab <- NULL
     if(length(dich_idx) > 0){
         list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list, Rsquared = FALSE, simplify = FALSE)
@@ -922,12 +937,11 @@ get_est_and_ci <- function(idx, fit_list, Rsquared = FALSE, constant = qnorm(0.9
 get_analysis_dataset_name <- function(all_nms, opts) {
     if (length(all_nms) > 1) {
         nms_with_requested_nabs <- all_nms[grepl(paste(opts$nab, collapse = "_"), all_nms)]
-        nms_with_only_requested_nabs <- nms_with_requested_nabs[unlist(lapply(strsplit(nms_with_requested_nabs, "_", fixed = TRUE), function(x) length(x) == 3 + length(opts$nab)))]
-        nm_lst <- strsplit(nms_with_only_requested_nabs, "_", fixed = TRUE)
-        # return the one that most closely matches the current date
-        all_dates <- unlist(lapply(nm_lst, function(x) strsplit(x[length(x)], ".", fixed = TRUE)[[1]][1]))
-        current_date <- format(Sys.time(), "%d%b%Y")
-        closest_date <- which.min(as.Date(current_date, "%d%b%Y") - as.Date(all_dates, "%d%b%Y"))
+        nms_with_only_requested_nabs <- nms_with_requested_nabs[unlist(lapply(strsplit(nms_with_requested_nabs, "_", fixed = TRUE), function(x) length(x) == 2 + length(opts$nab)))]
+        date_nab_only <- gsub(".csv", "", gsub("slapnap_", "", nms_with_requested_nabs))
+        date_only <- gsub(paste0(paste(opts$nab, sep = "_"), "_"), "", date_nab_only)
+        current_date <- format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y")
+        closest_date <- which.min(as.Date(current_date, "%d%b%Y") - as.Date(date_only, "%d%b%Y"))
         nm <- nms_with_only_requested_nabs[closest_date]
     } else {
         nm <- all_nms
@@ -993,17 +1007,18 @@ check_outcome <- function(dat, outcome_nm, V) {
         outcome_tbl <- table(dat[, outcome_nm])
         run_sl <- TRUE
         run_vimp <- TRUE
-        if (any(outcome_tbl <= V)) {
+        if (any(outcome_tbl <= V)) { # need to be able to split into outer folds with at least one of each class per fold
             run_sl <- FALSE
         }
-        if (any(outcome_tbl <= 2 * V)) {
+        if (any(outcome_tbl <= 3 * V)) { # need to be able to split into outer folds (half of the data in each, for hypothesis testing); then split into outer folds with at least V of each class per fold; then split into inner folds with at least one of each class per fold
             run_vimp <- FALSE
         }
     } else {
         run_sl <- TRUE
         run_vimp <- TRUE
+        outcome_tbl <- length(dat[, outcome_nm])
     }
-    return(list(run_sl = run_sl, run_vimp = run_vimp))
+    return(list(run_sl = run_sl, run_vimp = run_vimp, num_obs = outcome_tbl))
 }
 check_outcomes <- function(dat, outcome_names, V) {
     checked_outcomes <- lapply(as.list(outcome_names), function(x) check_outcome(dat, x, V))
@@ -1011,7 +1026,7 @@ check_outcomes <- function(dat, outcome_names, V) {
     all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")
     all_other_outcomes <- all_outcome_names[!(all_outcome_names %in% outcome_names)]
     checked_other_outcomes <- sapply(all_other_outcomes,
-                                     FUN = function(x) list(run_sl = FALSE, run_vimp = FALSE),
+                                     FUN = function(x) list(run_sl = FALSE, run_vimp = FALSE, num_obs = NA),
                                      simplify = FALSE)
     names(checked_other_outcomes) <- all_other_outcomes
     run_sls <- unlist(lapply(c(checked_outcomes, checked_other_outcomes), function(x) x[1]))[c("log10.pc.ic50.run_sl", "log10.pc.ic80.run_sl", "iip.run_sl", "dichotomous.1.run_sl", "dichotomous.2.run_sl")]
@@ -1082,9 +1097,9 @@ describe_outcome_var <- function(var, opts) {
     } else if (grepl("iip", var)) {
         descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ and IC$_{80}$ are computed as described above. ", collapse = "")
     } else if (var == "sens" | var == "estsens") {
-        descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50} < $", opts$sens_thresh, ". Note that in the dataset, 1 denotes sensitive (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ") while 0 denotes resistant")
+        descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ". Note that in the dataset, 1 denotes sensitive (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ") while 0 denotes resistant")
     } else if (var == "multsens") {
-        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured IC$_{50} < $ ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs. note that in the dataset, 1 denotes multiple sensitivity (i.e., measured IC$_{50}$ < ", opts$sens_thresh, " for $\\ge$ ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs).")
+        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured IC$_{50}$ < ", opts$sens_thresh," for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs. note that in the dataset, 1 denotes multiple sensitivity (i.e., measured IC$_{50}$ < ", opts$sens_thresh, " for $\\ge$ ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs).")
     }
     return(descr)
 }

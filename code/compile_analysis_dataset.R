@@ -18,7 +18,7 @@ antibody_string <- Sys.getenv("nab")
 sensitivity.threshold <- Sys.getenv("sens_thresh")
 multiple.sensitivity.threshold <- Sys.getenv("multsens_nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
-
+filename <- Sys.getenv("nab_str")
 
 # ---------------------------------------------------------------------------- #
 # STEP 0:  load and prepare our data
@@ -219,9 +219,11 @@ for (var.index in 1:ncol(data.final)) {
 data.final <- data.final[ , filter.insertions]
 
 # name our outfile and save
-filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(Sys.time(), "%d%b%Y"), ".csv")
+current_date <- as.Date(Sys.getenv('current_date'), "%d%b%Y")
+# filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(current_date, "%d%b%Y"), ".csv")
+final_filename <- paste0("slapnap_", filename, "_", format(current_date, "%d%b%Y"), ".csv")
 setwd(path.data.analysis)
-write.csv(data.final, file=filename, row.names=F)
+write.csv(data.final, file=final_filename, row.names=F)
 
 # save missing data stats for report compilation later
 nprevious <- length(data.final[,1])

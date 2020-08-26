@@ -28,11 +28,7 @@ RUN apt-get install -y vim
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc && apt-get install -y pandoc-citeproc
 
-RUN apt-get install -y git-all
-RUN cd /tmp && git clone --depth 1 --branch v2.0.1 https://github.com/bdwilliamson/vimp
-
 # install R libraries needed for analysis
-# RUN Rscript -e 'remotes::install_github("bdwilliamson/vimp@v2.0.1")'
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("rmarkdown", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bookdown", repos="https://cran.rstudio.com")'
@@ -54,8 +50,7 @@ RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("tibble", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'setwd("/tmp"); install.packages("vimp", type = "source", repos = NULL)'
-
+RUN Rscript -e 'install.packages("vimp", repos="https://cran.rstudio.com")'
 
 # install nginx for static website hosting
 RUN apt-get install -y nginx
@@ -97,7 +92,7 @@ RUN chmod +x /home/lib/compile_analysis_dataset.R /home/lib/run_super_learners.R
 RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
 
 # copy report Rmd
-COPY code/new_report.Rmd /home/lib/new_report.Rmd
+COPY code/report.Rmd /home/lib/report.Rmd
 COPY docs/refs.bib /home/lib/refs.bib
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
 COPY code/render_report.R /home/lib/render_report.R
@@ -179,7 +174,7 @@ ENV return="report"
 # endpoints as (estimated/multiple) IC-50 < sens_thresh
 ENV sens_thresh="1"
 
-# number of sensitive abs needed to declare a pseudovirus sensitive 
+# number of sensitive abs needed to declare a pseudovirus sensitive
 ENV multsens_nab="1"
 
 # option to view output on exposed port

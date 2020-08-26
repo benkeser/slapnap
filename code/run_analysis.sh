@@ -5,10 +5,17 @@
 #-----------------------------------------------------
 # allow errors to propagate up to container
 set -e
-# set up a log file to print out to
+# grab the current date, promote to system environment variable
 current_date=$(date "+%d%b%Y")
-log_file_init=($(echo ${nab//'/'/'-'}"_"$current_date".log"))
-log_file=($(echo "/home/output/"${log_file_init//';'/'_'}))
+export current_date
+# make the nab string suitable for naming files, promote to system env var
+remove_slashes=${nab//'/'/'-'}
+nab_str=${remove_slashes//';'/'_'}
+export nab_str
+# set up a log file to print out to
+log_file_init=($(echo $nab_str"_"$current_date".log"))
+log_file=($(echo "/home/output/"$log_file_init))
+# start SLAPNAP
 printf "Starting SLAPNAP \n"
 printf "Messages, warnings, and errors (if any) will appear in your output directory under ${log_file//'/home/output/'/''} \n"
 
@@ -71,4 +78,5 @@ then
     nginx -g "daemon off;"
 fi
 
+printf "Closing down SLAPNAP. Check your output directory for requested objects.\n"
 echo "--- END --- " >> $log_file

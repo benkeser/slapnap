@@ -61,12 +61,14 @@ run_sl_vimp_bools2 <- lapply(run_sl_vimp_bools, function(x){
 
 # print a message for any that are false (first SL, then vimp)
 for (i in 1:length(outcome_names)) {
-    this_outcome_name <- opts$outcomes[i]
+    this_outcome_name <- nice_outcomes[i]
     if (!run_sl_vimp_bools2$run_sl[i]) {
-        print(paste0("There are fewer observations in one or more classes than the number of CV folds for requested outcome '", this_outcome_name, "'. The SuperLearner will not be run for this outcome."))
+        this_class <- (0:1)[which.min(table(dat[, outcome_names[i]]))]
+        print(paste0("The number of observations in class ", this_class," is less than or equal to the number of CV folds for requested outcome '", this_outcome_name, "'. The SuperLearner will not be run for this outcome."))
     }
     if (!run_sl_vimp_bools2$run_vimp[i]) {
-        print(paste0("There are not enough observations in one or more classes to run population variable importance for requested outcome '", this_outcome_name, "'."))
+        this_class <- (0:1)[which.min(table(dat[, outcome_names[i]]))]
+        print(paste0("The number of observations in class ", this_class, " is too small to run population variable importance for requested outcome '", this_outcome_name, "'."))
     }
 }
 
@@ -78,9 +80,9 @@ for (i in 1:length(outcome_names)) {
     set.seed(123125)
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name, V = V)
-    print(paste0("Fitting ", nice_outcomes[i]))
     ## do the fitting, if there are enough outcomes
     if (run_sl_vimp_bools2$run_sl[i]) {
+        print(paste0("Fitting ", nice_outcomes[i]))
         sl_fit_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library,
             cvControl = sl_opts$ctrl, method = sl_opts$method, opts = opts)
     }
@@ -181,8 +183,8 @@ if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
         set.seed(1234)
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
-        print(paste0("Fitting reduced learners for individual variable importance for outcome ", nice_outcomes[i]))
         if (run_sl_vimp_bools2$run_vimp[i]) {
+            print(paste0("Fitting reduced learners for individual variable importance for outcome ", nice_outcomes[i]))
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
             for (j in 1:length(var_inds)) {
                 this_var_name <- var_inds[j]
