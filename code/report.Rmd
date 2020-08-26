@@ -1022,7 +1022,7 @@ var_grps_chr_lst <- lapply(lapply(all_var_groups, function(x) strsplit(x, ".", f
 grptab <- do.call(rbind, lapply(var_grps_chr_lst, function(x) paste0(x, collapse = ", ")))
 kable(grptab, col.names = "Variables",
       digits = 3, row.names = TRUE,
-      caption = "Individual variables within each variable group.")
+      caption = "Individual variables within each variable group. Numeric codes followed by a single letter denote the presence of an amino acid residue at a given site (relative to HXB2). Other suffixes are: 'sequon_actual',  referring to ; 'gap', referring to ; and 'frameshift', referring to . The prefix 'num' denotes the number (e.g., 'num.cysteines' refers to the number of cysteines), while the prefix 'length' denotes the length of the specified region (excluding gaps and frameshifts).")
 ```
 
 `r if (opts$importance_grp == "") "-->"`
