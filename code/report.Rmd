@@ -298,7 +298,7 @@ Table \@ref(tab:ic50-imp-table) shows the top `r n_imp_ft` features in terms of 
 
 ```{r ic50-imp-table, eval = "ic50" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic50[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
-      caption = paste0("The top ", n_imp_ft, " important features for predicting ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ as measured by their algorithm-specific importance."))
+      caption = paste0("The top ", n_imp_ft, " important features for predicting ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ as measured by their algorithm-specific importance."), digits = 3)
 ```
 
 `r if (!("ic50" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`
@@ -492,7 +492,7 @@ Table \@ref(tab:ic80-imp-table) shows the top `r n_imp_ft` features in terms of 
 
 ```{r ic80-imp-table, eval = "ic80" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_ic80[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
-      caption = paste0("The top ", n_imp_ft, " important features for predicting ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ as measured by their algorithm-specific importance."))
+      caption = paste0("The top ", n_imp_ft, " important features for predicting ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ as measured by their algorithm-specific importance."), digits = 3)
 ```
 
 `r if (!("ic80" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`
@@ -657,7 +657,7 @@ Table \@ref(tab:iip-imp-table) shows the top `r n_imp_ft` features in terms of t
 
 ```{r iip-imp-table, eval = "iip" %in% opts$outcomes & ("pred" %in% opts$importance_ind)}
 kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
-      caption = paste0("The top ", n_imp_ft, " important features for predicting IIP as measured by their algorithm-specific importance."))
+      caption = paste0("The top ", n_imp_ft, " important features for predicting IIP as measured by their algorithm-specific importance."), digits = 3)
 ```
 
 `r if (!("iip" %in% opts$outcomes) | !("pred" %in% opts$importance_ind)) "-->"`
@@ -831,7 +831,7 @@ Table \@ref(tab:sens1-imp-table) shows the top `r n_imp_ft` features in terms of
 
 ```{r sens1-imp-table, eval = "sens1" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & ran_sl_dichot1}
 kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
-      caption = paste0("The top ", n_imp_ft, " important features for predicting ", est_fillin, "sensitivity as measured by their algorithm-specific importance."))
+      caption = paste0("The top ", n_imp_ft, " important features for predicting ", est_fillin, "sensitivity as measured by their algorithm-specific importance."), digits = 3)
 ```
 
 
@@ -1007,7 +1007,7 @@ Table \@ref(tab:sens2-imp-table) shows the top `r n_imp_ft` features in terms of
 
 ```{r sens2-imp-table, eval = "sens2" %in% opts$outcomes & ("pred" %in% opts$importance_ind) & ran_sl_dichot2}
 kable(imp_sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
-      caption = paste0("The top ", n_imp_ft, " important features for predicting multiple sensitivity as measured by their algorithm-specific importance."))
+      caption = paste0("The top ", n_imp_ft, " important features for predicting multiple sensitivity as measured by their algorithm-specific importance."), digits = 3)
 ```
 `r if(!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind) | !ran_sl_dichot2) "-->"`
 
