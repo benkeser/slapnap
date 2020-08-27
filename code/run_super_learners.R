@@ -122,12 +122,13 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
         sl_opts <- get_sl_options(this_outcome_name, V = V)
         ## only do this if we have enough obs to run it
         if (run_sl_vimp_bools2$run_vimp[i]) {
+            cat("Fitting reduced learners for outcome ", nice_outcomes[i], "\n")
             ## read in the full folds, for this group's cv folds
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
             for (j in 1:length(all_var_groups)) {
                 if (length(all_var_groups[j]) != 0) {
                     this_group_name <- names(all_var_groups)[j]
-                    print(paste0("Fitting reduced learners for group variable importance of ", this_group_name, " and outcome ", nice_outcomes[i]))
+                    print(paste0("Fitting reduced learners for group variable importance of ", this_group_name))
                     ## fit based on removing group of interest
                     if ("cond" %in% opts$importance_grp) {
                         sl_fit_ij <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name,
