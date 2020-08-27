@@ -402,7 +402,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
             names(na_list) <- all_possible_outcomes[!run_sls]
         } else {
             na_list <- rep(list(NA), length(all_possible_outcomes) - length(fit_list))
-            names(na_list) <- all_possible_outcomes[!(names(fit_list) %in% all_possible_outcomes)]
+            names(na_list) <- all_possible_outcomes[!(names(fit_list) == all_possible_outcomes)]
         }
         table_list2 <- c(table_list, na_list)
         table_list3 <- list(ic50 = table_list2$ic50, ic80 = table_list2$ic80, iip = table_list2$iip, sens1 = table_list2$sens1, sens2 = table_list2$sens2)
@@ -423,10 +423,10 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
     rsq_kab <- NULL
 
     if(length(cont_idx) > 0){
-        list_rows <- sapply(cont_idx, get_est_and_ci, fit_list = table_list, Rsquared = TRUE, simplify = FALSE)
+        list_rows <- sapply(cont_idx, get_est_and_ci, fit_list = table_list[!is.na(table_list)], Rsquared = TRUE, simplify = FALSE)
         rsqtab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
         if(is.null(dim(rsqtab))) rsqtab <- matrix(rsqtab, nrow = 1)
-        row.names(rsqtab) <- tmp[cont_idx]
+        row.names(rsqtab) <- tmp[!is.na(table_list)][cont_idx]
         rsq_kab <- knitr::kable(rsqtab, col.names = c("CV-R$^2$", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
@@ -435,13 +435,13 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
     dich_idx <- which((opts$outcomes %in% c("sens1", "sens2")) & run_sls2)
     auc_kab <- NULL
     if(length(dich_idx) > 0){
-        list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list, Rsquared = FALSE, simplify = FALSE)
+        list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list[!is.na(table_list)], Rsquared = FALSE, simplify = FALSE)
         auctab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
         if(is.null(dim(auctab))) auctab <- matrix(auctab, nrow = 1)
-        row.names(auctab) <- tmp[dich_idx]
+        row.names(auctab) <- tmp[!is.na(table_list)][dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
+              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[!is.na(table_list)][dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
     }
     return(list(r2 = rsq_kab, auc = auc_kab))
 }

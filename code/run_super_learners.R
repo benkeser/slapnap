@@ -122,7 +122,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
         sl_opts <- get_sl_options(this_outcome_name, V = V)
         ## only do this if we have enough obs to run it
         if (run_sl_vimp_bools2$run_vimp[i]) {
-            cat("Fitting reduced learners for outcome ", nice_outcomes[i], "\n")
+            cat("Fitting reduced learners for outcome", nice_outcomes[i], "\n")
             ## read in the full folds, for this group's cv folds
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
             for (j in 1:length(all_var_groups)) {
