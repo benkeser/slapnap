@@ -212,14 +212,16 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
 #' @param num_obs_red number of obs used in the "reduced" regression
 #' @param outcome the outcome (e.g., "ic50")
 #' @param grp whether or not this is group importance
-biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts, vimp_threshold = 0.05, any_signif = FALSE) {
+biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts, vimp_threshold = 0.05, any_signif = list(grp_conditional = FALSE, grp_marginal = FALSE, ind_conditional = FALSE, ind_marginal = FALSE)) {
     outcome_text <- paste0(make_nice_outcome(outcome), ".")
     if (grp) {
         outer_descr <- "Group"
         inner_descr <- "feature group"
+        signif_check <- ifelse(marg & cond, any(any_signif[grepl("grp", names(any_signif))]), ifelse(marg, any(any_signif$grp_marginal), any(any_signif$grp_conditional)))
     } else {
         outer_descr <- "Individual"
         inner_descr <- "feature"
+        signif_check <- ifelse(marg & cond, any(any_signif[grepl("ind", names(any_signif))]), ifelse(marg, any(any_signif$ind_marginal), any(any_signif$ind_conditional)))
     }
     all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, ncomplete, outcomes = outcome)
     complete_obs_txt <- all_obs_txt$complete
@@ -227,9 +229,9 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
     redu_obs_txt <- all_obs_txt$redu
     full_func_txt <- ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, " based on geographic confounders only", " based on all available features"))
     redu_func_txt <- ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0(" based on the ", inner_descr, " of interest plus geographic confounders"), paste0(" based on the reduced set of features (defined by removing the ", inner_descr, " of interest)")))
-    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
     signif_txt <- paste0(" and stars denoting p-values less than ", vimp_threshold)
-    ci_txt <- paste0((1 - vimp_threshold) * 100, "\\% confidence intervals", ifelse(any_signif, signif_txt, ""), " are displayed in blue.")
+    ci_txt <- paste0(" ", (1 - vimp_threshold) * 100, "\\% confidence intervals", ifelse(signif_check, signif_txt, ""), " are displayed in blue.")
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ci_txt, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
     return(cap)
 }
 

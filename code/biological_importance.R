@@ -53,7 +53,7 @@ ran_vimp_dichot1 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.1", names(run
 ran_vimp_dichot2 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_vimp))]
 ran_vimp_dichot1 <- ifelse(length(ran_vimp_dichot1) == 0, FALSE, ran_vimp_dichot1)
 ran_vimp_dichot2 <- ifelse(length(ran_vimp_dichot2) == 0, FALSE, ran_vimp_dichot2)
-if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
+if (use_cv) {
     vimp_summary_tbl <- make_vimp_executive_summary_table(
         switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_cv_vimp_lst),
         switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_cv_vimp_lst),
