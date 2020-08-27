@@ -1075,7 +1075,7 @@ create_metadata <- function(dataset, opts) {
     return(metadata_tib)
 }
 make_nice_outcomes <- function(outcome_nms) {
-    gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC$_{50}$", gsub("ic50", "IC$_{50}$", outcome_nms))))))
+    gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC$_{80}$", gsub("ic50", "IC$_{50}$", outcome_nms))))))
 }
 # describe id variables
 describe_id_var <- function(var) {
