@@ -138,6 +138,9 @@ if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("co
 } else {
     ran_vimp_dichot1 <- FALSE
     ran_vimp_dichot2 <- FALSE
+    any_signif_all <- FALSE
+    log10.pc.ic50_any_signif <- log10.pc.ic80_any_signif <- iip_any_signif <- dichotomous.1_any_signif <- dichotomous.2_any_signif <- FALSE
+    log10.pc.ic50_any_signif_cv <- log10.pc.ic80_any_signif_cv <- iip_any_signif_cv <- dichotomous.1_any_signif_cv <- dichotomous.2_any_signif_cv <- FALSE
 }
 
 #-------------------------------------------------------

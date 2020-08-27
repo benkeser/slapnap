@@ -229,7 +229,7 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
     redu_func_txt <- ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0(" based on the ", inner_descr, " of interest plus geographic confounders"), paste0(" based on the reduced set of features (defined by removing the ", inner_descr, " of interest)")))
     cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
     signif_txt <- paste0(" and stars denoting p-values less than ", vimp_threshold)
-    ci_txt <- paste0((1 - vimp_threshold) * 100, "\% confidence intervals", ifelse(any_signif, signif_txt, ""), " are displayed in blue.")
+    ci_txt <- paste0((1 - vimp_threshold) * 100, "\\% confidence intervals", ifelse(any_signif, signif_txt, ""), " are displayed in blue.")
     return(cap)
 }
 
