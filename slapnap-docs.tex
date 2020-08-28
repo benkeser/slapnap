@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam,
 Peter B. Gilbert}
-\date{August 26, 2020}
+\date{August 28, 2020}
 
 \begin{document}
 \maketitle
@@ -240,7 +240,7 @@ subsequent predictive analyses.
 
 The CATNAP data are updated periodically. The data are downloaded into
 the \texttt{slapnap} container at every build. The most recent build
-occurred on August 26, 2020.
+occurred on August 28, 2020.
 
 \section{\texorpdfstring{Running
 \texttt{slapnap}}{Running slapnap}}\label{sec:runningcontainer}
@@ -338,6 +338,16 @@ values should be determined based on scientific context.
   the performance of the cross validation-selected best value of tuning
   parameters for the specified algorithm or the super learner,
   respectively.
+\item
+  \textbf{\texttt{var\_thresh}}: A numeric string that defines a
+  threshold for pre-screening features. If a single positive number, all
+  binary features with fewer than \texttt{var\_thresh} 0's or 1's are
+  removed prior to the specified \texttt{learner} training. If several
+  values are included in \texttt{var\_thresh} and a single
+  \texttt{learner} is specified, then cross-validation is used to select
+  the optimal threshold. If multiple \texttt{learner}s are specified,
+  then each \texttt{learner} is included in the super learner with
+  pre-screening based on each value of \texttt{var\_thresh}.
 \item
   \textbf{\texttt{nfolds}}: A numeric string indicating the number of
   folds to use in cross validation procedures (default = \texttt{"2"}).
