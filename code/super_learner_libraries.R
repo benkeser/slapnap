@@ -1,5 +1,4 @@
 # boosted algorithms
-
 SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, ntrees = 1000,
     max_depth = 4, shrinkage = 0.1, minobspernode = 10, params = list(),
     nthread = 1, verbose = 0, save_period = NULL, ...)
@@ -394,13 +393,54 @@ make_sl_library_vector <- function(opts){
         }
       }
     }
+
+    # check if screening is required
+    if(!all(opts$var_thresh == 0)){
+        # read into memory
+        for(i in opts$var_thresh){
+            make_screen_wrapper(var_thresh = i)
+        }
+        # include in list
+        learn_grid <- expand.grid(default_library, paste0("var_thresh_", opts$var_thresh))
+        default_library <- as.list(as.data.frame(t(learn_grid), stringsAsFactors = FALSE))
+    }
+
     # if fitting a super learner, throw in SL.mean
-    if(length(opts$learners) > 1){
-      default_library <- c(default_library, "SL.mean")
+    if(all(opts$var_thresh == 0)){
+        if(length(opts$learners) > 1){
+          default_library <- c(default_library, "SL.mean")
+        }
+    }else{
+        if(length(opts$learners) > 1){
+          default_library <- c(default_library, list(c("SL.mean", "All")))
+        }
     }
     return(default_library)
 }
 
+var_thresh_general <- function(Y, X, family, obsWeights, var_thresh, ...){
+    include <- rep(TRUE, ncol(X))
+    n <- length(X[,1])
+    for(i in 1:ncol(X)){
+        if(all(X[,i]) %in% c(0,1)){
+            sum_Xi <- sum(X[,i])
+            if(sum_Xi < var_thresh | sum_Xi > n - var_thresh){
+                include[i] <- FALSE
+            }
+        }
+    }
+    return(include)
+}
+
+#' read a screen wrapper into global environment
+make_screen_wrapper <- function(var_thresh){
+    eval(parse(text=paste0(
+        "var_thresh_", var_thresh, "<<-",
+          "function(..., var_thresh = ", var_thresh, "){",
+             "var_thresh_general(..., var_thresh = var_thresh)",
+          "}"
+    )))
+}
 
 #' function to run super learner and cv super learner on a single outcome
 #' @param complete_dat the full dataset
@@ -425,6 +465,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
                            outer_folds = rep(1, length(complete_dat[, outcome_name])),
                            full_fit = TRUE,
                            SL.library = "SL.mean",
+                           call_out = FALSE, 
                            ...){
   # three cases to worry about in terms of how to deal with missing data
   # 1. same_subset requested, but only studying ic80 or only studying ic50-derived outcomes,
@@ -461,69 +502,69 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   # unless we do not want to tune using CV nor evaluate performance using CV,
   # we will make a call to super learner
   if (!(opts$cvtune == FALSE & opts$cvperf == FALSE)) {
-    fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
-    # since cv super learner saves this as output and we need some parsimony later...
-    fit$Y <- newdat[ , outcome_name]
-    if (save_full_object) {
-        saveRDS(fit, file = paste0(save_dir, fit_name))
-        saveRDS(fit, file = paste0(save_dir, learner_name))
-    }
-    if (length(opts$learners) > 1) {
-      # save super learner predictions
-      saveRDS(fit$SL.predict, file = paste0(save_dir, fitted_name))
-      # save super learner weights
-      saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
-    } else if (length(opts$learners) == 1) {
-        # save learner predictions (these are cv-selected if cvtune = TRUE)
-        saveRDS(fit$library.predict[, which.min(fit$cvRisk)], file = paste0(save_dir, fitted_name))
-        # save learner
-        if (save_full_object) {
-            saveRDS(fit$fitLibrary[[which.min(fit$cvRisk)]]$object, file = paste0(save_dir, learner_name))
-        }
-    } else {
-        # don't save anything
-    }
-  } else {
-    # if we don't want to use CV at all, then use "default" learners
-    if (length(opts$learners) > 1) {
-        these_learners <- NULL
-        if ("rf" %in% opts$learners) {
-            these_learners <- c(these_learners, SL.library[grepl("ranger", SL.library)][1])
-        }
-        if ("lasso" %in% opts$learners) {
-            these_learners <- c(these_learners, SL.library[grepl("glmnet", SL.library)][1])
-        }
-        if ("xgboost" %in% opts$learners) {
-            these_learners <- c(these_learners, SL.library[grepl("xgboost", SL.library)][1])
-        }
-        these_learners <- c(these_learners, "SL.mean")
-        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = these_learners, ...)
+    if(call_out){
+        print(paste0("Fitting super learner with", SL.library, collapse = ","))
+    }else{
+        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+        # since cv super learner saves this as output and we need some parsimony later...
         fit$Y <- newdat[ , outcome_name]
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))
             saveRDS(fit, file = paste0(save_dir, learner_name))
         }
-        # save super learner predictions
-        saveRDS(fit$SL.predict, file = paste0(save_dir, fitted_name))
-        # save super learner weights
-        saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
-    } else {
-        # in this case, directly call the wrapper function
-        # note that it is the first instance of the first listed learner
-        if (opts$learners[1] == "rf") {
-            this_learner <- SL.library[grepl("ranger", SL.library)][1]
-        } else if (opts$learners[1] == "lasso") {
-            this_learner <- SL.library[grepl("glmnet", SL.library)][1]
+        if (length(opts$learners) > 1) {
+          # save super learner predictions
+          saveRDS(fit$SL.predict, file = paste0(save_dir, fitted_name))
+          # save super learner weights
+          saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
+        } else if (length(opts$learners) == 1) {
+            # save learner predictions (these are cv-selected if cvtune = TRUE)
+            saveRDS(fit$library.predict[, which.min(fit$cvRisk)], file = paste0(save_dir, fitted_name))
+            # save learner
+            if (save_full_object) {
+                saveRDS(fit$fitLibrary[[which.min(fit$cvRisk)]]$object, file = paste0(save_dir, learner_name))
+            }
         } else {
-            this_learner <- SL.library[grepl("xgboost", SL.library)][1]
+            # don't save anything
         }
-        fit <- do.call(this_learner, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = newdat[ , outcome_name], X = pred, newX = pred)))
-        saveRDS(fit$pred, file = paste0(save_dir, fitted_name))
-        # this will be an object with class native to what the individual learner is
-        # i.e., if rf is desired, it'll be ranger object
-        if (save_full_object) {
-            saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
-            saveRDS(fit$fit$object, file = paste0(save_dir, learner_name))
+    }
+  } else {
+    # if more than one learner is specified or more than one var_thresh is specified, 
+    # then we're fitting a super learner
+    if (length(opts$learners) > 1 | length(opts$var_thresh) > 1) {
+        if(call_out){
+            print(paste0("Fitting SuperLearner with ", SL.library, collapse = ","))
+        }else{
+            fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+            fit$Y <- newdat[ , outcome_name]
+            if (save_full_object) {
+                saveRDS(fit, file = paste0(save_dir, fit_name))
+                saveRDS(fit, file = paste0(save_dir, learner_name))
+            }
+            # save super learner predictions
+            saveRDS(fit$SL.predict, file = paste0(save_dir, fitted_name))
+            # save super learner weights
+            saveRDS(fit$coef, file = paste0(save_dir, "slweights_", fit_name))
+        }
+    } else {
+        if(all(opts$var_thresh == 0)){
+            include <- rep(TRUE, ncol(X))
+            this_learner <- SL.library
+        }else{
+            include <- do.call(paste0("var_thresh_", opts$var_thresh), args = list(X = pred))
+            this_learner <- SL.library[[1]][1]
+        }
+        if(call_out){
+            print(paste0("Fitting single algorithm ", ifelse(all(include), "with no screening", "with screening")))
+        }else{
+            fit <- do.call(SL.library, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = newdat[ , outcome_name], X = pred[,include, drop = FALSE], newX = pred[,include, drop = FALSE])))
+            saveRDS(fit$pred, file = paste0(save_dir, fitted_name))
+            # this will be an object with class native to what the individual learner is
+            # i.e., if rf is desired, it'll be ranger object
+            if (save_full_object) {
+                saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
+                saveRDS(fit$fit$object, file = paste0(save_dir, learner_name))
+            }
         }
     }
   }
@@ -535,23 +576,31 @@ sl_one_outcome <- function(complete_dat, outcome_name,
     # since we're trying to pick out e.g., the best single random forest fit
     # note that if either opts$cvtune AND/OR opts$cvperf is FALSE then everything we need
     # will already be in the SuperLearner fit object.
-    cv_fit <- do.call(CV.SuperLearner, new_arg_list)
-    if (save_full_object) {
-        saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
-        saveRDS(cv_fit, file = paste0(save_dir, cv_learner_name))
+    if(call_out){
+        print(paste0("Fitting CV.SuperLearner with ", SL.library, collapse = ","))
+    }else{
+        cv_fit <- do.call(CV.SuperLearner, new_arg_list)
+        if (save_full_object) {
+            saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+            saveRDS(cv_fit, file = paste0(save_dir, cv_learner_name))
+        }
+        saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, cv_fitted_name))
+        saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
     }
-    saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, cv_fitted_name))
-    saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
-  } else if (length(opts$learners) > 1 & opts$cvperf) {
-    # if multiple learners, then we are fitting a super learner so need CV superlearner
-    # unless cvperf = FALSE
-    cv_fit <- do.call(CV.SuperLearner, new_arg_list)
-    if (save_full_object) {
-        saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
-        saveRDS(cv_fit, file = paste0(save_dir, cv_learner_name))
+  } else if ((length(opts$learners) > 1 | length(opts$var_thresh) > 1) & opts$cvperf) {
+    if(call_out){
+        print(paste0("Fitting CV.SuperLearner with ", SL.library, collapse = ","))
+    }else{
+        # if multiple learners or multiple var_thresh then we need a CV superlearner
+        # unless cvperf = FALSE
+        cv_fit <- do.call(CV.SuperLearner, new_arg_list)
+        if (save_full_object) {
+            saveRDS(cv_fit, file = paste0(save_dir, cv_fit_name))
+            saveRDS(cv_fit, file = paste0(save_dir, cv_learner_name))
+        }
+        saveRDS(cv_fit$SL.predict, file = paste0(save_dir, cv_fitted_name))
+        saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
     }
-    saveRDS(cv_fit$SL.predict, file = paste0(save_dir, cv_fitted_name))
-    saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
 } else {
     # do nothing
 }

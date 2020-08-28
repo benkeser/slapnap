@@ -183,6 +183,9 @@ ENV view_port="FALSE"
 # option to subset to pseudoviruses that have all measured outcomes
 ENV same_subset="FALSE"
 
+# option to set minimum variability threshold for binary features
+ENV var_thresh="0"
+
 # add an argument to bust the cache, so that data are downloaded
 # fresh every build. taken from this SO answer:
 # https://stackoverflow.com/questions/35134713/disable-cache-for-specific-run-commands

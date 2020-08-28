@@ -170,6 +170,16 @@ complete_features_idx <- complete.cases(dat[ , min_cov_col_idx:ncol_data_final])
 # data with complete features
 dat_comp_ft <- dat[complete_features_idx, ]
 
+# get info on screening
+n_total_ft <- length(pred_names)
+n_ft_screen <- NULL
+if(!all(opts$var_thresh == 0)){
+    for(i in opts$var_thresh){
+        include <- var_thresh_general(X = dat_comp_ft[,pred_names], var_thresh = i)
+        n_ft_screen <- c(n_ft_screen, sum(include))
+    }
+}
+
 # iip column
 iip_col_idx <- which(colnames(dat_comp_ft) == "iip")
 # data used for ic50-related analyses

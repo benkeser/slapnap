@@ -32,22 +32,22 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bNAbs)", "y (bNAb)")` 
 * out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bNAb", " bNAbs")))`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bNAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bNAbs")))``r ifelse(opts$importance_grp == "", ".", check_sl_vimp_bin(opts, ran_sl_dichot2, ran_vimp_dichot2, "sens2"))`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
-Prediction of each outcome was performed using `r get_learner_descriptions(opts)`
+Prediction of each outcome was performed using `r get_learner_descriptions(opts, n_total_ft, n_ft_screen)`
 
 The specific `r ifelse((length(opts$learners) > 1) | opts$cvtune == TRUE, "algorithms", "algorithm")` used in the learning process `r ifelse((length(opts$learners) > 1) | opts$cvtune == TRUE, "are", "is")` described in Table \@ref(tab:sllibtab).
 
 ```{r sllibtab}
 source(paste0(code_dir, "super_learner_libraries.R"))
-this_library <- make_sl_library_vector(opts)
+# set var_thresh option to 0 to pull descriptions of algorithms only
+tmp_opts <- opts; tmp_opts$var_thresh <- "0"
+this_library <- make_sl_library_vector(tmp_opts)
 Description <- sapply(this_library, function(x){
   eval(parse(text = paste0("descr_", x)))
 })
-Description <- data.frame(Label = relabel_library(names(Description)), Description = Description)
+Description <- data.frame(Label = relabel_library(names(Description), tmp_opts), Description = Description)
 row.names(Description) <- NULL
 kable(as.data.frame(Description), col.names = c("Label", "Description"),
-             caption = ifelse(length(opts$learners) == 1,
-                              "Algorithms used in the analysis",
-                              "Algorithms used in the super learner library"))
+             caption = get_sllibtab_caption(opts))
 ```
 
 <!-- If we did cross-validated performance, print out cv performance metrics -->
@@ -61,7 +61,7 @@ if (opts$cvperf) {
 }
 ```
 
-The predictive ability of the learner was assessed using cross-validation. `r if(any_cont & opts$cvperf) paste0("The estimated cross-validated $R^2$ of the super learner for predicting ", ifelse(length(cont_nms) == 1, paste0(cont_nms, " is"), "continuous outcomes are"), " shown in Table \\@ref(tab:rsquaredtable).")` `r if(any_dich & opts$cvperf) paste0("The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the super learner for predicting ", ifelse(length(bin_nms) == 1, paste0(tolower(bin_nms), " is"), "binary sensitivity measures are "), " shown in Table \\@ref(tab:auctable).")`
+The predictive ability of the learner was assessed using cross-validation. `r if(any_cont & opts$cvperf) paste0("The estimated cross-validated $R^2$ of the learner for predicting ", ifelse(length(cont_nms) == 1, paste0(cont_nms, " is"), "continuous outcomes are"), " shown in Table \\@ref(tab:rsquaredtable).")` `r if(any_dich & opts$cvperf) paste0("The estimated cross-validated area under the receiver operating characteristic curve (AUC) of the learner for predicting ", ifelse(length(bin_nms) == 1, paste0(tolower(bin_nms), " is"), "binary sensitivity measures are "), " shown in Table \\@ref(tab:auctable).")`
 
 ```{r rsquaredtable, eval = any_cont & opts$cvperf}
 get_cv_outcomes_tables(fit_list_out, run_sl_vimp_bools$run_sl, run_sl_vimp_bools2$run_sl, opts)[[1]]
@@ -175,7 +175,7 @@ The weights assigned to each algorithm for Super Learner predicting `r est_filli
 
 ```{r ic50superlearnerweighttable, eval = ("ic50" %in% opts$outcomes) & (length(opts$learners) > 1)}
 weights_ic50 <- readRDS(paste0(slfits_dir, "slweights_fit_log10.pc.ic50.rds"))
-weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_ic50)
+weight_table <- data.frame(Learner = relabel_library(this_library, opts), Weight = weights_ic50)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
@@ -200,7 +200,7 @@ The cross-validated $R^2$ of the super learner and constituent algorithms (descr
 
 `r if (!opts$cvperf | (length(opts$learners) > 1) | !("ic50" %in% opts$outcomes)) "<!--"`
 
-The cross-validated $R^2$ of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic50).
+The cross-validated $R^2$ of the learner (with tuning parameters `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening")` selected via cross-validation) and of the learner with each individual value of tuning parameters `r ifelse(length(opts$var_thresh) == 1, "", "and level of pre-screening")` are shown in Figure \@ref(fig:plotic50).
 
 `r if (!opts$cvperf | length(opts$learners) > 1 | !("ic50" %in% opts$outcomes)) "-->"`
 
@@ -221,7 +221,7 @@ if ("figures" %in% opts$return) {
 `r if (!opts$cvperf | !("ic50" %in% opts$outcomes)) "<!--"`
 Figure \@ref(fig:plotic50predversusoutcomes) shows cross-validated predictions of `r est_fillin`IC$_{50}$ plotted against observed values of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$, colored by cross-validation fold.
 
-```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ plotted against actual `r est_fillin`IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
+```{r plotic50predversusoutcomes, eval = ("ic50" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " log$_{10}$(IC$_{50}$) plotted against observed value (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), " observations) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic50, outcome_name = ic50_lab, log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
@@ -366,7 +366,7 @@ The weights assigned to each algorithm for Super Learner predicting `r ifelse(le
 
 ```{r ic80superlearnerweighttable, eval = ("ic80" %in% opts$outcomes) & (length(opts$learners) > 1)}
 weights_ic80 <- readRDS(paste0(slfits_dir, "slweights_fit_log10.pc.ic80.rds"))
-weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_ic80)
+weight_table <- data.frame(Learner = relabel_library(this_library, opts), Weight = weights_ic80)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
@@ -389,7 +389,7 @@ The cross-validated $R^2$ of the super learner and constituent algorithms (descr
 
 `r if ((length(opts$learners) > 1) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 
-The cross-validated $R^2$ of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic80).
+The cross-validated $R^2$ of the learner (with tuning parameters `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening")` selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotic80).
 
 `r if ((length(opts$learners) > 1) | !("ic80" %in% opts$outcomes) | !opts$cvperf) "-->"`
 
@@ -408,7 +408,7 @@ ggsave(filename = paste0("/home/output/ic80_slplot_", postfix, ".png"), plot = p
 `r if (!("ic80" %in% opts$outcomes) | !opts$cvperf) "<!--"`
 Figure \@ref(fig:plotic80predversusoutcomes) shows cross-validated predictions of `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ plotted against observed values of `r est_fillin`IC$_{80}$, colored by cross-validation fold.
 
-```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ plotted against actual ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations) . Colors correspond to cross-validation folds.")}
+```{r plotic80predversusoutcomes, eval = ("ic80" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted ", ifelse(length(opts$nab) == 1, "", "estimated"), "log$_{10}$(IC$_{80})$ plotted against observed value (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), " observations) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$ic80, outcome_name = ic80_lab, log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
@@ -534,7 +534,7 @@ The weights assigned to each algorithm for Super Learner predicting IIP are show
 
 ```{r iipsuperlearnerweighttable, eval = ("iip" %in% opts$outcomes) & (length(opts$learners) > 1)}
 weights_iip <- readRDS(paste0(slfits_dir, "slweights_fit_iip.rds"))
-weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_iip)
+weight_table <- data.frame(Learner = relabel_library(this_library, opts), Weight = weights_iip)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
@@ -557,7 +557,7 @@ The cross-validated $R^2$ of the super learner and constituent algorithms (descr
 
 `r if (!("iip" %in% opts$outcomes) | (!opts$cvperf) |(length(opts$learners) > 1)) "<!--"`
 
-The cross-validated $R^2$ of the learner (with tuning parameters selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotiip).
+The cross-validated $R^2$ of the learner (with tuning parameters `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening")` selected via cross-validation) and of the learner with each individual value of tuning parameters are shown in Figure \@ref(fig:plotiip).
 
 `r if (!("iip" %in% opts$outcomes) | (!opts$cvperf) |(length(opts$learners) > 1)) "-->"`
 
@@ -574,7 +574,7 @@ ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = p
 
 Figure \@ref(fig:plotiippredversusoutcomes) shows cross-validated predictions of IIP plotted against observed values of IIP, colored by cross-validation fold.
 
-```{r plotiippredversusoutcomes, eval = ("iip" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted IIP plotted against actual IIP values (", ncomplete_ic5080, " observations) . Colors correspond to cross-validation folds.")}
+```{r plotiippredversusoutcomes, eval = ("iip" %in% opts$outcomes) & (opts$cvperf), fig.cap = paste0("Cross-validated super learner predicted IIP plotted against observed value (", ncomplete_ic5080, " observations) . Colors correspond to cross-validation folds.")}
 plot_cv_predictions(cv_fit = fit_list_out$out$iip, outcome_name = "IIP", log_axis = FALSE)
 # if save figs, save
 if ("figures" %in% opts$return) {
@@ -681,7 +681,7 @@ The weights assigned to each algorithm for Super Learner predicting `r est_filli
 
 ```{r sens1superlearnerweighttable, eval = ("sens1" %in% opts$outcomes) & (length(opts$learners) > 1) & ran_sl_dichot1}
 weights_sens1 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.1.rds"))
-weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_sens1)
+weight_table <- data.frame(Learner = relabel_library(this_library, opts), Weight = weights_sens1)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
@@ -704,7 +704,7 @@ The cross-validated area under the ROC curve of super learner predictions of `r 
 
 `r if (!("sens1" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & "sens1" %in% opts$outcomes) | !ran_sl_dichot1) "<!--"`
 
-The cross-validated area under the ROC curve of the learner with tuning parameters selected via cross-validation and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
+The cross-validated area under the ROC curve of the learner with tuning parameters `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening")` selected via cross-validation and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
 ```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1, fig.cap = paste0("Cross-validated AUC for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")}
 plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
@@ -725,15 +725,15 @@ Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting 
 ```{r roccap1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1}
 roc_cap <- if(length(opts$learners) > 1){
   paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")
-}else if(!opts$cvtune){
+}else if(!opts$cvtune & length(opts$var_tresh) == 1){
   paste0("Cross-validated ROC curve for the specified learner for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")
 }else{
-  paste0("Cross-validated ROC curve for the learner (with tuning parameters selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated ROC curve for the learner (with tuning parameters ", ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening level"), " selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")
 }
 
 predprob_cap <- if(length(opts$learners) > 1){
   paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
-}else if(!opts$cvtune){
+}else if(!opts$cvtune & length(opts$var_tresh) == 1){
   paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
 }else{
   paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
@@ -858,7 +858,7 @@ The weights assigned to each algorithm for Super Learner predicting multiple sen
 
 ```{r sens2superlearnerweighttable, eval = ("sens2" %in% opts$outcomes) & (length(opts$learners) > 1) & ran_sl_dichot2}
 weights_sens2 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.2.rds"))
-weight_table <- data.frame(Learner = relabel_library(this_library), Weight = weights_sens2)
+weight_table <- data.frame(Learner = relabel_library(this_library, opts), Weight = weights_sens2)
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
@@ -883,7 +883,7 @@ The cross-validated area under the ROC curve for the super learner in predicting
 
 `r if (!("sens2" %in% opts$outcomes) | !opts$cvperf | (length(opts$learners) == 1 & !opts$cvtune) | !ran_sl_dichot2) "<!--"`
 
-The cross-validated area under the ROC curve for the learner with tuning parameters selected via cross-validation and for learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2).
+The cross-validated area under the ROC curve for the learner with tuning parameters `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening")` selected via cross-validation and for learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2).
 
 ```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot2, fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete_ic50, " observations).")}
 plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
@@ -903,10 +903,10 @@ Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting 
 ```{r roccap2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot2}
 roc_cap <- if(length(opts$learners) > 1){
   paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations).")
-}else if(!opts$cvtune){
+}else if(!opts$cvtune & length(opts$var_thresh) == 1){
   paste0("Cross-validated ROC curve for the specified learner for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations).")
 }else{
-  paste0("Cross-validated ROC curve for the learner (with tuning parameters selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated ROC curve for the learner (with tuning parameters ", `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening"), " selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations).")
 }
 
 predprob_cap <- if(length(opts$learners) > 1){
