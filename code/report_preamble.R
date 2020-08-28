@@ -131,6 +131,8 @@ run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
 run_sl_vimp_bools2 <- lapply(check_outcomes(dat, outcome_names, V), function(x){
     x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
 })
+# check whether we should use cv objects or not
+use_cv <- (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)
 
 ## get biological importance
 if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
@@ -138,6 +140,9 @@ if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("co
 } else {
     ran_vimp_dichot1 <- FALSE
     ran_vimp_dichot2 <- FALSE
+    any_signif_all <- FALSE
+    log10.pc.ic50_any_signif <- log10.pc.ic80_any_signif <- iip_any_signif <- dichotomous.1_any_signif <- dichotomous.2_any_signif <- FALSE
+    log10.pc.ic50_any_signif_cv <- log10.pc.ic80_any_signif_cv <- iip_any_signif_cv <- dichotomous.1_any_signif_cv <- dichotomous.2_any_signif_cv <- FALSE
 }
 
 #-------------------------------------------------------

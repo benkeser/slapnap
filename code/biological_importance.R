@@ -4,6 +4,11 @@
 ## ----------------------------------------------------------------------------
 num_pop_import <- 20  # the number of individual features to display in plots
 
+# check whether or not there were any statistically significant groups;
+# initialize to none
+check_signif <- function(x, vimp_threshold) lapply(x, function(z) any(z$p_value < vimp_threshold))
+log10.pc.ic50_any_signif <- log10.pc.ic50_any_signif_cv <- log10.pc.ic80_any_signif <- log10.pc.ic80_any_signif_cv <- iip_any_signif <- iip_any_signif_cv <- dichotomous.1_any_signif <- dichotomous.1_any_signif_cv <- dichotomous.2_any_signif <- dichotomous.2_any_signif_cv <- list(grp_conditional = FALSE, grp_marginal = FALSE, ind_conditional = FALSE, ind_marginal = FALSE)
+
 ## plotting things
 x_lab_continuous <- expression(paste("Difference in ", R^2, sep = ""))
 x_lab_binary <- expression(paste("Difference in ", AUC, sep = ""))
@@ -26,6 +31,9 @@ for (i in 1:length(outcome_names)) {
         eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_vimp.rds'))")))
         eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_cv_vimp.rds'))")))
         eval(parse(text = paste0(this_outcome_name, "_outer_folds <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_outer_folds.rds'))")))
+        ## set whether or not any were significant; a list of booleans
+        eval(parse(text = paste0(this_outcome_name, "_any_signif <- check_signif(", this_outcome_name, "_vimp_lst, vimp_threshold)")))
+        eval(parse(text = paste0(this_outcome_name, "_any_signif_cv <- check_signif(", this_outcome_name, "_cv_vimp_lst, vimp_threshold)")))
         eval(parse(text = paste0("num_obs_fulls[i] <- sum(", this_outcome_name, "_outer_folds == 1)")))
         eval(parse(text = paste0("num_obs_reds[i] <- sum(", this_outcome_name, "_outer_folds == 2)")))
         ## make plots
@@ -45,7 +53,7 @@ ran_vimp_dichot1 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.1", names(run
 ran_vimp_dichot2 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_vimp))]
 ran_vimp_dichot1 <- ifelse(length(ran_vimp_dichot1) == 0, FALSE, ran_vimp_dichot1)
 ran_vimp_dichot2 <- ifelse(length(ran_vimp_dichot2) == 0, FALSE, ran_vimp_dichot2)
-if (opts$cvperf) {
+if (use_cv) {
     vimp_summary_tbl <- make_vimp_executive_summary_table(
         switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_cv_vimp_lst),
         switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_cv_vimp_lst),
@@ -53,6 +61,13 @@ if (opts$cvperf) {
         switch((("dichotomous.1" %in% outcome_names) & (ran_vimp_dichot1)) + 1, NULL, dichotomous.1_cv_vimp_lst),
         switch((("dichotomous.2" %in% outcome_names) & (ran_vimp_dichot2)) + 1, NULL, dichotomous.2_cv_vimp_lst),
         threshold = vimp_threshold, outcome_names = all_outcome_names, cv = TRUE, opts = opts)
+        any_signif_all <- any(
+            switch("log10.pc.ic50" %in% outcome_names + 1, NULL, unlist(log10.pc.ic50_any_signif_cv)),
+            switch("log10.pc.ic80" %in% outcome_names + 1, NULL, unlist(log10.pc.ic80_any_signif_cv)),
+            switch("iip" %in% outcome_names + 1, NULL, unlist(iip_any_signif_cv)),
+            switch((("dichotomous.1" %in% outcome_names) & (ran_vimp_dichot1)) + 1, NULL, unlist(dichotomous.1_any_signif_cv)),
+            switch((("dichotomous.2" %in% outcome_names) & (ran_vimp_dichot2)) + 1, NULL, unlist(dichotomous.2_any_signif_cv))
+            )
 } else {
     vimp_summary_tbl <- make_vimp_executive_summary_table(switch("log10.pc.ic50" %in% outcome_names + 1, NULL, log10.pc.ic50_vimp_lst),
     switch("log10.pc.ic80" %in% outcome_names + 1, NULL, log10.pc.ic80_vimp_lst),
@@ -60,4 +75,11 @@ if (opts$cvperf) {
     switch((("dichotomous.1" %in% outcome_names) & (ran_vimp_dichot1)) + 1, NULL, dichotomous.1_vimp_lst),
     switch((("dichotomous.2" %in% outcome_names) & (ran_vimp_dichot2)) + 1, NULL, dichotomous.2_vimp_lst),
     threshold = vimp_threshold, outcome_names = all_outcome_names, cv = FALSE, opts = opts)
+    any_signif_all <- any(
+        switch("log10.pc.ic50" %in% outcome_names + 1, NULL, unlist(log10.pc.ic50_any_signif)),
+        switch("log10.pc.ic80" %in% outcome_names + 1, NULL, unlist(log10.pc.ic80_any_signif)),
+        switch("iip" %in% outcome_names + 1, NULL, unlist(iip_any_signif)),
+        switch((("dichotomous.1" %in% outcome_names) & (ran_vimp_dichot1)) + 1, NULL, unlist(dichotomous.1_any_signif)),
+        switch((("dichotomous.2" %in% outcome_names) & (ran_vimp_dichot2)) + 1, NULL, unlist(dichotomous.2_any_signif))
+        )
 }
