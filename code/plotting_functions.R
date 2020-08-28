@@ -136,8 +136,8 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
                                      rgb(90,177,187, alpha = 255/2, maxColorValue = 255),
                                      rgb(165, 200, 130, alpha = 255/2, maxColorValue = 255)),
                             opts) {
-  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = relabel_library(as.character(Algorithm)))
-  colnames(cv_fit[["library.predict"]]) <- relabel_library(colnames(cv_fit[["library.predict"]]))
+  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = relabel_library(as.character(Algorithm), opts))
+  colnames(cv_fit[["library.predict"]]) <- relabel_library(colnames(cv_fit[["library.predict"]]), opts)
 
   # if CV.super learner then top two rows will be super learner and DSL
   if(length(opts$learners) > 1){
@@ -156,7 +156,7 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
       # if here, then just one algo, so just show curve for one algo
       predict <- cv_fit[["Z"]][,1] %>% as.data.frame() %>%
       bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
-      predict$algo <- relabel_library(cv_fit$libraryNames[1])
+      predict$algo <- relabel_library(cv_fit$libraryNames[1], opts)
       colnames(predict)[1] <- "pred"
     }else{
       # if here, then just want to show discrete super learner curve
@@ -185,8 +185,8 @@ plot_roc_curves <- function(cv_fit, topRank = 1,
 }
 
 plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
-  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = relabel_library(as.character(Algorithm)))
-  colnames(cv_fit[["library.predict"]]) <- relabel_library(colnames(cv_fit[["library.predict"]]))
+  allAlgos <- summary(cv_fit, method = "method.AUC", opts = opts)$Table %>% mutate(Algorithm = relabel_library(as.character(Algorithm), opts))
+  colnames(cv_fit[["library.predict"]]) <- relabel_library(colnames(cv_fit[["library.predict"]]), opts)
   # if CV.super learner then top two rows will be super learner and DSL
   if(length(opts$learners) > 1){
     # if super learner show ROC for SL, DSL, and top topRank algorithms
@@ -209,7 +209,7 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
       # if here, then just one algo, so just show curve for one algo
       predict <- cv_fit[["Z"]][,1] %>% as.data.frame() %>%
       bind_cols(cv_fit[["Y"]] %>% as.data.frame() %>% `colnames<-`(c("Y")))
-      predict$algo <- relabel_library(cv_fit$libraryNames[1])
+      predict$algo <- relabel_library(cv_fit$libraryNames[1], opts)
       colnames(predict)[1] <- "pred"
       cv_folds <- rep(NA, length(cv_fit$Y))
       for(v in seq_along(cv_fit$validRows)){
@@ -266,7 +266,7 @@ plot.myCV.SuperLearner <- function (x, package = "ggplot2", constant = qnorm(0.9
       logit_se <- sqrt(se^2 * grad^2)
       Lower <- plogis(qlogis(Mean) - constant * logit_se); Upper <- plogis(qlogis(Mean) + constant * logit_se)
     }
-    relab_lib <- relabel_library(sumx$Table$Algorithm)
+    relab_lib <- relabel_library(sumx$Table$Algorithm, opts)
     factor_relab_lib <- factor(relab_lib, levels = relab_lib)
     assign("d", data.frame(Y = Mean, X = factor_relab_lib,
         Lower = Lower, Upper = Upper))

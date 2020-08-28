@@ -1,4 +1,26 @@
-relabel_library <- function(library_names){
+get_sllibtab_caption <- function(opts){
+    tmp <- NULL
+    if(length(opts$learners) == 1){
+        tmp <- paste0(tmp, "Algorithms used in the analysis")
+    }else{
+        tmp <- paste0(tmp, "Algorithms used in the super learner library")
+    }
+    if(!all(opts$var_thresh == 0)){
+        if(length(opts$var_thresh) == 1){
+            tmp <- paste0(tmp, ". Variable pre-screening was applied to each algorithm to ensure all binary features had at least ", opts$var_thresh, " minority variants.")
+        }else{
+            if(length(opts$learners) == 1){
+                tmp <- paste0(tmp, ". Variable pre-screening procedures were applied to each algorithm to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
+                              " The optimal screening approach was selected using cross-validation.")
+            }else{
+                tmp <- paste0(tmp, ". Each algorithm was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.")
+            }
+        }
+    }
+    return(tmp)
+}
+
+relabel_library <- function(library_names, opts){
     labels <- list(
       c("SL.ranger.reg", "rf_default"),
       c("SL.ranger.small", "rf_tune1"),
@@ -13,10 +35,25 @@ relabel_library <- function(library_names){
       c("SL.glmnet.75", "lasso_tune3"),
       c("SL.mean", "mean")
     )
-    all_included <- any(grepl("_All", library_names))
+    screens_included <- any(grepl("_All", library_names)) | any(grepl("_var_thresh", library_names))
     for(i in seq_along(labels)){
-        library_names <- gsub(paste0(labels[[i]][1], ifelse(all_included, "_All", "")),
+        library_names <- gsub(paste0(labels[[i]][1], ifelse(screens_included, "_All", "")),
                               labels[[i]][2], library_names)
+        for(j in opts$var_thresh){
+            library_names <- gsub(paste0(labels[[i]][1], ifelse(screens_included, paste0("_var_thresh_", j), "")),
+                              paste0(labels[[i]][2],"_screen", j), library_names)
+        }
+    }
+    if(!all(opts$var_thresh == 0) & !screens_included){
+        tmp <- NULL
+        library_names_minus_mean <- library_names[!(library_names %in% c("mean", "Discrete SL", "Super Learner"))]
+        for(i in opts$var_thresh){
+            tmp <- c(tmp, paste0(library_names_minus_mean, "_screen", i))
+        }
+        if(any(library_names == "mean")){
+            tmp <- c(tmp, "mean")
+        }
+        library_names <- tmp
     }
     library_names <- gsub("Super Learner", "super learner", library_names)
     library_names <- gsub("Discrete SL", "cv selector", library_names)
@@ -322,20 +359,45 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
     return(list(hist = out_hist, summary = out_summary))
 }
 
-get_learner_descriptions <- function(opts){
+get_learner_descriptions <- function(opts, n_total_ft, n_ft_screen){
 
     if(length(opts$learners) == 1){
-        learner_label <- if(opts$learners[1] == "rf"){
+        tmp <- if(opts$learners[1] == "rf"){
             "random forest [@breiman2001]"
         }else if(opts$learners[1] == "xgboost"){
             "extreme gradient boosting [@chen2016]"
-        }else if(opts$learners[1] == "lasso [@zou2005]"){
-            "elastic net regression"
+        }else if(opts$learners[1] == "lasso"){
+            "elastic net regression [@zou2005]"
         }
-        tmp <- paste(learner_label,
-                     ifelse(opts$cvtune,
-                            "with tuning parameters selected using a limited grid search and cross-validation.",
-                            "with tuning parameters set to their 'default' values."))
+        if(all(opts$var_thresh == 0) & !opts$cvtune){
+            tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.")
+        }else if(all(opts$var_thresh == 0) & opts$cvtune){
+            tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.")
+        }else if(!all(opts$var_thresh == 0) & !opts$cvtune){
+            if(length(opts$var_thresh) == 1){
+                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.", 
+                              " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
+                              " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
+            }else{
+                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.", 
+                              " Variable pre-screening procedures were applied that ensured that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
+                              " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.",
+                              " The optimal screening approach was selected using cross-validation.")
+            }
+        }else if(!all(opts$var_thresh == 0) & opts$cvtune){
+            if(length(opts$var_thresh) == 1){
+                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.", 
+                              " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
+                              " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
+            }else{
+                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.", 
+                              " Variable pre-screening procedures were also applied that ensured that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
+                              " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.",
+                              " The optimal screening approach was also selected using cross-validation.")
+            }
+        }else{
+            tmp <- paste0(tmp, ".")
+        }
     } else {
         lib_label <- NULL
         if("rf" %in% opts$learners){
@@ -358,6 +420,15 @@ get_learner_descriptions <- function(opts){
             lib_label <- paste0(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "elastic net regression", ifelse(opts$cvtune, "s [@zou2005] with varied tuning parameters", " [@zou2005]")))
         }
         tmp <- paste0("a super learner ensemble [@vanderlaan2007] of ", lib_label, " and intercept-only regression.")
+        if(!all(opts$var_thresh == 0)){
+            if(length(opts$var_thresh) == 1){
+                tmp <- paste0(tmp, " Each algorithm included a variable pre-screening to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
+                              " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
+            }else{
+                tmp <- paste0(tmp, " Each algorithm was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
+                              " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.")
+            }
+        }
     }
     return(tmp)
 }
@@ -366,7 +437,7 @@ get_learner_descriptions <- function(opts){
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
 
 get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
-    tmp <- paste0("Estimates of ", V, "-fold cross-validated $R^2$ for super learner predictions of ")
+    tmp <- paste0("Estimates of ", V, "-fold cross-validated $R^2$ for predictions of ")
     if ("ic50" %in% opts$outcomes) {
         tmp <- paste0(tmp, "IC$_{50}$")
     }
@@ -421,7 +492,8 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
     # now format continuous outcomes table
-    cont_idx <- which((opts$outcomes %in% c("ic50", "ic80", "iip")) & run_sls2)
+    sls_run <- (all_possible_outcomes %in% opts$outcomes) & run_sls    
+    cont_idx <- which(sls_run)[which(sls_run) <= 3]
     rsq_kab <- NULL
 
     if(length(cont_idx) > 0){
@@ -434,7 +506,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
               caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
     }
     # now format dichotomous outcomes table
-    dich_idx <- which((opts$outcomes %in% c("sens1", "sens2")) & run_sls2)
+    dich_idx <- which(sls_run)[which(sls_run) > 3]
     auc_kab <- NULL
     if(length(dich_idx) > 0){
         list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list[!is.na(table_list)], Rsquared = FALSE, simplify = FALSE)
@@ -443,7 +515,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
         row.names(auctab) <- tmp[!is.na(table_list)][dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for super learner predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[!is.na(table_list)][dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
+              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
     }
     return(list(r2 = rsq_kab, auc = auc_kab))
 }
@@ -457,7 +529,8 @@ load_cv_fits <- function(opts, run_sls, code_dir){
     out_list <- vector(mode = "list", length = length(opts$outcomes))
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")[run_sls]
     all_file_labels <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1", "dichotomous.2")[run_sls]
-    if(length(opts$learners) == 1 & !opts$cvtune){
+    # if only one learner used with no cvtuning and only one variable screen, then super learner was fit to assess CV performance
+    if(length(opts$learners) == 1 & length(opts$var_thresh) == 1 & !opts$cvtune){
         ct <- 0
         for(i in seq_along(all_outcomes)){
             if(all_outcomes[i] %in% opts$outcomes){
@@ -467,6 +540,7 @@ load_cv_fits <- function(opts, run_sls, code_dir){
                 names(out_list)[ct] <- all_outcomes[i]
             }
         }
+    # other wise cv super learner was used to assess CV performance
     }else{
         ct <- 0
         for(i in seq_along(all_outcomes)){
@@ -608,10 +682,10 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 ## read in permanent options
 get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf", "nfolds",
                                            "importance_grp", "importance_ind", "report_name", "return",
-                                           "sens_thresh", "multsens_nab", "same_subset"),
+                                           "sens_thresh", "multsens_nab", "same_subset", "var_thresh"),
                                options_boolean = c(FALSE, FALSE, FALSE, TRUE,
                                                    TRUE, FALSE, FALSE, FALSE, FALSE, FALSE,
-                                                   FALSE, FALSE, TRUE)){
+                                                   FALSE, FALSE, TRUE, FALSE)){
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
     # replace sensitivity with sens1/2 labels
