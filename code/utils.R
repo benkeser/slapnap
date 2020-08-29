@@ -144,7 +144,7 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
 #' @param num_obs_reds number of total obs for reduced regression (may differ for each outcome)
 #' @param n_row_now (may differ for each outcome)
 #' @param importance_type "marginal" or "conditional"
-get_biological_importance_table_description <- function(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, n_row_now, vimp_threshold, importance_type) {
+get_biological_importance_table_description <- function(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, n_row_now, vimp_threshold, importance_type, any_signif) {
     rel_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the remaining features")
     full_func_txt <- ifelse(importance_type == "marginal", "the feature group of interest", "all available features")
     redu_func_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the reduced set of features (defined by removing the feature group of interest)")
@@ -157,7 +157,8 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
     bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
     correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
-    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, " Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.", " (", complete_obs_txt, "; for estimating the prediction functions based on ", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction functions based on ", redu_func_txt, ", ", redu_obs_txt, ")")
+    signif_txt <- paste0(" Stars next to ranks denote groups with p-value less than ", vimp_threshold, " from a hypothesis test with null hypothesis of zero importance.")
+    descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, ifelse(any_signif, signif_txt, ""), " (", complete_obs_txt, "; for estimating the prediction functions based on ", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction functions based on ", redu_func_txt, ", ", redu_obs_txt, ")")
     return(descr)
 }
 # @param outcomes: can specify to only return text for a single outcome
@@ -248,14 +249,16 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
 #' @param num_obs_red number of obs used in the "reduced" regression
 #' @param outcome the outcome (e.g., "ic50")
 #' @param grp whether or not this is group importance
-biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts) {
+biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts, vimp_threshold = 0.05, any_signif = list(grp_conditional = FALSE, grp_marginal = FALSE, ind_conditional = FALSE, ind_marginal = FALSE)) {
     outcome_text <- paste0(make_nice_outcome(outcome), ".")
     if (grp) {
         outer_descr <- "Group"
         inner_descr <- "feature group"
+        signif_check <- ifelse(marg & cond, any(any_signif[grepl("grp", names(any_signif))]), ifelse(marg, any(any_signif$grp_marginal), any(any_signif$grp_conditional)))
     } else {
         outer_descr <- "Individual"
         inner_descr <- "feature"
+        signif_check <- ifelse(marg & cond, any(any_signif[grepl("ind", names(any_signif))]), ifelse(marg, any(any_signif$ind_marginal), any(any_signif$ind_conditional)))
     }
     all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, ncomplete, outcomes = outcome)
     complete_obs_txt <- all_obs_txt$complete
@@ -263,7 +266,9 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
     redu_obs_txt <- all_obs_txt$redu
     full_func_txt <- ifelse(marg & cond, "s based on all available features and geographic confounders only", ifelse(marg, " based on geographic confounders only", " based on all available features"))
     redu_func_txt <- ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0(" based on the ", inner_descr, " of interest plus geographic confounders"), paste0(" based on the reduced set of features (defined by removing the ", inner_descr, " of interest)")))
-    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
+    signif_txt <- paste0(" and stars denoting p-values less than ", vimp_threshold)
+    ci_txt <- paste0(" ", (1 - vimp_threshold) * 100, "\\% confidence intervals", ifelse(signif_check, signif_txt, ""), " are displayed in blue.")
+    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ci_txt, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
     return(cap)
 }
 
@@ -470,7 +475,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
             names(na_list) <- all_possible_outcomes[!run_sls]
         } else {
             na_list <- rep(list(NA), length(all_possible_outcomes) - length(fit_list))
-            names(na_list) <- all_possible_outcomes[!(names(fit_list) %in% all_possible_outcomes)]
+            names(na_list) <- all_possible_outcomes[!(names(fit_list) == all_possible_outcomes)]
         }
         table_list2 <- c(table_list, na_list)
         table_list3 <- list(ic50 = table_list2$ic50, ic80 = table_list2$ic80, iip = table_list2$iip, sens1 = table_list2$sens1, sens2 = table_list2$sens2)
@@ -492,10 +497,10 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
     rsq_kab <- NULL
 
     if(length(cont_idx) > 0){
-        list_rows <- sapply(cont_idx, get_est_and_ci, fit_list = table_list, Rsquared = TRUE, simplify = FALSE)
+        list_rows <- sapply(cont_idx, get_est_and_ci, fit_list = table_list[!is.na(table_list)], Rsquared = TRUE, simplify = FALSE)
         rsqtab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
         if(is.null(dim(rsqtab))) rsqtab <- matrix(rsqtab, nrow = 1)
-        row.names(rsqtab) <- tmp[cont_idx]
+        row.names(rsqtab) <- tmp[!is.na(table_list)][cont_idx]
         rsq_kab <- knitr::kable(rsqtab, col.names = c("CV-R$^2$", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
@@ -504,10 +509,10 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
     dich_idx <- which(sls_run)[which(sls_run) > 3]
     auc_kab <- NULL
     if(length(dich_idx) > 0){
-        list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list, Rsquared = FALSE, simplify = FALSE)
+        list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list[!is.na(table_list)], Rsquared = FALSE, simplify = FALSE)
         auctab <- Reduce(rbind, lapply(list_rows, unlist, use.names = FALSE))
         if(is.null(dim(auctab))) auctab <- matrix(auctab, nrow = 1)
-        row.names(auctab) <- tmp[dich_idx]
+        row.names(auctab) <- tmp[!is.na(table_list)][dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
               caption = paste0("Estimates of ", V, "-fold cross-validated AUC for predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
@@ -1144,7 +1149,7 @@ create_metadata <- function(dataset, opts) {
     return(metadata_tib)
 }
 make_nice_outcomes <- function(outcome_nms) {
-    gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC$_{50}$", gsub("ic50", "IC$_{50}$", outcome_nms))))))
+    gsub("multsens", "Multiple Sensitivity", gsub("estsens", "Estimated Sensitivity", gsub("sens", "Sensitivity", gsub("iip", "IIP", gsub("ic80", "IC$_{80}$", gsub("ic50", "IC$_{50}$", outcome_nms))))))
 }
 # describe id variables
 describe_id_var <- function(var) {
@@ -1162,8 +1167,8 @@ describe_id_var <- function(var) {
 }
 # describe outcomes
 describe_outcome_var <- function(var, opts) {
-    predicted_text_ic50 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{50}$ for bNAb $j$.")
-    predicted_text_ic80 <- paste0("computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{80}$ for bNAb $j$.")
+    predicted_text_ic50 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{50}$ for bNAb $j$.")
+    predicted_text_ic80 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{80}$ for bNAb $j$.")
     if (grepl("ic50", var)) {
         descr <- paste0("Outcome variable: IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
     } else if (grepl("ic80", var)) {

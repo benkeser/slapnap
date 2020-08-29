@@ -216,7 +216,7 @@ Table \@ref(tab:variables) provides the name and description of each variable in
 
 ```{r variables}
 metadata_tab <- create_metadata(analysis_dataset, opts)
-kable(metadata_tab, caption = "Variables in the analysis dataset, with names and descriptions.")
+kable(metadata_tab, caption = "Variables in the analysis dataset, with names and descriptions. Numeric codes followed by a single letter denote the presence of an amino acid (AA) residue at a given site (relative to HXB2). Other suffixes are: 'sequon_actual', referring to the site having a leading AA for the canonical N-linked glycosylation motif (“N[!P]{S/T]”; in other words, this AA will be an “N”, and the following two AAs will conform to the motif); 'gap', referring to an observed gap at this site after alignment to maintain site-specific relevance; and 'frameshift', referring to a gap at this site that resulted in a frameshift. The prefix 'num' denotes the number (e.g., 'num.cysteines' refers to the number of cysteines), while the prefix 'length' denotes the length of the specified region (excluding gaps and frameshifts).")
 ```
 
 # References
