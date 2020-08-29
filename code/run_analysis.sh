@@ -22,7 +22,6 @@ printf "Messages, warnings, and errors (if any) will appear in your output direc
 # make sure that user-specified options match what we expect to see
 printf "Checking options \n"
 echo "--- Checking options --- " > $log_file
-Rscript /home/lib/check_opts.R >> $log_file 2>&1
 # check if output directory is mounted or view_port is turned on
 check_mount=$(mount | grep '/home/output')
 mount_val=$?
@@ -31,6 +30,7 @@ then
     printf "No way to receive slapnap output. Mounting a directory to the container directory /home/output (-v) or set -e view_port='TRUE'. See documentation for further details."
     exit 125
 fi
+Rscript /home/lib/check_opts.R >> $log_file 2>&1
 
 # run script to build analytic data set
 printf "Building analytic data set from CATNAP database \n"

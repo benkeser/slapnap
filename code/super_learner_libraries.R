@@ -436,7 +436,7 @@ var_thresh_general <- function(Y, X, family, obsWeights, var_thresh, ...){
 make_screen_wrapper <- function(var_thresh){
     eval(parse(text=paste0(
         "var_thresh_", var_thresh, "<<-",
-          "function(..., var_thresh = ", var_thresh, "){",
+          "function(..., var_thresh = ", as.numeric(var_thresh), "){",
              "var_thresh_general(..., var_thresh = var_thresh)",
           "}"
     )))
