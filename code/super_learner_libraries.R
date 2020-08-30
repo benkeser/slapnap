@@ -38,23 +38,27 @@ SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length
     return(out)
 }
 
-SL.xgboost.2 <- function(..., max_depth = 2){
-	SL.xgboost.corrected(..., max_depth = max_depth)
-}
+# SL.xgboost.2 <- function(..., max_depth = 2){
+# 	SL.xgboost.corrected(..., max_depth = max_depth)
+# }
 SL.xgboost.4 <- function(..., max_depth = 4){
 	SL.xgboost.corrected(..., max_depth = max_depth)
 }
-SL.xgboost.6 <- function(..., max_depth = 6){
-	SL.xgboost.corrected(..., max_depth = max_depth)
-}
+# SL.xgboost.6 <- function(..., max_depth = 6){
+# 	SL.xgboost.corrected(..., max_depth = max_depth)
+# }
 SL.xgboost.8 <- function(..., max_depth = 8){
 	SL.xgboost.corrected(..., max_depth = max_depth)
+}
+SL.xgboost.12 <- function(..., max_depth = 12){
+    SL.xgboost.corrected(..., max_depth = max_depth)
 }
 descr_SL.xgboost <- "boosted regression trees with maximum depth of "
 descr_SL.xgboost.2 <- paste0(descr_SL.xgboost, 2)
 descr_SL.xgboost.4 <- paste0(descr_SL.xgboost, 4)
 descr_SL.xgboost.6 <- paste0(descr_SL.xgboost, 6)
 descr_SL.xgboost.8 <- paste0(descr_SL.xgboost, 8)
+descr_SL.xgboost.12 <- paste0(descr_SL.xgboost, 12)
 
 # random forests
 SL.ranger.imp <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), num.trees = 500, mtry = floor(sqrt(ncol(X))),
@@ -372,7 +376,8 @@ make_sl_library_vector <- function(opts){
     # check if xgboost is requested
     if("xgboost" %in% opts$learners){
       if (opts$cvtune) {
-        default_library <- c(default_library, "SL.xgboost.2", "SL.xgboost.4", "SL.xgboost.6", "SL.xgboost.8")
+        # default_library <- c(default_library, "SL.xgboost.2", "SL.xgboost.4", "SL.xgboost.6", "SL.xgboost.8")
+        default_library <- c(default_library, "SL.xgboost.4", "SL.xgboost.8", "SL.xgboost.12")
       } else {
         if (length(opts$learners) == 1) {
             default_library <- "SL.xgboost.4"
@@ -401,7 +406,16 @@ make_sl_library_vector <- function(opts){
             make_screen_wrapper(var_thresh = i)
         }
         # include in list
-        learn_grid <- expand.grid(default_library, paste0("var_thresh_", opts$var_thresh))
+        which_xgboost <- grep("xgboost", default_library)
+        if(length(which_xgboost) > 0){
+            default_library_for_grid <- default_library[-which_xgboost]
+        }else{
+            default_library_for_grid <- default_library
+        }
+        learn_grid <- expand.grid(learner=default_library_for_grid, screen=paste0("var_thresh_", opts$var_thresh))
+        if(length(which_xgboost) > 0){
+            learn_grid <- rbind(learn_grid, data.frame(learner=default_library[which_xgboost], screen="All"))
+        }
         default_library <- as.list(as.data.frame(t(learn_grid), stringsAsFactors = FALSE))
     }
 

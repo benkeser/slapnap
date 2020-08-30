@@ -13,7 +13,7 @@ get_sllibtab_caption <- function(opts){
                 tmp <- paste0(tmp, ". Variable pre-screening procedures were applied to each algorithm to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
                               " The optimal screening approach was selected using cross-validation.")
             }else{
-                tmp <- paste0(tmp, ". Each algorithm was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.")
+                tmp <- paste0(tmp, ". Each algorithm ", ifelse("xgboost" %in% opts$learners, "(excepting xgboost) ", ""), "was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.")
             }
         }
     }
@@ -29,6 +29,7 @@ relabel_library <- function(library_names, opts){
       c("SL.xgboost.2", "xgboost_tune1"),
       c("SL.xgboost.6", "xgboost_tune2"),
       c("SL.xgboost.8", "xgboost_tune3"),
+      c("SL.xgboost.12", "xgboost_tune4"),
       c("SL.glmnet.0", "lasso_default"),
       c("SL.glmnet.25", "lasso_tune1"),
       c("SL.glmnet.50", "lasso_tune2"),
@@ -47,8 +48,12 @@ relabel_library <- function(library_names, opts){
     if(!all(opts$var_thresh == 0) & !screens_included){
         tmp <- NULL
         library_names_minus_mean <- library_names[!(library_names %in% c("mean", "Discrete SL", "Super Learner"))]
+        library_names_minus_xgboost <- library_names_minus_mean[!grepl("xgboost", library_names_minus_mean)]
         for(i in opts$var_thresh){
-            tmp <- c(tmp, paste0(library_names_minus_mean, "_screen", i))
+            tmp <- c(tmp, paste0(library_names_minus_xgboost, "_screen", i))
+        }
+        if(any(grepl("xgboost", library_names))){
+            tmp <- c(tmp, library_names[grepl("xgboost", library_names)])
         }
         if(any(library_names == "mean")){
             tmp <- c(tmp, "mean")
@@ -373,7 +378,7 @@ get_learner_descriptions <- function(opts, n_total_ft, n_ft_screen){
             tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.")
         }else if(all(opts$var_thresh == 0) & opts$cvtune){
             tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.")
-        }else if(!all(opts$var_thresh == 0) & !opts$cvtune){
+        }else if(!all(opts$var_thresh == 0) & !opts$cvtune & opts$learner != "xgboost"){
             if(length(opts$var_thresh) == 1){
                 tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.", 
                               " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
@@ -384,7 +389,7 @@ get_learner_descriptions <- function(opts, n_total_ft, n_ft_screen){
                               " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.",
                               " The optimal screening approach was selected using cross-validation.")
             }
-        }else if(!all(opts$var_thresh == 0) & opts$cvtune){
+        }else if(!all(opts$var_thresh == 0) & opts$cvtune & opts$learner != "xgboost"){
             if(length(opts$var_thresh) == 1){
                 tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.", 
                               " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
@@ -422,10 +427,10 @@ get_learner_descriptions <- function(opts, n_total_ft, n_ft_screen){
         tmp <- paste0("a super learner ensemble [@vanderlaan2007] of ", lib_label, " and intercept-only regression.")
         if(!all(opts$var_thresh == 0)){
             if(length(opts$var_thresh) == 1){
-                tmp <- paste0(tmp, " Each algorithm included a variable pre-screening to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
+                tmp <- paste0(tmp, " Each algorithm ", ifelse("xgboost" %in% opts$learners, "(excepting xgboost) ", ""), "included a variable pre-screening to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
                               " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
             }else{
-                tmp <- paste0(tmp, " Each algorithm was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
+                tmp <- paste0(tmp, " Each algorithm ", ifelse("xgboost" %in% opts$learners, "(excepting xgboost) ", ""), "was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
                               " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.")
             }
         }
@@ -493,7 +498,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
     }
     # now format continuous outcomes table
     sls_run <- (all_possible_outcomes %in% opts$outcomes) & run_sls    
-    cont_idx <- which(sls_run)[which(sls_run) <= 3]
+    cont_idx <- which((opts$outcomes %in% c("ic50", "ic80", "iip")) & run_sls2)
     rsq_kab <- NULL
 
     if(length(cont_idx) > 0){
@@ -506,7 +511,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
               caption = get_cont_table_cap(opts, V, fit_list_out$n_row_ic50, fit_list_out$n_row_ic80, fit_list_out$n_row_iip))
     }
     # now format dichotomous outcomes table
-    dich_idx <- which(sls_run)[which(sls_run) > 3]
+    dich_idx <- which((opts$outcomes %in% c("sens1", "sens2")) & run_sls2)
     auc_kab <- NULL
     if(length(dich_idx) > 0){
         list_rows <- sapply(dich_idx, get_est_and_ci, fit_list = table_list[!is.na(table_list)], Rsquared = FALSE, simplify = FALSE)

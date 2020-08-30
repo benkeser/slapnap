@@ -15,7 +15,7 @@ path.home <- "/home"
 # antibody names are passed to docker container at run time as
 # environment variable Nab, which is a semicolon-separated list
 antibody_string <- Sys.getenv("nab")
-sensitivity.threshold <- Sys.getenv("sens_thresh")
+sensitivity.threshold <- as.numeric(Sys.getenv("sens_thresh"))
 multiple.sensitivity.threshold <- Sys.getenv("multsens_nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 filename <- Sys.getenv("nab_str")
