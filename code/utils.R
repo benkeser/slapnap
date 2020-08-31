@@ -380,22 +380,22 @@ get_learner_descriptions <- function(opts, n_total_ft, n_ft_screen){
             tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.")
         }else if(!all(opts$var_thresh == 0) & !opts$cvtune & opts$learner != "xgboost"){
             if(length(opts$var_thresh) == 1){
-                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.", 
+                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.",
                               " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
                               " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
             }else{
-                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.", 
+                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.",
                               " Variable pre-screening procedures were applied that ensured that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
                               " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.",
                               " The optimal screening approach was selected using cross-validation.")
             }
         }else if(!all(opts$var_thresh == 0) & opts$cvtune & opts$learner != "xgboost"){
             if(length(opts$var_thresh) == 1){
-                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.", 
+                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.",
                               " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
                               " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
             }else{
-                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.", 
+                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.",
                               " Variable pre-screening procedures were also applied that ensured that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
                               " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.",
                               " The optimal screening approach was also selected using cross-validation.")
@@ -497,7 +497,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
     # now format continuous outcomes table
-    sls_run <- (all_possible_outcomes %in% opts$outcomes) & run_sls    
+    sls_run <- (all_possible_outcomes %in% opts$outcomes) & run_sls
     cont_idx <- which((opts$outcomes %in% c("ic50", "ic80", "iip")) & run_sls2)
     rsq_kab <- NULL
 
@@ -520,7 +520,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
         row.names(auctab) <- tmp[!is.na(table_list)][dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
+              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[!is.na(table_list)][dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
     }
     return(list(r2 = rsq_kab, auc = auc_kab))
 }

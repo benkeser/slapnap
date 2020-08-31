@@ -27,7 +27,7 @@ check_mount=$(mount | grep '/home/output')
 mount_val=$?
 if [[ mount_val -ne 0 && $view_port = "FALSE" ]]
 then
-    printf "No way to receive slapnap output. Mounting a directory to the container directory /home/output (-v) or set -e view_port='TRUE'. See documentation for further details."
+    printf "No way to receive slapnap output. Please either mount a directory to the container directory /home/output (using -v) or set -e view_port='TRUE'. See documentation for further details."
     exit 125
 fi
 Rscript /home/lib/check_opts.R >> $log_file 2>&1
