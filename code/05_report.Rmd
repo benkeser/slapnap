@@ -10,7 +10,7 @@ link-citations: true
 
 ```{r source_preamble, include = FALSE}
 code_dir <- "/home/lib/"
-source(paste0(code_dir, "report_preamble.R"), local = TRUE)
+source(paste0(code_dir, "05_report_preamble.R"), local = TRUE)
 ```
 
 # Executive summary
@@ -37,7 +37,7 @@ Prediction of each outcome was performed using `r get_learner_descriptions(opts,
 The specific `r ifelse((length(opts$learners) > 1) | opts$cvtune == TRUE, "algorithms", "algorithm")` used in the learning process `r ifelse((length(opts$learners) > 1) | opts$cvtune == TRUE, "are", "is")` described in Table \@ref(tab:sllibtab).
 
 ```{r sllibtab}
-source(paste0(code_dir, "super_learner_libraries.R"))
+source(paste0(code_dir, "03_super_learner_libraries.R"))
 # set var_thresh option to 0 to pull descriptions of algorithms only
 tmp_opts <- opts; tmp_opts$var_thresh <- "0"
 this_library <- make_sl_library_vector(tmp_opts)

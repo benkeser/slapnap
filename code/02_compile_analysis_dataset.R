@@ -33,7 +33,7 @@ path.data.catnap <- file.path(path.data, "catnap")
 path.data.analysis <- file.path(path.data, "analysis")
 path.out <- file.path(path.home, "output")
 
-source(file.path(path.lib, "utils.R"))
+source(file.path(path.lib, "00_utils.R"))
 opts <- get_global_options()
 # load data
 data.assay <- read.table(file.path(path.data.catnap, "assay.txt"), header=T, sep="\t", quote="\"")
@@ -41,7 +41,7 @@ data.viruses <- read.table(file.path(path.data.catnap, "viruses.txt"), header=T,
 data.abs <- read.table(file.path(path.data.catnap, "abs.txt"), header=T, sep="\t", quote="\"")
 
 # source our function library
-source(file.path(path.lib, "multi_ab.Rlib"))
+source(file.path(path.lib, "02_multi_ab.Rlib"))
 
 # load and process virus info and sequences
 data.seq <- read.fasta(file.path(path.data.catnap, "virseqs_aa.fasta"), seqtype="AA")

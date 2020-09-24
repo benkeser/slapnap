@@ -8,9 +8,9 @@
 library("SuperLearner")
 library("vimp")
 library("dplyr")
-source("/home/lib/variable_groups.R")
-source("/home/lib/super_learner_libraries.R")
-source("/home/lib/utils.R")
+source("/home/lib/04_variable_groups.R")
+source("/home/lib/03_super_learner_libraries.R")
+source("/home/lib/00_utils.R")
 
 #---------------------
 # Permanent options
