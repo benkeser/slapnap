@@ -702,6 +702,10 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
         if (length(out) == 0) {
             out <- ""
         }
+        combo_methods <- c("additive", "bh", "BH", "Bliss-Hill", "bliss-hill")
+        if (!is.na(pmatch(out, combo_methods))) {
+            out <- combo_methods[pmatch(out, combo_methods)]
+        }
     }
     return(out)
 }
