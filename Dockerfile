@@ -69,40 +69,39 @@ RUN apt-get update
 RUN apt-get install -y ffmpeg
 
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
-COPY code/multi_ab.Rlib /home/lib/multi_ab.Rlib
-COPY code/compile_analysis_dataset.R /home/lib/compile_analysis_dataset.R
-COPY code/variable_groups.R /home/lib/variable_groups.R
-COPY code/utils.R /home/lib/utils.R
-COPY code/run_super_learners.R /home/lib/run_super_learners.R
-COPY code/get_vimp.R /home/lib/get_vimp.R
-COPY code/super_learner_libraries.R /home/lib/super_learner_libraries.R
-COPY code/plotting_functions.R /home/lib/plotting_functions.R
-COPY code/check_opts.R /home/lib/check_opts.R
-COPY code/check_opts_functions.R /home/lib/check_opts_functions.R
-COPY code/return_requested_objects.R /home/lib/return_requested_objects.R
-COPY code/ml_var_importance_measures.R /home/lib/ml_var_importance_measures.R
-COPY code/plot_one_vimp.R /home/lib/plot_one_vimp.R
-COPY code/outcome_dist_plot.R /home/lib/outcome_dist_plot.R
-COPY code/pred_importance.R /home/lib/pred_importance.R
-COPY code/var_import_plot.R /home/lib/var_import_plot.R
-COPY code/vimp_executive_summary_table.R /home/lib/vimp_executive_summary_table.R
-COPY code/biological_importance.R /home/lib/biological_importance.R
+COPY code/00_utils.R /home/lib/00_utils.R
+COPY code/01_check_opts.R /home/lib/01_check_opts.R
+COPY code/01_check_opts_functions.R /home/lib/01_check_opts_functions.R
+COPY code/02_compile_analysis_dataset.R /home/lib/02_compile_analysis_dataset.R
+COPY code/02_multi_ab.Rlib /home/lib/02_multi_ab.Rlib
+COPY code/03_run_super_learners.R /home/lib/03_run_super_learners.R
+COPY code/03_super_learner_libraries.R /home/lib/03_super_learner_libraries.R
+COPY code/04_get_vimp.R /home/lib/04_get_vimp.R
+COPY code/04_variable_groups.R /home/lib/04_variable_groups.R
+COPY code/05_biological_importance.R /home/lib/05_biological_importance.R
+COPY code/05_ml_var_importance_measures.R /home/lib/05_ml_var_importance_measures.R
+COPY code/05_outcome_dist_plot.R /home/lib/05_outcome_dist_plot.R
+COPY code/05_plot_one_vimp.R /home/lib/05_plot_one_vimp.R
+COPY code/05_plotting_functions.R /home/lib/05_plotting_functions.R
+COPY code/05_pred_importance.R /home/lib/05_pred_importance.R
+COPY code/05_var_import_plot.R /home/lib/05_var_import_plot.R
+COPY code/05_vimp_executive_summary_table.R /home/lib/05_vimp_executive_summary_table.R
+COPY code/06_return_requested_objects.R /home/lib/06_return_requested_objects.R
 
-RUN chmod +x /home/lib/compile_analysis_dataset.R /home/lib/run_super_learners.R /home/lib/get_vimp.R
-RUN chmod +x /home/lib/check_opts.R /home/lib/return_requested_objects.R
+RUN chmod +x /home/lib/01_check_opts.R /home/lib/02_compile_analysis_dataset.R /home/lib/03_run_super_learners.R /home/lib/04_get_vimp.R /home/lib/07_return_requested_objects.R
 
 # copy report Rmd
-COPY code/report.Rmd /home/lib/report.Rmd
+COPY code/05_report.Rmd /home/lib/05_report.Rmd
 COPY docs/refs.bib /home/lib/refs.bib
 COPY code/run_analysis.sh /home/lib/run_analysis.sh
-COPY code/render_report.R /home/lib/render_report.R
-COPY code/report_preamble.R /home/lib/report_preamble.R
-RUN chmod +x /home/lib/run_analysis.sh /home/lib/render_report.R /home/lib/report_preamble.R
+COPY code/05_render_report.R /home/lib/05_render_report.R
+COPY code/05_report_preamble.R /home/lib/05_report_preamble.R
+RUN chmod +x /home/lib/run_analysis.sh /home/lib/05_render_report.R /home/lib/05_report_preamble.R
 
 # copy metadata Rmd
-COPY code/metadata.Rmd /home/lib/metadata.Rmd
-COPY code/render_metadata.R /home/lib/render_metadata.R
-RUN chmod +x /home/lib/render_metadata.R
+COPY code/07_metadata.Rmd /home/lib/07_metadata.Rmd
+COPY code/07_render_metadata.R /home/lib/07_render_metadata.R
+RUN chmod +x /home/lib/07_render_metadata.R
 
 
 #---------------------------------------------------------------------
