@@ -121,7 +121,10 @@ ENV nab="VRC01"
 ENV outcomes="ic50;sens"
 
 # which method to use for predicting combination IC-50 and IC-80
-#   possible methods are "additive" and "Bliss-Hill"
+#   possible methods are "additive" and "Bliss-Hill";
+#   note that the entered string can be a shorter version (e.g., "add"),
+#   but must uniquely identify one of the two methods. For "Bliss-Hill",
+#   "bliss-hill", "bh", or "BH" may also be entered.
 ENV combination_method="additive"
 
 # which learners are included by default

@@ -607,7 +607,7 @@ get_combo_text <- function(opts, ic50_pres, ic80_pres) {
                           "\\[f_J(c) = 1 - \\prod_{j=1}^J \\{1 - f_j(c, c / J)\\} \\ , \\]",
                       " $f_j(c, c_j) = (c^m) / (\\mbox{IC}_{50,j}^{m} + c_j^m)$,",
                   " $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC}_{80,j}) - \\mbox{log}_{10}(\\mbox{IC}_{50,j}))$,",
-                  " and $IC_{50,j}$ and $IC_{80,j}$ denote the measured $IC_{50}$ and $IC_{80}$ for bNAb $j$, respectively. ")
+                  " and $IC_{50,j}$ and $IC_{80,j}$ denote the measured IC$_{50}$ and IC$_{80}$ for bNAb $j$, respectively. ")
     }
     txt
 }
