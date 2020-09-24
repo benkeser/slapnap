@@ -450,10 +450,10 @@ get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
         if (n_row_ic50 != n_row_ic80) {
             tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
         } else {
-            tmp <- paste0(tmp, ", ")
+            # tmp <- paste0(tmp, ", ")
         }
         if ("ic80" %in% opts$outcomes) {
-            tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, "IC$_{80}$", " and IC$_{80}$"))
+            tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$"))
             if(n_row_ic80 != n_row_iip | !("iip" %in% opts$outcomes)){
                 tmp <- paste0(tmp, " (n = ", n_row_ic80, ")")
             }
@@ -1045,7 +1045,7 @@ get_analysis_dataset_name <- function(all_nms, opts) {
         nms_with_requested_nabs <- all_nms[grepl(paste(opts$nab, collapse = "_"), all_nms)]
         nms_with_only_requested_nabs <- nms_with_requested_nabs[unlist(lapply(strsplit(nms_with_requested_nabs, "_", fixed = TRUE), function(x) length(x) == 2 + length(opts$nab)))]
         date_nab_only <- gsub(".csv", "", gsub("slapnap_", "", nms_with_requested_nabs))
-        date_only <- gsub(paste0(paste(opts$nab, sep = "_"), "_"), "", date_nab_only)
+        date_only <- gsub(paste0(paste(opts$nab, collapse = "_"), "_"), "", date_nab_only)
         current_date <- format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y")
         closest_date <- which.min(as.Date(current_date, "%d%b%Y") - as.Date(date_only, "%d%b%Y"))
         nm <- nms_with_only_requested_nabs[closest_date]
