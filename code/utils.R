@@ -480,7 +480,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
             names(na_list) <- all_possible_outcomes[!run_sls]
         } else {
             na_list <- rep(list(NA), length(all_possible_outcomes) - length(fit_list))
-            names(na_list) <- all_possible_outcomes[!(names(fit_list) == all_possible_outcomes)]
+            names(na_list) <- all_possible_outcomes[!(names(fit_list) %in% all_possible_outcomes)]
         }
         table_list2 <- c(table_list, na_list)
         table_list3 <- list(ic50 = table_list2$ic50, ic80 = table_list2$ic80, iip = table_list2$iip, sens1 = table_list2$sens1, sens2 = table_list2$sens2)
@@ -701,10 +701,6 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
         out <- strsplit(read_string, split = ";")[[1]]
         if (length(out) == 0) {
             out <- ""
-        }
-        combo_methods <- c("additive", "bh", "BH", "Bliss-Hill", "bliss-hill")
-        if (!is.na(pmatch(out, combo_methods))) {
-            out <- combo_methods[pmatch(out, combo_methods)]
         }
     }
     return(out)
