@@ -15,16 +15,17 @@ path.home <- "/home"
 # antibody names are passed to docker container at run time as
 # environment variable Nab, which is a semicolon-separated list
 antibody_string <- Sys.getenv("nab")
+# sensitivity threshold, multiple sensitivity threshold
 sensitivity.threshold <- as.numeric(Sys.getenv("sens_thresh"))
 multiple.sensitivity.threshold <- Sys.getenv("multsens_nab")
 antibodies <- strsplit(antibody_string, split = ";")[[1]]
 filename <- Sys.getenv("nab_str")
+# get combination neutralization method
+combination_method <- Sys.getenv("combination_method")
 
 # ---------------------------------------------------------------------------- #
 # STEP 0:  load and prepare our data
 # ---------------------------------------------------------------------------- #
-
-
 # define our working directories
 path.lib <- file.path(path.home, "lib")
 path.data <- file.path(path.home, "dat")
@@ -148,10 +149,19 @@ for(ab.tmp in antibodies) {
 # if we are prespecifying more than one antibody, then let's predict the
 # combined outcomes
 if(length(antibodies) > 1) {
-  # use additive method to determine predicted combinations of IC50/IC80
-  #(i.e., the "Quantitative 1" endpoint)
-  readouts$pc.ic50 <- apply(readouts[, grep("ic50.imputed", names(readouts), fixed=T)], 1, wagh.additive.method)
-  readouts$pc.ic80 <- apply(readouts[, grep("ic80.imputed", names(readouts), fixed=T)], 1, wagh.additive.method)
+    # use user-specified method to determine predicted combinations of IC50/IC80 (i.e., the "Quantitative 1" endpoint)
+    if (grepl("additive", combination_method)) {
+        # run additive method
+        readouts$pc.ic50 <- apply(readouts[, grep("ic50.imputed", names(readouts), fixed=T)], 1, wagh.additive.method)
+        readouts$pc.ic80 <- apply(readouts[, grep("ic80.imputed", names(readouts), fixed=T)], 1, wagh.additive.method)
+    } else {
+        # run Bliss-Hill method
+        all_ic50 <- readouts[, grep("ic50.imputed", names(readouts), fixed = TRUE)]
+        all_ic80 <- readouts[, grep("ic80.imputed", names(readouts), fixed = TRUE)]
+        readouts$pc.ic50 <- sapply(1:nrow(readouts), function(i) predict_bh_concentrations(conc = 0.5, ic50 = all_ic50[i, ], ic80 = all_ic80[i, ]))
+        readouts$pc.ic80 <- sapply(1:nrow(readouts), function(i) predict_bh_concentrations(conc = 0.8, ic50 = all_ic50[i, ], ic80 = all_ic80[i, ]))
+    }
+
 } else { # if only one antibody, define them as the single-ab version
     readouts$pc.ic50 <- readouts[, grep("ic50.imputed", names(readouts), fixed = TRUE)]
     readouts$log10.pc.ic50 <- log10(readouts$pc.ic50)

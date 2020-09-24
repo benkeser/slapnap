@@ -120,6 +120,10 @@ ENV nab="VRC01"
 #   For a bnAb combination, enter "estsens" or "multsens".
 ENV outcomes="ic50;sens"
 
+# which method to use for predicting combination IC-50 and IC-80
+#   possible methods are "additive" and "Bliss-Hill"
+ENV combination_method="additive"
+
 # which learners are included by default
 #  if more than a single algorithm is listed, then super learner is used
 #  if a single algorithm is listed, then the boolean `cvtune` variable can be used

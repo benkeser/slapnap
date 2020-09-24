@@ -587,6 +587,41 @@ load_cv_fits <- function(opts, run_sls, code_dir){
                 n_row_ic80 = n_row_ic80, n_row_iip = n_row_iip))
 }
 
+# text for estimated IC-50
+get_combo_text <- function(opts, ic50_pres, ic80_pres) {
+    if ("additive" %in% opts$combination_method) {
+        txt <- paste0("computed based on the additive model of @wagh2016optimal; ",
+                       "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
+                       " where $\\mbox{IC}_j$ denotes the measured ",
+                       paste0(ifelse(ic50_pres, "IC$_{50}$ ", ""),
+                              ifelse(ic50_pres & ic80_pres, "or ", ""),
+                              ifelse(ic80_pres, "IC$_{80}$ ", ""), collapse = ""),
+                       "for bNAb $j$. ")
+    } else {
+        txt <- paste0("computed based on the Bliss-Hill model of @wagh2016optimal; ",
+                       "for $J$ bNAbs, it is computed using Brent's algorithm [@brent1971] as the concentration value $c$ that minimizes \\[ \\lvert f_J(c) - k \\rvert \\ , \\]",
+                       " where $k$ denotes the desired neutralization fraction (",
+                       paste0(ifelse(ic50_pres, "50%", ""),
+                              ifelse(ic50_pres & ic80_pres, " or ", ""),
+                              ifelse(ic80_pres, "80%", ""), collapse = ""), "), ",
+                          "\\[f_J(c) = 1 - \\prod_{j=1}^J \\{1 - f_j(c, c / J)\\} \\ , \\]",
+                      " $f_j(c, c_j) = (c^m) / (\\mbox{IC}_{50,j}^{m} + c_j^m)$,",
+                  " $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC}_{80,j}) - \\mbox{log}_{10}(\\mbox{IC}_{50,j}))$,",
+                  " and $IC_{50,j}$ and $IC_{80,j}$ denote the measured $IC_{50}$ and $IC_{80}$ for bNAb $j$, respectively. ")
+    }
+    txt
+}
+
+get_iip_text <- function(opts) {
+    est_txt <- ifelse(length(opts$nab) > 1, "estimated ", "")
+    suffix <- ifelse(length(opts$nab) > 1, " and estimated IC$_{50}$ and IC$_{80}$ are computed as described above. ", ". ")
+    txt <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
+                  "\\[ \\frac{10^m}{\\mbox{", est_txt, "IC$_{50}$}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", est_txt, "IC}_{80}) - \\mbox{log}_{10}(\\mbox{", est_txt, "IC}_{50}))$",
+                  suffix,
+                  collapse = "")
+    txt
+}
+
 # get descriptions of outcomes
 get_outcome_descriptions <- function(opts, collapse = TRUE){
     # first describe IC-50, IC-80 if present
@@ -603,21 +638,11 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
                           ifelse((ic50_pres & ic80_pres) | iip_pres, "and ", ""),
                           ifelse(ic80_pres | iip_pres, "IC$_{80}$ ", ""), collapse = "")
             tmp1_5 <- ifelse((ic50_pres & ic80_pres) | iip_pres, "were ", "was ")
-            tmp2 <- paste0("computed based on the additive model of @wagh2016optimal; ",
-                           "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
-                           " where $\\mbox{IC}_j$ denotes the measured ",
-                           paste0(ifelse(ic50_pres, "IC$_{50}$ ", ""),
-                                  ifelse(ic50_pres & ic80_pres, "or ", ""),
-                                  ifelse(ic80_pres, "IC$_{80}$ ", ""), collapse = ""),
-                           "for bNAb $j$. ")
+            tmp2 <- get_combo_text(opts, ic50_pres, ic80_pres)
             tmp_text <- c(tmp_text, paste0(tmp, tmp1_5, tmp2, collapse = ""))
         }
         if(iip_pres){
-            tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
-                          "\\[ \\frac{10^m}{\\mbox{estimated IC$_{50}$}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{estimated IC}_{80}) - \\mbox{log}_{10}(\\mbox{estimated IC}_{50}))$ ",
-                          "and estimated IC$_{50}$ and IC$_{80}$ are computed as described above. ",
-                          collapse = "")
+            tmp <- get_iip_text(opts)
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres){
@@ -629,10 +654,7 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
         }
     } else {
         if(iip_pres){
-            tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
-                          "\\[ \\frac{10^m}{\\mbox{IC$_{50}$}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC}_{80}) - \\mbox{log}_{10}(\\mbox{IC}_{50}))$. ",
-                          collapse = "")
+            tmp <- get_iip_text(opts)
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres | sens2_pres){
@@ -1172,14 +1194,17 @@ describe_id_var <- function(var) {
 }
 # describe outcomes
 describe_outcome_var <- function(var, opts) {
-    predicted_text_ic50 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{50}$ for bNAb $j$.")
-    predicted_text_ic80 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{80}$ for bNAb $j$.")
+    # predicted_text_ic50 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{50}$ for bNAb $j$.")
+    predicted_text_ic50 <- get_combo_text(opts, ic50_pres = TRUE, ic80_pres = FALSE)
+    # predicted_text_ic80 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{80}$ for bNAb $j$.")
+    predicted_text_ic80 <- get_combo_text(opts, ic50_pres = FALSE, ic80_pres = TRUE)
     if (grepl("ic50", var)) {
         descr <- paste0("Outcome variable: IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
     } else if (grepl("ic80", var)) {
         descr <- paste0("Outcome variable: IC$_{80}$ (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
     } else if (grepl("iip", var)) {
-        descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ and IC$_{80}$ are computed as described above. ", collapse = "")
+        # descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ and IC$_{80}$ are computed as described above. ", collapse = "")
+        descr <- get_iip_text(opts)
     } else if (var == "sens" | var == "estsens") {
         descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ". Note that in the dataset, 1 denotes sensitive (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ") while 0 denotes resistant")
     } else if (var == "multsens") {
@@ -1244,8 +1269,8 @@ get_complete_data_description <- function(opts, ncomplete_ic50, ncomplete_ic80, 
 # @param conc the concentration
 # @param ic50 the IC-50 value
 # @param m the slope (in our analyses, taken to be log(4) / [log(IC-80) - log(IC-50)])
-individual_mab_neutralization <- function(conc, ic50, m) {
-  f_mab_c <- (conc ^ m) / (ic50 ^ m + conc ^ m)
+individual_mab_neutralization <- function(conc, mab_conc, ic50, m) {
+  f_mab_c <- (conc ^ m) / (ic50 ^ m + mab_conc ^ m)
   f_mab_c
 }
 # compute neutralization curves using the Bliss-Hill model (with independence assumption)
@@ -1257,12 +1282,12 @@ bliss_hill_predictions <- function(conc, ic50, ic80) {
   if (!is.null(ncol(ic50))) {
     num_indices <- ncol(ic50)
     this_function <- function(indx, conc) {
-      individual_mab_neutralization(conc / ncol(ic50), ic50[, indx], m[, indx])
+      individual_mab_neutralization(conc = conc, mab_conc = conc / ncol(ic50), ic50[, indx], m[, indx])
     }
   } else {
     num_indices <- length(ic50)
     this_function <- function(indx, conc) {
-      individual_mab_neutralization(conc, ic50[indx], m[indx])
+      individual_mab_neutralization(conc = conc, mab_conc = conc / length(ic50), ic50[indx], m[indx])
     }
   }
   one_minus_fs <- do.call(cbind, sapply(1:num_indices, function(indx) 1 - this_function(indx, conc),
