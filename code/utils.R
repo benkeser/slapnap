@@ -1239,3 +1239,65 @@ get_complete_data_description <- function(opts, ncomplete_ic50, ncomplete_ic80, 
     }
     paste0(num_obs, " sequences had complete data for ", outcome_txt, " and were used in the analysis")
 }
+
+# compute individual mAb neutralization curve based on concentration and IC-50
+# @param conc the concentration
+# @param ic50 the IC-50 value
+# @param m the slope (in our analyses, taken to be log(4) / [log(IC-80) - log(IC-50)])
+individual_mab_neutralization <- function(conc, ic50, m) {
+  f_mab_c <- (conc ^ m) / (ic50 ^ m + conc ^ m)
+  f_mab_c
+}
+# compute neutralization curves using the Bliss-Hill model (with independence assumption)
+# @param conc the concentration
+# @param ic50 vector or matrix of IC-50 values (columns are mAbs)
+# @param ic80 vector or matrix of IC-80 values (columns are mAbs)
+bliss_hill_predictions <- function(conc, ic50, ic80) {
+  m <- log10(4) / (log10(ic80) - log10(ic50))
+  if (!is.null(ncol(ic50))) {
+    num_indices <- ncol(ic50)
+    this_function <- function(indx, conc) {
+      individual_mab_neutralization(conc / ncol(ic50), ic50[, indx], m[, indx])
+    }
+  } else {
+    num_indices <- length(ic50)
+    this_function <- function(indx, conc) {
+      individual_mab_neutralization(conc, ic50[indx], m[indx])
+    }
+  }
+  one_minus_fs <- do.call(cbind, sapply(1:num_indices, function(indx) 1 - this_function(indx, conc),
+                         simplify = FALSE))
+  f_c <- 1 - apply(one_minus_fs, 1, prod)
+  f_c
+}
+
+# back-solve to obtain combination IC-50 or IC-80 from the Bliss-Hill model (with independence assumption)
+# @param conc the concentration of interest
+# @param ic50 the IC-50 values for all mAbs of interest (a vector)
+# @param ic80 the IC-80 values for all mAbs of interest (a vector)
+# @return the predicted IC (IC-50 if conc = 0.5, IC-80 if conc = 0.8)
+predict_bh_concentration <- function(conc = 0.5, ic50, ic80) {
+  optim_func <- function(another_conc, ic50, ic80, conc) {
+    abs(bliss_hill_predictions(another_conc, ic50, ic80) - conc)
+  }
+  if (conc == 0.5) {
+    init_par <- 1 / sum(1 / ic50)
+    upper_lim <- switch(all(is.na(ic50)) + 1, min(ic50, na.rm = TRUE), NA)
+  } else if (conc == 0.8) {
+    init_par <- 1 / sum(1 / ic80)
+    upper_lim <- switch(all(is.na(ic80)) + 1, min(ic80, na.rm = TRUE), NA)
+  } else {
+    init_par <- 0
+    upper_lim <- 200
+  }
+  # if any individual one is NA, the whole thing should be
+  if (any(is.na(c(ic50, ic80))) | is.na(upper_lim)) {
+    ret <- NA
+  } else { # do the optimization
+    suppressWarnings(optimized <- optim(init_par, fn = optim_func, ic50 = ic50, ic80 = ic80, conc = conc,
+                                        method = "Brent", lower = 0, upper = upper_lim,
+                                        control = list(abstol = 1e-3, reltol = 1e-5)))
+    ret <- optimized$par
+  }
+  ret
+}
