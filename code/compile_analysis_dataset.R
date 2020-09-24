@@ -158,10 +158,9 @@ if(length(antibodies) > 1) {
         # run Bliss-Hill method
         all_ic50 <- readouts[, grep("ic50.imputed", names(readouts), fixed = TRUE)]
         all_ic80 <- readouts[, grep("ic80.imputed", names(readouts), fixed = TRUE)]
-        readouts$pc.ic50 <- sapply(1:nrow(readouts), function(i) predict_bh_concentrations(conc = 0.5, ic50 = all_ic50[i, ], ic80 = all_ic80[i, ]))
-        readouts$pc.ic80 <- sapply(1:nrow(readouts), function(i) predict_bh_concentrations(conc = 0.8, ic50 = all_ic50[i, ], ic80 = all_ic80[i, ]))
+        readouts$pc.ic50 <- sapply(1:nrow(readouts), function(i) predict_bh_concentration(conc = 0.5, ic50 = all_ic50[i, ], ic80 = all_ic80[i, ]))
+        readouts$pc.ic80 <- sapply(1:nrow(readouts), function(i) predict_bh_concentration(conc = 0.8, ic50 = all_ic50[i, ], ic80 = all_ic80[i, ]))
     }
-
 } else { # if only one antibody, define them as the single-ab version
     readouts$pc.ic50 <- readouts[, grep("ic50.imputed", names(readouts), fixed = TRUE)]
     readouts$log10.pc.ic50 <- log10(readouts$pc.ic50)
