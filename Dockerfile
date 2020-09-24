@@ -103,7 +103,6 @@ COPY code/07_metadata.Rmd /home/lib/07_metadata.Rmd
 COPY code/07_render_metadata.R /home/lib/07_render_metadata.R
 RUN chmod +x /home/lib/07_render_metadata.R
 
-
 #---------------------------------------------------------------------
 # Permanent options
 #---------------------------------------------------------------------
