@@ -89,7 +89,8 @@ bin_nms <- nice_outcomes[bin_idx]
 # postfix for naming plots
 postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
 # get clean analysis dataset
-clean_data_names <- list.files(output_dir)[grepl(".csv", clean_data_names)]
+all_output_files <- list.files(output_dir)
+clean_data_names <- all_output_files[grepl(".csv", all_output_files)]
 analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
 analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFactors = FALSE)
 
