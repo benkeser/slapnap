@@ -88,7 +88,7 @@ COPY code/05_var_import_plot.R /home/lib/05_var_import_plot.R
 COPY code/05_vimp_executive_summary_table.R /home/lib/05_vimp_executive_summary_table.R
 COPY code/06_return_requested_objects.R /home/lib/06_return_requested_objects.R
 
-RUN chmod +x /home/lib/01_check_opts.R /home/lib/02_compile_analysis_dataset.R /home/lib/03_run_super_learners.R /home/lib/04_get_vimp.R /home/lib/07_return_requested_objects.R
+RUN chmod +x /home/lib/01_check_opts.R /home/lib/02_compile_analysis_dataset.R /home/lib/03_run_super_learners.R /home/lib/04_get_vimp.R /home/lib/06_return_requested_objects.R
 
 # copy report Rmd
 COPY code/05_report.Rmd /home/lib/05_report.Rmd
