@@ -55,10 +55,11 @@ docker run \
   -v path/to/local/save/directory:/home/output/ \
   -e nab="VRC07-523-LS;PGT121" \
   -e outcomes=”ic50;estsens” \
+  -e combination_method="additive" \
   -e learners=”rf;lasso” \
   -e importance_grp=”marg” \
-  -e importance_ind=”pred” \ 
-  slapnap/slapnap:latest 
+  -e importance_ind=”pred” \
+  slapnap/slapnap:latest
 ```
 
 The `–v` tag specifies the directory on the user’s computer where the
@@ -66,12 +67,14 @@ report will be saved, and `path/to/local/save/directory` should be
 replaced with the desired target directory. Options for the analysis are
 passed to the container via the `-e` tag; these options include the
 bnAbs to include in the analysis (`nab`), the neutralization outcomes of
-interest (`outcomes`), the learners to use in the analysis (`learners`),
-and the types of variable importance to compute (`importance_grp`, for
-groups of variables; `importance_ind`, for individual variables). Other
-output (e.g., the formatted analysis dataset and the fitted learners)
-can be requested via the `return` option. A full list of options and
-their syntax are available in the [`slapnap`
+interest (`outcomes`), the method for predicting combination
+neutralization (`combination_method`), the learners to use in the
+analysis (`learners`), and the types of variable importance to compute
+(`importance_grp`, for groups of variables; `importance_ind`, for
+individual variables). Other output (e.g., the formatted analysis
+dataset and the fitted learners) can be requested via the `return`
+option. A full list of options and their syntax are available in the
+[`slapnap`
 documentation](https://benkeser.github.io/slapnap/3-sec-runningcontainer.html).
 
 Complete documentation is available
