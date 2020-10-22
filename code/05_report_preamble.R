@@ -26,15 +26,14 @@ library(gridExtra)
 library(xgboost); library(ranger); library(glmnet)
 library(vimp)
 # code_dir, slfits_dir, data_dir specified in new_report.Rmd
-source(paste0(code_dir, "variable_groups.R"))
-source(paste0(code_dir, "super_learner_libraries.R"))
-source(paste0(code_dir, "utils.R"))
-source(paste0(code_dir, "plotting_functions.R"))
-source(paste0(code_dir, "ml_var_importance_measures.R"))
-source(paste0(code_dir, "var_import_plot.R"))
-source(paste0(code_dir, "vimp_executive_summary_table.R"))
-source(paste0(code_dir, "plot_one_vimp.R"))
-source(paste0(code_dir, "variable_groups.R"))
+source(paste0(code_dir, "04_variable_groups.R"))
+source(paste0(code_dir, "03_super_learner_libraries.R"))
+source(paste0(code_dir, "00_utils.R"))
+source(paste0(code_dir, "05_plotting_functions.R"))
+source(paste0(code_dir, "05_ml_var_importance_measures.R"))
+source(paste0(code_dir, "05_var_import_plot.R"))
+source(paste0(code_dir, "05_vimp_executive_summary_table.R"))
+source(paste0(code_dir, "05_plot_one_vimp.R"))
 
 # get biological importance
 vimp_threshold <- 0.05

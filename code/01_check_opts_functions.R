@@ -25,6 +25,12 @@ check_opts_outcomes <- function(outcome_vec, all_outcomes, n_abs) {
         shiny::need(length(setdiff(outcome_vec, all_outcomes)) == 0, "You have entered one or more outcomes that are not supported at this time. Please enter at least one of the currently supported outcomes ('ic50'; 'ic80'; 'iip'; 'estsens' and/or 'multsens' [for combination bnAb regimens]; or 'sens' [for single/multispecific bnAbs]) or a semicolon-separated list of outcomes (e.g., 'ic50;ic80').")
     )
 }
+# check combination neutralization method
+check_opts_method <- function(method_str, all_methods) {
+    shiny::validate(
+        shiny::need(!is.na(pmatch(method_str, all_methods)), "Please enter one of the supported methods for predicting combination neutralization. Currently, the supported methods are 'additive' and 'Bliss-Hill'.")
+    )
+}
 # check learners
 check_opts_learners <- function(learner_vec, all_learners) {
     shiny::validate(
@@ -88,6 +94,9 @@ get_options_check <- function(opts) {
     # check the outcome
     all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
     check_opts_outcomes(opts$outcomes, all_outcomes, length(opts$nab))
+    # check the method
+    all_methods <- c("additive", "Bliss-Hill", "bliss-hill", "bh", "BH")
+    check_opts_method(opts$combination_method, all_methods)
     # check the learners
     all_learners <- c("rf", "xgboost", "lasso")
     check_opts_learners(opts$learners, all_learners)

@@ -380,22 +380,22 @@ get_learner_descriptions <- function(opts, n_total_ft, n_ft_screen){
             tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.")
         }else if(!all(opts$var_thresh == 0) & !opts$cvtune & opts$learner != "xgboost"){
             if(length(opts$var_thresh) == 1){
-                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.", 
+                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.",
                               " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
                               " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
             }else{
-                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.", 
+                tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.",
                               " Variable pre-screening procedures were applied that ensured that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
                               " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.",
                               " The optimal screening approach was selected using cross-validation.")
             }
         }else if(!all(opts$var_thresh == 0) & opts$cvtune & opts$learner != "xgboost"){
             if(length(opts$var_thresh) == 1){
-                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.", 
+                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.",
                               " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
                               " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
             }else{
-                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.", 
+                tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.",
                               " Variable pre-screening procedures were also applied that ensured that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
                               " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.",
                               " The optimal screening approach was also selected using cross-validation.")
@@ -450,10 +450,10 @@ get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
         if (n_row_ic50 != n_row_ic80) {
             tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
         } else {
-            tmp <- paste0(tmp, ", ")
+            # tmp <- paste0(tmp, ", ")
         }
         if ("ic80" %in% opts$outcomes) {
-            tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, "IC$_{80}$", " and IC$_{80}$"))
+            tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$"))
             if(n_row_ic80 != n_row_iip | !("iip" %in% opts$outcomes)){
                 tmp <- paste0(tmp, " (n = ", n_row_ic80, ")")
             }
@@ -480,7 +480,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
             names(na_list) <- all_possible_outcomes[!run_sls]
         } else {
             na_list <- rep(list(NA), length(all_possible_outcomes) - length(fit_list))
-            names(na_list) <- all_possible_outcomes[!(names(fit_list) == all_possible_outcomes)]
+            names(na_list) <- all_possible_outcomes[!(names(fit_list) %in% all_possible_outcomes)]
         }
         table_list2 <- c(table_list, na_list)
         table_list3 <- list(ic50 = table_list2$ic50, ic80 = table_list2$ic80, iip = table_list2$iip, sens1 = table_list2$sens1, sens2 = table_list2$sens2)
@@ -497,7 +497,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
         tmp <- gsub(all_outcomes[i], all_labels[i], tmp)
     }
     # now format continuous outcomes table
-    sls_run <- (all_possible_outcomes %in% opts$outcomes) & run_sls    
+    sls_run <- (all_possible_outcomes %in% opts$outcomes) & run_sls
     cont_idx <- which((opts$outcomes %in% c("ic50", "ic80", "iip")) & run_sls2)
     rsq_kab <- NULL
 
@@ -520,7 +520,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
         row.names(auctab) <- tmp[!is.na(table_list)][dich_idx]
         auc_kab <- knitr::kable(auctab, col.names = c("CV-AUC", "Lower 95% CI", "Upper 95% CI"),
               digits = 3, row.names = TRUE,
-              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
+              caption = paste0("Estimates of ", V, "-fold cross-validated AUC for predictions of ", ifelse(length(dich_idx) == 1, tolower(tmp[!is.na(table_list)][dich_idx]), "the binary-valued outcomes"), " (n = ", fit_list_out$n_row_ic50, ")."))
     }
     return(list(r2 = rsq_kab, auc = auc_kab))
 }
@@ -587,6 +587,41 @@ load_cv_fits <- function(opts, run_sls, code_dir){
                 n_row_ic80 = n_row_ic80, n_row_iip = n_row_iip))
 }
 
+# text for estimated IC-50
+get_combo_text <- function(opts, ic50_pres, ic80_pres) {
+    if ("additive" %in% opts$combination_method) {
+        txt <- paste0("computed based on the additive model of @wagh2016optimal; ",
+                       "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
+                       " where $\\mbox{IC}_j$ denotes the measured ",
+                       paste0(ifelse(ic50_pres, "IC$_{50}$ ", ""),
+                              ifelse(ic50_pres & ic80_pres, "or ", ""),
+                              ifelse(ic80_pres, "IC$_{80}$ ", ""), collapse = ""),
+                       "for bNAb $j$. ")
+    } else {
+        txt <- paste0("computed based on the Bliss-Hill model of @wagh2016optimal; ",
+                       "for $J$ bNAbs, it is computed using Brent's algorithm [@brent1971] as the concentration value $c$ that minimizes \\[ \\lvert f_J(c) - k \\rvert \\ , \\]",
+                       " where $k$ denotes the desired neutralization fraction (",
+                       paste0(ifelse(ic50_pres, "50%", ""),
+                              ifelse(ic50_pres & ic80_pres, " or ", ""),
+                              ifelse(ic80_pres, "80%", ""), collapse = ""), "), ",
+                          "\\[f_J(c) = 1 - \\prod_{j=1}^J \\{1 - f_j(c, c \\ / \\ J)\\} \\ , \\]",
+                      " $f_j(c, c_j) = (c^m) / (\\mbox{IC}_{50,j}^{m} + c_j^m)$,",
+                  " $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC}_{80,j}) - \\mbox{log}_{10}(\\mbox{IC}_{50,j}))$,",
+                  " and $\\mbox{IC}_{50,j}$ and $\\mbox{IC}_{80,j}$ denote the measured IC$_{50}$ and IC$_{80}$ for bNAb $j$, respectively. ")
+    }
+    txt
+}
+
+get_iip_text <- function(opts) {
+    est_txt <- ifelse(length(opts$nab) > 1, "estimated ", "")
+    suffix <- ifelse(length(opts$nab) > 1, " and estimated IC$_{50}$ and IC$_{80}$ are computed as described above. ", ". ")
+    txt <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
+                  "\\[ \\frac{10^m}{\\mbox{", est_txt, "IC$_{50}$}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", est_txt, "IC}_{80}) - \\mbox{log}_{10}(\\mbox{", est_txt, "IC}_{50}))$",
+                  suffix,
+                  collapse = "")
+    txt
+}
+
 # get descriptions of outcomes
 get_outcome_descriptions <- function(opts, collapse = TRUE){
     # first describe IC-50, IC-80 if present
@@ -603,21 +638,11 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
                           ifelse((ic50_pres & ic80_pres) | iip_pres, "and ", ""),
                           ifelse(ic80_pres | iip_pres, "IC$_{80}$ ", ""), collapse = "")
             tmp1_5 <- ifelse((ic50_pres & ic80_pres) | iip_pres, "were ", "was ")
-            tmp2 <- paste0("computed based on the additive model of @wagh2016optimal; ",
-                           "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
-                           " where $\\mbox{IC}_j$ denotes the measured ",
-                           paste0(ifelse(ic50_pres, "IC$_{50}$ ", ""),
-                                  ifelse(ic50_pres & ic80_pres, "or ", ""),
-                                  ifelse(ic80_pres, "IC$_{80}$ ", ""), collapse = ""),
-                           "for bNAb $j$. ")
+            tmp2 <- get_combo_text(opts, ic50_pres, ic80_pres)
             tmp_text <- c(tmp_text, paste0(tmp, tmp1_5, tmp2, collapse = ""))
         }
         if(iip_pres){
-            tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
-                          "\\[ \\frac{10^m}{\\mbox{estimated IC$_{50}$}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{estimated IC}_{80}) - \\mbox{log}_{10}(\\mbox{estimated IC}_{50}))$ ",
-                          "and estimated IC$_{50}$ and IC$_{80}$ are computed as described above. ",
-                          collapse = "")
+            tmp <- get_iip_text(opts)
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres){
@@ -629,10 +654,7 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
         }
     } else {
         if(iip_pres){
-            tmp <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ",
-                          "\\[ \\frac{10^m}{\\mbox{IC$_{50}$}^m + 10^m} \ , \\]",
-                          "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC}_{80}) - \\mbox{log}_{10}(\\mbox{IC}_{50}))$. ",
-                          collapse = "")
+            tmp <- get_iip_text(opts)
             tmp_text <- c(tmp_text, tmp)
         }
         if(sens1_pres | sens2_pres){
@@ -685,11 +707,11 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 }
 
 ## read in permanent options
-get_global_options <- function(options = c("nab","outcomes", "learners", "cvtune", "cvperf", "nfolds",
+get_global_options <- function(options = c("nab", "outcomes", "learners", "cvtune", "cvperf", "nfolds", "combination_method",
                                            "importance_grp", "importance_ind", "report_name", "return",
                                            "sens_thresh", "multsens_nab", "same_subset", "var_thresh"),
                                options_boolean = c(FALSE, FALSE, FALSE, TRUE,
-                                                   TRUE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                                                   TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
                                                    FALSE, FALSE, TRUE, FALSE)){
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)
@@ -1023,7 +1045,7 @@ get_analysis_dataset_name <- function(all_nms, opts) {
         nms_with_requested_nabs <- all_nms[grepl(paste(opts$nab, collapse = "_"), all_nms)]
         nms_with_only_requested_nabs <- nms_with_requested_nabs[unlist(lapply(strsplit(nms_with_requested_nabs, "_", fixed = TRUE), function(x) length(x) == 2 + length(opts$nab)))]
         date_nab_only <- gsub(".csv", "", gsub("slapnap_", "", nms_with_requested_nabs))
-        date_only <- gsub(paste0(paste(opts$nab, sep = "_"), "_"), "", date_nab_only)
+        date_only <- gsub(paste0(paste(opts$nab, collapse = "_"), "_"), "", date_nab_only)
         current_date <- format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y")
         closest_date <- which.min(as.Date(current_date, "%d%b%Y") - as.Date(date_only, "%d%b%Y"))
         nm <- nms_with_only_requested_nabs[closest_date]
@@ -1172,14 +1194,17 @@ describe_id_var <- function(var) {
 }
 # describe outcomes
 describe_outcome_var <- function(var, opts) {
-    predicted_text_ic50 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{50}$ for bNAb $j$.")
-    predicted_text_ic80 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{80}$ for bNAb $j$.")
+    # predicted_text_ic50 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{50}$ for bNAb $j$.")
+    predicted_text_ic50 <- get_combo_text(opts, ic50_pres = TRUE, ic80_pres = FALSE)
+    # predicted_text_ic80 <- paste0(" computed based on the additive model of @wagh2016optimal; ", "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]", " where $\\mbox{IC}_j$ denotes the measured IC$_{80}$ for bNAb $j$.")
+    predicted_text_ic80 <- get_combo_text(opts, ic50_pres = FALSE, ic80_pres = TRUE)
     if (grepl("ic50", var)) {
         descr <- paste0("Outcome variable: IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
     } else if (grepl("ic80", var)) {
         descr <- paste0("Outcome variable: IC$_{80}$ (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
     } else if (grepl("iip", var)) {
-        descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ and IC$_{80}$ are computed as described above. ", collapse = "")
+        # descr <- paste0("IIP [@shen2008dose; @wagh2016optimal] is calculated as ", "\\[ \\frac{10^m}{\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}^m + 10^m} \ , \\]", "where $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{80}) - \\mbox{log}_{10}(\\mbox{", ifelse(length(opts$nab) == 1, "", "estimated"), " IC}_{50}))$ ", "and", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ and IC$_{80}$ are computed as described above. ", collapse = "")
+        descr <- get_iip_text(opts)
     } else if (var == "sens" | var == "estsens") {
         descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ". Note that in the dataset, 1 denotes sensitive (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated"), " IC$_{50}$ < ", opts$sens_thresh, ") while 0 denotes resistant")
     } else if (var == "multsens") {
@@ -1238,4 +1263,66 @@ get_complete_data_description <- function(opts, ncomplete_ic50, ncomplete_ic80, 
         # do nothing
     }
     paste0(num_obs, " sequences had complete data for ", outcome_txt, " and were used in the analysis")
+}
+
+# compute individual mAb neutralization curve based on concentration and IC-50
+# @param conc the concentration
+# @param ic50 the IC-50 value
+# @param m the slope (in our analyses, taken to be log(4) / [log(IC-80) - log(IC-50)])
+individual_mab_neutralization <- function(conc, mab_conc, ic50, m) {
+  f_mab_c <- (conc ^ m) / (ic50 ^ m + mab_conc ^ m)
+  f_mab_c
+}
+# compute neutralization curves using the Bliss-Hill model (with independence assumption)
+# @param conc the concentration
+# @param ic50 vector or matrix of IC-50 values (columns are mAbs)
+# @param ic80 vector or matrix of IC-80 values (columns are mAbs)
+bliss_hill_predictions <- function(conc, ic50, ic80) {
+  m <- log10(4) / (log10(ic80) - log10(ic50))
+  if (!is.null(ncol(ic50))) {
+    num_indices <- ncol(ic50)
+    this_function <- function(indx, conc) {
+      individual_mab_neutralization(conc = conc, mab_conc = conc / ncol(ic50), ic50[, indx], m[, indx])
+    }
+  } else {
+    num_indices <- length(ic50)
+    this_function <- function(indx, conc) {
+      individual_mab_neutralization(conc = conc, mab_conc = conc / length(ic50), ic50[indx], m[indx])
+    }
+  }
+  one_minus_fs <- do.call(cbind, sapply(1:num_indices, function(indx) 1 - this_function(indx, conc),
+                         simplify = FALSE))
+  f_c <- 1 - apply(one_minus_fs, 1, prod)
+  f_c
+}
+
+# back-solve to obtain combination IC-50 or IC-80 from the Bliss-Hill model (with independence assumption)
+# @param conc the concentration of interest
+# @param ic50 the IC-50 values for all mAbs of interest (a vector)
+# @param ic80 the IC-80 values for all mAbs of interest (a vector)
+# @return the predicted IC (IC-50 if conc = 0.5, IC-80 if conc = 0.8)
+predict_bh_concentration <- function(conc = 0.5, ic50, ic80) {
+  optim_func <- function(another_conc, ic50, ic80, conc) {
+    abs(bliss_hill_predictions(another_conc, ic50, ic80) - conc)
+  }
+  if (conc == 0.5) {
+    init_par <- 1 / sum(1 / ic50)
+    upper_lim <- switch(all(is.na(ic50)) + 1, min(ic50, na.rm = TRUE), NA)
+  } else if (conc == 0.8) {
+    init_par <- 1 / sum(1 / ic80)
+    upper_lim <- switch(all(is.na(ic80)) + 1, min(ic80, na.rm = TRUE), NA)
+  } else {
+    init_par <- 0
+    upper_lim <- 200
+  }
+  # if any individual one is NA, the whole thing should be
+  if (any(is.na(c(ic50, ic80))) | is.na(upper_lim)) {
+    ret <- NA
+  } else { # do the optimization
+    suppressWarnings(optimized <- optim(init_par, fn = optim_func, ic50 = ic50, ic80 = ic80, conc = conc,
+                                        method = "Brent", lower = 0, upper = upper_lim,
+                                        control = list(abstol = 1e-3, reltol = 1e-5)))
+    ret <- optimized$par
+  }
+  ret
 }

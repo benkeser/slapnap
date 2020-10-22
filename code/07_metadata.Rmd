@@ -38,15 +38,14 @@ library(xgboost); library(ranger); library(glmnet)
 library(vimp)
 library(tibble)
 library(stringr)
-source(paste0(code_dir, "variable_groups.R"))
-source(paste0(code_dir, "super_learner_libraries.R"))
-source(paste0(code_dir, "utils.R"))
-source(paste0(code_dir, "plotting_functions.R"))
-source(paste0(code_dir, "ml_var_importance_measures.R"))
-source(paste0(code_dir, "var_import_plot.R"))
-source(paste0(code_dir, "vimp_executive_summary_table.R"))
-source(paste0(code_dir, "plot_one_vimp.R"))
-source(paste0(code_dir, "variable_groups.R"))
+source(paste0(code_dir, "04_variable_groups.R"))
+source(paste0(code_dir, "03_super_learner_libraries.R"))
+source(paste0(code_dir, "00_utils.R"))
+source(paste0(code_dir, "05_plotting_functions.R"))
+source(paste0(code_dir, "05_ml_var_importance_measures.R"))
+source(paste0(code_dir, "05_var_import_plot.R"))
+source(paste0(code_dir, "05_vimp_executive_summary_table.R"))
+source(paste0(code_dir, "05_plot_one_vimp.R"))
 ```
 
 ```{r get-options-and-dataset}
@@ -89,8 +88,9 @@ bin_nms <- nice_outcomes[bin_idx]
 # postfix for naming plots
 postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
 # get clean analysis dataset
-clean_data_names <- list.files(output_dir)
-analysis_data_name <- get_analysis_dataset_name(clean_data_names[grepl(".csv", clean_data_names)], opts)
+all_output_files <- list.files(output_dir)
+clean_data_names <- all_output_files[grepl(".csv", all_output_files)]
+analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
 analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFactors = FALSE)
 
 #-------------------------------------------------------

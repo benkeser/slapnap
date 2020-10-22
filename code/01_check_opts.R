@@ -1,7 +1,7 @@
 #! /usr/bin/env Rscript
 library("shiny")
-source("/home/lib/utils.R")
-source("/home/lib/check_opts_functions.R")
+source("/home/lib/00_utils.R")
+source("/home/lib/01_check_opts_functions.R")
 
 #---------------------
 # Permanent options

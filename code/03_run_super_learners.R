@@ -12,9 +12,9 @@
 # load libraries
 library("SuperLearner")
 library("dplyr")
-source("/home/lib/variable_groups.R")
-source("/home/lib/super_learner_libraries.R")
-source("/home/lib/utils.R")
+source("/home/lib/04_variable_groups.R")
+source("/home/lib/03_super_learner_libraries.R")
+source("/home/lib/00_utils.R")
 
 #---------------------
 # Permanent options
@@ -66,7 +66,7 @@ for (i in 1:length(outcome_names)) {
         this_class <- (0:1)[which.min(table(dat[, outcome_names[i]]))]
         print(paste0("The number of observations in class ", this_class," is less than or equal to the number of CV folds for requested outcome '", this_outcome_name, "'. The SuperLearner will not be run for this outcome."))
     }
-    if (!run_sl_vimp_bools2$run_vimp[i]) {
+    if (!run_sl_vimp_bools2$run_vimp[i] & (opts$importance_grp != "" | (opts$importance_ind != "" | opts$importance_grp != "pred"))) {
         this_class <- (0:1)[which.min(table(dat[, outcome_names[i]]))]
         print(paste0("The number of observations in class ", this_class, " is too small to run population variable importance for requested outcome '", this_outcome_name, "'."))
     }

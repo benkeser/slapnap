@@ -27,15 +27,15 @@ check_mount=$(mount | grep '/home/output')
 mount_val=$?
 if [[ mount_val -ne 0 && $view_port = "FALSE" ]]
 then
-    printf "No way to receive slapnap output. Mounting a directory to the container directory /home/output (-v) or set -e view_port='TRUE'. See documentation for further details."
+    printf "No way to receive slapnap output. Please either mount a directory to the container directory /home/output (using -v) or set -e view_port='TRUE'. See documentation for further details."
     exit 125
 fi
-Rscript /home/lib/check_opts.R >> $log_file 2>&1
+Rscript /home/lib/01_check_opts.R >> $log_file 2>&1
 
 # run script to build analytic data set
 printf "Building analytic data set from CATNAP database \n"
 echo "--- Building analytic data set from CATNAP database --- " >> $log_file
-Rscript /home/lib/compile_analysis_dataset.R >> $log_file 2>&1
+Rscript /home/lib/02_compile_analysis_dataset.R >> $log_file 2>&1
 
 # run script to fit super learners
 # but only fit if something other than just data is requested as output
@@ -43,7 +43,7 @@ if [[ "$return" == *"report"* ]] || [[ "$return" == *"learner"* ]] || [[ "$retur
 then
     printf "Fitting learners \n"
     echo "--- Fitting learners --- " >> $log_file
-    Rscript /home/lib/run_super_learners.R >> $log_file 2>&1
+    Rscript /home/lib/03_run_super_learners.R >> $log_file 2>&1
 
     VIMP_REGEX="^(marg|cond|marg;cond)"
     if [[ "$importance_grp" =~ $VIMP_REGEX ]] || [[ "$importance_ind" =~ $VIMP_REGEX ]]
@@ -51,7 +51,7 @@ then
         # run script to get variable importance
         printf "Estimating variable importance \n"
         echo "--- Estimating variable importance --- " >> $log_file
-        Rscript /home/lib/get_vimp.R >> $log_file 2>&1
+        Rscript /home/lib/04_get_vimp.R >> $log_file 2>&1
     fi
 fi
 
@@ -60,19 +60,19 @@ then
     # run script to compile report
     printf "Compiling results using R Markdown \n"
     echo "--- Compiling results using R Markdown --- " >> $log_file
-    Rscript /home/lib/render_report.R >> $log_file 2>&1
+    Rscript /home/lib/05_render_report.R >> $log_file 2>&1
 fi
 
 # return requested objects
 printf "Returning requested objects \n"
 echo "--- Returning requested objects --- " >> $log_file
-Rscript /home/lib/return_requested_objects.R >> $log_file 2>&1
+Rscript /home/lib/06_return_requested_objects.R >> $log_file 2>&1
 
 if [[ "$return" == *"data"* ]]
 then
     printf "Generating metadata using R Markdown \n"
     echo "--- Generating metadata using R Markdown --- " >> $log_file
-    Rscript /home/lib/render_metadata.R >> $log_file 2>&1
+    Rscript /home/lib/07_render_metadata.R >> $log_file 2>&1
 fi
 
 # if requested, port
