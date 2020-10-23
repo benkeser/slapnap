@@ -474,14 +474,11 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
     V <- fit_list_out$V
     table_list <- lapply(fit_list[!is.na(names(fit_list))], summary.myCV.SuperLearner, opts = opts)
     all_possible_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-    if (any(is.na(names(fit_list))) | length(fit_list) < length(all_possible_outcomes)) {
-        if (any(is.na(names(fit_list)))) {
-            na_list <- rep(list(NA), sum(is.na(names(fit_list))))
-            names(na_list) <- all_possible_outcomes[!run_sls]
-        } else {
-            na_list <- rep(list(NA), length(all_possible_outcomes) - length(fit_list))
-            names(na_list) <- all_possible_outcomes[!(names(fit_list) %in% all_possible_outcomes)]
-        }
+    if (any(is.na(names(fit_list))) || length(fit_list) < length(all_possible_outcomes)) {
+        na_sum <- sum(is.na(names(fit_list)))
+        na_list <- rep(list(NA), length(all_possible_outcomes) - (length(fit_list) - na_sum))
+        name_check_mat <- sapply(names(fit_list), function(y) sapply(all_possible_outcomes, function(x) grepl(y, x)))
+        names(na_list) <- all_possible_outcomes[rowSums(name_check_mat, na.rm = TRUE) == 0]
         table_list2 <- c(table_list, na_list)
         table_list3 <- list(ic50 = table_list2$ic50, ic80 = table_list2$ic80, iip = table_list2$iip, sens1 = table_list2$sens1, sens2 = table_list2$sens2)
         table_list <- table_list3
