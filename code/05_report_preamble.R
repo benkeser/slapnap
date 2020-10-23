@@ -135,7 +135,7 @@ use_cv <- (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opt
 
 ## get biological importance
 if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
-    source(paste0(code_dir, "biological_importance.R"), local = TRUE)
+    source(paste0(code_dir, "05_biological_importance.R"), local = TRUE)
 } else {
     ran_vimp_dichot1 <- FALSE
     ran_vimp_dichot2 <- FALSE
