@@ -1,4 +1,4 @@
-get_sllibtab_caption <- function(opts){
+get_sllibtab_caption <- function(opts = list(learners = "rf", var_thresh = 0)){
     tmp <- NULL
     if(length(opts$learners) == 1){
         tmp <- paste0(tmp, "Algorithms used in the analysis")
@@ -20,7 +20,7 @@ get_sllibtab_caption <- function(opts){
     return(tmp)
 }
 
-relabel_library <- function(library_names, opts){
+relabel_library <- function(library_names = "SL.ranger", opts = list(var_thresh = 0)){
     labels <- list(
       c("SL.ranger.reg", "rf_default"),
       c("SL.ranger.small", "rf_tune1"),
@@ -66,10 +66,10 @@ relabel_library <- function(library_names, opts){
     return(library_names)
 }
 
-get_complete_data_text <- function(opts, ncomplete_ic50,
-                                   ncomplete_ic80,
-                                   ncomplete_ic5080,
-                                   iip_undef){
+get_complete_data_text <- function(opts = list(same_subset = TRUE, outcomes = c("ic50", "ic80", "iip", "sens")), ncomplete_ic50 = NA,
+                                   ncomplete_ic80 = NA,
+                                   ncomplete_ic5080 = NA,
+                                   iip_undef = NA){
     if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
         if(all(opts$outcomes == "ic80")){
             tmp <- paste0(ncomplete_ic80, " of these sequences had measured IC$_{80}$.")
@@ -98,7 +98,7 @@ get_complete_data_text <- function(opts, ncomplete_ic50,
 #' @param opts options
 #' @param imp_df importance data.frame
 #' @param n_ft number of features shown
-get_importance_text <- function(opts, imp_df, n_ft = 20){
+get_importance_text <- function(opts = list(learners = "rf", cvtune = FALSE, cvperf = FALSE), imp_df = NULL, n_ft = 20){
     if (missing(imp_df)) {
         return("")
     }
@@ -149,7 +149,7 @@ get_importance_text <- function(opts, imp_df, n_ft = 20){
 #' @param num_obs_reds number of total obs for reduced regression (may differ for each outcome)
 #' @param n_row_now (may differ for each outcome)
 #' @param importance_type "marginal" or "conditional"
-get_biological_importance_table_description <- function(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, n_row_now, vimp_threshold, importance_type, any_signif) {
+get_biological_importance_table_description <- function(opts, any_cont = TRUE, any_dich = TRUE, cont_nms = c("IC$_{50}$", "IC$_{80}$", "IIP"), bin_nms = c("Sensitivity"), num_obs_fulls = 100, num_obs_reds = 100, n_row_now = 100, vimp_threshold = 0.05, importance_type = "marg", any_signif = FALSE) {
     rel_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the remaining features")
     full_func_txt <- ifelse(importance_type == "marginal", "the feature group of interest", "all available features")
     redu_func_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the reduced set of features (defined by removing the feature group of interest)")
@@ -158,7 +158,11 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
     correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
-    cont_nms <- ifelse(length(opts$nab) == 1, cont_nms, paste0("estimated ", cont_nms))
+    cont_nms <- NULL
+    bin_nms <- switch((any_dich) + 1, NULL, bin_nms)
+    if (any_cont) {
+        cont_nms <- ifelse(length(opts$nab) == 1, cont_nms, paste0("estimated ", cont_nms))
+    }
     cont_nm_descr <- ifelse(length(cont_nms) > 0, ifelse(length(cont_nms) == 1, paste0("$R^2$ for ", cont_nms), paste0("$R^2$ for continuous outcomes (", paste(cont_nms, collapse = ", "), ")")), "")
     bin_nm_descr <- ifelse(length(bin_nms) > 0, ifelse(length(bin_nms) == 1, paste0("AUC for ", tolower(bin_nms)), paste0("AUC for binary outcomes (", paste(bin_nms, collapse = ", "), ")")), "")
     correct_description <- paste0(" Importance is measured via ", cont_nm_descr, ifelse(length(cont_nms) > 0 & length(bin_nms) > 0, " and ", ""), bin_nm_descr, ".")
@@ -167,7 +171,7 @@ get_biological_importance_table_description <- function(opts, cont_nms, bin_nms,
     return(descr)
 }
 # @param outcomes: can specify to only return text for a single outcome
-get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outcomes = "all") {
+get_num_obs_text <- function(opts, num_obs_fulls = NA, num_obs_reds = NA, n_row_now = NA, outcomes = "all") {
     if (length(unique(n_row_now)) == 1) {
         complete_obs_txt <- paste0("n = ", n_row_now[1])
         full_obs_txt <- paste0("n = ", num_obs_fulls[1])
@@ -216,7 +220,7 @@ get_num_obs_text <- function(opts, num_obs_fulls, num_obs_reds, n_row_now, outco
 #' @param ran_sl did we run sl for the given outcome?
 #' @param ran_vimp did we run vimp for the given outcome?
 #' @param outcome_nm the outcome of interest ("sens1" or "sens2")
-check_sl_vimp_bin <- function(opts, ran_sl, ran_vimp, outcome_nm) {
+check_sl_vimp_bin <- function(opts, ran_sl = TRUE, ran_vimp = FALSE, outcome_nm = "sens1") {
     if (outcome_nm == "sens1") {
         ifelse(!ran_sl, paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!ran_vimp, paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
     } else {
@@ -254,7 +258,7 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
 #' @param num_obs_red number of obs used in the "reduced" regression
 #' @param outcome the outcome (e.g., "ic50")
 #' @param grp whether or not this is group importance
-biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_obs_red, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts, vimp_threshold = 0.05, any_signif = list(grp_conditional = FALSE, grp_marginal = FALSE, ind_conditional = FALSE, ind_marginal = FALSE)) {
+biological_importance_figure_caption <- function(ncomplete = NA, num_obs_full = NA, num_obs_red = NA, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts, vimp_threshold = 0.05, any_signif = list(grp_conditional = FALSE, grp_marginal = FALSE, ind_conditional = FALSE, ind_marginal = FALSE)) {
     outcome_text <- paste0(make_nice_outcome(outcome), ".")
     if (grp) {
         outer_descr <- "Group"
@@ -277,7 +281,7 @@ biological_importance_figure_caption <- function(ncomplete, num_obs_full, num_ob
     return(cap)
 }
 
-make_nice_outcome <- function(outcome) {
+make_nice_outcome <- function(outcome = "ic50") {
     if (outcome == "ic50") {
         if (length(opts$nab) > 1) {
             "estimated IC$_{50}$"
@@ -305,7 +309,7 @@ make_nice_outcome <- function(outcome) {
     }
 }
 
-make_xlab <- function(outcome, nab, transformation = "none") {
+make_xlab <- function(outcome = "ic50", nab = "VRC01", transformation = "none") {
     if (outcome == "ic50") {
         if (transformation == "none") {
             return(bquote(IC[50]~.(nab)))
@@ -328,7 +332,7 @@ make_xlab <- function(outcome, nab, transformation = "none") {
 }
 # for a given outcome make a panel histogram of the individual
 # nabs and a summary table
-get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
+get_individual_nab_summaries <- function(outcome = "ic50", opts, dat = NULL){
     out_hist <- list()
     out_summary <- list()
     # re-label and grab correct column
@@ -364,7 +368,7 @@ get_individual_nab_summaries <- function(outcome = "ic50", opts, dat){
     return(list(hist = out_hist, summary = out_summary))
 }
 
-get_learner_descriptions <- function(opts, n_total_ft, n_ft_screen){
+get_learner_descriptions <- function(opts, n_total_ft = NA, n_ft_screen = NA){
 
     if(length(opts$learners) == 1){
         tmp <- if(opts$learners[1] == "rf"){
@@ -441,7 +445,7 @@ get_learner_descriptions <- function(opts, n_total_ft, n_ft_screen){
 # CV.SuperLearner fits and create a list of CV results for all continuous
 # valued outcomes ([[1]] of output) and dichotomous outcomes ([[2]] of output)
 
-get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
+get_cont_table_cap <- function(opts, V = 2, n_row_ic50 = NA, n_row_ic80 = NA, n_row_iip = NA){
     tmp <- paste0("Estimates of ", V, "-fold cross-validated $R^2$ for predictions of ")
     if ("ic50" %in% opts$outcomes) {
         tmp <- paste0(tmp, "IC$_{50}$")
@@ -469,7 +473,7 @@ get_cont_table_cap <- function(opts, V, n_row_ic50, n_row_ic80, n_row_iip){
     return(tmp)
 }
 # each entry in the output list is a kable that should be properly labeled.
-get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
+get_cv_outcomes_tables <- function(fit_list_out = NULL, run_sls = NULL, run_sls2 = NULL, opts){
     fit_list <- fit_list_out$out
     V <- fit_list_out$V
     table_list <- lapply(fit_list[!is.na(names(fit_list))], summary.myCV.SuperLearner, opts = opts)
@@ -524,7 +528,7 @@ get_cv_outcomes_tables <- function(fit_list_out, run_sls, run_sls2, opts){
 
 # load cv_fits for given set of opts, needed since the naming convention
 # is different if length(opts$learners) == 1 and opts$cvtune == FALSE
-load_cv_fits <- function(opts, run_sls, code_dir){
+load_cv_fits <- function(opts, run_sls = NULL, code_dir = "/home/lib/"){
     if(!opts$cvtune & !opts$cvperf){
         stop("no cross-validated fit for these options")
     }
@@ -585,7 +589,7 @@ load_cv_fits <- function(opts, run_sls, code_dir){
 }
 
 # text for estimated IC-50
-get_combo_text <- function(opts, ic50_pres, ic80_pres) {
+get_combo_text <- function(opts, ic50_pres = FALSE, ic80_pres = FALSE) {
     if ("additive" %in% opts$combination_method) {
         txt <- paste0("computed based on the additive model of @wagh2016optimal; ",
                        "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
@@ -723,7 +727,7 @@ get_global_options <- function(options = c("nab", "outcomes", "learners", "cvtun
 }
 
 ## make outer folds for VIM hypothesis test (based on sample splitting)
-make_folds <- function(y, V, stratified = TRUE) {
+make_folds <- function(y = NULL, V = 2, stratified = TRUE) {
   if (stratified) {
     y_1 <- y == 1
     y_0 <- y == 0
@@ -741,7 +745,7 @@ make_folds <- function(y, V, stratified = TRUE) {
   return(folds)
 }
 ## get cv folds from a list created by CV.SuperLearner
-get_cv_folds <- function(folds_lst) {
+get_cv_folds <- function(folds_lst = NULL) {
     V <- length(folds_lst)
     v_lst <- sapply(1:V, function(s) rep(s, length(folds_lst[[s]])), simplify = FALSE)
     joint_lst <- mapply(list, v_lst, folds_lst, SIMPLIFY = FALSE)
@@ -750,7 +754,7 @@ get_cv_folds <- function(folds_lst) {
     return(folds)
 }
 ## determine SL options based on outcome name
-get_sl_options <- function(outcome_name, V) {
+get_sl_options <- function(outcome_name = "ic50", V = 2) {
     if (grepl("dichot", outcome_name)) {
         sl_fam <- binomial()
         cv_ctrl_lst <- list(V = V, stratifyCV = TRUE)
@@ -763,7 +767,7 @@ get_sl_options <- function(outcome_name, V) {
     return(list(fam = sl_fam, ctrl = cv_ctrl_lst, method = sl_method))
 }
 ## Determine vimp options based on outcome name
-get_vimp_options <- function(outcome_name) {
+get_vimp_options <- function(outcome_name = "ic50") {
     if (grepl("dichot", outcome_name)) {
         vimp_measure <- "auc"
     } else {
@@ -772,13 +776,13 @@ get_vimp_options <- function(outcome_name) {
     return(list(vimp_measure = vimp_measure))
 }
 ## Make list of vimp objects
-make_vimp_list <- function(var_groups, var_inds) {
+make_vimp_list <- function(var_groups = NULL, var_inds = NULL) {
     list_names <- c("grp_conditional", "grp_marginal", "ind_conditional", "ind_marginal")
     lst <- sapply(list_names, function(x) NULL, simplify = FALSE)
     return(lst)
 }
 ## Make lists of cv objects
-make_cv_lists <- function(folds_lst, full_vec, redu_vec) {
+make_cv_lists <- function(folds_lst = NULL, full_vec = NULL, redu_vec = NULL) {
     folds <- get_cv_folds(folds_lst)
     ## make lists of the fitted values
     full_lst <- lapply(as.list(1:length(unique(folds))), function(x) full_vec[folds == x])
@@ -786,19 +790,19 @@ make_cv_lists <- function(folds_lst, full_vec, redu_vec) {
     return(list(folds = folds, full_lst = full_lst, redu_lst = redu_lst))
 }
 ## Nice group names for vimp
-vimp_nice_group_names <- function(nm_vec) {
+vimp_nice_group_names <- function(nm_vec = NULL) {
     nice_names <- c("Cysteine counts", "Viral geometry", "Region-specific counts of PNG sites", "gp120 CD4 binding sites", "gp120 V2", "gp120 V3", "gp41 MPER")
     reference_nm_vec <- c("cysteines", "geometry", "glyco", "gp120_cd4bs", "gp120_v2", "gp120_v3", "gp41_mper")
     reference_positions <- apply(as.matrix(nm_vec), 1, function(x) grep(x, reference_nm_vec))
     return(nice_names[reference_positions])
 }
-vimp_nice_ind_names <- function(nm_vec) {
+vimp_nice_ind_names <- function(nm_vec = NULL) {
     no_hxb2 <- gsub("hxb2.", "", nm_vec, fixed = TRUE)
     no_1mer <- gsub(".1mer", "", no_hxb2, fixed = TRUE)
     return(no_1mer)
 }
 ## nice plotting names
-vimp_plot_name <- function(vimp_str, one_nab) {
+vimp_plot_name <- function(vimp_str = NULL, one_nab = TRUE) {
     plot_nms <- rep(NA, length(vimp_str))
     plot_nms[grepl("iip", vimp_str)] <- "IIP"
     plot_nms[grepl("pc.ic50", vimp_str)] <- paste0(ifelse(one_nab, "", "Estimated "), "IC$_{50}$")
@@ -807,7 +811,7 @@ vimp_plot_name <- function(vimp_str, one_nab) {
     plot_nms[grepl("dichotomous.2", vimp_str)] <- "Multiple sensitivity"
     return(plot_nms)
 }
-vimp_plot_name_expr <- function(vimp_str, one_nab) {
+vimp_plot_name_expr <- function(vimp_str = NULL, one_nab = TRUE) {
     est_fillin <- ifelse(one_nab, "", "Estimated")
     if (grepl("iip", vimp_str)) {
         return(bquote("IIP: "))
@@ -825,7 +829,7 @@ vimp_plot_name_expr <- function(vimp_str, one_nab) {
         return(bquote(.("Multiple sensitivity: ")))
     }
 }
-vimp_plot_type_expr <- function(str) {
+vimp_plot_type_expr <- function(str = NULL) {
     grp_nm <- rev(unlist(strsplit(str, "_", fixed = TRUE)))
     nice_grp <- gsub("grp", "Group Variable Importance", grp_nm)
     nice_grp_ind <- gsub("ind", "Individual Variable Importance", nice_grp)
@@ -833,7 +837,7 @@ vimp_plot_type_expr <- function(str) {
     nice_grp_ind_marg_cond <- gsub("conditional", "Conditional ", nice_grp_ind_marg)
     return(bquote(.( paste(nice_grp_ind_marg_cond, collapse = ""))))
 }
-vimp_nice_rownames <- function(vimp_obj, cv = FALSE) {
+vimp_nice_rownames <- function(vimp_obj = NULL, cv = FALSE) {
     mat_s <- vimp_obj$mat$s
     lst_s <- vimp_obj$s
     indx_mat <- sapply(1:length(mat_s), function(x) which(mat_s[x] == lst_s))
@@ -1019,7 +1023,7 @@ summary.myCV.SuperLearner <- function (object, obsWeights = NULL, method = NULL,
     return(out)
 }
 
-get_est_and_ci <- function(idx, fit_list, Rsquared = FALSE, constant = qnorm(0.975)){
+get_est_and_ci <- function(idx = 1, fit_list = NULL, Rsquared = FALSE, constant = qnorm(0.975)){
   cv_fit_table <- fit_list[[idx]]
   Mean <- cv_fit_table$Table$Ave
   if(Rsquared){

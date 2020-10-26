@@ -84,7 +84,7 @@ We define the marginal biological importance of a subgroup of features as the di
 vimp_summary_marg <- vimp_summary_tbl$grp_marg %>%
     select(-mn_rank, -matches("num_rank"))
 ## make the table
-kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, ncompletes, vimp_threshold, importance_type = "marginal", any_signif = any_signif_all))
+kable(vimp_summary_marg, col.names = c("Variable group", colnames(vimp_summary_marg)[-1]), caption = get_biological_importance_table_description(opts = opts, any_cont = any_cont, any_dich = any_dich, cont_nms = cont_nms, bin_nms = bin_nms, num_obs_fulls = num_obs_fulls, num_obs_reds = num_obs_reds, n_row_now = ncompletes, vimp_threshold = vimp_threshold, importance_type = "marginal", any_signif = any_signif_all))
 ```
 
 `r if (!("marg" %in% opts$importance_grp)) "-->"`
@@ -99,7 +99,7 @@ We define the conditional biological importance of a subgroup of features for pr
 vimp_summary_cond <- vimp_summary_tbl$grp_cond %>%
     select(-mn_rank, -matches("num_rank"))
 ## make the table
-kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = get_biological_importance_table_description(opts, cont_nms, bin_nms, num_obs_fulls, num_obs_reds, ncompletes, vimp_threshold, importance_type = "conditional", any_signif = any_signif_all))
+kable(vimp_summary_cond, col.names = c("Variable group", colnames(vimp_summary_cond)[-1]), caption = get_biological_importance_table_description(opts = opts, any_cont = any_cont, any_dich = any_dich, cont_nms = cont_nms, bin_nms = bin_nms, num_obs_fulls = num_obs_fulls, num_obs_reds = num_obs_reds, n_row_now = ncompletes, vimp_threshold = vimp_threshold, importance_type = "conditional", any_signif = any_signif_all))
 ```
 
 `r if (!("cond" %in% opts$importance_grp)) "-->"`
