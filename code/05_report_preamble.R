@@ -59,20 +59,25 @@ n_ab <- length(antibodies)
 ## ----------------------------------------------------------------------------
 ## Read in the data, do some set-up
 ## ----------------------------------------------------------------------------
-get_dat <- function(){
+get_dat <- function(cc = TRUE){
 	# load data
     analysis_data_names <- list.files("/home/dat/analysis")
     analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
 	dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 
 	# check missing values
-	n_row_prev <- nrow(dat)
-	dat <- dat[complete.cases(dat),]
-	n_row_now <- nrow(dat)
+    if (cc) {
+        n_row_prev <- nrow(dat)
+    	dat <- dat[complete.cases(dat),]
+    	n_row_now <- nrow(dat)
+    } else {
+        n_row_prev <- nrow(dat)
+        n_row_now <- nrow(dat)
+    }
 	return(list(dat = dat, n_row_prev = n_row_prev,
 	            n_row_now = n_row_now))
 }
-dat_list <- get_dat()
+dat_list <- get_dat(cc = TRUE)
 dat <- dat_list$dat; n_row_prev <- dat_list$n_row_prev; n_row_now = dat_list$n_row_now
 
 my_webm <- function (x, options) {
@@ -126,8 +131,10 @@ var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 V <- as.numeric(opts$nfolds)
 
 # check the outcomes to see if we can run them or not
-run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
-run_sl_vimp_bools2 <- lapply(check_outcomes(dat, outcome_names, V), function(x){
+dat_lst_2 <- get_dat(cc = FALSE)
+dat2 <- dat_lst_2$dat
+run_sl_vimp_bools <- check_outcomes(dat2, outcome_names, V)
+run_sl_vimp_bools2 <- lapply(check_outcomes(dat2, outcome_names, V), function(x){
     x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
 })
 # check whether we should use cv objects or not
@@ -217,6 +224,9 @@ for(i in seq_along(all_outcomes)){
 outcome_names <- get_outcome_names(opts)
 ncompletes <- all_ncomplete[names(all_ncomplete) %in% opts$outcomes]
 run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
+run_sl_vimp_bools2 <- lapply(check_outcomes(dat2, outcome_names, V), function(x){
+    x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
+})
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
 bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
