@@ -721,20 +721,20 @@ ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_slplot_", postfix, ".
 Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting `r est_fillin` sensitivity.
 
 ```{r roccap1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1}
-roc_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
+if(length(opts$learners) > 1){
+  roc_cap <- paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
 }else if(!opts$cvtune & length(opts$var_tresh) == 1){
-  paste0("Cross-validated ROC curve for the specified learner for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
+  roc_cap <- paste0("Cross-validated ROC curve for the specified learner for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
 }else{
-  paste0("Cross-validated ROC curve for the learner (with tuning parameters ", ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening level"), " selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
+  roc_cap <- paste0("Cross-validated ROC curve for the learner (with tuning parameters ", ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening level"), " selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
 }
 
-predprob_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
+if(length(opts$learners) > 1){
+  predprob_cap <- paste0("Cross-validated predicted probabilities of ", est_fillin, "sensitivity made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else if(!opts$cvtune & length(opts$var_tresh) == 1){
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
+  predprob_cap <- paste0("Cross-validated predicted probabilities of ", est_fillin, "sensitivity made by the specified learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else{
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
+  predprob_cap <- paste0("Cross-validated predicted probabilities of ", est_fillin, "sensitivity made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }
 ```
 
@@ -897,20 +897,20 @@ ggsave(filename = paste0("/home/output/multsens_slplot_", postfix, ".png"), plot
 Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting multiple sensitivity.
 
 ```{r roccap2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot2}
-roc_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
+if(length(opts$learners) > 1){
+  roc_cap <- paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
 }else if(!opts$cvtune & length(opts$var_thresh) == 1){
-  paste0("Cross-validated ROC curve for the specified learner for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
+  roc_cap <- paste0("Cross-validated ROC curve for the specified learner for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
 }else{
-  paste0("Cross-validated ROC curve for the learner (with tuning parameters ", `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening"), " selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
+  roc_cap <- paste0("Cross-validated ROC curve for the learner (with tuning parameters ", ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening"), " selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
 }
 
-predprob_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated predicted probabilities of multiple sensitivity made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
+if(length(opts$learners) > 1){
+  predprob_cap <- paste0("Cross-validated predicted probabilities of multiple sensitivity made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else if(!opts$cvtune){
-  paste0("Cross-validated predicted probabilities of multiple sensitivity made by the specified learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
+  predprob_cap <- paste0("Cross-validated predicted probabilities of multiple sensitivity made by the specified learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else{
-  paste0("Cross-validated predicted probabilities of multiple sensitivity made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
+  predprob_cap <- paste0("Cross-validated predicted probabilities of multiple sensitivity made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }
 ```
 

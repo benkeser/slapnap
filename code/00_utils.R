@@ -234,9 +234,9 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
     if(length(opts$nab) > 1){
         if(ic50_pres | ic80_pres | iip_pres | sens1_pres){
             tmp <- paste0("Estimated ",
-                          ifelse(ic50_pres | iip_pres | sens1_pres, "IC$_{50}$ ", ""),
+                          ifelse(ic50_pres | iip_pres | (sens1_pres && opts$binary_outcomes == "ic50"), "IC$_{50}$ ", ""),
                           ifelse((ic50_pres & ic80_pres) | iip_pres, "and ", ""),
-                          ifelse(ic80_pres | iip_pres, "IC$_{80}$ ", ""), collapse = "")
+                          ifelse(ic80_pres | iip_pres | (sens1_pres && opts$binary_outcomes == "ic80"), "IC$_{80}$ ", ""), collapse = "")
             tmp1_5 <- ifelse((ic50_pres & ic80_pres) | iip_pres, "were ", "was ")
             tmp2 <- get_combo_text(opts, ic50_pres, ic80_pres)
             tmp_text <- c(tmp_text, paste0(tmp, tmp1_5, tmp2, collapse = ""))
