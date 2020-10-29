@@ -144,6 +144,13 @@ dat_ic5080 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
 # these guys do not have IIP defined
 iip_undef <- sum(dat_ic5080$log10.pc.ic80 == dat_ic5080$log10.pc.ic50)
 
+# compute number of sensitive/resistant sequences for sens1, sens2 outcomes
+num_sens1 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.1), sum(dat_ic80$dichotomous.1))
+ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)
+num_resis1 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens1
+num_sens2 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.2), sum(dat_ic80$dichotomous.2))
+num_resis2 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens2
+
 # make nice outcome names
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
 all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_ic50, ncomplete_ic50)
@@ -204,10 +211,10 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bNAbs)", "y (bNAb)")` 
 * out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` `r ifelse(iip_undef == 1, "has", "have")` the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and `r ifelse(iip_undef == 1, "its", "their")` exclusion from IIP analyses.
 `r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` resistant`r ifelse(opts$importance_grp == "", "", check_sl_vimp_bin(opts, ran_sl_dichot1, ran_vimp_dichot1, "sens1"))``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r num_sens1` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r num_resis1` were `r ifelse(one_nab, "", "estimated to be")` resistant`r ifelse(opts$importance_grp == "", "", check_sl_vimp_bin(opts, ran_sl_dichot1, ran_vimp_dichot1, "sens1"))``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bNAb", " bNAbs")))`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bNAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bNAbs")))``r ifelse(opts$importance_grp == "", ".", check_sl_vimp_bin(opts, ran_sl_dichot2, ran_vimp_dichot2, "sens2"))`
+* out of the sequences with complete data, `r num_sens2` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bNAb", " bNAbs")))`, while `r num_resis2` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bNAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bNAbs")))``r ifelse(opts$importance_grp == "", ".", check_sl_vimp_bin(opts, ran_sl_dichot2, ran_vimp_dichot2, "sens2"))`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 # Variables in the dataset

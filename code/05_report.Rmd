@@ -26,10 +26,10 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bNAbs)", "y (bNAb)")` 
 * out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` `r ifelse(iip_undef == 1, "has", "have")` the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and `r ifelse(iip_undef == 1, "its", "their")` exclusion from IIP analyses.
 `r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "", "estimated to be")` resistant`r ifelse(opts$importance_grp == "", "", check_sl_vimp_bin(opts, ran_sl_dichot1, ran_vimp_dichot1, "sens1"))``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r num_sens1` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r num_resis1` were `r ifelse(one_nab, "", "estimated to be")` resistant`r ifelse(opts$importance_grp == "", "", check_sl_vimp_bin(opts, ran_sl_dichot1, ran_vimp_dichot1, "sens1"))``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r sum(dat_ic50$dichotomous.2)` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bNAb", " bNAbs")))`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.2)` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bNAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bNAbs")))``r ifelse(opts$importance_grp == "", ".", check_sl_vimp_bin(opts, ran_sl_dichot2, ran_vimp_dichot2, "sens2"))`
+* out of the sequences with complete data, `r num_sens2` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bNAb", " bNAbs")))`, while `r num_resis2` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bNAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bNAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bNAbs")))``r ifelse(opts$importance_grp == "", ".", check_sl_vimp_bin(opts, ran_sl_dichot2, ran_vimp_dichot2, "sens2"))`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts, n_total_ft, n_ft_screen)`
@@ -667,7 +667,7 @@ kable(imp_iip[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALSE,
 # Results for `r est_fillin`sensitivity
 
 ## Descriptive statistics
-Out of the sequences with complete data, `r sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)` were `r ifelse(one_nab, "estimated to be", "")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r est_fillin` IC$_{50}$ was less than `r opts$sens_thresh`. `r ifelse(!ran_sl_dichot1, paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!ran_vimp_dichot1, paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
+Out of the sequences with complete data, `r num_sens1` were `r ifelse(one_nab, "estimated to be", "")` sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r num_resis1` were `r ifelse(one_nab, "estimated to be", "")` resistant, where `r est_fillin` sensitivity was defined as the indicator that `r paste0(est_fillin, " ", binary_outcomes_ic)` was less than `r opts$sens_thresh`. `r ifelse(!ran_sl_dichot1, paste0("There were too few observations in at least one class for results to be reliable, and thus ", est_fillin, " sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!ran_vimp_dichot1, paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus ", est_fillin, "sensitivity is not included in any population variable importance analyses. "), ""))`
 
 `r if (!("sens1" %in% opts$outcomes)) "-->"`
 
@@ -683,7 +683,7 @@ weight_table <- data.frame(Learner = relabel_library(this_library, opts), Weight
 row.names(weight_table) <- NULL
 # row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations)."))
+             caption = paste0("Table of super learner weights for ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations)."))
 ```
 
 `r if (!("sens1" %in% opts$outcomes) | (length(opts$learners) == 1) | !ran_sl_dichot1) "-->"`
@@ -704,12 +704,12 @@ The cross-validated area under the ROC curve of super learner predictions of `r 
 
 The cross-validated area under the ROC curve of the learner with tuning parameters `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening")` selected via cross-validation and learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot1).
 
-```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1, fig.cap = paste0("Cross-validated AUC for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")}
+```{r plotdichot1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1, fig.cap = paste0("Cross-validated AUC for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")}
 plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
-ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
+ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens1, main_title = ifelse(length(opts$nab) == 1, "Sensitivity", "Estimated sensitivity"), xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -722,33 +722,33 @@ Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting 
 
 ```{r roccap1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1}
 roc_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
 }else if(!opts$cvtune & length(opts$var_tresh) == 1){
-  paste0("Cross-validated ROC curve for the specified learner for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated ROC curve for the specified learner for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
 }else{
-  paste0("Cross-validated ROC curve for the learner (with tuning parameters ", ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening level"), " selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated ROC curve for the learner (with tuning parameters ", ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening level"), " selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
 }
 
 predprob_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else if(!opts$cvtune & length(opts$var_tresh) == 1){
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else{
-  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated predicted probabilities of ", est_fillin, "resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }
 ```
 
 ```{r rocdichot1, fig.cap = roc_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1}
 plot_roc_curves(fit_list_out$out$sens1, opts = opts)
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens1_roc_", postfix, ".png"), plot = plot_roc_curves(fit_list_out$out$sens1, opts = opts), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_roc_", postfix, ".png"), plot = plot_roc_curves(fit_list_out$out$sens1, opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
 
 ```{r predprob1, fig.cap = predprob_cap, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1}
 plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts)
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens1_predprob_", postfix, ".png"), plot = plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_predprob_", postfix, ".png"), plot = plot_predicted_prob_boxplots(fit_list_out$out$sens1, opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -776,7 +776,7 @@ We show the biological variable importance of groups of features (defined in Tab
 `r get_biological_importance_plot_description(opts, grp = TRUE)`
 
 
-```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & ran_vimp_dichot1, fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, "sens1", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.1_any_signif, dichotomous.1_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens1groupvimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & ran_vimp_dichot1, fig.cap = biological_importance_figure_caption(ncomplete_sens, num_obs_fulls, num_obs_reds, "sens1", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.1_any_signif, dichotomous.1_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     sens1_grp_vimp_grob_lst <- list(switch(use_cv + 1,dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_cv_vimp_plots$grp_marginal), switch(use_cv + 1,dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -786,7 +786,7 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
 }
 grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens1_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -799,7 +799,7 @@ if ("figures" %in% opts$return) {
 We show the biological variable importance of individual features in predicting `r est_fillin` sensitivity in Figure \@ref(fig:sens1indivimp). Importance is defined using the difference in AUCs.
 `r get_biological_importance_plot_description(opts, grp = FALSE)`
 
-```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & ran_vimp_dichot1, fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, "sens1", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.1_any_signif, dichotomous.1_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & ran_vimp_dichot1, fig.cap = biological_importance_figure_caption(ncomplete_sens, num_obs_fulls, num_obs_reds, "sens1", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.1_any_signif, dichotomous.1_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     sens1_ind_vimp_grob_lst <- list(switch(use_cv + 1,dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_cv_vimp_plots$ind_marginal), switch(use_cv + 1,dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
@@ -809,7 +809,7 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 }
 grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens1_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -842,7 +842,7 @@ kable(imp_sens1[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALS
 
 ## Descriptive statistics
 
-Out of the `r ncomplete_ic50` sequences, `r sum(dat_ic50$dichotomous.2)` were estimated to be resistant to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r ncomplete_ic50 - sum(dat_ic50$dichotomous.2)` were estimated to be sensitive.
+Out of the `r ncomplete_sens` sequences, `r num_sens2` were estimated to be sensitive to the `r ifelse(!one_nab, "combination of bNAbs", "bNAb")`, while `r num_resis2` were estimated to be resistant, where multiple sensitivity was defined as the indicator that measured `r binary_outcomes_ic` was less than `r opts$sens_thresh` for at least `r sens2_min_num` `r paste0("bNAb", ifelse(sens2_min_num == 1, "", "s"))`. `r ifelse(!ran_sl_dichot2, paste0("There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or population variable importance analyses. "), ifelse(!ran_vimp_dichot2, paste0("There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any population variable importance analyses. "), ""))`
 
 `r if (!("sens2" %in% opts$outcomes)) "-->"`
 
@@ -857,9 +857,8 @@ The weights assigned to each algorithm for Super Learner predicting multiple sen
 weights_sens2 <- readRDS(paste0(slfits_dir, "slweights_fit_dichotomous.2.rds"))
 weight_table <- data.frame(Learner = relabel_library(this_library, opts), Weight = weights_sens2)
 row.names(weight_table) <- NULL
-# row.names(weight_table) <- this_library # will be defined in executive summary chunk
 kable(as.data.frame(weight_table), digits = 2,
-             caption = paste0("Table of super learner weights for multiple sensitivity (n = ", ncomplete_ic50, " observations)."))
+             caption = paste0("Table of super learner weights for multiple sensitivity (n = ", ncomplete_sens, " observations)."))
 ```
 
 `r if (!("sens2" %in% opts$outcomes) | (length(opts$learners) == 1) | !ran_sl_dichot2) "-->"`
@@ -882,12 +881,12 @@ The cross-validated area under the ROC curve for the super learner in predicting
 
 The cross-validated area under the ROC curve for the learner with tuning parameters `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening")` selected via cross-validation and for learners with each individual value of tuning parameters are shown in Figure \@ref(fig:rocdichot2).
 
-```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot2, fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete_ic50, " observations).")}
+```{r plotdichot2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot2, fig.cap = paste0("Cross-validated AUC for multiple sensitivity (n = ", ncomplete_sens, " observations).")}
 plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
-ggsave(filename = paste0("/home/output/ic50_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
+ggsave(filename = paste0("/home/output/multsens_slplot_", postfix, ".png"), plot = plot(fit_list_out$out$sens2, main_title = "Multiple sensitivity", xlim1 = 0.4, xlim2 = 1, text_size = 9,
      Rsquared = FALSE, method = "method.AUC", opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
@@ -899,33 +898,33 @@ Figure \@ref(fig:rocdichot2) shows the cross-validated ROC curve for predicting 
 
 ```{r roccap2, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot2}
 roc_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
 }else if(!opts$cvtune & length(opts$var_thresh) == 1){
-  paste0("Cross-validated ROC curve for the specified learner for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated ROC curve for the specified learner for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
 }else{
-  paste0("Cross-validated ROC curve for the learner (with tuning parameters ", `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening"), " selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated ROC curve for the learner (with tuning parameters ", `r ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening"), " selected via cross-validation) for predicting multiple sensitivity (n = ", ncomplete_sens, " observations).")
 }
 
 predprob_cap <- if(length(opts$learners) > 1){
-  paste0("Cross-validated predicted probabilities of multiple resistance made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated predicted probabilities of multiple sensitivity made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else if(!opts$cvtune){
-  paste0("Cross-validated predicted probabilities of multiple resistance made by the specified learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated predicted probabilities of multiple sensitivity made by the specified learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else{
-  paste0("Cross-validated predicted probabilities of multiple resistance made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_ic50, " observations).")
+  paste0("Cross-validated predicted probabilities of multiple sensitivity made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }
 ```
 
 ```{r rocdichot2, fig.cap = roc_cap, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot2}
 plot_roc_curves(fit_list_out$out$sens2, opts = opts)
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens2_roc_", postfix, ".png"), plot = plot_roc_curves(fit_list_out$out$sens2, opts = opts), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/multsens_roc_", postfix, ".png"), plot = plot_roc_curves(fit_list_out$out$sens2, opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
 
 ```{r predprob2, fig.cap = predprob_cap, eval = ("sens2" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot2}
 plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts)
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens2_predprob_", postfix, ".png"), plot = plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/multsens_predprob_", postfix, ".png"), plot = plot_predicted_prob_boxplots(fit_list_out$out$sens2, opts = opts), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -952,7 +951,7 @@ We show the biological variable importance of groups of features (defined in Tab
 `r get_biological_importance_plot_description(opts, grp = TRUE)`
 
 
-```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & ran_vimp_dichot2, fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, "sens2", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.2_any_signif, dichotomous.2_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens2groupvimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_grp) | ("cond" %in% opts$importance_grp)) & ran_vimp_dichot2, fig.cap = biological_importance_figure_caption(ncomplete_sens, num_obs_fulls, num_obs_reds, "sens2", grp = TRUE, marg = "marg" %in% opts$importance_grp, cond = "cond" %in% opts$importance_grp, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.2_any_signif, dichotomous.2_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     sens2_grp_vimp_grob_lst <- list(switch(use_cv + 1,dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_cv_vimp_plots$grp_marginal), switch(use_cv + 1,dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional))
 } else if ("marg" %in% opts$importance_grp) {
@@ -962,7 +961,7 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
 }
 grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens2_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/multsens_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -975,7 +974,7 @@ if ("figures" %in% opts$return) {
 We show the biological variable importance of individual features in predicting multiple sensitivity in Figure \@ref(fig:sens2indivimp). Importance is defined using the difference in AUCs.
 `r get_biological_importance_plot_description(opts, grp = FALSE)`
 
-```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & ran_vimp_dichot2, fig.cap = biological_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, "sens2", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.2_any_signif, dichotomous.2_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
+```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & ran_vimp_dichot2, fig.cap = biological_importance_figure_caption(ncomplete_sens, num_obs_fulls, num_obs_reds, "sens2", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.2_any_signif, dichotomous.2_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     sens2_ind_vimp_grob_lst <- list(switch(use_cv + 1,dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_cv_vimp_plots$ind_marginal), switch(use_cv + 1,dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional))
 } else if ("marg" %in% opts$importance_ind) {
@@ -985,7 +984,7 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 }
 grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/sens2_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/multsens_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 

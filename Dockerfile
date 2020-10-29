@@ -123,6 +123,10 @@ ENV outcomes="ic50;sens"
 #   "bliss-hill", "bh", or "BH" may also be entered.
 ENV combination_method="additive"
 
+# whether or not to use IC-50 or IC-80 to define binary outcomes
+#   possible values are "ic50" or "ic80"
+ENV binary_outcomes="ic50"
+
 # which learners are included by default
 #  if more than a single algorithm is listed, then super learner is used
 #  if a single algorithm is listed, then the boolean `cvtune` variable can be used
