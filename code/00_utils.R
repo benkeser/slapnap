@@ -238,7 +238,7 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
                           ifelse((ic50_pres & ic80_pres) | iip_pres, "and ", ""),
                           ifelse(ic80_pres | iip_pres | ((sens1_pres || sens2_pres) && opts$binary_outcomes == "ic80"), "IC$_{80}$ ", ""), collapse = "")
             tmp1_5 <- ifelse((ic50_pres & ic80_pres) | iip_pres, "were ", "was ")
-            tmp2 <- get_combo_text(opts, ic50_pres, ic80_pres)
+            tmp2 <- get_combo_text(opts, ic50_pres || ((sens1_pres || sens2_pres) && opts$binary_outcomes == "ic50"), ic80_pres || ((sens1_pres || sens2_pres) && opts$binary_outcomes == "ic80"))
             tmp_text <- c(tmp_text, paste0(tmp, tmp1_5, tmp2, collapse = ""))
         }
         if(iip_pres){
