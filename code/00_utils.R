@@ -97,25 +97,29 @@ get_complete_data_text <- function(opts = list(same_subset = TRUE, outcomes = c(
                                    ncomplete_ic80 = NA,
                                    ncomplete_ic5080 = NA,
                                    iip_undef = NA){
+    ic50_pres <- ("ic50" %in% opts$outcomes) || ((opts$binary_outcomes == "ic50") && (any(grepl("sens", opts$outcomes))))
+    ic80_pres <- ("ic80" %in% opts$outcomes) || ((opts$binary_outcomes == "ic80")  && (any(grepl("sens", opts$outcomes))))
+    iip_pres <- "iip" %in% opts$outcomes
     if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
-        if(all(opts$outcomes == "ic80")){
-            tmp <- paste0(ncomplete_ic80, " of these sequences had measured IC$_{80}$.")
-        }else{
-            tmp <- paste0(ncomplete_ic50, " of these sequences had measured IC$_{50}$")
-            if(any(c("ic80", "iip") %in% opts$outcomes)){
-                tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, ", ", " and "), ncomplete_ic80, " had measured IC$_{80}$")
-                if("iip" %in% opts$outcome){
-                    tmp <- paste0(tmp, ", and ", ncomplete_ic5080, " had both measured")
-                }
-            }
+        tmp <- ""
+        # if ic50 was present or the binary outcomes are defined using ic50, put that in
+        if (ic50_pres) {
+            tmp <- paste0(tmp, ncomplete_ic50, " of these sequences had measured IC$_{50}$")
+        }
+        if (ic80_pres) {
+            txt <- paste0(ncomplete_ic80, " of these sequences had measured IC$_{80}$")
+            tmp <- paste0(tmp, ifelse(ic50_pres, paste0(" and ", txt), txt))
+        }
+        if (iip_pres) {
+            tmp <- paste0(tmp, ifelse(!ic50_pres && !ic80_pres, "", ", and "), ncomplete_ic5080, ifelse(ic50_pres & ic80_pres, " had both", " had both IC$_{50}$ and IC$_{80}$"), " measured")
         }
     }else{
         tmp <- paste0(ncomplete_ic5080, " of these sequences had IC$_{50}$ and IC$_{80}$ measured.")
         if(iip_undef > 0){
-            tmp <- paste0(tmp, "Amongst these sequences, ", iip_undef, " had the same IC$_{50}$ and IC$_{80}$ and thus were excluded from the analysis.",
-                          "Since `same_subset` was set to TRUE in the call to `slapnap`, there were a total of ", ncomplete_ic5080 - iip_undef, " sequences included in the analysis of each endpoint")
+            tmp <- paste0(tmp, " Amongst these sequences, ", iip_undef, " had the same IC$_{50}$ and IC$_{80}$ and thus were excluded from the analysis.",
+                          " Since `same_subset` was set to TRUE in the call to `slapnap`, there were a total of ", ncomplete_ic5080 - iip_undef, " sequences included in the analysis of each endpoint")
         }else{
-            tmp <- paste0(tmp, "Since `same_subset` was set to TRUE in the call to `slapnap`, this was the total number of sequences included in the analysis of each endpoint")
+            tmp <- paste0(tmp, " Since `same_subset` was set to TRUE in the call to `slapnap`, this was the total number of sequences included in the analysis of each endpoint")
         }
     }
     return(tmp)
@@ -226,7 +230,7 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
     sens1_pres <- "sens1" %in% opts$outcomes
     sens2_pres <- "sens2" %in% opts$outcomes
     ic50_pres <- "ic50" %in% opts$outcomes | sens1_pres | sens2_pres
-    binary_outcome_txt <- get_binary_outcome_text(opts)
+    binary_outcomes_txt <- get_binary_outcome_text(opts)
     if(length(opts$nab) > 1){
         if(ic50_pres | ic80_pres | iip_pres | sens1_pres){
             tmp <- paste0("Estimated ",
