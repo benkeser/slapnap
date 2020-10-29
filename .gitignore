@@ -1,8 +1,15 @@
+# Mac stuff
 .DS_Store
+
+# Compiled files and things for docs
 README.html
 code/refs.bib
+
+# Docker stuff
 .dockerignore
-sandbox
+
+# Folders
+sandbox/*
 slfits/*
 dat/*
 docs/_book/*
@@ -13,16 +20,21 @@ talks/*
 manuscript/*
 local_production_runs/*
 local_code/*
-run_analyses_locally.sh
 2019*
-tests
+tests/*
 static_reports/*
 code/R-*
 code/*.tar.gz
 test/*
-test_run.txt
+runs_for_bioinf_paper/*
+
+# R stuff
 .Rproj.user
 *.Rproj
 *.Rhistory
 tests/*.rds
+
+# Txt files, local shell scripts
 *.txt
+test_run.txt
+run_analyses_locally.sh

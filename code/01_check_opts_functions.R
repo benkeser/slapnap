@@ -31,6 +31,12 @@ check_opts_method <- function(method_str, all_methods) {
         shiny::need(!is.na(pmatch(method_str, all_methods)), "Please enter one of the supported methods for predicting combination neutralization. Currently, the supported methods are 'additive' and 'Bliss-Hill'.")
     )
 }
+# check binary outcome specification
+check_opts_binary_outcome_specification <- function(bin_str, all_bins) {
+    shiny::validate(
+        shiny::need(bin_str %in% all_bins, "Please enter either 'ic50' or 'ic80' to use in defining binary outcomes.")
+    )
+}
 # check learners
 check_opts_learners <- function(learner_vec, all_learners) {
     shiny::validate(
@@ -97,6 +103,11 @@ get_options_check <- function(opts) {
     # check the method
     all_methods <- c("additive", "Bliss-Hill", "bliss-hill", "bh", "BH")
     check_opts_method(opts$combination_method, all_methods)
+    # check the binary outcome specification (only if sens1 or sens2 is specified)
+    all_bins <- c("ic50", "ic80")
+    if ("sens1" %in% opts$outcomes || "sens2" %in% opts$outcomes) {
+        check_opts_binary_outcome_specification(opts$binary_outcomes, all_bins)
+    }
     # check the learners
     all_learners <- c("rf", "xgboost", "lasso")
     check_opts_learners(opts$learners, all_learners)

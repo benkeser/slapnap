@@ -59,20 +59,25 @@ n_ab <- length(antibodies)
 ## ----------------------------------------------------------------------------
 ## Read in the data, do some set-up
 ## ----------------------------------------------------------------------------
-get_dat <- function(){
+get_dat <- function(cc = TRUE){
 	# load data
     analysis_data_names <- list.files("/home/dat/analysis")
     analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
 	dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
 
 	# check missing values
-	n_row_prev <- nrow(dat)
-	dat <- dat[complete.cases(dat),]
-	n_row_now <- nrow(dat)
+    if (cc) {
+        n_row_prev <- nrow(dat)
+    	dat <- dat[complete.cases(dat),]
+    	n_row_now <- nrow(dat)
+    } else {
+        n_row_prev <- nrow(dat)
+        n_row_now <- nrow(dat)
+    }
 	return(list(dat = dat, n_row_prev = n_row_prev,
 	            n_row_now = n_row_now))
 }
-dat_list <- get_dat()
+dat_list <- get_dat(cc = TRUE)
 dat <- dat_list$dat; n_row_prev <- dat_list$n_row_prev; n_row_now = dat_list$n_row_now
 
 my_webm <- function (x, options) {
@@ -126,8 +131,10 @@ var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
 V <- as.numeric(opts$nfolds)
 
 # check the outcomes to see if we can run them or not
-run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
-run_sl_vimp_bools2 <- lapply(check_outcomes(dat, outcome_names, V), function(x){
+dat_lst_2 <- get_dat(cc = FALSE)
+dat2 <- dat_lst_2$dat
+run_sl_vimp_bools <- check_outcomes(dat2, outcome_names, V)
+run_sl_vimp_bools2 <- lapply(check_outcomes(dat2, outcome_names, V), function(x){
     x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
 })
 # check whether we should use cv objects or not
@@ -135,7 +142,7 @@ use_cv <- (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opt
 
 ## get biological importance
 if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
-    source(paste0(code_dir, "biological_importance.R"), local = TRUE)
+    source(paste0(code_dir, "05_biological_importance.R"), local = TRUE)
 } else {
     ran_vimp_dichot1 <- FALSE
     ran_vimp_dichot2 <- FALSE
@@ -159,6 +166,7 @@ ncomplete_features <- readRDS(paste0(slfits_dir,"ncomplete_features.rds"))
 ncomplete_ic50 <- readRDS(paste0(slfits_dir,"ncomplete_ic50.rds"))
 ncomplete_ic80 <- readRDS(paste0(slfits_dir,"ncomplete_ic80.rds"))
 ncomplete_ic5080 <- readRDS(paste0(slfits_dir,"ncomplete_ic5080.rds"))
+ncomplete_sens <- ifelse(opts$binary_outcomes == "ic50", ncomplete_ic50, ncomplete_ic80)
 
 # read in data
 analysis_data_names <- list.files("/home/dat/analysis")
@@ -205,6 +213,14 @@ dat_ic5080 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
 # these guys do not have IIP defined
 iip_undef <- sum(dat_ic5080$log10.pc.ic80 == dat_ic5080$log10.pc.ic50)
 
+# compute number of sensitive/resistant sequences for sens1, sens2 outcomes
+num_sens1 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.1), sum(dat_ic80$dichotomous.1))
+ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)
+num_resis1 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens1
+num_sens2 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.2), sum(dat_ic80$dichotomous.2))
+num_resis2 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens2
+
+
 # make nice outcome names
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
 all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_ic50, ncomplete_ic50)
@@ -217,6 +233,9 @@ for(i in seq_along(all_outcomes)){
 outcome_names <- get_outcome_names(opts)
 ncompletes <- all_ncomplete[names(all_ncomplete) %in% opts$outcomes]
 run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
+run_sl_vimp_bools2 <- lapply(check_outcomes(dat2, outcome_names, V), function(x){
+    x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
+})
 # now format continuous outcomes table
 cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
 bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
@@ -224,6 +243,7 @@ cont_nms <- nice_outcomes[cont_idx]
 bin_nms <- nice_outcomes[bin_idx]
 # postfix for naming plots
 postfix <- paste0(filename, "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
+binary_outcomes_ic <- paste0("IC$_{", ifelse(opts$binary_outcomes == "ic50", 50, 80) ,"}$")
 
 # for plotting IC50, IC80
 if (length(opts$nab) == 1) {
@@ -243,3 +263,7 @@ ran_sl_dichot1 <- run_sl_vimp_bools2$run_sl[grepl("dichotomous.1", names(run_sl_
 ran_sl_dichot2 <- run_sl_vimp_bools2$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_sl))]
 ran_sl_dichot1 <- ifelse(length(ran_sl_dichot1) == 0, FALSE, ran_sl_dichot1)
 ran_sl_dichot2 <- ifelse(length(ran_sl_dichot2) == 0, FALSE, ran_sl_dichot2)
+
+# nice plot name for sens1
+sens1_plot_nm <- ifelse(length(opts$nab) == 1, "sens", "estsens")
+sens2_min_num <- min(c(length(opts$nab), opts$multsens_nab))

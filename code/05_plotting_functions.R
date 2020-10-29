@@ -237,7 +237,7 @@ plot_predicted_prob_boxplots <- function(cv_fit, topRank = 1, opts){
   ggplot(aes(x = Sensitivity, y = pred, color = factor(cv_folds))) +
   facet_grid(. ~ algo) +
   geom_boxplot(outlier.shape = NA) +
-  labs(color = "CV fold") + 
+  labs(color = "CV fold") +
   geom_point(position=position_jitterdodge(), aes(colour = factor(cv_folds)),
              pch = 1)+
   ylab(paste0("Predicted Probability of Sensitivity")) + xlab("") +
@@ -920,7 +920,7 @@ predicted_Probability_plot_crossVal <- function(tab, predicted, ...){
 
   set.seed(1)
   p = ggplot(predicted[!is.na(predicted$Sensitivity),], aes(x = Sensitivity, y = y)) + facet_grid(. ~ Model) +
-    geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) + ylab("Predicted Probability of VRC01 Resistance") + xlab("") +
+    geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = factor(Sensitivity)), pch="O", cex=3) + ylab("Predicted Probability of VRC01 Sensitivity") + xlab("") +
     scale_colour_manual(values = c("Sensitive" = "red", "Resistant" = "blue")) +
     theme_bw() + coord_cartesian(ylim=c(0,1)) +
     theme(legend.position = "", strip.text.x = element_text(size = 10), text = element_text(size=12), axis.title = element_text(size=14))
