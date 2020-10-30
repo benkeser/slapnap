@@ -27,6 +27,7 @@ code/R-*
 code/*.tar.gz
 test/*
 runs_for_bioinf_paper/*
+runs_for_amp/*
 
 # R stuff
 .Rproj.user
