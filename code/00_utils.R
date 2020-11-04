@@ -528,7 +528,7 @@ get_biological_importance_table_description <- function(opts, any_cont = TRUE, a
     full_obs_txt <- all_obs_txt$full
     redu_obs_txt <- all_obs_txt$redu
     correct_outcomes <- ifelse(length(opts$outcomes) == 1, get_comma_sep_outcomes(opts), "each outcome.")
-    cont_nms <- NULL
+    cont_nms <- switch((any_cont) + 1, NULL, cont_nms)
     bin_nms <- switch((any_dich) + 1, NULL, bin_nms)
     if (any_cont) {
         cont_nms <- ifelse(length(opts$nab) == 1, cont_nms, paste0("estimated ", cont_nms))

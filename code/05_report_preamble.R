@@ -215,7 +215,6 @@ iip_undef <- sum(dat_ic5080$log10.pc.ic80 == dat_ic5080$log10.pc.ic50)
 
 # compute number of sensitive/resistant sequences for sens1, sens2 outcomes
 num_sens1 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.1), sum(dat_ic80$dichotomous.1))
-ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)
 num_resis1 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens1
 num_sens2 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.2), sum(dat_ic80$dichotomous.2))
 num_resis2 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens2
@@ -223,7 +222,7 @@ num_resis2 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outc
 
 # make nice outcome names
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_ic50, ncomplete_ic50)
+all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, rep(ifelse("ic50" %in% opts$binary_outcomes, ncomplete_ic50, ncomplete_ic80), 2))
 names(all_ncomplete) <- all_outcomes
 all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
 nice_outcomes <- opts$outcomes
