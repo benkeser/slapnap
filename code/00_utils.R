@@ -1231,9 +1231,9 @@ describe_outcome_var <- function(var, opts) {
     predicted_text_ic80 <- get_combo_text(opts, ic50_pres = FALSE, ic80_pres = TRUE)
     binary_outcomes_txt <- get_binary_outcome_text(opts)
     if (grepl("ic50", var)) {
-        descr <- paste0("Outcome variable: $\log_{10}$ IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
+        descr <- paste0("Outcome variable: $\\log_{10}$ IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
     } else if (grepl("ic80", var)) {
-        descr <- paste0("Outcome variable: $\log_{10}$ IC$_{80}$ (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
+        descr <- paste0("Outcome variable: $\\log_{10}$ IC$_{80}$ (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
     } else if (grepl("iip", var)) {
         descr <- get_iip_text(opts)
     } else if (var == "sens" | var == "estsens") {
