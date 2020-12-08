@@ -186,15 +186,15 @@ check_sl_vimp_bin <- function(opts, ran_sl = TRUE, ran_vimp = FALSE, outcome_nm 
 get_combo_text <- function(opts, ic50_pres = FALSE, ic80_pres = FALSE) {
     if ("additive" %in% opts$combination_method) {
         txt <- paste0("computed based on the additive model of @wagh2016optimal; ",
-                       "for $J$ bNAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
+                       "for $J$ bnAbs, it is computed as \\[ \\mbox{estimated IC} = \\left( \\sum_{j=1}^J \\mbox{IC}_j^{-1} \\right)^{-1} \\ , \\]",
                        " where $\\mbox{IC}_j$ denotes the measured ",
                        paste0(ifelse(ic50_pres, "IC$_{50}$ ", ""),
                               ifelse(ic50_pres & ic80_pres, "or ", ""),
                               ifelse(ic80_pres, "IC$_{80}$ ", ""), collapse = ""),
-                       "for bNAb $j$. ")
+                       "for bnAb $j$. ")
     } else {
         txt <- paste0("computed based on the Bliss-Hill model of @wagh2016optimal; ",
-                       "for $J$ bNAbs, it is computed using Brent's algorithm [@brent1971] as the concentration value $c$ that minimizes \\[ \\lvert f_J(c) - k \\rvert \\ , \\]",
+                       "for $J$ bnAbs, it is computed using Brent's algorithm [@brent1971] as the concentration value $c$ that minimizes \\[ \\lvert f_J(c) - k \\rvert \\ , \\]",
                        " where $k$ denotes the desired neutralization fraction (",
                        paste0(ifelse(ic50_pres, "50%", ""),
                               ifelse(ic50_pres & ic80_pres, " or ", ""),
@@ -202,7 +202,7 @@ get_combo_text <- function(opts, ic50_pres = FALSE, ic80_pres = FALSE) {
                           "\\[f_J(c) = 1 - \\prod_{j=1}^J \\{1 - f_j(c, c \\ / \\ J)\\} \\ , \\]",
                       " $f_j(c, c_j) = (c^m) / (\\mbox{IC}_{50,j}^{m} + c_j^m)$,",
                   " $m = \\mbox{log}_{10}(4) / (\\mbox{log}_{10}(\\mbox{IC}_{80,j}) - \\mbox{log}_{10}(\\mbox{IC}_{50,j}))$,",
-                  " and $\\mbox{IC}_{50,j}$ and $\\mbox{IC}_{80,j}$ denote the measured IC$_{50}$ and IC$_{80}$ for bNAb $j$, respectively. ")
+                  " and $\\mbox{IC}_{50,j}$ and $\\mbox{IC}_{80,j}$ denote the measured IC$_{50}$ and IC$_{80}$ for bnAb $j$, respectively. ")
     }
     txt
 }
@@ -250,7 +250,7 @@ get_outcome_descriptions <- function(opts, collapse = TRUE){
         }
         if(sens2_pres){
             min_num <- min(c(length(opts$nab), opts$multsens_nab))
-            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured ", binary_outcomes_txt, " for at least ", min_num, " bNAb", ifelse(min_num == 1, ".", "s."))
+            tmp_text <- c(tmp_text, "Multiple sensitivity is defined as the binary indicator of having measured ", binary_outcomes_txt, " for at least ", min_num, " bnAb", ifelse(min_num == 1, ".", "s."))
         }
     } else {
         if(iip_pres){
@@ -1239,7 +1239,7 @@ describe_outcome_var <- function(var, opts) {
     } else if (var == "sens" | var == "estsens") {
         descr <- paste0("Outcome variable: ", ifelse(length(opts$nab) == 1, "", "estimated "), "sensitivity. Defined as the binary indicator that ", ifelse(length(opts$nab) == 1, "", "estimated "), binary_outcomes_txt, ". Note that in the dataset, 1 denotes sensitive (i.e., ", ifelse(length(opts$nab) == 1, "", "estimated "), binary_outcomes_txt, ") while 0 denotes resistant")
     } else if (var == "multsens") {
-        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured ", binary_outcomes_txt, " for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs. note that in the dataset, 1 denotes multiple sensitivity (i.e., measured ", binary_outcomes_txt, " for $\\ge$ ", min(c(length(opts$nab), opts$multsens_nab)) ," bNAbs).")
+        descr <- paste0("Outcome variable: multiple sensitivity. Defined as the binary indicator of having measured ", binary_outcomes_txt, " for at least ", min(c(length(opts$nab), opts$multsens_nab)) ," bnAbs. note that in the dataset, 1 denotes multiple sensitivity (i.e., measured ", binary_outcomes_txt, " for $\\ge$ ", min(c(length(opts$nab), opts$multsens_nab)) ," bnAbs).")
     }
     return(descr)
 }

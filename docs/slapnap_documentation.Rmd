@@ -1,4 +1,4 @@
-```{r, echo = FALSE}
+nAb```{r, echo = FALSE}
 knitr::opts_chunk$set(
   comment = "#>",
   out.width = "70%",
@@ -30,7 +30,7 @@ This command pulls the image from [DockerHub](https://hub.docker.com/). Once the
 
 # CATNAP {#sec:catnap}
 
-The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/index.html) is a web server hosted by Los Alamos National Laboratory [@yoon2015catnap]. The database integrates antibody neutralization and HIV-1 sequence data from published studies. Neutralization is measured in terms of half maximal inhibitory concentration (IC$_{50}$) and 80\% inhibitory concentration (IC$_{80}$). These measures of neutralization against HIV envelope pseudoviruses are available for many broadly neutralizing antibodies (bNAbs) and for some combination bNAbs. Also available on each pseudovirus are amino acid (AA) sequence features for the gp160 protein. These are detailed in Section \@ref(sec:data).
+The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/index.html) is a web server hosted by Los Alamos National Laboratory [@yoon2015catnap]. The database integrates antibody neutralization and HIV-1 sequence data from published studies. Neutralization is measured in terms of half maximal inhibitory concentration (IC$_{50}$) and 80\% inhibitory concentration (IC$_{80}$). These measures of neutralization against HIV envelope pseudoviruses are available for many broadly neutralizing antibodies (bnAbs) and for some combination bnAbs. Also available on each pseudovirus are amino acid (AA) sequence features for the gp160 protein. These are detailed in Section \@ref(sec:data).
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
 
@@ -50,7 +50,7 @@ Each description below lists the default value that is assumed if the option is 
 
 __-e options for `slapnap`__
 
-* __`nab`__: A semicolon-separated list of bNAbs (default = `"VRC01"`). A list of possible bNAbs can be found [here](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp). If multiple bNAbs are listed, it is assumed that the analysis should be of estimated `outcomes` for a combination of bNAbs (see Section \@ref(sec:outcomedefs) for details on how estimated outcomes for multiple bNAbs are computed).
+* __`nab`__: A semicolon-separated list of bnAbs (default = `"VRC01"`). A list of possible bnAbs can be found [here](https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp). If multiple bnAbs are listed, it is assumed that the analysis should be of estimated `outcomes` for a combination of bnAbs (see Section \@ref(sec:outcomedefs) for details on how estimated outcomes for multiple bnAbs are computed).
 * __`outcomes`__: A semicolon-separated string of outcomes to include in the analysis. Possible values are `"ic50"` (included in default), `"ic80"`, `"iip"`, `"sens"` (included in default), `"estsens"`, `"multsens"`. If only a single `nab` is specified, use `sens` to include a dichotomous endpoint. If multiple `nab`s are specified, use `estsens` and/or `multsens`. For detailed definitions of outcomes see Section \@ref(sec:outcomedefs).
 * __`combination_method`__ A string defining the method to use for predicting combination IC$_{50}$ and/or IC$_{80}$. Possible values are `"additive"` (the default, for the additive model defined in [@wagh2016optimal]) or `"Bliss-Hill"` (for the Bliss-Hill model defined in [@wagh2016optimal]).
 * __`binary_outcomes`__ A string defining the measure of neutralization to use for defining binary outcomes. Possible values are `"ic50"` (the default, for using IC$_{50}$ to define sensitivity) or `"ic80"` (for using IC$_{80}$ to define sensitivity).
@@ -98,7 +98,7 @@ docker run -v /path/to/local/dir:/home/output slapnap/slapnap
 
 Note that this call mounts the local directory `path/to/local/dir` to receive output from the container (see Section \@ref(sec:mounting)).
 
-When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir` (note that the name of the log file is based on the current time, which is in UTC+0). The container will then compile an analytic data set from the CATNAP database for the default bNAb (VRC01), train the default learner (random forest [@breiman2001]) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir` (note that the default name of the report is based on the current time, which is in UTC+0).
+When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in `/path/to/local/dir` (note that the name of the log file is based on the current time, which is in UTC+0). The container will then compile an analytic data set from the CATNAP database for the default bnAb (VRC01), train the default learner (random forest [@breiman2001]) for the default outcomes (`ic50` and `sens`), evaluate its performance using two-fold (default for `nfolds`) cross validation, and compile a report detailing the results, and place the compiled report in `path/to/local/dir` (note that the default name of the report is based on the current time, which is in UTC+0).
 
 ## Viewing report in browser {#sec:webbrowse}
 
@@ -186,24 +186,24 @@ To close the interactive session type `exit` at the container command prompt and
 
 ## Outcomes {#sec:outcomedefs}
 
-### Single bNAb
+### Single bnAb
 
-If a single bNAb or combination of bNAbs that are measured directly in the CATNAP data is requested (i.e., the `nab` option is a single string of a single bNAb or measured combination of bNAbs from the CATNAP database), then the possible outcomes are:
+If a single bnAb or combination of bnAbs that are measured directly in the CATNAP data is requested (i.e., the `nab` option is a single string of a single bnAb or measured combination of bnAbs from the CATNAP database), then the possible outcomes are:
 
 * `ic50` = $\mbox{log}_{10}(\mbox{IC}_{50})$, where IC$_{50}$ is the half maximal inhibitory concentration;
 * `ic80` = $\mbox{log}_{10}(\mbox{IC}_{80})$, where IC$_{80}$ is the 80% maximal inhibitory concentration;
 * `iip` = $(-1)\mbox{log}_{10}(1 - \mbox{IIP})$, where IIP [@shen2008dose, @wagh2016optimal] is the instantaneous inhibitory potential, computed as $$ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))$; and
 * `sens` = sensitivity: the binary indicator that IC$_{50}$ $<$ `sens_thresh`, the user-specified sensitivity threshold.
 
-### Multiple bNAbs
+### Multiple bnAbs
 
-If multiple bNAbs are requested (i.e., the `nab` option is a semi-colon separated string of more than one bNAb from CATNAP), then the possible `outcomes` that can be requested are:
+If multiple bnAbs are requested (i.e., the `nab` option is a semi-colon separated string of more than one bnAb from CATNAP), then the possible `outcomes` that can be requested are:
 
-* `ic50` = $\mbox{log}_{10}(\mbox{estimated IC}_{50})$, where estimated IC$_{50}$ is computed as follows: for $J$ bNAbs, $$ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , $$ where IC$_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
-* `ic80` = $\mbox{log}_{10}(\mbox{estimated IC}_{80})$, where estimated IC$_{80}$ is computed as follows: for $J$ bNAbs, $$ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , $$ where IC$_{80,j}$ denotes the measured IC$_{80}$ for antibody $j$ [@wagh2016optimal];
+* `ic50` = $\mbox{log}_{10}(\mbox{estimated IC}_{50})$, where estimated IC$_{50}$ is computed as follows: for $J$ bnAbs, $$ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , $$ where IC$_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
+* `ic80` = $\mbox{log}_{10}(\mbox{estimated IC}_{80})$, where estimated IC$_{80}$ is computed as follows: for $J$ bnAbs, $$ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , $$ where IC$_{80,j}$ denotes the measured IC$_{80}$ for antibody $j$ [@wagh2016optimal];
 * `iip` = $(-1)\mbox{log}_{10}(1 - \mbox{IIP})$, where IIP is computed as $$ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{estimated  IC}_{80}) - \mbox{log}_{10}(\mbox{estimated  IC}_{50}))$; and
 * `estsens` = estimated sensitivity: the binary indicator that estimated IC$_{50}$ (defined above) is less than `sens_thresh`; and
-* `multsens` = multiple sensitivity: the binary indicator that measured IC$_{50}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bNAbs defined by `multsens_nab`.
+* `multsens` = multiple sensitivity: the binary indicator that measured IC$_{50}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bnAbs defined by `multsens_nab`.
 
 ## Learners {#sec:learnerdetails}
 
@@ -304,7 +304,7 @@ The executive summary contains:
 * a table of ranked marginal biological prediction performance for each feature group and outcome (if `"marg"` is included in `importance_grp`); and
 * a table of ranked conditional biological prediction performance for each feature group and outcome (if `"cond"` is included in `importance_grp`).
 
-The rest of the report is organized by outcome. Each of these sections contains descriptive statistics including summaries of the distribution of the outcome (raw and log-transformed) for each bNAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to `slapnap`, the following subsections may also be present:
+The rest of the report is organized by outcome. Each of these sections contains descriptive statistics including summaries of the distribution of the outcome (raw and log-transformed) for each bnAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to `slapnap`, the following subsections may also be present:
 
 * a table of super learner weights (Section \@ref(sec:sldetails)) if an ensemble is used;
 * cross-validated prediction performance for the fitted learner (or super learner): figures showing cross-validated prediction performance (all outcomes), cross-validated receiver operating characteristic (ROC) curves (binary outcomes), and cross-validated predicted probabilities of resistance (binary outcomes); and
@@ -338,7 +338,7 @@ sudo docker run \
     -e importance_grp="marg" \
     -e importance_ind="marg;pred" \
     -e return="report" \
-    slapnap
+    slapnap/slapnap
 ````
 
 The next code chunk evaluates binary sensitivity (defined as the indicator that IC$_{50} < 50$) for 10-1074 using a super learner that includes all three learner types, each with multiple tuning arameter values. If running this command locally, change `docker_output_directory` to the path to the folder where the output is to be saved.
@@ -384,7 +384,7 @@ docker run \
 
 # Data {#sec:data}
 
-The analysis dataset includes neutralization outcomes for the requested bNAb(s) and AA sequence features for the gp160 protein. The possible outcomes are described in Section \@ref(sec:outcomedefs).
+The analysis dataset includes neutralization outcomes for the requested bnAb(s) and AA sequence features for the gp160 protein. The possible outcomes are described in Section \@ref(sec:outcomedefs).
 
 The additional groups of variables in the data include:
 
