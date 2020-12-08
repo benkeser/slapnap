@@ -3,6 +3,14 @@
 #-----------------------------------------------------
 # This script is executed as entry point to container
 #-----------------------------------------------------
+# check if output directory is mounted or view_port is turned on
+check_mount=$(mount | grep '/home/output')
+mount_val=$?
+if [[ mount_val -ne 0 && $view_port = "FALSE" ]]
+then
+    printf "No way to receive slapnap output. Please either mount a directory to the container directory /home/output (using -v) or set -e view_port='TRUE'. See documentation for further details."
+    exit 125
+fi
 # allow errors to propagate up to container
 set -e
 # grab the current date, promote to system environment variable
@@ -17,14 +25,6 @@ log_file_init=($(echo $nab_str"_"$current_date".log"))
 log_file=($(echo "/home/output/"$log_file_init))
 # start SLAPNAP
 printf "Starting SLAPNAP \n"
-# check if output directory is mounted or view_port is turned on
-check_mount=$(mount | grep '/home/output')
-mount_val=$?
-if [[ mount_val -ne 0 && $view_port = "FALSE" ]]
-then
-    printf "No way to receive slapnap output. Please either mount a directory to the container directory /home/output (using -v) or set -e view_port='TRUE'. See documentation for further details."
-    exit 125
-fi
 printf "Messages, warnings, and errors (if any) will appear in your output directory under ${log_file//'/home/output/'/''} \n"
 
 # make sure that user-specified options match what we expect to see
