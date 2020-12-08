@@ -291,7 +291,7 @@ docker run -v /path/to/local/dir:/home/output \
 
 # Report {#sec:report}
 
-## General structure 
+## General structure
 
 The `slapnap` report consists of an executive summary followed by results for each requested outcome.
 
@@ -318,7 +318,47 @@ Here we include several example reports and the `slapnap` container `run` comman
 
 ### Single antibodies
 
-Coming soon...
+The following code evaluates binary sensitivity (defined as the indicator that IC$_{80} < 1$) for VRC01 using a super learner that includes all three learner types, each with multiple tuning arameter values, and with different variable screening techniques. We also request marginal group and individual biological importance and individual predictive importance. If running this command locally, change `docker_output_directory` to the path to the folder where the output is to be saved.
+
+[See the report](reports/report_VRC01.html)
+
+````bash
+sudo docker run \
+    -d \
+    -v docker_output_directory:/home/output \
+    -e nab="VRC01" \
+    -e outcomes="ic80;sens" \
+    -e binary_outcomes="ic80" \
+    -e learners="rf;lasso;xgboost" \
+    -e sens_thresh="1" \
+    -e var_thresh="0;4;8" \
+    -e nfolds="5" \
+    -e cvtune="TRUE" \
+    -e cvperf="TRUE" \
+    -e importance_grp="marg" \
+    -e importance_ind="marg;pred" \
+    -e return="report" \
+    slapnap
+````
+
+The next code chunk evaluates binary sensitivity (defined as the indicator that IC$_{50} < 50$) for 10-1074 using a super learner that includes all three learner types, each with multiple tuning arameter values. If running this command locally, change `docker_output_directory` to the path to the folder where the output is to be saved.
+
+[See the report](reports/report_10-1074.html)
+
+````bash
+sudo docker run \
+    -d
+    -v docker_output_directory:/home/output/ \
+    -e nab="10-1074" \
+    -e outcomes="sens" \
+    -e learners="rf;lasso;xgboost" \
+    -e sens_thresh="50" \
+    -e nfolds="5" \
+    -e cvtune="TRUE" \
+    -e cvperf="TRUE" \
+    -e return="report" \
+    slapnap/slapnap
+````
 
 ### Multiple antibodies
 
