@@ -206,38 +206,22 @@ There are three possible `learners` available in `slapnap`: random forests [@bre
 
 For each `learner`, there is a `default` choice of tuning parameters that is implemented if `cvtune="FALSE"`. If instead `cvtune="TRUE"`, then there are several choices of tuning parameters that are evaluated using `nfold` cross validation, Table \@ref(tab:learners).
 
-\begin{table}
 
-\caption{(\#tab:learners)Labels for `learners` in report and description of their respective tuning parameters}
-\centering
-\begin{tabular}[t]{l|l}
-\hline
-`learner` & Tuning parameters\\
-\hline
-`rf\_default` & `mtry` equal to square root of number of predictors\\
-\hline
-`rf\_1` & `mtry` equal to one-half times square root of number of predictors\\
-\hline
-`rf\_2` & `mtry` equal to two times square root of number of predictors\\
-\hline
-`xgboost\_default` & maximum tree depth equal to 4\\
-\hline
-`xgboost\_1` & maximum tree depth equal to 2\\
-\hline
-`xgboost\_2` & maximum tree depth equal to 6\\
-\hline
-`xgboost\_3` & maximum tree depth equal to 8\\
-\hline
-`lasso\_default` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0\\
-\hline
-`lasso\_1` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0.25\\
-\hline
-`lasso\_2` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0.5\\
-\hline
-`lasso\_3` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0.75\\
-\hline
-\end{tabular}
-\end{table}
+Table: (\#tab:learners)Labels for `learners` in report and description of their respective tuning parameters
+
+|`learner`         |Tuning parameters                                                  |
+|:-----------------|:------------------------------------------------------------------|
+|`rf_default`      |`mtry` equal to square root of number of predictors                |
+|`rf_1`            |`mtry` equal to one-half times square root of number of predictors |
+|`rf_2`            |`mtry` equal to two times square root of number of predictors      |
+|`xgboost_default` |maximum tree depth equal to 4                                      |
+|`xgboost_1`       |maximum tree depth equal to 2                                      |
+|`xgboost_2`       |maximum tree depth equal to 6                                      |
+|`xgboost_3`       |maximum tree depth equal to 8                                      |
+|`lasso_default`   |$\lambda$ selected by 5-fold CV and $\alpha$ equal to 0            |
+|`lasso_1`         |$\lambda$ selected by 5-fold CV and $\alpha$ equal to 0.25         |
+|`lasso_2`         |$\lambda$ selected by 5-fold CV and $\alpha$ equal to 0.5          |
+|`lasso_3`         |$\lambda$ selected by 5-fold CV and $\alpha$ equal to 0.75         |
 
 Tuning parameters not mentioned in the table are set as follows:
 
@@ -304,6 +288,8 @@ docker run -v /path/to/local/dir:/home/output \
 
 # Report {#sec:report}
 
+## General structure 
+
 The `slapnap` report consists of an executive summary followed by results for each requested outcome.
 
 The executive summary contains:
@@ -323,6 +309,35 @@ The rest of the report is organized by outcome. Each of these sections contains 
 
 Finally, if group biological importance is requested, then the variable groups are displayed in a section immediately preceding the references.
 
+## Example reports
+
+Here we include several example reports and the `slapnap` container `run` commands that generated them.
+
+### Single antibodies
+
+Coming soon...
+
+### Multiple antibodies
+
+The following code evaluates binary sensitivity outcomes for a combination antibody using a super learner that includes all three learner types, each with multiple tuning parameter values, and with different variable screening techniques. If running this command locally, change `docker_output_directory` to the path to the folder where output is to be saved.
+
+[See the report](reports/report_10-1074_pg9.html).
+
+````bash
+docker run \
+  -d \
+  -v docker_output_directory:/home/output \
+  -e learners="rf;lasso;xgboost" \
+  -e cvperf="TRUE" \
+  -e cvtune="TRUE" \
+  -e nab="10-1074;PG9" \
+  -e outcomes="estsens;multsens" \
+  -e sens_thresh="1" \
+  -e var_thresh="0;4" \
+  -e return="report" \
+  -e nfolds="5" \
+  slapnap/slapnap
+````
 
 # Data {#sec:data}
 
