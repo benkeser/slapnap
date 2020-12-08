@@ -390,7 +390,7 @@ The additional groups of variables in the data include:
 
 * __geographic information__: binary indicator variables describing the region of origin of each pseudovirus;
 * __subtype__: binary indicator variables denoting the HIV-1 subtype for the given pseudovirus;
-* __AA sequence features__: binary indicator variables denoting presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160;
+* __AA sequence features__: binary indicator variables denoting: presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160, the site having a leading AA for the canonical N-linked glycosylation motif (N[!P]{S/T]), an observed gap at this site after alignment to maintain site-specific relevance, or a gap at this site that resulted in a frameshift;
 * __viral geometry features__: length of Env, gp120, V2, V3, V5;
 * __numbers of sequons__: number of sequons in Env, gp120, V2, V3, V5; and
 * __numbers of cysteines__: number of cysteines in Env, gp120, V2, V3, V5.
