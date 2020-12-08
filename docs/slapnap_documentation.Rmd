@@ -291,6 +291,8 @@ docker run -v /path/to/local/dir:/home/output \
 
 # Report {#sec:report}
 
+## General structure 
+
 The `slapnap` report consists of an executive summary followed by results for each requested outcome.
 
 The executive summary contains:
@@ -310,6 +312,35 @@ The rest of the report is organized by outcome. Each of these sections contains 
 
 Finally, if group biological importance is requested, then the variable groups are displayed in a section immediately preceding the references.
 
+## Example reports
+
+Here we include several example reports and the `slapnap` container `run` commands that generated them.
+
+### Single antibodies
+
+Coming soon...
+
+### Multiple antibodies
+
+The following code evaluates binary sensitivity outcomes for a combination antibody using a super learner that includes all three learner types, each with multiple tuning parameter values, and with different variable screening techniques. If running this command locally, change `docker_output_directory` to the path to the folder where output is to be saved.
+
+[See the report](reports/report_10-1074_pg9.html).
+
+````bash
+docker run \
+  -d \
+  -v docker_output_directory:/home/output \
+  -e learners="rf;lasso;xgboost" \
+  -e cvperf="TRUE" \
+  -e cvtune="TRUE" \
+  -e nab="10-1074;PG9" \
+  -e outcomes="estsens;multsens" \
+  -e sens_thresh="1" \
+  -e var_thresh="0;4" \
+  -e return="report" \
+  -e nfolds="5" \
+  slapnap/slapnap
+````
 
 # Data {#sec:data}
 
