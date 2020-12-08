@@ -151,8 +151,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-sec-methods.html"><a href="5-sec-methods.html"><i class="fa fa-check"></i><b>5</b> Methods</a><ul>
 <li class="chapter" data-level="5.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>5.1</b> Outcomes</a><ul>
-<li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bNAb</a></li>
-<li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bNAbs</a></li>
+<li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bnAb</a></li>
+<li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bnAbs</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:learnerdetails"><i class="fa fa-check"></i><b>5.2</b> Learners</a></li>
 <li class="chapter" data-level="5.3" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>5.3</b> Super learner</a></li>
@@ -192,8 +192,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="sec:outcomedefs" class="section level2">
 <h2><span class="header-section-number">5.1</span> Outcomes</h2>
 <div id="single-bnab" class="section level3">
-<h3><span class="header-section-number">5.1.1</span> Single bNAb</h3>
-<p>If a single bNAb or combination of bNAbs that are measured directly in the CATNAP data is requested (i.e., the <code>nab</code> option is a single string of a single bNAb or measured combination of bNAbs from the CATNAP database), then the possible outcomes are:</p>
+<h3><span class="header-section-number">5.1.1</span> Single bnAb</h3>
+<p>If a single bnAb or combination of bnAbs that are measured directly in the CATNAP data is requested (i.e., the <code>nab</code> option is a single string of a single bnAb or measured combination of bnAbs from the CATNAP database), then the possible outcomes are:</p>
 <ul>
 <li><code>ic50</code> = <span class="math inline">\(\mbox{log}_{10}(\mbox{IC}_{50})\)</span>, where IC<span class="math inline">\(_{50}\)</span> is the half maximal inhibitory concentration;</li>
 <li><code>ic80</code> = <span class="math inline">\(\mbox{log}_{10}(\mbox{IC}_{80})\)</span>, where IC<span class="math inline">\(_{80}\)</span> is the 80% maximal inhibitory concentration;</li>
@@ -202,14 +202,14 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul>
 </div>
 <div id="multiple-bnabs" class="section level3">
-<h3><span class="header-section-number">5.1.2</span> Multiple bNAbs</h3>
-<p>If multiple bNAbs are requested (i.e., the <code>nab</code> option is a semi-colon separated string of more than one bNAb from CATNAP), then the possible <code>outcomes</code> that can be requested are:</p>
+<h3><span class="header-section-number">5.1.2</span> Multiple bnAbs</h3>
+<p>If multiple bnAbs are requested (i.e., the <code>nab</code> option is a semi-colon separated string of more than one bnAb from CATNAP), then the possible <code>outcomes</code> that can be requested are:</p>
 <ul>
-<li><code>ic50</code> = <span class="math inline">\(\mbox{log}_{10}(\mbox{estimated IC}_{50})\)</span>, where estimated IC<span class="math inline">\(_{50}\)</span> is computed as follows: for <span class="math inline">\(J\)</span> bNAbs, <span class="math display">\[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]</span> where IC<span class="math inline">\(_{50,j}\)</span> denotes the measured IC<span class="math inline">\(_{50}\)</span> for antibody <span class="math inline">\(j\)</span> <span class="citation">(Wagh et al. <a href="#ref-wagh2016optimal">2016</a>)</span>;</li>
-<li><code>ic80</code> = <span class="math inline">\(\mbox{log}_{10}(\mbox{estimated IC}_{80})\)</span>, where estimated IC<span class="math inline">\(_{80}\)</span> is computed as follows: for <span class="math inline">\(J\)</span> bNAbs, <span class="math display">\[ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , \]</span> where IC<span class="math inline">\(_{80,j}\)</span> denotes the measured IC<span class="math inline">\(_{80}\)</span> for antibody <span class="math inline">\(j\)</span> <span class="citation">(Wagh et al. <a href="#ref-wagh2016optimal">2016</a>)</span>;</li>
+<li><code>ic50</code> = <span class="math inline">\(\mbox{log}_{10}(\mbox{estimated IC}_{50})\)</span>, where estimated IC<span class="math inline">\(_{50}\)</span> is computed as follows: for <span class="math inline">\(J\)</span> bnAbs, <span class="math display">\[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]</span> where IC<span class="math inline">\(_{50,j}\)</span> denotes the measured IC<span class="math inline">\(_{50}\)</span> for antibody <span class="math inline">\(j\)</span> <span class="citation">(Wagh et al. <a href="#ref-wagh2016optimal">2016</a>)</span>;</li>
+<li><code>ic80</code> = <span class="math inline">\(\mbox{log}_{10}(\mbox{estimated IC}_{80})\)</span>, where estimated IC<span class="math inline">\(_{80}\)</span> is computed as follows: for <span class="math inline">\(J\)</span> bnAbs, <span class="math display">\[ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , \]</span> where IC<span class="math inline">\(_{80,j}\)</span> denotes the measured IC<span class="math inline">\(_{80}\)</span> for antibody <span class="math inline">\(j\)</span> <span class="citation">(Wagh et al. <a href="#ref-wagh2016optimal">2016</a>)</span>;</li>
 <li><code>iip</code> = <span class="math inline">\((-1)\mbox{log}_{10}(1 - \mbox{IIP})\)</span>, where IIP is computed as <span class="math display">\[ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , \]</span> where <span class="math inline">\(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{estimated IC}_{80}) - \mbox{log}_{10}(\mbox{estimated IC}_{50}))\)</span>; and</li>
 <li><code>estsens</code> = estimated sensitivity: the binary indicator that estimated IC<span class="math inline">\(_{50}\)</span> (defined above) is less than <code>sens_thresh</code>; and</li>
-<li><code>multsens</code> = multiple sensitivity: the binary indicator that measured IC<span class="math inline">\(_{50}\)</span> is less than the sensitivity threshold (<code>sens_thresh</code>) for a number of bNAbs defined by <code>multsens_nab</code>.</li>
+<li><code>multsens</code> = multiple sensitivity: the binary indicator that measured IC<span class="math inline">\(_{50}\)</span> is less than the sensitivity threshold (<code>sens_thresh</code>) for a number of bnAbs defined by <code>multsens_nab</code>.</li>
 </ul>
 </div>
 </div>

@@ -151,8 +151,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-sec-methods.html"><a href="5-sec-methods.html"><i class="fa fa-check"></i><b>5</b> Methods</a><ul>
 <li class="chapter" data-level="5.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>5.1</b> Outcomes</a><ul>
-<li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bNAb</a></li>
-<li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bNAbs</a></li>
+<li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bnAb</a></li>
+<li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bnAbs</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:learnerdetails"><i class="fa fa-check"></i><b>5.2</b> Learners</a></li>
 <li class="chapter" data-level="5.3" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>5.3</b> Super learner</a></li>
@@ -201,7 +201,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li>a table of ranked marginal biological prediction performance for each feature group and outcome (if <code>&quot;marg&quot;</code> is included in <code>importance_grp</code>); and</li>
 <li>a table of ranked conditional biological prediction performance for each feature group and outcome (if <code>&quot;cond&quot;</code> is included in <code>importance_grp</code>).</li>
 </ul>
-<p>The rest of the report is organized by outcome. Each of these sections contains descriptive statistics including summaries of the distribution of the outcome (raw and log-transformed) for each bNAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to <code>slapnap</code>, the following subsections may also be present:</p>
+<p>The rest of the report is organized by outcome. Each of these sections contains descriptive statistics including summaries of the distribution of the outcome (raw and log-transformed) for each bnAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to <code>slapnap</code>, the following subsections may also be present:</p>
 <ul>
 <li>a table of super learner weights (Section <a href="5-sec-methods.html#sec:sldetails">5.3</a>) if an ensemble is used;</li>
 <li>cross-validated prediction performance for the fitted learner (or super learner): figures showing cross-validated prediction performance (all outcomes), cross-validated receiver operating characteristic (ROC) curves (binary outcomes), and cross-validated predicted probabilities of resistance (binary outcomes); and</li>
@@ -214,7 +214,38 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>Here we include several example reports and the <code>slapnap</code> container <code>run</code> commands that generated them.</p>
 <div id="single-antibodies" class="section level3">
 <h3><span class="header-section-number">6.2.1</span> Single antibodies</h3>
-<p>Coming soon...</p>
+<p>The following code evaluates binary sensitivity (defined as the indicator that IC<span class="math inline">\(_{80} &lt; 1\)</span>) for VRC01 using a super learner that includes all three learner types, each with multiple tuning arameter values, and with different variable screening techniques. We also request marginal group and individual biological importance and individual predictive importance. If running this command locally, change <code>docker_output_directory</code> to the path to the folder where the output is to be saved.</p>
+<p><a href="reports/report_VRC01.html">See the report</a></p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">sudo</span> docker run \
+    -d \
+    -v docker_output_directory:/home/output \
+    -e nab=<span class="st">&quot;VRC01&quot;</span> \
+    -e outcomes=<span class="st">&quot;ic80;sens&quot;</span> \
+    -e binary_outcomes=<span class="st">&quot;ic80&quot;</span> \
+    -e learners=<span class="st">&quot;rf;lasso;xgboost&quot;</span> \
+    -e sens_thresh=<span class="st">&quot;1&quot;</span> \
+    -e var_thresh=<span class="st">&quot;0;4;8&quot;</span> \
+    -e nfolds=<span class="st">&quot;5&quot;</span> \
+    -e cvtune=<span class="st">&quot;TRUE&quot;</span> \
+    -e cvperf=<span class="st">&quot;TRUE&quot;</span> \
+    -e importance_grp=<span class="st">&quot;marg&quot;</span> \
+    -e importance_ind=<span class="st">&quot;marg;pred&quot;</span> \
+    -e return=<span class="st">&quot;report&quot;</span> \
+    slapnap/slapnap</code></pre></div>
+<p>The next code chunk evaluates binary sensitivity (defined as the indicator that IC<span class="math inline">\(_{50} &lt; 50\)</span>) for 10-1074 using a super learner that includes all three learner types, each with multiple tuning arameter values. If running this command locally, change <code>docker_output_directory</code> to the path to the folder where the output is to be saved.</p>
+<p><a href="reports/report_10-1074.html">See the report</a></p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">sudo</span> docker run \
+    -d
+    <span class="ex">-v</span> docker_output_directory:/home/output/ \
+    -e nab=<span class="st">&quot;10-1074&quot;</span> \
+    -e outcomes=<span class="st">&quot;sens&quot;</span> \
+    -e learners=<span class="st">&quot;rf;lasso;xgboost&quot;</span> \
+    -e sens_thresh=<span class="st">&quot;50&quot;</span> \
+    -e nfolds=<span class="st">&quot;5&quot;</span> \
+    -e cvtune=<span class="st">&quot;TRUE&quot;</span> \
+    -e cvperf=<span class="st">&quot;TRUE&quot;</span> \
+    -e return=<span class="st">&quot;report&quot;</span> \
+    slapnap/slapnap</code></pre></div>
 </div>
 <div id="multiple-antibodies" class="section level3">
 <h3><span class="header-section-number">6.2.2</span> Multiple antibodies</h3>

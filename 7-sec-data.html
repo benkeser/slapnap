@@ -151,8 +151,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-sec-methods.html"><a href="5-sec-methods.html"><i class="fa fa-check"></i><b>5</b> Methods</a><ul>
 <li class="chapter" data-level="5.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>5.1</b> Outcomes</a><ul>
-<li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bNAb</a></li>
-<li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bNAbs</a></li>
+<li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bnAb</a></li>
+<li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bnAbs</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:learnerdetails"><i class="fa fa-check"></i><b>5.2</b> Learners</a></li>
 <li class="chapter" data-level="5.3" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>5.3</b> Super learner</a></li>
@@ -189,12 +189,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="sec:data" class="section level1">
 <h1><span class="header-section-number">7</span> Data</h1>
-<p>The analysis dataset includes neutralization outcomes for the requested bNAb(s) and AA sequence features for the gp160 protein. The possible outcomes are described in Section <a href="5-sec-methods.html#sec:outcomedefs">5.1</a>.</p>
+<p>The analysis dataset includes neutralization outcomes for the requested bnAb(s) and AA sequence features for the gp160 protein. The possible outcomes are described in Section <a href="5-sec-methods.html#sec:outcomedefs">5.1</a>.</p>
 <p>The additional groups of variables in the data include:</p>
 <ul>
 <li><strong>geographic information</strong>: binary indicator variables describing the region of origin of each pseudovirus;</li>
 <li><strong>subtype</strong>: binary indicator variables denoting the HIV-1 subtype for the given pseudovirus;</li>
-<li><strong>AA sequence features</strong>: binary indicator variables denoting presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160;</li>
+<li><strong>AA sequence features</strong>: binary indicator variables denoting: presence or absence of a residue containing a specific AA at each HXB2-referenced site in gp160, the site having a leading AA for the canonical N-linked glycosylation motif (N[!P]{S/T]), an observed gap at this site after alignment to maintain site-specific relevance, or a gap at this site that resulted in a frameshift;</li>
 <li><strong>viral geometry features</strong>: length of Env, gp120, V2, V3, V5;</li>
 <li><strong>numbers of sequons</strong>: number of sequons in Env, gp120, V2, V3, V5; and</li>
 <li><strong>numbers of cysteines</strong>: number of cysteines in Env, gp120, V2, V3, V5.</li>

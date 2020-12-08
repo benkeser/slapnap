@@ -128,7 +128,7 @@ Peter B. Gilbert}
 The \href{https://hub.docker.com/r/slapnap/slapnap}{\texttt{slapnap}}
 container is a tool for using the Compile, Analyze and Tally NAb Panels
 (CATNAP) database to develop predictive models of HIV-1 neutralization
-sensitivity to one or several broadly neutralizing antibodies (bNAbs).
+sensitivity to one or several broadly neutralizing antibodies (bnAbs).
 
 \begin{center}\includegraphics[width=0.7\linewidth]{gp120} \end{center}\begin{center}
 Crystal structure of HIV-1 gp120 glycoprotein. Highlighted residues
@@ -180,6 +180,8 @@ If you have any issues or questions about using \texttt{slapnap}, please
 \href{https://github.com/benkeser/slapnap/issues}{file an issue} on
 GitHub.
 
+nAb\texttt{\{r,\ echo\ =\ FALSE\}\ knitr::opts\_chunk\$set(\ \ \ comment\ =\ "\#\textgreater{}",\ \ \ out.width\ =\ "70\%",\ \ \ fig.align\ =\ \textquotesingle{}center\textquotesingle{},\ \ \ fig.width\ =\ 6,\ \#\ used\ to\ have:\ fig.width\ =\ 12,\ \ \ fig.asp\ =\ 0.618,\ \#\ used\ to\ have:\ fig.height\ =\ 4,\ \ \ fig.show\ =\ "hold",\ \ \ fig.path\ =\ \textquotesingle{}img/\textquotesingle{},\ \ \ size\ =\ "tiny",\ \ \ message\ =\ FALSE,\ \ \ warning\ =\ FALSE,\ \ \ warnings\ =\ FALSE\ )}
+
 \section{Docker}\label{sec:docker}
 
 Docker is a free platform for building containers. Containers are
@@ -228,7 +230,7 @@ and HIV-1 sequence data from published studies. Neutralization is
 measured in terms of half maximal inhibitory concentration (IC\(_{50}\))
 and 80\% inhibitory concentration (IC\(_{80}\)). These measures of
 neutralization against HIV envelope pseudoviruses are available for many
-broadly neutralizing antibodies (bNAbs) and for some combination bNAbs.
+broadly neutralizing antibodies (bnAbs) and for some combination bnAbs.
 Also available on each pseudovirus are amino acid (AA) sequence features
 for the gp160 protein. These are detailed in Section \ref{sec:data}.
 
@@ -281,13 +283,13 @@ values should be determined based on scientific context.
 \begin{itemize}
 \tightlist
 \item
-  \textbf{\texttt{nab}}: A semicolon-separated list of bNAbs (default =
-  \texttt{"VRC01"}). A list of possible bNAbs can be found
+  \textbf{\texttt{nab}}: A semicolon-separated list of bnAbs (default =
+  \texttt{"VRC01"}). A list of possible bnAbs can be found
   \href{https://www.hiv.lanl.gov/components/sequence/HIV/neutralization/main.comp}{here}.
-  If multiple bNAbs are listed, it is assumed that the analysis should
-  be of estimated \texttt{outcomes} for a combination of bNAbs (see
+  If multiple bnAbs are listed, it is assumed that the analysis should
+  be of estimated \texttt{outcomes} for a combination of bnAbs (see
   Section \ref{sec:outcomedefs} for details on how estimated outcomes
-  for multiple bNAbs are computed).
+  for multiple bnAbs are computed).
 \item
   \textbf{\texttt{outcomes}}: A semicolon-separated string of outcomes
   to include in the analysis. Possible values are \texttt{"ic50"}
@@ -478,7 +480,7 @@ progress of the container. The first message will report the name of the
 log file, which will appear in \texttt{/path/to/local/dir} (note that
 the name of the log file is based on the current time, which is in
 UTC+0). The container will then compile an analytic data set from the
-CATNAP database for the default bNAb (VRC01), train the default learner
+CATNAP database for the default bnAb (VRC01), train the default learner
 (random forest \citep{breiman2001}) for the default outcomes
 (\texttt{ic50} and \texttt{sens}), evaluate its performance using
 two-fold (default for \texttt{nfolds}) cross validation, and compile a
@@ -649,11 +651,11 @@ and stop its running.
 
 \subsection{Outcomes}\label{sec:outcomedefs}
 
-\subsubsection{Single bNAb}\label{single-bnab}
+\subsubsection{Single bnAb}\label{single-bnab}
 
-If a single bNAb or combination of bNAbs that are measured directly in
+If a single bnAb or combination of bnAbs that are measured directly in
 the CATNAP data is requested (i.e., the \texttt{nab} option is a single
-string of a single bNAb or measured combination of bNAbs from the CATNAP
+string of a single bnAb or measured combination of bnAbs from the CATNAP
 database), then the possible outcomes are:
 
 \begin{itemize}
@@ -676,23 +678,23 @@ database), then the possible outcomes are:
   \(<\) \texttt{sens\_thresh}, the user-specified sensitivity threshold.
 \end{itemize}
 
-\subsubsection{Multiple bNAbs}\label{multiple-bnabs}
+\subsubsection{Multiple bnAbs}\label{multiple-bnabs}
 
-If multiple bNAbs are requested (i.e., the \texttt{nab} option is a
-semi-colon separated string of more than one bNAb from CATNAP), then the
+If multiple bnAbs are requested (i.e., the \texttt{nab} option is a
+semi-colon separated string of more than one bnAb from CATNAP), then the
 possible \texttt{outcomes} that can be requested are:
 
 \begin{itemize}
 \tightlist
 \item
   \texttt{ic50} = \(\mbox{log}_{10}(\mbox{estimated IC}_{50})\), where
-  estimated IC\(_{50}\) is computed as follows: for \(J\) bNAbs,
+  estimated IC\(_{50}\) is computed as follows: for \(J\) bnAbs,
   \[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]
   where IC\(_{50,j}\) denotes the measured IC\(_{50}\) for antibody
   \(j\) \citep{wagh2016optimal};
 \item
   \texttt{ic80} = \(\mbox{log}_{10}(\mbox{estimated IC}_{80})\), where
-  estimated IC\(_{80}\) is computed as follows: for \(J\) bNAbs,
+  estimated IC\(_{80}\) is computed as follows: for \(J\) bnAbs,
   \[ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , \]
   where IC\(_{80,j}\) denotes the measured IC\(_{80}\) for antibody
   \(j\) \citep{wagh2016optimal};
@@ -709,7 +711,7 @@ possible \texttt{outcomes} that can be requested are:
 \item
   \texttt{multsens} = multiple sensitivity: the binary indicator that
   measured IC\(_{50}\) is less than the sensitivity threshold
-  (\texttt{sens\_thresh}) for a number of bNAbs defined by
+  (\texttt{sens\_thresh}) for a number of bnAbs defined by
   \texttt{multsens\_nab}.
 \end{itemize}
 
@@ -975,7 +977,7 @@ The executive summary contains:
 
 The rest of the report is organized by outcome. Each of these sections
 contains descriptive statistics including summaries of the distribution
-of the outcome (raw and log-transformed) for each bNAb for continuous
+of the outcome (raw and log-transformed) for each bnAb for continuous
 outcomes and number sensitive/resistant for binary outcomes. Based on
 the specific options passed to \texttt{slapnap}, the following
 subsections may also be present:
@@ -1006,7 +1008,63 @@ container \texttt{run} commands that generated them.
 
 \subsubsection{Single antibodies}\label{single-antibodies}
 
-Coming soon\ldots{}
+The following code evaluates binary sensitivity (defined as the
+indicator that IC\(_{80} < 1\)) for VRC01 using a super learner that
+includes all three learner types, each with multiple tuning arameter
+values, and with different variable screening techniques. We also
+request marginal group and individual biological importance and
+individual predictive importance. If running this command locally,
+change \texttt{docker\_output\_directory} to the path to the folder
+where the output is to be saved.
+
+\href{reports/report_VRC01.html}{See the report}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker run \textbackslash{}}
+\NormalTok{    -d \textbackslash{}}
+\NormalTok{    -v docker_output_directory:/home/output \textbackslash{}}
+\NormalTok{    -e nab=}\StringTok{"VRC01"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e outcomes=}\StringTok{"ic80;sens"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e binary_outcomes=}\StringTok{"ic80"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e learners=}\StringTok{"rf;lasso;xgboost"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e sens_thresh=}\StringTok{"1"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e var_thresh=}\StringTok{"0;4;8"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e nfolds=}\StringTok{"5"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e cvtune=}\StringTok{"TRUE"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e cvperf=}\StringTok{"TRUE"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e importance_grp=}\StringTok{"marg"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e importance_ind=}\StringTok{"marg;pred"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e return=}\StringTok{"report"}\NormalTok{ \textbackslash{}}
+\NormalTok{    slapnap/slapnap}
+\end{Highlighting}
+\end{Shaded}
+
+The next code chunk evaluates binary sensitivity (defined as the
+indicator that IC\(_{50} < 50\)) for 10-1074 using a super learner that
+includes all three learner types, each with multiple tuning arameter
+values. If running this command locally, change
+\texttt{docker\_output\_directory} to the path to the folder where the
+output is to be saved.
+
+\href{reports/report_10-1074.html}{See the report}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker run \textbackslash{}}
+\NormalTok{    -d}
+    \ExtensionTok{-v}\NormalTok{ docker_output_directory:/home/output/ \textbackslash{}}
+\NormalTok{    -e nab=}\StringTok{"10-1074"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e outcomes=}\StringTok{"sens"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e learners=}\StringTok{"rf;lasso;xgboost"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e sens_thresh=}\StringTok{"50"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e nfolds=}\StringTok{"5"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e cvtune=}\StringTok{"TRUE"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e cvperf=}\StringTok{"TRUE"}\NormalTok{ \textbackslash{}}
+\NormalTok{    -e return=}\StringTok{"report"}\NormalTok{ \textbackslash{}}
+\NormalTok{    slapnap/slapnap}
+\end{Highlighting}
+\end{Shaded}
 
 \subsubsection{Multiple antibodies}\label{multiple-antibodies}
 
@@ -1040,7 +1098,7 @@ folder where output is to be saved.
 \section{Data}\label{sec:data}
 
 The analysis dataset includes neutralization outcomes for the requested
-bNAb(s) and AA sequence features for the gp160 protein. The possible
+bnAb(s) and AA sequence features for the gp160 protein. The possible
 outcomes are described in Section \ref{sec:outcomedefs}.
 
 The additional groups of variables in the data include:
@@ -1054,9 +1112,12 @@ The additional groups of variables in the data include:
   \textbf{subtype}: binary indicator variables denoting the HIV-1
   subtype for the given pseudovirus;
 \item
-  \textbf{AA sequence features}: binary indicator variables denoting
+  \textbf{AA sequence features}: binary indicator variables denoting:
   presence or absence of a residue containing a specific AA at each
-  HXB2-referenced site in gp160;
+  HXB2-referenced site in gp160, the site having a leading AA for the
+  canonical N-linked glycosylation motif (N{[}!P{]}\{S/T{]}), an
+  observed gap at this site after alignment to maintain site-specific
+  relevance, or a gap at this site that resulted in a frameshift;
 \item
   \textbf{viral geometry features}: length of Env, gp120, V2, V3, V5;
 \item

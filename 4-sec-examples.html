@@ -151,8 +151,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li class="chapter" data-level="5" data-path="5-sec-methods.html"><a href="5-sec-methods.html"><i class="fa fa-check"></i><b>5</b> Methods</a><ul>
 <li class="chapter" data-level="5.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>5.1</b> Outcomes</a><ul>
-<li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bNAb</a></li>
-<li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bNAbs</a></li>
+<li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bnAb</a></li>
+<li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bnAbs</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:learnerdetails"><i class="fa fa-check"></i><b>5.2</b> Learners</a></li>
 <li class="chapter" data-level="5.3" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>5.3</b> Super learner</a></li>
@@ -194,7 +194,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>A call to <code>slapnap</code> with all default options can be run using the following command.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output slapnap/slapnap</code></pre></div>
 <p>Note that this call mounts the local directory <code>path/to/local/dir</code> to receive output from the container (see Section <a href="3-sec-runningcontainer.html#sec:mounting">3.2.1</a>).</p>
-<p>When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in <code>/path/to/local/dir</code> (note that the name of the log file is based on the current time, which is in UTC+0). The container will then compile an analytic data set from the CATNAP database for the default bNAb (VRC01), train the default learner (random forest <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span>) for the default outcomes (<code>ic50</code> and <code>sens</code>), evaluate its performance using two-fold (default for <code>nfolds</code>) cross validation, and compile a report detailing the results, and place the compiled report in <code>path/to/local/dir</code> (note that the default name of the report is based on the current time, which is in UTC+0).</p>
+<p>When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in <code>/path/to/local/dir</code> (note that the name of the log file is based on the current time, which is in UTC+0). The container will then compile an analytic data set from the CATNAP database for the default bnAb (VRC01), train the default learner (random forest <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span>) for the default outcomes (<code>ic50</code> and <code>sens</code>), evaluate its performance using two-fold (default for <code>nfolds</code>) cross validation, and compile a report detailing the results, and place the compiled report in <code>path/to/local/dir</code> (note that the default name of the report is based on the current time, which is in UTC+0).</p>
 </div>
 <div id="sec:webbrowse" class="section level2">
 <h2><span class="header-section-number">4.2</span> Viewing report in browser</h2>
