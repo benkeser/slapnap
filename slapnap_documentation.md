@@ -206,22 +206,38 @@ There are three possible `learners` available in `slapnap`: random forests [@bre
 
 For each `learner`, there is a `default` choice of tuning parameters that is implemented if `cvtune="FALSE"`. If instead `cvtune="TRUE"`, then there are several choices of tuning parameters that are evaluated using `nfold` cross validation, Table \@ref(tab:learners).
 
+\begin{table}
 
-Table: (\#tab:learners)Labels for `learners` in report and description of their respective tuning parameters
-
-|`learner`         |Tuning parameters                                                  |
-|:-----------------|:------------------------------------------------------------------|
-|`rf_default`      |`mtry` equal to square root of number of predictors                |
-|`rf_1`            |`mtry` equal to one-half times square root of number of predictors |
-|`rf_2`            |`mtry` equal to two times square root of number of predictors      |
-|`xgboost_default` |maximum tree depth equal to 4                                      |
-|`xgboost_1`       |maximum tree depth equal to 2                                      |
-|`xgboost_2`       |maximum tree depth equal to 6                                      |
-|`xgboost_3`       |maximum tree depth equal to 8                                      |
-|`lasso_default`   |$\lambda$ selected by 5-fold CV and $\alpha$ equal to 0            |
-|`lasso_1`         |$\lambda$ selected by 5-fold CV and $\alpha$ equal to 0.25         |
-|`lasso_2`         |$\lambda$ selected by 5-fold CV and $\alpha$ equal to 0.5          |
-|`lasso_3`         |$\lambda$ selected by 5-fold CV and $\alpha$ equal to 0.75         |
+\caption{(\#tab:learners)Labels for `learners` in report and description of their respective tuning parameters}
+\centering
+\begin{tabular}[t]{l|l}
+\hline
+`learner` & Tuning parameters\\
+\hline
+`rf\_default` & `mtry` equal to square root of number of predictors\\
+\hline
+`rf\_1` & `mtry` equal to one-half times square root of number of predictors\\
+\hline
+`rf\_2` & `mtry` equal to two times square root of number of predictors\\
+\hline
+`xgboost\_default` & maximum tree depth equal to 4\\
+\hline
+`xgboost\_1` & maximum tree depth equal to 2\\
+\hline
+`xgboost\_2` & maximum tree depth equal to 6\\
+\hline
+`xgboost\_3` & maximum tree depth equal to 8\\
+\hline
+`lasso\_default` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0\\
+\hline
+`lasso\_1` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0.25\\
+\hline
+`lasso\_2` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0.5\\
+\hline
+`lasso\_3` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0.75\\
+\hline
+\end{tabular}
+\end{table}
 
 Tuning parameters not mentioned in the table are set as follows:
 

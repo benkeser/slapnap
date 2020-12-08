@@ -12,10 +12,13 @@ link-citations: true
 
 The [`slapnap`](https://hub.docker.com/r/slapnap/slapnap) container is a tool for using the Compile, Analyze and Tally NAb Panels (CATNAP) database to develop predictive models of HIV-1 neutralization sensitivity to one or several broadly neutralizing antibodies (bNAbs). 
 
-<img src="gp120.png" width="70%" style="display: block; margin: auto;" />
-<div class="center">
-<p>Crystal structure of HIV-1 gp120 glycoprotein. Highlighted residues indicating sites most-predictive of VRC01 neutralization resistance. <span class="citation">[@magaret2019prediction]</span></p>
-</div>
+
+\begin{center}\includegraphics[width=0.7\linewidth]{gp120} \end{center}
+\begin{center}
+Crystal structure of HIV-1 gp120 glycoprotein. Highlighted residues
+indicating sites most-predictive of VRC01 neutralization resistance.
+{[}@magaret2019prediction{]}
+\end{center}
 
 In its simplest form, `slapnap` can be used simply to access and format data from CATNAP in a way that is usable for machine learning analysis. However, the tool also offers fully automated and customizable machine learning analyses based on up to five different neutralization endpoints, complete with automated report generation to summarize results and identify the most predictive features. 
 
