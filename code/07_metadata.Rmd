@@ -146,7 +146,6 @@ iip_undef <- sum(dat_ic5080$log10.pc.ic80 == dat_ic5080$log10.pc.ic50)
 
 # compute number of sensitive/resistant sequences for sens1, sens2 outcomes
 num_sens1 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.1), sum(dat_ic80$dichotomous.1))
-ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50) - sum(dat_ic50$dichotomous.1)
 num_resis1 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens1
 num_sens2 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.2), sum(dat_ic80$dichotomous.2))
 num_resis2 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens2

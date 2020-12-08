@@ -379,7 +379,7 @@ get_cont_table_cap <- function(opts, V = 2, n_row_ic50 = NA, n_row_ic80 = NA, n_
             # tmp <- paste0(tmp, ", ")
         }
         if ("ic80" %in% opts$outcomes) {
-            tmp <- paste0(tmp, ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$"))
+            tmp <- paste0(tmp, ifelse(!("ic50" %in% opts$outcomes), "IC$_{80}$", ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$")))
             if(n_row_ic80 != n_row_iip | !("iip" %in% opts$outcomes)){
                 tmp <- paste0(tmp, " (n = ", n_row_ic80, ")")
             }
@@ -1231,9 +1231,9 @@ describe_outcome_var <- function(var, opts) {
     predicted_text_ic80 <- get_combo_text(opts, ic50_pres = FALSE, ic80_pres = TRUE)
     binary_outcomes_txt <- get_binary_outcome_text(opts)
     if (grepl("ic50", var)) {
-        descr <- paste0("Outcome variable: IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
+        descr <- paste0("Outcome variable: $\\log_{10}$ IC$_{50}$ (50% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic50))
     } else if (grepl("ic80", var)) {
-        descr <- paste0("Outcome variable: IC$_{80}$ (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
+        descr <- paste0("Outcome variable: $\\log_{10}$ IC$_{80}$ (80% inhibitory concentration)", ifelse(length(opts$nab) == 1, ".", predicted_text_ic80))
     } else if (grepl("iip", var)) {
         descr <- get_iip_text(opts)
     } else if (var == "sens" | var == "estsens") {
