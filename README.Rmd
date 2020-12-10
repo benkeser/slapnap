@@ -14,7 +14,8 @@ knitr::opts_chunk$set(
 
 > Super LeArner Predictions using NAb Panels
 
-__Authors:__ [David Benkeser](https://www.github.com/benkeser/), Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert
+__Authors:__ [David Benkeser](https://www.github.com/benkeser/), [Brian
+D. Williamson](https://www.github.com/bdwilliamson), Craig A. Magaret, Sohail Nizam, Peter B. Gilbert
 
 [![Build Status](https://travis-ci.com/benkeser/slapnap.svg?token=WgmsWkd2hyf88ZxhK8bp&branch=master)](https://travis-ci.com/benkeser/slapnap)
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
