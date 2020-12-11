@@ -1,18 +1,4 @@
-nAb```{r, echo = FALSE}
-knitr::opts_chunk$set(
-  comment = "#>",
-  out.width = "70%",
-  fig.align = 'center',
-  fig.width = 6, # used to have: fig.width = 12,
-  fig.asp = 0.618, # used to have: fig.height = 4,
-  fig.show = "hold",
-  fig.path = 'img/',
-  size = "tiny",
-  message = FALSE,
-  warning = FALSE,
-  warnings = FALSE
-)
-```
+
 
 # Docker {#sec:docker}
 
@@ -35,7 +21,7 @@ The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutraliz
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
 
-The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on December 10, 2020.
+The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on December 11, 2020.
 
 # Running `slapnap` {#sec:runningcontainer}
 
