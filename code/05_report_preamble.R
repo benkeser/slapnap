@@ -35,7 +35,7 @@ source(paste0(code_dir, "05_var_import_plot.R"))
 source(paste0(code_dir, "05_vimp_executive_summary_table.R"))
 source(paste0(code_dir, "05_plot_one_vimp.R"))
 
-# get biological importance
+# get intrinsic importance
 vimp_threshold <- 0.05
 
 # set number of predictive importance features to show
@@ -140,9 +140,9 @@ run_sl_vimp_bools2 <- lapply(check_outcomes(dat2, outcome_names, V), function(x)
 # check whether we should use cv objects or not
 use_cv <- (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)
 
-## get biological importance
+## get intrinsic importance
 if (!(all(opts$importance_grp == "")) | ("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) {
-    source(paste0(code_dir, "05_biological_importance.R"), local = TRUE)
+    source(paste0(code_dir, "05_intrinsic_importance.R"), local = TRUE)
 } else {
     ran_vimp_dichot1 <- FALSE
     ran_vimp_dichot2 <- FALSE

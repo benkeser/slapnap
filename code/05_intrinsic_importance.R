@@ -1,6 +1,6 @@
 
 ## ----------------------------------------------------------------------------
-## Population variable importance
+## Population (intrinsic) variable importance
 ## ----------------------------------------------------------------------------
 num_pop_import <- 20  # the number of individual features to display in plots
 

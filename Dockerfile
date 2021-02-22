@@ -78,7 +78,7 @@ COPY code/03_run_super_learners.R /home/lib/03_run_super_learners.R
 COPY code/03_super_learner_libraries.R /home/lib/03_super_learner_libraries.R
 COPY code/04_get_vimp.R /home/lib/04_get_vimp.R
 COPY code/04_variable_groups.R /home/lib/04_variable_groups.R
-COPY code/05_biological_importance.R /home/lib/05_biological_importance.R
+COPY code/05_intrinsic_importance.R /home/lib/05_intrinsic_importance.R
 COPY code/05_ml_var_importance_measures.R /home/lib/05_ml_var_importance_measures.R
 COPY code/05_outcome_dist_plot.R /home/lib/05_outcome_dist_plot.R
 COPY code/05_plot_one_vimp.R /home/lib/05_plot_one_vimp.R

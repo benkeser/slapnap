@@ -176,9 +176,9 @@ get_num_obs_text <- function(opts, num_obs_fulls = NA, num_obs_reds = NA, n_row_
 #' @param outcome_nm the outcome of interest ("sens1" or "sens2")
 check_sl_vimp_bin <- function(opts, ran_sl = TRUE, ran_vimp = FALSE, outcome_nm = "sens1") {
     if (outcome_nm == "sens1") {
-        ifelse(!ran_sl, paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or biological variable importance analyses"), ifelse(!ran_vimp, paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any biological variable importance analyses"), ""))
+        ifelse(!ran_sl, paste0(". There were too few observations in at least one class for results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any learning or intrinsic variable importance analyses"), ifelse(!ran_vimp, paste0(". There were too few observations in at least one class for variable importance results to be reliable, and thus ", ifelse(length(opts$nab) > 1, "estimated ", ""), "sensitivity is not included in any intrinsic variable importance analyses"), ""))
     } else {
-        ifelse(!ran_sl, ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or biological variable importance analyses", ifelse(!ran_vimp, ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any biological variable importance analyses", "."))
+        ifelse(!ran_sl, ". There were too few observations in at least one class for results to be reliable, and thus multiple sensitivity is not included in any learning or intrinsic variable importance analyses", ifelse(!ran_vimp, ". There were too few observations in at least one class for variable importance results to be reliable, and thus multiple sensitivity is not included in any intrinsic variable importance analyses", "."))
     }
 }
 
@@ -511,7 +511,7 @@ get_importance_text <- function(opts = list(learners = "rf", cvtune = FALSE, cvp
 # ---------------------------------------
 # Biological importance text
 # ---------------------------------------
-#' get biological importance table text
+#' get intrinsic importance table text
 #' @param opts options
 #' @param cont_nms nice names of continuous outcomes
 #' @param bin_nms nice names of binary outcomes
@@ -519,7 +519,7 @@ get_importance_text <- function(opts = list(learners = "rf", cvtune = FALSE, cvp
 #' @param num_obs_reds number of total obs for reduced regression (may differ for each outcome)
 #' @param n_row_now (may differ for each outcome)
 #' @param importance_type "marginal" or "conditional"
-get_biological_importance_table_description <- function(opts, any_cont = TRUE, any_dich = TRUE, cont_nms = c("IC$_{50}$", "IC$_{80}$", "IIP"), bin_nms = c("Sensitivity"), num_obs_fulls = 100, num_obs_reds = 100, n_row_now = 100, vimp_threshold = 0.05, importance_type = "marg", any_signif = FALSE) {
+get_intrinsic_importance_table_description <- function(opts, any_cont = TRUE, any_dich = TRUE, cont_nms = c("IC$_{50}$", "IC$_{80}$", "IIP"), bin_nms = c("Sensitivity"), num_obs_fulls = 100, num_obs_reds = 100, n_row_now = 100, vimp_threshold = 0.05, importance_type = "marg", any_signif = FALSE) {
     rel_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the remaining features")
     full_func_txt <- ifelse(importance_type == "marginal", "the feature group of interest", "all available features")
     redu_func_txt <- ifelse(importance_type == "marginal", "the group of geographic confounders", "the reduced set of features (defined by removing the feature group of interest)")
@@ -540,11 +540,11 @@ get_biological_importance_table_description <- function(opts, any_cont = TRUE, a
     descr <- paste0("Ranked ", importance_type, " variable importance of groups relative to ", rel_txt, " for predicting ", correct_outcomes, correct_description, ifelse(any_signif, signif_txt, ""), " (", complete_obs_txt, "; for estimating the prediction functions based on ", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction functions based on ", redu_func_txt, ", ", redu_obs_txt, ")")
     return(descr)
 }
-# get biological importance text
+# get intrinsic importance text
 #' @param opts options
 #' @param grp whether or not this is a group description
 #' @return character vector with importance text
-get_biological_importance_plot_description <- function(opts, grp = TRUE) {
+get_intrinsic_importance_plot_description <- function(opts, grp = TRUE) {
     if (grp) {
         these_opts <- opts$importance_grp
         this_text <- "group"
@@ -553,22 +553,22 @@ get_biological_importance_plot_description <- function(opts, grp = TRUE) {
         this_text <- "feature"
     }
     if (("marg" %in% these_opts) & ("cond" %in% these_opts)) {
-        return(paste0("The left-hand plot shows the marginal biological importance of the ", this_text, " relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
+        return(paste0("The left-hand plot shows the marginal intrinsic importance of the ", this_text, " relative to the null model with geographic confounders only. The right-hand plot shows the conditional importance of the ", this_text, " relative to all other ", this_text, "s."))
     } else if ("marg" %in% these_opts) {
-        return(paste0("The plot shows the marginal biological importance of the ", this_text, " relative to the null model with geographic confounders only."))
+        return(paste0("The plot shows the marginal intrinsic importance of the ", this_text, " relative to the null model with geographic confounders only."))
     } else if ("cond" %in% these_opts){
-        return(paste0("The plot shows the conditional biological importance of the ", this_text, " relative to all other ", this_text, "s."))
+        return(paste0("The plot shows the conditional intrinsic importance of the ", this_text, " relative to all other ", this_text, "s."))
     } else {
         return("")
     }
 }
-# return figure caption for biological importance
+# return figure caption for intrinsic importance
 #' @param ncomplete number of complete cases
 #' @param num_obs_full number of obs used in the "full" regression
 #' @param num_obs_red number of obs used in the "reduced" regression
 #' @param outcome the outcome (e.g., "ic50")
 #' @param grp whether or not this is group importance
-biological_importance_figure_caption <- function(ncomplete = NA, num_obs_full = NA, num_obs_red = NA, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts, vimp_threshold = 0.05, any_signif = list(grp_conditional = FALSE, grp_marginal = FALSE, ind_conditional = FALSE, ind_marginal = FALSE)) {
+intrinsic_importance_figure_caption <- function(ncomplete = NA, num_obs_full = NA, num_obs_red = NA, outcome = "all", grp = TRUE, marg = TRUE, cond = TRUE, opts, vimp_threshold = 0.05, any_signif = list(grp_conditional = FALSE, grp_marginal = FALSE, ind_conditional = FALSE, ind_marginal = FALSE)) {
     outcome_text <- paste0(make_nice_outcome(outcome), ".")
     if (grp) {
         outer_descr <- "Group"
@@ -587,7 +587,7 @@ biological_importance_figure_caption <- function(ncomplete = NA, num_obs_full = 
     redu_func_txt <- ifelse(marg & cond, paste0("s based on the reduced set of features (defined by removing the ", inner_descr, " of interest) and the ", inner_descr, " of interest plus geographic confounders"), ifelse(marg, paste0(" based on the ", inner_descr, " of interest plus geographic confounders"), paste0(" based on the reduced set of features (defined by removing the ", inner_descr, " of interest)")))
     signif_txt <- paste0(" and stars denoting p-values less than ", vimp_threshold)
     ci_txt <- paste0(" ", (1 - vimp_threshold) * 100, "\\% confidence intervals", ifelse(signif_check, signif_txt, ""), " are displayed in blue.")
-    cap <- paste0(outer_descr, " biological variable importance for predicting ", outcome_text, ci_txt, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
+    cap <- paste0(outer_descr, " intrinsic variable importance for predicting ", outcome_text, ci_txt, " (", complete_obs_txt, "; for estimating the prediction function", full_func_txt, ", ", full_obs_txt, "; for estimating the prediction function", redu_func_txt, ", ", redu_obs_txt, ")")
     return(cap)
 }
 # ------------------------------------------------------------------------------
@@ -939,7 +939,7 @@ get_est_and_ci <- function(idx = 1, fit_list = NULL, Rsquared = FALSE, constant 
 
 # -----------------------------------------------------------------------------
 # Check to see whether there are enough outcomes in a given class for
-# reliable biological variable importance
+# reliable intrinsic variable importance
 # -----------------------------------------------------------------------------
 # check dichotomous outcomes to make sure there are enough observations in each class to do SLs and vimp
 check_outcome <- function(dat, outcome_nm, V) {
