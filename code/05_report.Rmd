@@ -238,7 +238,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic50" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
-### Biological importance
+### Intrinsic importance
 
 `r if (!("ic50" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
 
@@ -255,9 +255,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
 } else {
   ic50_grp_vimp_grob_lst <- switch(use_cv + 1,log10.pc.ic50_vimp_plots$grp_conditional, log10.pc.ic50_cv_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -277,9 +277,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   ic50_ind_vimp_grob_lst <- switch(use_cv + 1,log10.pc.ic50_vimp_plots$ind_conditional, log10.pc.ic50_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -428,7 +428,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic80" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
-### Biological importance
+### Intrinsic importance
 
 `r if (!("ic80" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
 
@@ -448,9 +448,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
 } else {
   ic80_grp_vimp_grob_lst <- switch(use_cv + 1,log10.pc.ic80_vimp_plots$grp_conditional, log10.pc.ic80_cv_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -471,9 +471,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   ic80_ind_vimp_grob_lst <- switch(use_cv + 1,log10.pc.ic80_vimp_plots$ind_conditional, log10.pc.ic80_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -591,7 +591,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("iip" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
-### Biological importance
+### Intrinsic importance
 
 `r if (!("iip" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
 
@@ -611,9 +611,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
 } else {
   iip_grp_vimp_grob_lst <- switch(use_cv + 1,iip_vimp_plots$grp_conditional, iip_cv_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/iip_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/iip_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -634,9 +634,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   iip_ind_vimp_grob_lst <- switch(use_cv + 1,iip_vimp_plots$ind_conditional, iip_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/iip_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/iip_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -764,7 +764,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("sens1" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot1) "<!--"`
 
-### Biological importance
+### Intrinsic importance
 
 `r if (!("sens1" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot1) "-->"`
 
@@ -784,9 +784,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
 } else {
   sens1_grp_vimp_grob_lst <- switch(use_cv + 1,dichotomous.1_vimp_plots$grp_conditional, dichotomous.1_cv_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -807,9 +807,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   sens1_ind_vimp_grob_lst <- switch(use_cv + 1,dichotomous.1_vimp_plots$ind_conditional, dichotomous.1_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -939,7 +939,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("sens2" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot2) "<!--"`
 
-### Biological importance
+### Intrinsic importance
 
 `r if (!("sens2" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot2) "-->"`
 
@@ -959,9 +959,9 @@ if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
 } else {
   sens2_grp_vimp_grob_lst <- switch(use_cv + 1,dichotomous.2_vimp_plots$grp_conditional, dichotomous.2_cv_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance")
+grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/multsens_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/multsens_biol_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -982,9 +982,9 @@ if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
 } else {
   sens2_ind_vimp_grob_lst <- switch(use_cv + 1,dichotomous.2_vimp_plots$ind_conditional, dichotomous.2_cv_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance")
+grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/multsens_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Biological Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/multsens_biol_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
