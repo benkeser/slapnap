@@ -266,7 +266,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic50" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
-We show the intrinsic variable importance of individual features in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$ in Figure \@ref(fig:ic50indivimp). Importance is defined using the difference in $R^2$ values.
+We show the intrinsic variable importance of individual `r ind_import_txt` in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{50}$ in Figure \@ref(fig:ic50indivimp). Importance is defined using the difference in $R^2$ values.
 `r get_intrinsic_importance_plot_description(opts, grp = FALSE)`
 
 ```{r ic50indivimp, eval = ("ic50" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = intrinsic_importance_figure_caption(ncomplete_ic50, num_obs_fulls, num_obs_reds, "ic50", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, log10.pc.ic50_any_signif, log10.pc.ic50_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -460,7 +460,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic80" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
-We show the intrinsic variable importance of individual features in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ in Figure \@ref(fig:ic80indivimp). Importance is defined using the difference in $R^2$ values.
+We show the intrinsic variable importance of individual `r ind_import_txt` in predicting `r ifelse(length(opts$nab) == 1, "", "estimated")` IC$_{80}$ in Figure \@ref(fig:ic80indivimp). Importance is defined using the difference in $R^2$ values.
 `r get_intrinsic_importance_plot_description(opts, grp = FALSE)`
 
 ```{r ic80indivimp, eval = ("ic80" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = intrinsic_importance_figure_caption(ncomplete_ic80, num_obs_fulls, num_obs_reds, "ic80", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, log10.pc.ic80_any_signif, log10.pc.ic80_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -623,7 +623,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("iip" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind))) "<!--"`
 
-We show the intrinsic variable importance of individual features in predicting IIP in Figure \@ref(fig:iipindivimp). Importance is defined using the difference in $R^2$ values.
+We show the intrinsic variable importance of individual `r ind_import_txt` in predicting IIP in Figure \@ref(fig:iipindivimp). Importance is defined using the difference in $R^2$ values.
 `r get_intrinsic_importance_plot_description(opts, grp = FALSE)`
 
 ```{r iipindivimp, eval = ("iip" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)), fig.cap = intrinsic_importance_figure_caption(ncomplete_ic5080, num_obs_fulls, num_obs_reds, "iip", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, iip_any_signif, iip_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -796,7 +796,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) | !ran_vimp_dichot1) "<!--"`
 
-We show the intrinsic variable importance of individual features in predicting `r est_fillin` sensitivity in Figure \@ref(fig:sens1indivimp). Importance is defined using the difference in AUCs.
+We show the intrinsic variable importance of individual `r ind_import_txt` in predicting `r est_fillin` sensitivity in Figure \@ref(fig:sens1indivimp). Importance is defined using the difference in AUCs.
 `r get_intrinsic_importance_plot_description(opts, grp = FALSE)`
 
 ```{r sens1indivimp, eval = ("sens1" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & ran_vimp_dichot1, fig.cap = intrinsic_importance_figure_caption(ncomplete_sens, num_obs_fulls, num_obs_reds, "sens1", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.1_any_signif, dichotomous.1_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}
@@ -971,7 +971,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("sens2" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) | !ran_vimp_dichot2) "<!--"`
 
-We show the intrinsic variable importance of individual features in predicting multiple sensitivity in Figure \@ref(fig:sens2indivimp). Importance is defined using the difference in AUCs.
+We show the intrinsic variable importance of individual `r ind_import_txt` in predicting multiple sensitivity in Figure \@ref(fig:sens2indivimp). Importance is defined using the difference in AUCs.
 `r get_intrinsic_importance_plot_description(opts, grp = FALSE)`
 
 ```{r sens2indivimp, eval = ("sens2" %in% opts$outcomes) & (("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)) & ran_vimp_dichot2, fig.cap = intrinsic_importance_figure_caption(ncomplete_sens, num_obs_fulls, num_obs_reds, "sens2", grp = FALSE, marg = "marg" %in% opts$importance_ind, cond = "cond" %in% opts$importance_ind, opts = opts, vimp_threshold = vimp_threshold, any_signif = switch(use_cv + 1, dichotomous.2_any_signif, dichotomous.2_any_signif_cv)), fig.subcap = c("Marginal importance", "Conditional importance")}

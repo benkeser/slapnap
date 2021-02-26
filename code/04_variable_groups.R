@@ -38,18 +38,25 @@ get_variable_groups <- function(data, pred_names) {
 get_individual_features <- function(pred_names, ind_importance_type) {
     if (grepl("site", ind_importance_type)) {
         no_hxb2 <- gsub(".1mer", "", gsub("hxb2.", "", pred_names))
-        sites <- unique(unlist(lapply(
-            strsplit(no_hxb2, ".", fixed = TRUE),
-            function(x) x[[1]]
-        )))
-        lst <- sapply(
+        non_site_vars <- pred_names[!grepl("hxb2", pred_names)]
+        site_vars <- no_hxb2[grepl("hxb2", pred_names)]
+        sites <- sort(as.numeric(unique(unlist(lapply(
+            strsplit(site_vars, ".", fixed = TRUE),
+            function(x) x[1]
+        )))))
+        site_lst <- sapply(
             1:length(sites),
             function(i) {
-                pred_names[grepl(sites[i], pred_names)]
+                pred_names[grepl(
+                    paste0("hxb2.", sites[i], "."), pred_names, fixed = TRUE
+                )]
             }, simplify = FALSE
         )
+        lst <- c(as.list(non_site_vars), site_lst)
+        names(lst) <- c(non_site_vars, paste0("hxb2_", sites))
     } else {
         lst <- as.list(pred_names)
+        names(lst) <- pred_names
     }
     lst
 }

@@ -1050,7 +1050,7 @@ vimp_nice_group_names <- function(nm_vec = NULL) {
     return(nice_names[reference_positions])
 }
 vimp_nice_ind_names <- function(nm_vec = NULL) {
-    no_hxb2 <- gsub("hxb2.", "", nm_vec, fixed = TRUE)
+    no_hxb2 <- gsub("hxb2_", "", gsub("hxb2.", "", nm_vec, fixed = TRUE), fixed = TRUE)
     no_1mer <- gsub(".1mer", "", no_hxb2, fixed = TRUE)
     return(no_1mer)
 }
