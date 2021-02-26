@@ -20,11 +20,9 @@ get_sys_var <- function(option = "nab", boolean = FALSE){
 }
 
 # read in permanent options
-get_global_options <- function(options = c("nab", "outcomes", "learners", "cvtune", "cvperf", "nfolds", "combination_method", "binary_outcomes",
-                                           "importance_grp", "importance_ind", "report_name", "return",
-                                           "sens_thresh", "multsens_nab", "same_subset", "var_thresh"),
+get_global_options <- function(options = c("nab", "outcomes", "learners", "cvtune", "cvperf", "nfolds", "combination_method", "binary_outcomes", "importance_grp", "importance_ind", "ind_importance_type", "report_name", "return", "sens_thresh", "multsens_nab", "same_subset", "var_thresh"),
                                options_boolean = c(FALSE, FALSE, FALSE, TRUE,
-                                                   TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                                                   TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
                                                    FALSE, FALSE, TRUE, FALSE)){
     out <- mapply(option = options, boolean = options_boolean,
                   FUN = get_sys_var, SIMPLIFY = FALSE)

@@ -6,9 +6,10 @@
 #  (4) If "marg" is in opts$importance_grp OR opts$importance_ind, run a regression of outcome on only confounders: for use in individual-level and group-level marginal feature importance
 #  (5) If "cond" is in opts$importance_ind, run regression of outcome on all features except that one, for use in individual-level conditional importance
 # (6) If "marg" is in opts$importance_ind, run regression of outcome on only feature of interest + geographic confounders (note that this is a glm always)
-## ---------------------------------------------------------------------------
-## Set up args, variables, functions
-## ---------------------------------------------------------------------------
+# For (5) and (6), if opts$ind_importance_type == "sitewise", aggregate all residues at a site for individual importance; otherwise, use individual residues
+# ---------------------------------------------------------------------------
+# Set up args, variables, functions
+# ---------------------------------------------------------------------------
 # load libraries
 library("SuperLearner")
 library("dplyr")
@@ -48,7 +49,8 @@ for(i in seq_along(all_outcomes)){
 all_var_groups <- get_variable_groups(dat, pred_names)
 all_geog_vars <- pred_names[grepl("geog", pred_names)]
 num_covs <- length(pred_names) - length(all_geog_vars)
-var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
+# get individual variables -- either sitewise or residuewise
+var_inds <- get_individual_features(pred_names[!grepl("geog", pred_names)][1:num_covs], opts$ind_importance_type)
 
 # set number of CV folds
 V <- as.numeric(opts$nfolds)
@@ -72,22 +74,21 @@ for (i in 1:length(outcome_names)) {
     }
 }
 
-## ----------------------------------------------------------------------------
-## (1) run full super learners for each outcome specified in outcome_names
-## ----------------------------------------------------------------------------
-
+# ----------------------------------------------------------------------------
+# (1) run full super learners for each outcome specified in outcome_names
+# ----------------------------------------------------------------------------
 for (i in 1:length(outcome_names)) {
     set.seed(123125)
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name, V = V)
-    ## do the fitting, if there are enough outcomes
+    # do the fitting, if there are enough outcomes
     if (run_sl_vimp_bools2$run_sl[i]) {
         print(paste0("Fitting ", nice_outcomes[i]))
         sl_fit_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library,
             cvControl = sl_opts$ctrl, method = sl_opts$method, opts = opts)
     }
     if (run_sl_vimp_bools2$run_vimp[i]) {
-        ## if we need any type of importance, generate splits for VIM hypothesis testing
+        # if we need any type of importance, generate splits for VIM hypothesis testing
         if (!((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
               complete_cases_idx <- complete.cases(dat[, c(this_outcome_name, pred_names)])
@@ -97,7 +98,7 @@ for (i in 1:length(outcome_names)) {
             outer_folds <- make_folds(dat[complete_cases_idx, this_outcome_name], V = 2, stratified = grepl("dichot", this_outcome_name))
             saveRDS(outer_folds, file = paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
         }
-        ## if conditional importance is desired, fit the full regression
+        # if conditional importance is desired, fit the full regression
         if (("cond" %in% opts$importance_grp) | ("cond" %in% opts$importance_ind)) {
             sl_split_fit_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names,
                 fit_name = paste0("fitted_", this_outcome_name, "_for_vimp.rds"), cv_fit_name = paste0("cvfitted_", this_outcome_name, "_for_vimp.rds"),
@@ -106,9 +107,9 @@ for (i in 1:length(outcome_names)) {
     }
 }
 
-## ----------------------------------------------------------------------------
-## Only run the following code if neither opts$importance_grp nor opts$importance_ind is empty
-## ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Only run the following code if neither opts$importance_grp nor opts$importance_ind is empty
+# ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
 # (2) If "cond" is in opts$importance_grp, run regression of each outcome in outcome_names on the reduced set of features defined by removing the group of interest
@@ -120,16 +121,16 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
         set.seed(4747)
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
-        ## only do this if we have enough obs to run it
+        # only do this if we have enough obs to run it
         if (run_sl_vimp_bools2$run_vimp[i]) {
             cat("Fitting reduced learners for outcome", nice_outcomes[i], "\n")
-            ## read in the full folds, for this group's cv folds
+            # read in the full folds, for this group's cv folds
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
             for (j in 1:length(all_var_groups)) {
                 if (length(all_var_groups[j]) != 0) {
                     this_group_name <- names(all_var_groups)[j]
                     print(paste0("Fitting reduced learners for group variable importance of ", this_group_name))
-                    ## fit based on removing group of interest
+                    # fit based on removing group of interest
                     if ("cond" %in% opts$importance_grp) {
                         sl_fit_ij <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name,
                             pred_names = pred_names[!(pred_names %in% all_var_groups[[j]])],
@@ -140,7 +141,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
                             save_full_object = FALSE, outer_folds = outer_folds,
                             full_fit = FALSE, opts = opts)
                     }
-                    ## fit based on only group of interest + geographic confounders
+                    # fit based on only group of interest + geographic confounders
                     if ("marg" %in% opts$importance_grp) {
                         sl_fit_marginal_ij <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name,
                             pred_names = pred_names[(pred_names %in% all_var_groups[[j]]) | (pred_names %in% all_geog_vars)],
@@ -152,7 +153,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
                     }
                 }
             }
-            ## if "marg" is in opts$importance_grp, fit a regression of outcome on geographic confounders only
+            # if "marg" is in opts$importance_grp, fit a regression of outcome on geographic confounders only
             if ("marg" %in% opts$importance_grp) {
                 sl_geog_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)],
                     fit_name = paste0("fitted_", this_outcome_name, "_geog.rds"),
@@ -162,7 +163,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
                     save_full_object = FALSE, outer_folds = outer_folds, full_fit = TRUE,
                     opts = opts)
             }
-            ## if "marg" is in opts$importance_ind, fit a glm regression of outcome on geographic confounders only
+            # if "marg" is in opts$importance_ind, fit a glm regression of outcome on geographic confounders only
             if ("marg" %in% opts$importance_ind) {
                 sl_geog_glm_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)],
                     fit_name = paste0("fitted_", this_outcome_name, "_geog_glm.rds"),
@@ -176,8 +177,8 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
     }
 }
 # ----------------------------------------------------------------------------
-# (5) If "cond" is in opts$importance_ind, run regressions dropping each individual feature
-# (6) If "marg" is in opts$importance_ind, run regressions with each feature + geographic confounders (note that for all variables, this is a glm)
+# (5) If "cond" is in opts$importance_ind, run regressions dropping each individual feature (residuewise) or each site (a group of residues)
+# (6) If "marg" is in opts$importance_ind, run regressions with each feature/site + geographic confounders (if residue-wise, this is a glm)
 # ----------------------------------------------------------------------------
 if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
     for (i in 1:length(outcome_names)) {
