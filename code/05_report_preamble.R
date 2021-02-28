@@ -269,4 +269,4 @@ sens1_plot_nm <- ifelse(length(opts$nab) == 1, "sens", "estsens")
 sens2_min_num <- min(c(length(opts$nab), opts$multsens_nab))
 
 # print "features" for individual intrinsic importance if type is residuewise, otherwise print "sites"
-ind_import_txt <- switch((grepl("residue", opts$ind_import_type)) + 1, "sites, subtype variables, and viral geometry variables", "features")
+ind_import_txt <- switch((grepl("residue", opts$ind_importance_type)) + 1, "sites, subtype variables, and viral geometry variables", "features")

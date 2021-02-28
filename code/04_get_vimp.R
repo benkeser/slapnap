@@ -178,14 +178,14 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                     }
                 }
                 # merge together
-                eval(parse(text = paste0(this_outcome_name, "_vimp_lst$ind_conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", var_inds), collapse = ", "), ")")))
+                eval(parse(text = paste0(this_outcome_name, "_vimp_lst$ind_conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", names(var_inds)), collapse = ", "), ")")))
                 if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$ind_conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cv_cond_", var_inds), collapse = ", "), ")")))
+                    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$ind_conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cv_cond_", names(var_inds)), collapse = ", "), ")")))
                 }
             }
             # if "marg" is in opts$importance_ind, run this loop
             if ("marg" %in% opts$importance_ind) {
-                if (grepl("residue", opts$importance_type)) {
+                if (grepl("residue", opts$ind_importance_type)) {
                     reduced_fit <- geog_glm_fit
                     reduced_cv_fit <- geog_glm_cv_fit
                     reduced_cv_folds <- geog_glm_cv_folds
@@ -203,7 +203,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                     indi_marg_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
                     indi_marg_folds <- list(outer_folds = (-1) * (outer_folds - 1) + 2)
                     # get individual, non-cv vimp
-                    suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = indi_marg_fit, f2 = reduced_fit, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = indi_marg_folds$outer_folds, na.rm = TRUE, scale = 'identity')"))))
+                    suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::vim(Y = dat[, this_outcome_name], f1 = indi_marg_fit, f2 = reduced_fit, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = indi_marg_folds$outer_folds, na.rm = TRUE, scale = 'identity')"))))
                     if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
                         # cv
                         indi_cv_marg_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
@@ -212,13 +212,13 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                         indi_cv_marg_fit_lst <- lapply(as.list(1:length(unique(indi_cv_marg_folds_vec))), function(x) indi_cv_marg_fit[indi_cv_marg_folds_vec == x])
                         indi_marg_folds <- list(outer_folds = (-1) * (outer_folds - 1) + 2, inner_folds = list(inner_folds_1 = indi_cv_marg_folds_vec, inner_folds_2 = reduced_cv_folds_vec))
                         # get individual, cv vimp
-                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_marg_", this_var_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = indi_cv_marg_fit_lst, f2 = reduced_cv_fit_lst, indx = which(pred_names %in% this_var_name), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = indi_marg_folds, V = V, na.rm = TRUE, scale = 'identity')"))))
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_marg_", this_var_name, " <- vimp::cv_vim(Y = dat[, this_outcome_name], f1 = indi_cv_marg_fit_lst, f2 = reduced_cv_fit_lst, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, folds = indi_marg_folds, V = V, na.rm = TRUE, scale = 'identity')"))))
                     }
                 }
                 # merge together
-                eval(parse(text = paste0(this_outcome_name, "_vimp_lst$ind_marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", var_inds), collapse = ", "), ")")))
+                eval(parse(text = paste0(this_outcome_name, "_vimp_lst$ind_marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", names(var_inds)), collapse = ", "), ")")))
                 if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$ind_marginal <- merge_vim(", paste(paste0(this_outcome_name, "_cv_marg_", var_inds), collapse = ", "), ")")))
+                    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$ind_marginal <- merge_vim(", paste(paste0(this_outcome_name, "_cv_marg_", names(var_inds)), collapse = ", "), ")")))
                 }
             }
             # save them off
