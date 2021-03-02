@@ -258,17 +258,17 @@ When `cvperf="TRUE"` and a super learner is constructed, an additional layer of 
 
 ## Variable importance
 
-If `importance_grp` or `importance_ind` is specified, variable importance estimates are computed based on the `learners`. Both biological and prediction importance can be obtained; we discuss each in the following two sections.
+If `importance_grp` or `importance_ind` is specified, variable importance estimates are computed based on the `learners`. Both intrinsic and prediction importance can be obtained; we discuss each in the following two sections.
 
 ### Biological importance {#sec:biolimp}
 
-Biological importance may be obtained by specifying `importance_grp`, `importance_ind`, or both. We provide two types of biological importance: marginal and conditional, accessed by passing `"marg"` and `"cond"`, respectively, to one of the importance variables. Both types of biological importance are based on the population prediction potential of features [@williamson2020], as implemented in the `R` package `vimp` [@vimppkg]. We measure prediction potential using nonparametric $R^2$ for continuous outcomes (i.e., IC$_{50}$, IC$_{80}$, or IIP) and using the nonparametric area under the receiver operating characteristic curve (AUC) for binary outcomes (i.e., sensitivity, estimated sensitivity, or multiple sensitivity). In both marginal and conditional importance, we compare the population prediction potential including the feature(s) of interest to the population prediction potential excluding the feature(s) or interest; this provides a measure of the biological importance of the feature(s). The two types of biological importance differ only in the other adjustment variables that we consider: conditional importance compares the prediction potential of all features to the prediction potential of all features excluding the feature(s) of interest, and thus importance must be interpreted conditionally; whereas marginal importance compares the prediction potential of the feature(s) of interest plus geographic confounders to the prediction potential of the geographic confounders alone.
+Biological importance may be obtained by specifying `importance_grp`, `importance_ind`, or both. We provide two types of intrinsic importance: marginal and conditional, accessed by passing `"marg"` and `"cond"`, respectively, to one of the importance variables. Both types of intrinsic importance are based on the population prediction potential of features [@williamson2020], as implemented in the `R` package `vimp` [@vimppkg]. We measure prediction potential using nonparametric $R^2$ for continuous outcomes (i.e., IC$_{50}$, IC$_{80}$, or IIP) and using the nonparametric area under the receiver operating characteristic curve (AUC) for binary outcomes (i.e., sensitivity, estimated sensitivity, or multiple sensitivity). In both marginal and conditional importance, we compare the population prediction potential including the feature(s) of interest to the population prediction potential excluding the feature(s) or interest; this provides a measure of the intrinsic importance of the feature(s). The two types of intrinsic importance differ only in the other adjustment variables that we consider: conditional importance compares the prediction potential of all features to the prediction potential of all features excluding the feature(s) of interest, and thus importance must be interpreted conditionally; whereas marginal importance compares the prediction potential of the feature(s) of interest plus geographic confounders to the prediction potential of the geographic confounders alone.
 
-Both marginal and conditional biological importance can be computed for groups of features or individual features. The available feature groups are detailed in Section \@ref(sec:data). Execution time may increase when biological importance is requested, depending upon the other options passed to `slapnap`: a separate `learner` (or super learner ensemble) must be trained for each feature group (or individual feature) of interest. Marginal importance tends to be computed more quickly than conditional importance, but both types of importance provide useful information about the population of interest and the underlying biology.
+Both marginal and conditional intrinsic importance can be computed for groups of features or individual features. The available feature groups are detailed in Section \@ref(sec:data). Execution time may increase when intrinsic importance is requested, depending upon the other options passed to `slapnap`: a separate `learner` (or super learner ensemble) must be trained for each feature group (or individual feature) of interest. Marginal importance tends to be computed more quickly than conditional importance, but both types of importance provide useful information about the population of interest and the underlying biology.
 
-If biological importance is requested, then point estimates, confidence intervals, and p-values (for a test of the null hypothesis that the biological importance is equal to zero) will be computed and displayed for each feature or group of features of interest. All results are based on first creating two independent splits of the data: the population prediction potential including the feature(s) of interest is estimated on one half of the data, while the population prediction potential excluding the feature(s) of interest is estimated on the remaining half. This ensures that the procedure has the desired type I error rate.
+If intrinsic importance is requested, then point estimates, confidence intervals, and p-values (for a test of the null hypothesis that the intrinsic importance is equal to zero) will be computed and displayed for each feature or group of features of interest. All results are based on first creating two independent splits of the data: the population prediction potential including the feature(s) of interest is estimated on one half of the data, while the population prediction potential excluding the feature(s) of interest is estimated on the remaining half. This ensures that the procedure has the desired type I error rate.
 
-In the following command, we request marginal biological importance for the feature groups defined in Section \@ref(sec:data). We do not specify a super learner ensemble to reduce computation time; however, in most problems we recommend an ensemble to protect against model misspecification.
+In the following command, we request marginal intrinsic importance for the feature groups defined in Section \@ref(sec:data). We do not specify a super learner ensemble to reduce computation time; however, in most problems we recommend an ensemble to protect against model misspecification.
 
 
 ```bash
@@ -277,7 +277,7 @@ docker run -v /path/to/local/dir:/home/output \
            slapnap/slapnap
 ```
 
-The raw `R` objects (saved as `.rds` files) containing the point estimates, confidence intervals, and p-values for biological importance can be saved by passing `"vimp"` to `return`.
+The raw `R` objects (saved as `.rds` files) containing the point estimates, confidence intervals, and p-values for intrinsic importance can be saved by passing `"vimp"` to `return`.
 
 ### Predictive importance
 
@@ -314,16 +314,16 @@ The executive summary contains:
 * descriptive statistics detailing the number of sequences extracted from CATNAP, the number of sequences with complete feature and outcome information, and the number of estimated sensitive and resistant sequences (defined based on sensitivity, estimated sensitivity, and/or multiple sensitivity);
 * a table describing the `learners` used to predict each outcome;
 * a table of cross-validated prediction performance for each outcome (if `cvperf = TRUE`);
-* a table of ranked marginal biological prediction performance for each feature group and outcome (if `"marg"` is included in `importance_grp`); and
-* a table of ranked conditional biological prediction performance for each feature group and outcome (if `"cond"` is included in `importance_grp`).
+* a table of ranked marginal intrinsic prediction performance for each feature group and outcome (if `"marg"` is included in `importance_grp`); and
+* a table of ranked conditional intrinsic prediction performance for each feature group and outcome (if `"cond"` is included in `importance_grp`).
 
 The rest of the report is organized by outcome. Each of these sections contains descriptive statistics including summaries of the distribution of the outcome (raw and log-transformed) for each bnAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to `slapnap`, the following subsections may also be present:
 
 * a table of super learner weights (Section \@ref(sec:sldetails)) if an ensemble is used;
 * cross-validated prediction performance for the fitted learner (or super learner): figures showing cross-validated prediction performance (all outcomes), cross-validated receiver operating characteristic (ROC) curves (binary outcomes), and cross-validated predicted probabilities of resistance (binary outcomes); and
-* variable importance: biological importance (group and individual) and predictive importance.
+* variable importance: intrinsic importance (group and individual) and predictive importance.
 
-Finally, if group biological importance is requested, then the variable groups are displayed in a section immediately preceding the references.
+Finally, if group intrinsic importance is requested, then the variable groups are displayed in a section immediately preceding the references.
 
 ## Example reports
 
@@ -331,7 +331,7 @@ Here we include several example reports and the `slapnap` container `run` comman
 
 ### Single antibodies
 
-The following code evaluates binary sensitivity (defined as the indicator that IC$_{80} < 1$) for VRC01 using a super learner that includes all three learner types, each with multiple tuning arameter values, and with different variable screening techniques. We also request marginal group and individual biological importance and individual predictive importance. If running this command locally, change `docker_output_directory` to the path to the folder where the output is to be saved.
+The following code evaluates binary sensitivity (defined as the indicator that IC$_{80} < 1$) for VRC01 using a super learner that includes all three learner types, each with multiple tuning arameter values, and with different variable screening techniques. We also request marginal group and individual intrinsic importance and individual predictive importance. If running this command locally, change `docker_output_directory` to the path to the folder where the output is to be saved.
 
 [See the report](reports/report_VRC01.html)
 

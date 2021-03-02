@@ -196,23 +196,23 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li>descriptive statistics detailing the number of sequences extracted from CATNAP, the number of sequences with complete feature and outcome information, and the number of estimated sensitive and resistant sequences (defined based on sensitivity, estimated sensitivity, and/or multiple sensitivity);</li>
 <li>a table describing the <code>learners</code> used to predict each outcome;</li>
 <li>a table of cross-validated prediction performance for each outcome (if <code>cvperf = TRUE</code>);</li>
-<li>a table of ranked marginal biological prediction performance for each feature group and outcome (if <code>&quot;marg&quot;</code> is included in <code>importance_grp</code>); and</li>
-<li>a table of ranked conditional biological prediction performance for each feature group and outcome (if <code>&quot;cond&quot;</code> is included in <code>importance_grp</code>).</li>
+<li>a table of ranked marginal intrinsic prediction performance for each feature group and outcome (if <code>&quot;marg&quot;</code> is included in <code>importance_grp</code>); and</li>
+<li>a table of ranked conditional intrinsic prediction performance for each feature group and outcome (if <code>&quot;cond&quot;</code> is included in <code>importance_grp</code>).</li>
 </ul>
 <p>The rest of the report is organized by outcome. Each of these sections contains descriptive statistics including summaries of the distribution of the outcome (raw and log-transformed) for each bnAb for continuous outcomes and number sensitive/resistant for binary outcomes. Based on the specific options passed to <code>slapnap</code>, the following subsections may also be present:</p>
 <ul>
 <li>a table of super learner weights (Section <a href="5-sec-methods.html#sec:sldetails">5.3</a>) if an ensemble is used;</li>
 <li>cross-validated prediction performance for the fitted learner (or super learner): figures showing cross-validated prediction performance (all outcomes), cross-validated receiver operating characteristic (ROC) curves (binary outcomes), and cross-validated predicted probabilities of resistance (binary outcomes); and</li>
-<li>variable importance: biological importance (group and individual) and predictive importance.</li>
+<li>variable importance: intrinsic importance (group and individual) and predictive importance.</li>
 </ul>
-<p>Finally, if group biological importance is requested, then the variable groups are displayed in a section immediately preceding the references.</p>
+<p>Finally, if group intrinsic importance is requested, then the variable groups are displayed in a section immediately preceding the references.</p>
 </div>
 <div id="example-reports" class="section level2">
 <h2><span class="header-section-number">6.2</span> Example reports</h2>
 <p>Here we include several example reports and the <code>slapnap</code> container <code>run</code> commands that generated them.</p>
 <div id="single-antibodies" class="section level3">
 <h3><span class="header-section-number">6.2.1</span> Single antibodies</h3>
-<p>The following code evaluates binary sensitivity (defined as the indicator that IC<span class="math inline">\(_{80} &lt; 1\)</span>) for VRC01 using a super learner that includes all three learner types, each with multiple tuning arameter values, and with different variable screening techniques. We also request marginal group and individual biological importance and individual predictive importance. If running this command locally, change <code>docker_output_directory</code> to the path to the folder where the output is to be saved.</p>
+<p>The following code evaluates binary sensitivity (defined as the indicator that IC<span class="math inline">\(_{80} &lt; 1\)</span>) for VRC01 using a super learner that includes all three learner types, each with multiple tuning arameter values, and with different variable screening techniques. We also request marginal group and individual intrinsic importance and individual predictive importance. If running this command locally, change <code>docker_output_directory</code> to the path to the folder where the output is to be saved.</p>
 <p><a href="reports/report_VRC01.html">See the report</a></p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">sudo</span> docker run \
     -d \
