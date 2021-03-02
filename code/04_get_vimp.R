@@ -101,7 +101,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                 if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
                     geog_glm_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_geog_glm.rds"))
                     geog_glm_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, "_geog_glm.rds"))
-                    geog_glm_cv_folds_vec <- get_cv_folds(geog_cv_folds)
+                    geog_glm_cv_folds_vec <- get_cv_folds(geog_glm_cv_folds)
                     geog_glm_cv_fit_lst <- lapply(as.list(1:length(unique(geog_glm_cv_folds_vec))), function(x) geog_glm_cv_fit[geog_glm_cv_folds_vec == x])
                 }
             }
