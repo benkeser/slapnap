@@ -119,7 +119,7 @@ ind_sl_lib <- switch(
 # (3) If "marg" is in opts$importance_grp, run regression of each outcome in outcome_names on the set of features defined by the group of interest + confounders
 # (4) If "marg" is in opts$importance_grp, run regression of each outcome in outcome_names on geographic confounders only
 # ----------------------------------------------------------------------------
-if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
+if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | ("marg" %in% opts$importance_ind & grepl("site", opts$ind_importance_type)))) {
     for (i in 1:length(outcome_names)) {
         set.seed(4747)
         this_outcome_name <- outcome_names[i]
@@ -129,30 +129,32 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp)) {
             cat("Fitting reduced learners for outcome", nice_outcomes[i], "\n")
             # read in the full folds, for this group's cv folds
             outer_folds <- readRDS(paste0("/home/slfits/", this_outcome_name, "_outer_folds.rds"))
-            for (j in 1:length(all_var_groups)) {
-                if (length(all_var_groups[j]) != 0) {
-                    this_group_name <- names(all_var_groups)[j]
-                    print(paste0("Fitting reduced learners for group variable importance of ", this_group_name))
-                    # fit based on removing group of interest
-                    if ("cond" %in% opts$importance_grp) {
-                        sl_fit_ij <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name,
-                            pred_names = pred_names[!(pred_names %in% all_var_groups[[j]])],
-                            fit_name = paste0("fitted_", this_outcome_name, "_conditional_", this_group_name, ".rds"),
-                            cv_fit_name = paste0("cvfitted_", this_outcome_name, "_conditional_", this_group_name, ".rds"),
-                            family = sl_opts$fam, SL.library = SL.library,
-                            cvControl = sl_opts$ctrl, method = sl_opts$method,
-                            save_full_object = FALSE, outer_folds = outer_folds,
-                            full_fit = FALSE, opts = opts)
-                    }
-                    # fit based on only group of interest + geographic confounders
-                    if ("marg" %in% opts$importance_grp) {
-                        sl_fit_marginal_ij <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name,
-                            pred_names = pred_names[(pred_names %in% all_var_groups[[j]]) | (pred_names %in% all_geog_vars)],
-                            fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"),
-                            cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"),
-                            family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
-                            method = sl_opts$method, save_full_object = FALSE,
-                            outer_folds = outer_folds, full_fit = FALSE, opts = opts)
+            if ("marg" %in% opts$importance_grp | "cond" %in% opts$importance_grp) {
+                for (j in 1:length(all_var_groups)) {
+                    if (length(all_var_groups[j]) != 0) {
+                        this_group_name <- names(all_var_groups)[j]
+                        print(paste0("Fitting reduced learners for group variable importance of ", this_group_name))
+                        # fit based on removing group of interest
+                        if ("cond" %in% opts$importance_grp) {
+                            sl_fit_ij <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name,
+                                pred_names = pred_names[!(pred_names %in% all_var_groups[[j]])],
+                                fit_name = paste0("fitted_", this_outcome_name, "_conditional_", this_group_name, ".rds"),
+                                cv_fit_name = paste0("cvfitted_", this_outcome_name, "_conditional_", this_group_name, ".rds"),
+                                family = sl_opts$fam, SL.library = SL.library,
+                                cvControl = sl_opts$ctrl, method = sl_opts$method,
+                                save_full_object = FALSE, outer_folds = outer_folds,
+                                full_fit = FALSE, opts = opts)
+                        }
+                        # fit based on only group of interest + geographic confounders
+                        if ("marg" %in% opts$importance_grp) {
+                            sl_fit_marginal_ij <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name,
+                                pred_names = pred_names[(pred_names %in% all_var_groups[[j]]) | (pred_names %in% all_geog_vars)],
+                                fit_name = paste0("fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"),
+                                cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"),
+                                family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
+                                method = sl_opts$method, save_full_object = FALSE,
+                                outer_folds = outer_folds, full_fit = FALSE, opts = opts)
+                        }
                     }
                 }
             }
