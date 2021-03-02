@@ -119,7 +119,7 @@ ind_sl_lib <- switch(
 # (3) If "marg" is in opts$importance_grp, run regression of each outcome in outcome_names on the set of features defined by the group of interest + confounders
 # (4) If "marg" is in opts$importance_grp, run regression of each outcome in outcome_names on geographic confounders only
 # ----------------------------------------------------------------------------
-if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | ("marg" %in% opts$importance_ind & grepl("site", opts$ind_importance_type)))) {
+if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | "marg" %in% opts$importance_ind)) {
     for (i in 1:length(outcome_names)) {
         set.seed(4747)
         this_outcome_name <- outcome_names[i]
