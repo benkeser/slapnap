@@ -1,4 +1,171 @@
 # boosted algorithms
+
+# gradient boosting function using h2o package
+SL.h2oboost <- function(Y, X, newX, family, obsWeights = rep(1, length(Y)), ...)
+
+{ 
+    SuperLearner:::.SL.require("h2o")
+
+    # Set GBM parameters to test
+    hyper_parameters <- list(ntrees = list(1000),
+                              max_depth = list(2,4,5,6), 
+                              learn_rate = list(0.05, 0.1, 0.2), 
+                              col_sample_rate = list(0.1, 0.2, 0.3))
+    
+    # Bind vector of outcome and covariate matrix together
+    dat <- cbind(Y, X)
+
+    h2o.init(max_mem_size = "16G")
+
+    # code to train h2o boosted trees for continuous outcomes 
+    if(family$family == "gaussian"){
+        # Convert dat to an h2o object
+        dat.hex <- as.h2o(dat)
+
+        # Do a grid search for the optimal hyper parameters
+        gbm.model <- h2o::h2o.grid("gbm", 
+                               hyper_params = hyper_parameters, 
+                               training_frame = dat.hex,
+                               y = "Y",
+                               distribution = "gaussian",
+                               nfolds = 5, 
+                               stopping_metric = "MSE",
+                               stopping_rounds = 3,
+                               stopping_tolerance = 0.001, 
+                               max_runtime_secs = 60,
+                               parallelism = 4)   
+
+        # Get the models from grid and sort by auc
+        grid <- h2o::h2o.getGrid(gbm.model@grid_id,
+                             sort_by = "mse",
+                             decreasing=FALSE)
+        # Save best parameters
+        best.max_depth <- as.numeric(grid@summary_table[1, ]$max_depth)
+        best.learn_rate <- as.numeric(grid@summary_table[1, ]$learn_rate)
+        best.col_sample_rate <- as.numeric(grid@summary_table[1, ]$col_sample_rate)
+
+        # Remove all models in grid to save memory
+        h2o.removeAll(retained_elements = c(dat.hex))
+        rm(gbm.model, grid)
+        
+        # Call garbage collection
+        h2o:::.h2o.garbageCollect()
+        h2o:::.h2o.garbageCollect()
+        h2o:::.h2o.garbageCollect()
+
+        # Train the model with best hyperparameters
+        gbm.final.model <- h2o::h2o.gbm(training_frame = dat.hex,
+                                       y = "Y",
+                                       distribution = "gaussian",
+                                       stopping_metric = "MSE",
+                                       stopping_rounds = 3,
+                                       stopping_tolerance = 0.001, 
+                                       ntrees = 1000,
+                                       max_depth = best.max_depth,
+                                       learn_rate = best.learn_rate,
+                                       col_sample_rate = best.col_sample_rate)
+    }
+
+    # code to train h2o boosted trees for continuous outcomes 
+    else if(family$family == "binomial"){
+
+        # Set response column as factor
+        dat$Y <- factor(dat$Y)
+
+        # Convert dat to an h2o object
+        dat.hex <- as.h2o(dat)
+
+        # Do a grid search for the optimal hyper parameters
+        gbm.model <- h2o::h2o.grid("gbm", 
+                       hyper_params = hyper_parameters, 
+                       training_frame = dat.hex,
+                       y = "Y",
+                       distribution = "bernoulli",
+                       nfolds = 5,    
+                       balance_classes = TRUE, 
+                       max_after_balance_size = 5, 
+                       fold_assignment = "Stratified",
+                       stopping_metric = "AUC",
+                       stopping_rounds = 3,
+                       stopping_tolerance = 0.001, 
+                       max_runtime_secs = 60,
+                       parallelism = 4) 
+
+        # Get the models from grid and sort by auc
+        grid <- h2o::h2o.getGrid(gbm.model@grid_id,
+                             sort_by = "auc",
+                             decreasing=TRUE)
+
+        # Save best parameters
+        best.max_depth <- as.numeric(grid@summary_table[1, ]$max_depth)
+        best.learn_rate <- as.numeric(grid@summary_table[1, ]$learn_rate)
+        best.col_sample_rate <- as.numeric(grid@summary_table[1, ]$col_sample_rate)
+    
+        # Remove all models in grid to save memory
+        h2o.removeAll(retained_elements = c(dat.hex))
+        rm(gbm.model, grid)
+        
+        # Call garbage collection
+        h2o:::.h2o.garbageCollect()
+        h2o:::.h2o.garbageCollect()
+        h2o:::.h2o.garbageCollect()
+
+        # Train the model with best hyperparameters
+        gbm.final.model <- h2o::h2o.gbm(training_frame = dat.hex,
+                                           y = "Y",
+                                           distribution = "bernoulli",
+                                           balance_classes = TRUE, 
+                                           max_after_balance_size = 5, 
+                                           stopping_metric = "AUC",
+                                           stopping_rounds = 3,
+                                           stopping_tolerance = 0.001, 
+                                           ntrees = 1000,
+                                           max_depth = best.max_depth,
+                                           learn_rate = best.learn_rate,
+                                           col_sample_rate = best.col_sample_rate)  
+    }
+
+    # Convert newdata to h2o object
+    newX.hex <- as.h2o(newX)
+    # Get predictions
+    pred.raw <- h2o::h2o.predict(object = gbm.final.model,
+                              newdata = newX.hex)
+
+    # Extract predicted probabilities
+    if(family$family == "gaussian"){
+      pred <- as.numeric(as.vector(pred.raw))
+    }
+    else if(family$family == "binomial"){
+      pred <- as.numeric(as.vector(pred.raw$p1))
+    }
+    # Make fit an object with the filepath we need to reload the h2o object
+    fit <- list(object = gbm.final.model)
+    class(fit) <- c("SL.h2oboost")
+    out = list(pred = pred, fit = fit)
+
+    return(out)
+}
+
+# Predict method for h2oboost
+predict.SL.h2oboost <- function(object, newdata, ...)
+{
+    SuperLearner:::.SL.require("h2o")
+  
+    # convert data to h2o object
+    newdata.hex <- as.h2o(newdata)
+    # Get predictions
+    pred.raw <- h2o::h2o.predict(object = object,
+                              newdata = newdata.hex)
+    # Extract predicted probabilites
+    if(family$family == "gaussian"){
+      pred <- as.numeric(as.vector(pred.raw))
+    }
+    else if(family$family == "binomial"){
+      pred <- as.numeric(as.vector(pred.raw$p1))
+    }
+    pred
+}
+
 SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, ntrees = 1000,
     max_depth = 4, shrinkage = 0.1, minobspernode = 10, params = list(),
     nthread = 1, verbose = 0, save_period = NULL, ...)
@@ -361,6 +528,10 @@ tmp_method.CC_nloglik <- function ()
 # based on user-inputted options, make a vector describing the super learner library
 make_sl_library_vector <- function(opts){
     default_library <- NULL
+    # check if h2o boost is requested
+    if("h2oboost" %in% opts$learners){
+        default_library <- c(default_library, "SL.h2oboost")
+    }
     # check if rf is requested
     if ("rf" %in% opts$learners) {
       if (opts$cvtune) {
@@ -406,7 +577,7 @@ make_sl_library_vector <- function(opts){
             make_screen_wrapper(var_thresh = i)
         }
         # include in list
-        which_xgboost <- grep("xgboost", default_library)
+        which_xgboost <- c(grep("xgboost", default_library), grep("h2oboost", default_library))
         if(length(which_xgboost) > 0){
             default_library_for_grid <- default_library[-which_xgboost]
         }else{
@@ -472,6 +643,7 @@ make_screen_wrapper <- function(var_thresh){
 sl_one_outcome <- function(complete_dat, outcome_name,
                            pred_names,
                            opts,
+                           h2o_here,
                            save_dir = "/home/slfits/",
                            fit_name = paste0("fit_", outcome_name, ".rds"),
                            cv_fit_name = paste0("cvfit_", outcome_name, ".rds"),
@@ -524,7 +696,13 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         fit$Y <- newdat[ , outcome_name]
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))
-            saveRDS(fit, file = paste0(save_dir, learner_name))
+            saveRDS(fit, file = paste0(save_dir, learner_name))   
+            if (h2o_here){
+            # save h2o models
+            h2o.saveModel(object = fit$fitLibrary$SL.h2oboost_All$object,
+                              path = paste0(save_dir),
+                              force = TRUE)
+            }           
         }
         if (length(opts$learners) > 1) {
           # save super learner predictions
@@ -554,6 +732,12 @@ sl_one_outcome <- function(complete_dat, outcome_name,
             if (save_full_object) {
                 saveRDS(fit, file = paste0(save_dir, fit_name))
                 saveRDS(fit, file = paste0(save_dir, learner_name))
+                if (h2o_here){
+                    # save h2o models
+                    h2o.saveModel(object = fit$fitLibrary$SL.h2oboost_All$object,
+                                  path = paste0(save_dir),
+                                  force = TRUE)
+                }
             }
             # save super learner predictions
             saveRDS(fit$SL.predict, file = paste0(save_dir, fitted_name))
@@ -578,6 +762,12 @@ sl_one_outcome <- function(complete_dat, outcome_name,
             if (save_full_object) {
                 saveRDS(fit$fit$object, file = paste0(save_dir, fit_name))
                 saveRDS(fit$fit$object, file = paste0(save_dir, learner_name))
+                if (h2o_here){
+                    # save h2o models
+                    h2o.saveModel(object = fit$fit$object,
+                                  path = paste0(save_dir),
+                                  force = TRUE)
+                }
             }
         }
     }
