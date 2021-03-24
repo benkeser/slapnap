@@ -33,7 +33,7 @@ SL.h2oboost <- function(Y, X, newX, family, obsWeights = rep(1, length(Y)), ...)
                                stopping_rounds = 3,
                                stopping_tolerance = 0.001, 
                                max_runtime_secs = 60,
-                               parallelism = 4)   
+                               parallelism = 0)   
 
         # Get the models from grid and sort by auc
         grid <- h2o::h2o.getGrid(gbm.model@grid_id,
@@ -89,7 +89,7 @@ SL.h2oboost <- function(Y, X, newX, family, obsWeights = rep(1, length(Y)), ...)
                        stopping_rounds = 3,
                        stopping_tolerance = 0.001, 
                        max_runtime_secs = 60,
-                       parallelism = 4) 
+                       parallelism = 0) 
 
         # Get the models from grid and sort by auc
         grid <- h2o::h2o.getGrid(gbm.model@grid_id,
