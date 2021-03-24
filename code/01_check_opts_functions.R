@@ -109,7 +109,7 @@ get_options_check <- function(opts) {
         check_opts_binary_outcome_specification(opts$binary_outcomes, all_bins)
     }
     # check the learners
-    all_learners <- c("rf", "xgboost", "lasso")
+    all_learners <- c("rf", "xgboost", "lasso", "h2oboost")
     check_opts_learners(opts$learners, all_learners)
     # check cv tune
     check_opts_cvtune(opts$cvtune)
