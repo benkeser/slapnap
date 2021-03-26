@@ -64,10 +64,12 @@ check_opts_nfolds <- function(nfolds_str) {
     )
 }
 # check vimp
-check_opts_vimp <- function(grp_str, ind_str, all_grp, all_ind) {
+check_opts_vimp <- function(grp_str, ind_str, ind_type, all_grp, all_ind, all_types) {
     shiny::validate(
         shiny::need(length(setdiff(grp_str, all_grp)) == 0 | grp_str == "", "Please enter either a semicolon-separated list of supported group importance types (i.e., 'marg', 'cond', or 'marg;cond') or an empty string ('')."),
-        shiny::need(length(setdiff(ind_str, all_ind)) == 0 | ind_str == "", "Please enter either a semicolon-separated list of supported individual importance types (i.e., 'marg', 'cond', 'pred', or, e.g., 'marg;cond;pred') or an empty string ('').")
+        shiny::need(length(setdiff(ind_str, all_ind)) == 0 | ind_str == "", "Please enter either a semicolon-separated list of supported individual importance types (i.e., 'marg', 'cond', 'pred', or, e.g., 'marg;cond;pred') or an empty string ('')."),
+        shiny::need(length(setdiff(ind_type, all_types)) == 0 | ind_type == "",
+        "Please enter either a supported individual-level intrinsic importance type (i.e., 'sitewise' or 'residuewise') or an empty string ('').")
     )
 }
 # check object returns
@@ -118,7 +120,8 @@ get_options_check <- function(opts) {
     # check importance
     all_importance_grp <- c("marg", "cond")
     all_importance_ind <- c("marg", "cond", "pred")
-    check_opts_vimp(opts$importance_grp, opts$importance_ind, all_importance_grp, all_importance_ind)
+    all_ind_types <- c("sitewise", "residuewise")
+    check_opts_vimp(opts$importance_grp, opts$importance_ind, opts$ind_importance_type, all_importance_grp, all_importance_ind, all_ind_types)
     # check objects requested for return
     all_returns <- c("report", "data", "learner", "figures", "vimp")
     check_opts_returns(opts$return, all_returns)

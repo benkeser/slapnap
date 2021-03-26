@@ -124,8 +124,9 @@ all_outcome_names <- c("log10.pc.ic50", "log10.pc.ic80", "iip", "dichotomous.1",
 # get variable groups
 all_var_groups <- get_variable_groups(dat, pred_names)
 all_geog_vars <- pred_names[grepl("geog", pred_names)]
+# get individual variables -- either sitewise or residuewise
 num_covs <- length(pred_names) - length(all_geog_vars)
-var_inds <- pred_names[!grepl("geog", pred_names)][1:num_covs]
+var_inds <- get_individual_features(pred_names[!grepl("geog", pred_names)][1:num_covs], opts$ind_importance_type)
 
 # set number of CV folds
 V <- as.numeric(opts$nfolds)
@@ -266,3 +267,6 @@ ran_sl_dichot2 <- ifelse(length(ran_sl_dichot2) == 0, FALSE, ran_sl_dichot2)
 # nice plot name for sens1
 sens1_plot_nm <- ifelse(length(opts$nab) == 1, "sens", "estsens")
 sens2_min_num <- min(c(length(opts$nab), opts$multsens_nab))
+
+# print "features" for individual intrinsic importance if type is residuewise, otherwise print "sites"
+ind_import_txt <- switch((grepl("residue", opts$ind_importance_type)) + 1, "sites, subtype variables, and viral geometry variables", "features")
