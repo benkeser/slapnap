@@ -168,8 +168,11 @@ ENV nfolds="2"
 #   possible values are 'marg' (for marginal), 'cond' (for conditional), 'marg;cond' (for both marginal and conditional), or none (input "")
 ENV importance_grp=""
 # what individual-level importance measures should be computed?
-#   possible values are marg (for marginal), cond (for conditional), pred (for ML-specific predictive importance), a semicolon-separated combination of these three, or none (input "")
+#   possible values are 'marg' (for marginal), 'cond' (for conditional), 'pred' (for ML-specific predictive importance), a semicolon-separated combination of these three, or none (input "")
 ENV importance_ind=""
+# should individual-level intrinsic importance be measured on a site-wise or residue-wise basis?
+#   possible values are 'sitewise' or 'residuewise' (only used if importance_ind contains 'marg' or 'cond')
+Env ind_importance_type="sitewise"
 
 # set the name of the saved report
 #  if set to "", then will default to report_[_-separated list of nabs]_[date].html
