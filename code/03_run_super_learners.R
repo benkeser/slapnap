@@ -27,7 +27,7 @@ opts <- get_global_options()
 h2o_here <- !(all(grepl("h2oboost", opts$learners) == FALSE))
 if(h2o_here) {
     # initiate h2o cluster
-    h2o.init(max_mem_size = "16G")
+    h2o.init(max_mem_size = "32G")
 }
 
 # load data and subset to complete cases

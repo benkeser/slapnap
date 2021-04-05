@@ -15,8 +15,6 @@ SL.h2oboost <- function(Y, X, newX, family, obsWeights = rep(1, length(Y)), ...)
     # Bind vector of outcome and covariate matrix together
     dat <- cbind(Y, X)
 
-    h2o.init(max_mem_size = "16G")
-
     # code to train h2o boosted trees for continuous outcomes 
     if(family$family == "gaussian"){
         # Convert dat to an h2o object
