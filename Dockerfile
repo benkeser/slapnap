@@ -28,6 +28,12 @@ RUN apt-get install -y vim
 # install pandoc (for Rmarkdown conversions)
 RUN apt-get install -y pandoc && apt-get install -y pandoc-citeproc
 
+# install Java (for h2o)
+RUN apt-get install -y curl openjdk-8-jdk
+
+# install libcurl (for h2o)
+RUN apt-get install -y libcurl4-openssl-dev
+
 # install R libraries needed for analysis
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("rmarkdown", repos="https://cran.rstudio.com")'
@@ -51,6 +57,9 @@ RUN Rscript -e 'install.packages("tibble", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("vimp", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("RCurl", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("bit64", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("h2o", type = "source", repos="https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")'
 
 # install nginx for static website hosting
 RUN apt-get install -y nginx
