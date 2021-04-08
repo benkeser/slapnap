@@ -29,6 +29,8 @@ h2o_here <- !(all(grepl("h2oboost", opts$learners) == FALSE))
 if(h2o_here) {
     # initiate h2o cluster
     h2o.init(max_mem_size = "32G")
+    # don't print the progress bar 
+    h2o::h2o.no_progress()
 }
 
 # load data and subset to complete cases
