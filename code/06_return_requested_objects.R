@@ -11,6 +11,8 @@ opts <- get_global_options()
 filename <- Sys.getenv("nab_str")
 postfix <- paste0(filename, "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
 
+h2o_here <- !(all(grepl("h2oboost", opts$learners) == FALSE))
+
 #-------------------------------------------------
 # save analysis dataset, if requested
 #-------------------------------------------------
@@ -35,6 +37,9 @@ if (any(grepl("learner", opts$return))) {
     fit_renames <- gsub("fit_", "learner_", fit_renames)
     fit_renames <- gsub(".rds", paste0("_", postfix, ".rds"), fit_renames)
     file.copy(paste0("/home/slfits/", fit_names), paste0("/home/output/", fit_renames), overwrite = TRUE)
+    if (h2o_here) {
+        # copy h2o model files as well
+    }
 }
 #------------------------------------
 # figures are saved directly from
