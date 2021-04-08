@@ -16,7 +16,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 #   wget to scrape from web
 #   software-properties-common to help manage repos
 RUN apt-get update && apt-get install -y \
-  # for scraping from web
   wget \
   software-properties-common
 
