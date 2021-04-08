@@ -39,6 +39,8 @@ if (any(grepl("learner", opts$return))) {
     file.copy(paste0("/home/slfits/", fit_names), paste0("/home/output/", fit_renames), overwrite = TRUE)
     if (h2o_here) {
         # copy h2o model files as well
+        h2o_fit_names <- all_fit_names[grepl("GBM_model", all_fit_names)]
+        file.copy(paste0("/home/slfits/", h2o_fit_names), paste0("/home/output/", h2o_fit_names), overwrite = TRUE)
     }
 }
 #------------------------------------
