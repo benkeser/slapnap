@@ -104,17 +104,17 @@ SL.h2oboost <- function(Y, X, newX, family, obsWeights = rep(1, length(Y)), ...)
 predict.SL.h2oboost <- function(object, newdata, ...)
 {
     SuperLearner:::.SL.require("h2o")
-
+    L <- list(...)
     # convert data to h2o object
     newdata.hex <- h2o::as.h2o(newdata)
     # Get predictions
-    pred.raw <- h2o::h2o.predict(object = object,
+    pred.raw <- h2o::h2o.predict(object = object$object,
                               newdata = newdata.hex)
     # Extract predicted probabilites
-    if(family$family == "gaussian"){
+    if (L$family$family == "gaussian"){
       pred <- as.numeric(as.vector(pred.raw))
     }
-    else if(family$family == "binomial"){
+    else if (L$family$family == "binomial"){
       pred <- as.numeric(as.vector(pred.raw$p1))
     }
     pred
