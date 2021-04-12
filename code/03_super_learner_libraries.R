@@ -3,22 +3,23 @@
 # gradient boosting function using h2o package
 SL.h2oboost <- function(Y, X, newX, family, obsWeights = rep(1, length(Y)), ...)
 
-{ 
+{
     SuperLearner:::.SL.require("h2o")
 
     # Set GBM parameters to test
     hyper_parameters <- list(ntrees = list(1000),
-                              max_depth = list(2,4,5,6), 
-                              learn_rate = list(0.05, 0.1, 0.2), 
+                              max_depth = list(2,4,5,6),
+                              learn_rate = list(0.05, 0.1, 0.2),
                               col_sample_rate = list(0.1, 0.2, 0.3))
-    
-    # Bind vector of outcome and covariate matrix together; 
+
+    # Bind vector of outcome and covariate matrix together;
     # if Y is binary, make it a factor first
-    dat <- cbind(switch((family$family == "binomial") + 1, Y, as.factor(Y)), X)
-    
+    Y <- switch((family$family == "binomial") + 1, Y, as.factor(Y))
+    dat <- cbind(Y, X)
+
     # Convert dat to an h2o object
     dat.hex <- as.h2o(dat)
-    
+
     # set up GBM hyperparameters
     if (family$family == "binomial") {
         h2o_dist <- "bernoulli"
@@ -29,50 +30,50 @@ SL.h2oboost <- function(Y, X, newX, family, obsWeights = rep(1, length(Y)), ...)
     } else {
         stop("The entered family isn't currently supported. Please enter one of 'binomial' or 'gaussian'.")
     }
-    
+
     # search over the grid
-    gbm.model <- h2o::h2o.grid("gbm", 
+    gbm.model <- h2o::h2o.grid("gbm",
                                hyper_params = hyper_parameters,
                                training_frame = dat.hex,
-                               y = "Y", 
+                               y = "Y",
                                distribution = h2o_dist,
                                nfolds = 5,
                                balance_classes = (h2o_dist == "bernoulli"),
                                max_after_balance_size = 5,
-                               fold_assignment = ifelse(h2o_dist == "bernoulli", 
+                               fold_assignment = ifelse(h2o_dist == "bernoulli",
                                                         "Stratified", "AUTO"),
                                stopping_metric = toupper(h2o_metric),
                                stopping_rounds = 3,
                                stopping_tolerance = 0.001,
                                max_runtime_secs = 60,
                                parallelism = 0)
-    
+
     # get the models from the grid and sort by metric
     grid <- h2o::h2o.getGrid(gbm.model@grid_id,
                              sort_by = tolower(h2o_metric),
                              decreasing = (h2o_dist == "bernoulli"))
-    
+
     # Save best parameters
     best.max_depth <- as.numeric(grid@summary_table[1, ]$max_depth)
     best.learn_rate <- as.numeric(grid@summary_table[1, ]$learn_rate)
     best.col_sample_rate <- as.numeric(grid@summary_table[1, ]$col_sample_rate)
-    
+
     # Remove all models in grid to save memory
     h2o.removeAll(retained_elements = c(dat.hex))
     rm(gbm.model, grid)
-    
+
     # Call garbage collection
     h2o:::.h2o.garbageCollect()
     h2o:::.h2o.garbageCollect()
     h2o:::.h2o.garbageCollect()
-    
+
     # Train the model with best hyperparameters
     gbm.final.model <- h2o::h2o.gbm(training_frame = dat.hex,
                                     y = "Y",
                                     distribution = h2o_dist,
                                     stopping_metric = toupper(h2o_metric),
                                     stopping_rounds = 3,
-                                    stopping_tolerance = 0.001, 
+                                    stopping_tolerance = 0.001,
                                     ntrees = 1000,
                                     max_depth = best.max_depth,
                                     learn_rate = best.learn_rate,
@@ -103,17 +104,17 @@ SL.h2oboost <- function(Y, X, newX, family, obsWeights = rep(1, length(Y)), ...)
 predict.SL.h2oboost <- function(object, newdata, ...)
 {
     SuperLearner:::.SL.require("h2o")
-  
+    L <- list(...)
     # convert data to h2o object
     newdata.hex <- h2o::as.h2o(newdata)
     # Get predictions
-    pred.raw <- h2o::h2o.predict(object = object,
+    pred.raw <- h2o::h2o.predict(object = object$object,
                               newdata = newdata.hex)
     # Extract predicted probabilites
-    if(family$family == "gaussian"){
+    if (L$family$family == "gaussian"){
       pred <- as.numeric(as.vector(pred.raw))
     }
-    else if(family$family == "binomial"){
+    else if (L$family$family == "binomial"){
       pred <- as.numeric(as.vector(pred.raw$p1))
     }
     pred
@@ -604,7 +605,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
                            outer_folds = rep(1, length(complete_dat[, outcome_name])),
                            full_fit = TRUE,
                            SL.library = "SL.mean",
-                           call_out = FALSE, 
+                           call_out = FALSE,
                            ...){
   # three cases to worry about in terms of how to deal with missing data
   # 1. same_subset requested, but only studying ic80 or only studying ic50-derived outcomes,
@@ -649,13 +650,13 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         fit$Y <- newdat[ , outcome_name]
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))
-            saveRDS(fit, file = paste0(save_dir, learner_name))   
+            saveRDS(fit, file = paste0(save_dir, learner_name))
             if (h2o_here){
             # save h2o models
             h2o.saveModel(object = fit$fitLibrary$SL.h2oboost_All$object,
                               path = paste0(save_dir),
                               force = TRUE)
-            }           
+            }
         }
         if (length(opts$learners) > 1) {
           # save super learner predictions
@@ -674,7 +675,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         }
     }
   } else {
-    # if more than one learner is specified or more than one var_thresh is specified, 
+    # if more than one learner is specified or more than one var_thresh is specified,
     # then we're fitting a super learner
     if (length(opts$learners) > 1 | length(opts$var_thresh) > 1) {
         if(call_out){
