@@ -13,7 +13,6 @@
 # load libraries
 library("SuperLearner")
 library("dplyr")
-library("h2o")
 source("/home/lib/04_variable_groups.R")
 source("/home/lib/03_super_learner_libraries.R")
 source("/home/lib/00_utils.R")
@@ -26,7 +25,8 @@ opts <- get_global_options()
 
 # If h2o is listed as a learner, initiate h2o cluster
 h2o_here <- !(all(grepl("h2oboost", opts$learners) == FALSE))
-if(h2o_here) {
+if (h2o_here) {
+    library("h2o")
     # initiate h2o cluster
     h2o.init(max_mem_size = "32G")
     # don't print the progress bar

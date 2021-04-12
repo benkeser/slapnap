@@ -483,7 +483,7 @@ tmp_method.CC_nloglik <- function ()
 make_sl_library_vector <- function(opts){
     default_library <- NULL
     # check if h2o boost is requested
-    if("h2oboost" %in% opts$learners){
+    if ("h2oboost" %in% opts$learners){
         default_library <- c(default_library, "SL.h2oboost")
     }
     # check if rf is requested
