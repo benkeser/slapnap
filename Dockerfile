@@ -12,27 +12,30 @@ ENV DEBIAN_FRONTEND=noninteractive
 #-----------------------
 # Installing software
 #-----------------------
-RUN apt-get update
-
-# make sure we have wget
-RUN apt-get install -y wget
+# install:
+#   wget to scrape from web
+#   software-properties-common to help manage repos
+RUN apt-get update && apt-get install -y \
+  wget \
+  software-properties-common
 
 # install R from command line; get >= R-3.5
-RUN apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:marutter/rrutter3.5
-RUN apt-get install -y r-base && apt-get install -y r-base-dev
-
-# put vim on for ease of editing docs inside container
-RUN apt-get install -y vim
-
-# install pandoc (for Rmarkdown conversions)
-RUN apt-get install -y pandoc && apt-get install -y pandoc-citeproc
-
-# install Java (for h2o)
-RUN apt-get install -y curl openjdk-8-jdk
-
-# install libcurl (for h2o)
-RUN apt-get install -y libcurl4-openssl-dev
+# install:
+#   curl
+#   libcurl, Java (for h20)
+#   r and r-dev
+#   pandoc (for Rmarkdown conversions)
+#   vim (for editing while in container)
+RUN apt-get update && apt-get install -y \
+  curl \
+  libcurl4-openssl-dev \
+  openjdk-8-jdk \
+  r-base \
+  r-base-dev \
+  pandoc \
+  pandoc-citeproc \
+  vim
 
 # install R libraries needed for analysis
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
@@ -74,8 +77,7 @@ RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits /home/output
 
 # install ffmpeg for animating figures
-RUN apt-get update
-RUN apt-get install -y ffmpeg
+RUN apt-get update && apt-get install -y ffmpeg
 
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
 COPY code/00_utils.R /home/lib/00_utils.R
