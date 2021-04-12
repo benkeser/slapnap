@@ -21,7 +21,7 @@ The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutraliz
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
 
-The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on April 08, 2021.
+The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on April 12, 2021.
 
 # Running `slapnap` {#sec:runningcontainer}
 
