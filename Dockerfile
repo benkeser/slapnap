@@ -147,6 +147,7 @@ ENV binary_outcomes="ic50"
 #  rf = random forest
 #  xgboost = eXtreme gradient boosting
 #  lasso = elastic net regression
+#  h2oboost = gradient boosting using H2O.ai
 ENV learners="rf"
 
 # should cv be used to select tuning parameters?
