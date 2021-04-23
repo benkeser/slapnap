@@ -298,7 +298,7 @@ get_learner_descriptions <- function(opts, n_total_ft = NA, n_ft_screen = NA){
         }else if(opts$learners[1] == "lasso"){
             "elastic net regression [@zou2005]"
         } else if (opts$learners[1] == "h2oboost") {
-            "H2O.ai boosting [@h2opkg]"
+            "gradient boosted trees [@h2opkg]"
         }
         if(all(opts$var_thresh == 0) & !opts$cvtune){
             tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.")

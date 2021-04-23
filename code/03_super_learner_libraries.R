@@ -119,7 +119,7 @@ predict.SL.h2oboost <- function(object, newdata, ...)
     }
     pred
 }
-descr_SL.h2oboost <- "boosted regression trees with maximum depth in (2, 4, 5, 6), learning rate in (.05, .1, .2), and column sampling rate in (.1, .2, .3) selected by 5-fold CV"
+descr_SL.h2oboost <- "boosted regression trees with (maximum depth, learning rate, column sampling rate) selected by 5-fold CV over the grid $(2, 4, 5, 6)\\times(.05, .1, .2)\\times(.1, .2, .3)$"
 
 SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, ntrees = 1000,
     max_depth = 4, shrinkage = 0.1, minobspernode = 10, params = list(),
