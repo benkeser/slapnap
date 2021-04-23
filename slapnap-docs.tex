@@ -25,7 +25,7 @@
 \usepackage[unicode=true]{hyperref}
 \hypersetup{
             pdftitle={slapnap: Super LeArner Prediction of NAb Panels},
-            pdfauthor={David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert},
+            pdfauthor={David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Courtney Simmons, Peter B. Gilbert},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
@@ -112,7 +112,7 @@
 
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam,
-Peter B. Gilbert}
+Courtney Simmons, Peter B. Gilbert}
 \date{April 23, 2021}
 
 \begin{document}
@@ -673,8 +673,11 @@ database), then the possible outcomes are:
   \(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))\);
   and
 \item
-  \texttt{sens} = sensitivity: the binary indicator that IC\(_{50}\)
+  \texttt{sens} = sensitivity: the binary indicator that IC\(_{x}\)
   \(<\) \texttt{sens\_thresh}, the user-specified sensitivity threshold.
+  The value of \(x\) is determined by \texttt{binary\_outcomes}, which
+  defaults to \texttt{"ic50"} (i.e., \(x = 50\)) but may be set to
+  \texttt{"ic80"} (i.e., \(x = 80\)).
 \end{itemize}
 
 \subsubsection{Multiple bnAbs}\label{multiple-bnabs}
@@ -705,13 +708,15 @@ possible \texttt{outcomes} that can be requested are:
   and
 \item
   \texttt{estsens} = estimated sensitivity: the binary indicator that
-  estimated IC\(_{50}\) (defined above) is less than
-  \texttt{sens\_thresh}; and
+  estimated IC\(_{x}\) (defined above) is less than
+  \texttt{sens\_thresh} (where \(x\) is determined by the value of
+  \texttt{binary\_outcomes}); and
 \item
   \texttt{multsens} = multiple sensitivity: the binary indicator that
-  measured IC\(_{50}\) is less than the sensitivity threshold
+  measured IC\(_{x}\) is less than the sensitivity threshold
   (\texttt{sens\_thresh}) for a number of bnAbs defined by
-  \texttt{multsens\_nab}.
+  \texttt{multsens\_nab} (where \(x\) is determined by the value of
+  \texttt{binary\_outcomes}).
 \end{itemize}
 
 \subsection{Learners}\label{sec:learnerdetails}
