@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam,
 Peter B. Gilbert}
-\date{April 13, 2021}
+\date{April 23, 2021}
 
 \begin{document}
 \maketitle
@@ -240,7 +240,7 @@ subsequent predictive analyses.
 
 The CATNAP data are updated periodically. The data are downloaded into
 the \texttt{slapnap} container at every build. The most recent build
-occurred on April 13, 2021.
+occurred on April 23, 2021.
 
 \section{\texorpdfstring{Running
 \texttt{slapnap}}{Running slapnap}}\label{sec:runningcontainer}
@@ -330,9 +330,10 @@ values should be determined based on scientific context.
   \textbf{\texttt{learners}}: A semicolon-separated string of machine
   learning algorithms to include in the analysis. Possible values
   include \texttt{"rf"} (random forest, default), \texttt{"xgboost"}
-  (eXtreme gradient boosting), and \texttt{"lasso"} (elastic net). See
-  Section \ref{sec:learnerdetails} for details on how tuning parameters
-  are chosen. If more than one algorithm is included, then it is assumed
+  (eXtreme gradient boosting), \texttt{"h2oboost"} (gradient boosting
+  using H2O.ai) and \texttt{"lasso"} (elastic net). See Section
+  \ref{sec:learnerdetails} for details on how tuning parameters are
+  chosen. If more than one algorithm is included, then it is assumed
   that a cross-validated-based ensemble (i.e., a super learner) is
   desired (see Section \ref{sec:sldetails}).
 \item
@@ -719,8 +720,8 @@ There are three possible \texttt{learners} available in
 \texttt{slapnap}: random forests \citep{breiman2001}, as implemented in
 the \texttt{R} package \texttt{ranger} \citep{rangerpkg}; elastic net
 \citep{zou2005} as implemented in \texttt{glmnet} \citep{glmnetpkg}; and
-boosted trees \citep{friedman2001, chen2016} as implemented in
-\texttt{xgboost} \citep{xgboostpkg}.
+boosted trees \citep{friedman2001, chen2016} as implemented in either
+\texttt{xgboost} \citep{xgboostpkg} or \texttt{H2O.ai} \citep{h2opkg}.
 
 For each \texttt{learner}, there is a \texttt{default} choice of tuning
 parameters that is implemented if \texttt{cvtune="FALSE"}. If instead
@@ -750,6 +751,8 @@ Table \ref{tab:learners}.
 \hline
 `xgboost\_3` & maximum tree depth equal to 8\\
 \hline
+`h2oboost\_default` & `max\_depth` in (2, 4, 5, 6), `learn\_rate` in (.05, .1, .2), and `col\_sample\_rate` in (.1, .2, .3); optimal combination chosen via 5-fold CV\\
+\hline
 `lasso\_default` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0\\
 \hline
 `lasso\_1` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0.25\\
@@ -770,9 +773,23 @@ Tuning parameters not mentioned in the table are set as follows:
   for continuous outcomes and \texttt{=\ 1} for binary outcomes;
 \item
   \texttt{xgboost}: \texttt{nrounds\ =\ 1000}, \texttt{eta\ =\ 0.1},
-  \texttt{min\_child\_weight\ =\ 10}, objective =
-  \texttt{binary:logistic} for binary outcomes and
-  \texttt{objective=reg:squarederror} for continuous outcomes.
+  \texttt{min\_child\_weight\ =\ 10},
+  \texttt{objective\ =\ binary:logistic} for binary outcomes and
+  \texttt{objective\ =\ reg:squarederror} for continuous outcomes.
+\item
+  \texttt{h2oboost}: \texttt{ntrees\ =\ 1000}; for binary outcomes,
+  \texttt{distribution\ =\ "bernoulli"},
+  \texttt{balance\_classes\ =\ TRUE},
+  \texttt{fold\_assignment\ =\ "Stratified"},
+  \texttt{stopping\_metric\ =\ "AUC"}, while for continuous outcomes,
+  \texttt{distribution\ =\ "gaussian"},
+  \texttt{balance\_classes\ =\ FALSE},
+  \texttt{fold\_assignment\ =\ "AUTO"},
+  \texttt{stopping\_metric\ =\ "MSE"}; and
+  \texttt{max\_after\_balance\_class\_size\ =\ 5},
+  \texttt{stopping\_rounds\ =\ 3},
+  \texttt{stopping\_tolerance\ =\ 0.001},
+  \texttt{max\_runtime\_secs\ =\ 60}.
 \end{itemize}
 
 \subsection{Super learner}\label{sec:sldetails}
@@ -908,16 +925,20 @@ single \texttt{learner} is fit, then the predictive importance is the
   \citep{xgboostpkg} is returned. Interpretation is essentially the same
   as for \texttt{rf}'s \texttt{impurity} importance.
 \item
+  \texttt{h2oboost}: the \texttt{gain} importance \citep{h2opkg} is
+  returned. Interpretation is the same as for \texttt{xgboost}'s
+  \texttt{gain} importance.
+\item
   \texttt{lasso}: the absolute value of the estimated regression
   coefficient at the cross-validation-selected \(\lambda\) is returned.
 \end{itemize}
 
 Note that these importance measures each have important limitations: the
-\texttt{rf} and \texttt{xgboost} measures will tend to favor features
-with many levels, while the \texttt{lasso} variable importance will tend
-to favor features with few levels. Nevertheless, these commonly reported
-measures can provide some insight into how a given learner is making
-predictions.
+\texttt{rf} , \texttt{h2oboost}, and \texttt{xgboost} measures will tend
+to favor features with many levels, while the \texttt{lasso} variable
+importance will tend to favor features with few levels. Nevertheless,
+these commonly reported measures can provide some insight into how a
+given learner is making predictions.
 
 If multiple \texttt{learners} are used, and thus a super learner is
 constructed, then the importance measures for the \texttt{learner} with

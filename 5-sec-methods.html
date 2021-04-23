@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>5 Methods | slapnap: Super LeArner Prediction of NAb Panels</title>
   <meta name="description" content="5 Methods | slapnap: Super LeArner Prediction of NAb Panels" />
-  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.22 and GitBook 2.6.7" />
 
   <meta property="og:title" content="5 Methods | slapnap: Super LeArner Prediction of NAb Panels" />
   <meta property="og:type" content="book" />
@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert" />
 
 
-<meta name="date" content="2021-04-13" />
+<meta name="date" content="2021-04-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -50,6 +50,8 @@
 
 
 
+<link href="assets/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
+<script src="assets/anchor-sections-1.0.1/anchor-sections.js"></script>
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config({
   CommonHTML: {
@@ -112,6 +114,7 @@ code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Ann
 code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
 code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 </style>
+
 
 <link rel="stylesheet" href="slapnap_style.css" type="text/css" />
 </head>
@@ -213,10 +216,14 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="sec:learnerdetails" class="section level2">
 <h2><span class="header-section-number">5.2</span> Learners</h2>
-<p>There are three possible <code>learners</code> available in <code>slapnap</code>: random forests <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span>, as implemented in the <code>R</code> package <code>ranger</code> <span class="citation">(Wright and Ziegler <a href="#ref-rangerpkg">2017</a>)</span>; elastic net <span class="citation">(Zou and Hastie <a href="#ref-zou2005">2005</a>)</span> as implemented in <code>glmnet</code> <span class="citation">(J. Friedman, Hastie, and Tibshirani <a href="#ref-glmnetpkg">2010</a>)</span>; and boosted trees <span class="citation">(J. H. Friedman <a href="#ref-friedman2001">2001</a>; T. Chen and Guestrin <a href="#ref-chen2016">2016</a>)</span> as implemented in <code>xgboost</code> <span class="citation">(T. Chen et al. <a href="#ref-xgboostpkg">2019</a>)</span>.</p>
+<p>There are three possible <code>learners</code> available in <code>slapnap</code>: random forests <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span>, as implemented in the <code>R</code> package <code>ranger</code> <span class="citation">(Wright and Ziegler <a href="#ref-rangerpkg">2017</a>)</span>; elastic net <span class="citation">(Zou and Hastie <a href="#ref-zou2005">2005</a>)</span> as implemented in <code>glmnet</code> <span class="citation">(J. Friedman, Hastie, and Tibshirani <a href="#ref-glmnetpkg">2010</a>)</span>; and boosted trees <span class="citation">(J. H. Friedman <a href="#ref-friedman2001">2001</a>; T. Chen and Guestrin <a href="#ref-chen2016">2016</a>)</span> as implemented in either <code>xgboost</code> <span class="citation">(T. Chen et al. <a href="#ref-xgboostpkg">2019</a>)</span> or <code>H2O.ai</code> <span class="citation">(H2O.ai <a href="#ref-h2opkg">2016</a>)</span>.</p>
 <p>For each <code>learner</code>, there is a <code>default</code> choice of tuning parameters that is implemented if <code>cvtune=&quot;FALSE&quot;</code>. If instead <code>cvtune=&quot;TRUE&quot;</code>, then there are several choices of tuning parameters that are evaluated using <code>nfold</code> cross validation, Table <a href="5-sec-methods.html#tab:learners">5.1</a>.</p>
 <table>
 <caption><span id="tab:learners">Table 5.1: </span>Labels for <code>learners</code> in report and description of their respective tuning parameters</caption>
+<colgroup>
+<col width="12%" />
+<col width="87%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"><code>learner</code></th>
@@ -253,18 +260,22 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <td align="left">maximum tree depth equal to 8</td>
 </tr>
 <tr class="even">
+<td align="left"><code>h2oboost_default</code></td>
+<td align="left"><code>max_depth</code> in (2, 4, 5, 6), <code>learn_rate</code> in (.05, .1, .2), and <code>col_sample_rate</code> in (.1, .2, .3); optimal combination chosen via 5-fold CV</td>
+</tr>
+<tr class="odd">
 <td align="left"><code>lasso_default</code></td>
 <td align="left"><span class="math inline">\(\lambda\)</span> selected by 5-fold CV and <span class="math inline">\(\alpha\)</span> equal to 0</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>lasso_1</code></td>
 <td align="left"><span class="math inline">\(\lambda\)</span> selected by 5-fold CV and <span class="math inline">\(\alpha\)</span> equal to 0.25</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>lasso_2</code></td>
 <td align="left"><span class="math inline">\(\lambda\)</span> selected by 5-fold CV and <span class="math inline">\(\alpha\)</span> equal to 0.5</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>lasso_3</code></td>
 <td align="left"><span class="math inline">\(\lambda\)</span> selected by 5-fold CV and <span class="math inline">\(\alpha\)</span> equal to 0.75</td>
 </tr>
@@ -273,7 +284,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>Tuning parameters not mentioned in the table are set as follows:</p>
 <ul>
 <li><code>rf</code>: <code>num.trees = 500</code>, <code>min.node.size = 5</code> for continuous outcomes and <code>= 1</code> for binary outcomes;</li>
-<li><code>xgboost</code>: <code>nrounds = 1000</code>, <code>eta = 0.1</code>, <code>min_child_weight = 10</code>, objective = <code>binary:logistic</code> for binary outcomes and <code>objective=reg:squarederror</code> for continuous outcomes.</li>
+<li><code>xgboost</code>: <code>nrounds = 1000</code>, <code>eta = 0.1</code>, <code>min_child_weight = 10</code>, <code>objective = binary:logistic</code> for binary outcomes and <code>objective = reg:squarederror</code> for continuous outcomes.</li>
+<li><code>h2oboost</code>: <code>ntrees = 1000</code>; for binary outcomes, <code>distribution = &quot;bernoulli&quot;</code>, <code>balance_classes = TRUE</code>, <code>fold_assignment = &quot;Stratified&quot;</code>, <code>stopping_metric = &quot;AUC&quot;</code>, while for continuous outcomes, <code>distribution = &quot;gaussian&quot;</code>, <code>balance_classes = FALSE</code>, <code>fold_assignment = &quot;AUTO&quot;</code>, <code>stopping_metric = &quot;MSE&quot;</code>; and <code>max_after_balance_class_size = 5</code>, <code>stopping_rounds = 3</code>, <code>stopping_tolerance = 0.001</code>, <code>max_runtime_secs = 60</code>.</li>
 </ul>
 </div>
 <div id="sec:sldetails" class="section level2">
@@ -307,9 +319,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <ul>
 <li><code>rf</code>: the <code>impurity</code> importance from <code>ranger</code> <span class="citation">(Wright and Ziegler <a href="#ref-rangerpkg">2017</a>)</span> is returned. The impurity importance for a given feature is computed by taking a normalized sum of the decrease in impurity (i.e., Gini index for binary outcomes; mean squared-error for continuous outcomes) over all nodes in the forest at which a split on that feature has been conducted.</li>
 <li><code>xgboost</code>: the <code>gain</code> importance from <code>xgboost</code> <span class="citation">(T. Chen et al. <a href="#ref-xgboostpkg">2019</a>)</span> is returned. Interpretation is essentially the same as for <code>rf</code>'s <code>impurity</code> importance.</li>
+<li><code>h2oboost</code>: the <code>gain</code> importance <span class="citation">(H2O.ai <a href="#ref-h2opkg">2016</a>)</span> is returned. Interpretation is the same as for <code>xgboost</code>'s <code>gain</code> importance.</li>
 <li><code>lasso</code>: the absolute value of the estimated regression coefficient at the cross-validation-selected <span class="math inline">\(\lambda\)</span> is returned.</li>
 </ul>
-<p>Note that these importance measures each have important limitations: the <code>rf</code> and <code>xgboost</code> measures will tend to favor features with many levels, while the <code>lasso</code> variable importance will tend to favor features with few levels. Nevertheless, these commonly reported measures can provide some insight into how a given learner is making predictions.</p>
+<p>Note that these importance measures each have important limitations: the <code>rf</code> , <code>h2oboost</code>, and <code>xgboost</code> measures will tend to favor features with many levels, while the <code>lasso</code> variable importance will tend to favor features with few levels. Nevertheless, these commonly reported measures can provide some insight into how a given learner is making predictions.</p>
 <p>If multiple <code>learners</code> are used, and thus a super learner is constructed, then the importance measures for the <code>learner</code> with the highest weight in the super learner are reported.</p>
 <p>If a single <code>learner</code> is used, but <code>cvtune=&quot;TRUE&quot;</code> then importance measures for the <code>cv selector</code> are reported.</p>
 <p>In the following command, we request predictive importance for a simple scenario. Predictive importance is displayed for the top 15 features.</p>
@@ -335,6 +348,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="ref-glmnetpkg">
 <p>Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. 2010. “Regularization Paths for Generalized Linear Models via Coordinate Descent.” <em>Journal of Statistical Software</em> 33 (1): 1–22. doi:<a href="https://doi.org/10.18637/jss.v033.i01">10.18637/jss.v033.i01</a>.</p>
+</div>
+<div id="ref-h2opkg">
+<p>H2O.ai. 2016. <em>R Interface for H2o</em>. <a href="https://github.com/h2oai/h2o-3" class="uri">https://github.com/h2oai/h2o-3</a>.</p>
 </div>
 <div id="ref-superlearnerpkg">
 <p>Polley, Eric, Erin LeDell, Chris Kennedy, and Mark van der Laan. 2019. <em>SuperLearner: Super Learner Prediction</em>. <a href="https://CRAN.R-project.org/package=SuperLearner" class="uri">https://CRAN.R-project.org/package=SuperLearner</a>.</p>

@@ -21,7 +21,7 @@ The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutraliz
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
 
-The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on April 13, 2021.
+The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on April 23, 2021.
 
 # Running `slapnap` {#sec:runningcontainer}
 
@@ -43,7 +43,7 @@ __-e options for `slapnap`__
 * __`binary_outcomes`__ A string defining the measure of neutralization to use for defining binary outcomes. Possible values are `"ic50"` (the default, for using IC$_{50}$ to define sensitivity) or `"ic80"` (for using IC$_{80}$ to define sensitivity).
 * __`sens_thresh`__ A numeric value defining the neutralization threshold for defining a sensitive versus resistant pseudovirus (default = 1). The dichotomous sensitivity/resistant `outcome`s are defined as the indicator that (estimated) IC$_{50}$ (or IC$_{80}$, if `binary_outcomes="ic80"`) is greater than or equal to `sens_thresh`.
 * __`multsens_nab`__ A numeric value used for defining whether a pseudovirus is resistant to a multi-nAb cocktail. Only used if `multsens` is included in `outcome` and more than one `nab` is requested. The dichotomous `outcome` `multsens` is defined as the indicator that a virus has IC$_{50}$ (or IC$_{80}$, if `binary_outcomes="ic80"`) greater than `sens_thresh` for at least `multsens_nab` nAbs.
-* __`learners`__: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient boosting), and `"lasso"` (elastic net). See Section \@ref(sec:learnerdetails) for details on how tuning parameters are chosen. If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section \@ref(sec:sldetails)).
+* __`learners`__: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include `"rf"` (random forest, default), `"xgboost"` (eXtreme gradient boosting), `"h2oboost"` (gradient boosting using H2O.ai) and `"lasso"` (elastic net). See Section \@ref(sec:learnerdetails) for details on how tuning parameters are chosen. If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section \@ref(sec:sldetails)).
 * __`cvtune`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` should be tuned using cross validation and a small grid search. Defaults to `"FALSE"`. If multiple `learners` are specified, then the super learner ensemble includes three versions of each of the requested `learners` with different tuning parameters.
 * __`cvperf`__: A boolean string (i.e., either `"TRUE"` or `"FALSE"` [default]) indicating whether the `learners` performance should be evaluated using cross validation. If `cvtune="TRUE"` or `learners` includes multiple algorithms, then nested cross validation is used to evaluate the performance of the cross validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively.
 * __`var_thresh`__: A numeric string that defines a threshold for pre-screening features. If a single positive number, all binary features with fewer than `var_thresh` 0's or 1's are removed prior to the specified `learner` training. If several values are included in `var_thresh` and a single `learner` is specified, then cross-validation is used to select the optimal threshold. If multiple `learner`s are specified, then each `learner` is included in the super learner with pre-screening based on each value of `var_thresh`.
@@ -202,7 +202,7 @@ If multiple bnAbs are requested (i.e., the `nab` option is a semi-colon separate
 
 ## Learners {#sec:learnerdetails}
 
-There are three possible `learners` available in `slapnap`: random forests [@breiman2001], as implemented in the `R` package `ranger` [@rangerpkg]; elastic net [@zou2005] as implemented in `glmnet` [@glmnetpkg]; and boosted trees [@friedman2001; @chen2016] as implemented in `xgboost` [@xgboostpkg].
+There are three possible `learners` available in `slapnap`: random forests [@breiman2001], as implemented in the `R` package `ranger` [@rangerpkg]; elastic net [@zou2005] as implemented in `glmnet` [@glmnetpkg]; and boosted trees [@friedman2001; @chen2016] as implemented in either `xgboost` [@xgboostpkg] or `H2O.ai` [@h2opkg].
 
 For each `learner`, there is a `default` choice of tuning parameters that is implemented if `cvtune="FALSE"`. If instead `cvtune="TRUE"`, then there are several choices of tuning parameters that are evaluated using `nfold` cross validation, Table \@ref(tab:learners).
 
@@ -228,6 +228,8 @@ For each `learner`, there is a `default` choice of tuning parameters that is imp
 \hline
 `xgboost\_3` & maximum tree depth equal to 8\\
 \hline
+`h2oboost\_default` & `max\_depth` in (2, 4, 5, 6), `learn\_rate` in (.05, .1, .2), and `col\_sample\_rate` in (.1, .2, .3); optimal combination chosen via 5-fold CV\\
+\hline
 `lasso\_default` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0\\
 \hline
 `lasso\_1` & \$\textbackslash{}lambda\$ selected by 5-fold CV and \$\textbackslash{}alpha\$ equal to 0.25\\
@@ -242,7 +244,8 @@ For each `learner`, there is a `default` choice of tuning parameters that is imp
 Tuning parameters not mentioned in the table are set as follows:
 
 * `rf`: `num.trees = 500`, `min.node.size = 5` for continuous outcomes and `= 1` for binary outcomes;
-* `xgboost`: `nrounds = 1000`, `eta = 0.1`, `min_child_weight = 10`, objective = `binary:logistic` for binary outcomes and `objective=reg:squarederror` for continuous outcomes.
+* `xgboost`: `nrounds = 1000`, `eta = 0.1`, `min_child_weight = 10`, `objective = binary:logistic` for binary outcomes and `objective = reg:squarederror` for continuous outcomes.
+* `h2oboost`: `ntrees = 1000`; for binary outcomes, `distribution = "bernoulli"`, `balance_classes = TRUE`, `fold_assignment = "Stratified"`, `stopping_metric = "AUC"`, while for continuous outcomes, `distribution = "gaussian"`, `balance_classes = FALSE`, `fold_assignment = "AUTO"`, `stopping_metric = "MSE"`; and `max_after_balance_class_size = 5`, `stopping_rounds = 3`, `stopping_tolerance = 0.001`, `max_runtime_secs = 60`.
 
 ## Super learner {#sec:sldetails}
 
@@ -285,9 +288,10 @@ The raw `R` objects (saved as `.rds` files) containing the point estimates, conf
 
 * `rf`: the `impurity` importance from `ranger` [@rangerpkg] is returned. The impurity importance for a given feature is computed by taking a normalized sum of the decrease in impurity (i.e., Gini index for binary outcomes; mean squared-error for continuous outcomes) over all nodes in the forest at which a split on that feature has been conducted.
 * `xgboost`: the `gain` importance from `xgboost` [@xgboostpkg] is returned. Interpretation is essentially the same as for `rf`'s `impurity` importance.
+* `h2oboost`: the `gain` importance [@h2opkg] is returned. Interpretation is the same as for `xgboost`'s `gain` importance.
 * `lasso`: the absolute value of the estimated regression coefficient at the cross-validation-selected $\lambda$ is returned.
 
-Note that these importance measures each have important limitations: the `rf` and `xgboost` measures will tend to favor features with many levels, while the `lasso` variable importance will tend to favor features with few levels. Nevertheless, these commonly reported measures can provide some insight into how a given learner is making predictions.
+Note that these importance measures each have important limitations: the `rf` , `h2oboost`, and `xgboost` measures will tend to favor features with many levels, while the `lasso` variable importance will tend to favor features with few levels. Nevertheless, these commonly reported measures can provide some insight into how a given learner is making predictions.
 
 If multiple `learners` are used, and thus a super learner is constructed, then the importance measures for the `learner` with the highest weight in the super learner are reported.
 

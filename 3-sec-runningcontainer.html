@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>3 Running slapnap | slapnap: Super LeArner Prediction of NAb Panels</title>
   <meta name="description" content="3 Running slapnap | slapnap: Super LeArner Prediction of NAb Panels" />
-  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.22 and GitBook 2.6.7" />
 
   <meta property="og:title" content="3 Running slapnap | slapnap: Super LeArner Prediction of NAb Panels" />
   <meta property="og:type" content="book" />
@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Peter B. Gilbert" />
 
 
-<meta name="date" content="2021-04-13" />
+<meta name="date" content="2021-04-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -50,6 +50,8 @@
 
 
 
+<link href="assets/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
+<script src="assets/anchor-sections-1.0.1/anchor-sections.js"></script>
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config({
   CommonHTML: {
@@ -112,6 +114,7 @@ code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Ann
 code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
 code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 </style>
+
 
 <link rel="stylesheet" href="slapnap_style.css" type="text/css" />
 </head>
@@ -201,7 +204,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><strong><code>binary_outcomes</code></strong> A string defining the measure of neutralization to use for defining binary outcomes. Possible values are <code>&quot;ic50&quot;</code> (the default, for using IC<span class="math inline">\(_{50}\)</span> to define sensitivity) or <code>&quot;ic80&quot;</code> (for using IC<span class="math inline">\(_{80}\)</span> to define sensitivity).</li>
 <li><strong><code>sens_thresh</code></strong> A numeric value defining the neutralization threshold for defining a sensitive versus resistant pseudovirus (default = 1). The dichotomous sensitivity/resistant <code>outcome</code>s are defined as the indicator that (estimated) IC<span class="math inline">\(_{50}\)</span> (or IC<span class="math inline">\(_{80}\)</span>, if <code>binary_outcomes=&quot;ic80&quot;</code>) is greater than or equal to <code>sens_thresh</code>.</li>
 <li><strong><code>multsens_nab</code></strong> A numeric value used for defining whether a pseudovirus is resistant to a multi-nAb cocktail. Only used if <code>multsens</code> is included in <code>outcome</code> and more than one <code>nab</code> is requested. The dichotomous <code>outcome</code> <code>multsens</code> is defined as the indicator that a virus has IC<span class="math inline">\(_{50}\)</span> (or IC<span class="math inline">\(_{80}\)</span>, if <code>binary_outcomes=&quot;ic80&quot;</code>) greater than <code>sens_thresh</code> for at least <code>multsens_nab</code> nAbs.</li>
-<li><strong><code>learners</code></strong>: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include <code>&quot;rf&quot;</code> (random forest, default), <code>&quot;xgboost&quot;</code> (eXtreme gradient boosting), and <code>&quot;lasso&quot;</code> (elastic net). See Section <a href="5-sec-methods.html#sec:learnerdetails">5.2</a> for details on how tuning parameters are chosen. If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section <a href="5-sec-methods.html#sec:sldetails">5.3</a>).</li>
+<li><strong><code>learners</code></strong>: A semicolon-separated string of machine learning algorithms to include in the analysis. Possible values include <code>&quot;rf&quot;</code> (random forest, default), <code>&quot;xgboost&quot;</code> (eXtreme gradient boosting), <code>&quot;h2oboost&quot;</code> (gradient boosting using H2O.ai) and <code>&quot;lasso&quot;</code> (elastic net). See Section <a href="5-sec-methods.html#sec:learnerdetails">5.2</a> for details on how tuning parameters are chosen. If more than one algorithm is included, then it is assumed that a cross-validated-based ensemble (i.e., a super learner) is desired (see Section <a href="5-sec-methods.html#sec:sldetails">5.3</a>).</li>
 <li><strong><code>cvtune</code></strong>: A boolean string (i.e., either <code>&quot;TRUE&quot;</code> or <code>&quot;FALSE&quot;</code> [default]) indicating whether the <code>learners</code> should be tuned using cross validation and a small grid search. Defaults to <code>&quot;FALSE&quot;</code>. If multiple <code>learners</code> are specified, then the super learner ensemble includes three versions of each of the requested <code>learners</code> with different tuning parameters.</li>
 <li><strong><code>cvperf</code></strong>: A boolean string (i.e., either <code>&quot;TRUE&quot;</code> or <code>&quot;FALSE&quot;</code> [default]) indicating whether the <code>learners</code> performance should be evaluated using cross validation. If <code>cvtune=&quot;TRUE&quot;</code> or <code>learners</code> includes multiple algorithms, then nested cross validation is used to evaluate the performance of the cross validation-selected best value of tuning parameters for the specified algorithm or the super learner, respectively.</li>
 <li><strong><code>var_thresh</code></strong>: A numeric string that defines a threshold for pre-screening features. If a single positive number, all binary features with fewer than <code>var_thresh</code> 0's or 1's are removed prior to the specified <code>learner</code> training. If several values are included in <code>var_thresh</code> and a single <code>learner</code> is specified, then cross-validation is used to select the optimal threshold. If multiple <code>learner</code>s are specified, then each <code>learner</code> is included in the super learner with pre-screening based on each value of <code>var_thresh</code>.</li>
