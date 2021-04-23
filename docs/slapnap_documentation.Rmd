@@ -193,7 +193,7 @@ If a single bnAb or combination of bnAbs that are measured directly in the CATNA
 * `ic50` = $\mbox{log}_{10}(\mbox{IC}_{50})$, where IC$_{50}$ is the half maximal inhibitory concentration;
 * `ic80` = $\mbox{log}_{10}(\mbox{IC}_{80})$, where IC$_{80}$ is the 80% maximal inhibitory concentration;
 * `iip` = $(-1)\mbox{log}_{10}(1 - \mbox{IIP})$, where IIP [@shen2008dose, @wagh2016optimal] is the instantaneous inhibitory potential, computed as $$ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))$; and
-* `sens` = sensitivity: the binary indicator that IC$_{50}$ $<$ `sens_thresh`, the user-specified sensitivity threshold.
+* `sens` = sensitivity: the binary indicator that IC$_{x}$ $<$ `sens_thresh`, the user-specified sensitivity threshold. The value of $x$ is determined by `binary_outcomes`, which defaults to `"ic50"` (i.e., $x = 50$) but may be set to `"ic80"` (i.e., $x = 80$).
 
 ### Multiple bnAbs
 
@@ -202,8 +202,8 @@ If multiple bnAbs are requested (i.e., the `nab` option is a semi-colon separate
 * `ic50` = $\mbox{log}_{10}(\mbox{estimated IC}_{50})$, where estimated IC$_{50}$ is computed as follows: for $J$ bnAbs, $$ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , $$ where IC$_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$ [@wagh2016optimal];
 * `ic80` = $\mbox{log}_{10}(\mbox{estimated IC}_{80})$, where estimated IC$_{80}$ is computed as follows: for $J$ bnAbs, $$ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , $$ where IC$_{80,j}$ denotes the measured IC$_{80}$ for antibody $j$ [@wagh2016optimal];
 * `iip` = $(-1)\mbox{log}_{10}(1 - \mbox{IIP})$, where IIP is computed as $$ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , $$ where $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{estimated  IC}_{80}) - \mbox{log}_{10}(\mbox{estimated  IC}_{50}))$; and
-* `estsens` = estimated sensitivity: the binary indicator that estimated IC$_{50}$ (defined above) is less than `sens_thresh`; and
-* `multsens` = multiple sensitivity: the binary indicator that measured IC$_{50}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bnAbs defined by `multsens_nab`.
+* `estsens` = estimated sensitivity: the binary indicator that estimated IC$_{x}$ (defined above) is less than `sens_thresh` (where $x$ is determined by the value of `binary_outcomes`); and
+* `multsens` = multiple sensitivity: the binary indicator that measured IC$_{x}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bnAbs defined by `multsens_nab` (where $x$ is determined by the value of `binary_outcomes`).
 
 ## Learners {#sec:learnerdetails}
 
