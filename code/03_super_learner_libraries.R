@@ -119,6 +119,7 @@ predict.SL.h2oboost <- function(object, newdata, ...)
     }
     pred
 }
+descr_SL.h2oboost <- "boosted regression trees with (maximum depth, learning rate, column sampling rate) selected by 5-fold CV over the grid $(2, 4, 5, 6)\\times(.05, .1, .2)\\times(.1, .2, .3)$"
 
 SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length(Y)), id, ntrees = 1000,
     max_depth = 4, shrinkage = 0.1, minobspernode = 10, params = list(),
@@ -306,7 +307,7 @@ descr_SL.glmnet <- "elastic net with $\\lambda$ selected by 5-fold CV and $\\alp
 descr_SL.glmnet.50 <- paste0(descr_SL.glmnet, "0.5")
 descr_SL.glmnet.25 <- paste0(descr_SL.glmnet, "0.25")
 descr_SL.glmnet.75 <- paste0(descr_SL.glmnet, "0.75")
-descr_SL.glmnet.0 <- "elastic net with $\\lambda$ selected by CV and $\\alpha$ equal to 0"
+descr_SL.glmnet.0 <- paste0(descr_SL.glmnet, "1 (i.e., the lasso)")
 
 descr_SL.mean <- "intercept only regression"
 descr_SL.glm <- "main terms generalized linear model"

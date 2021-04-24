@@ -723,7 +723,7 @@ Figure \@ref(fig:rocdichot1) shows the cross-validated ROC curve for predicting 
 ```{r roccap1, eval = ("sens1" %in% opts$outcomes) & (opts$cvperf) & ran_sl_dichot1}
 if(length(opts$learners) > 1){
   roc_cap <- paste0("Cross-validated ROC curve for the super learner, discrete super learner, and single best performing algorithm for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
-}else if(!opts$cvtune & length(opts$var_tresh) == 1){
+}else if(!opts$cvtune & length(opts$var_thresh) == 1){
   roc_cap <- paste0("Cross-validated ROC curve for the specified learner for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
 }else{
   roc_cap <- paste0("Cross-validated ROC curve for the learner (with tuning parameters ", ifelse(length(opts$var_thresh) == 1, "", "and optimal pre-screening level"), " selected via cross-validation) for predicting ", est_fillin, "sensitivity (n = ", ncomplete_sens, " observations).")
@@ -731,7 +731,7 @@ if(length(opts$learners) > 1){
 
 if(length(opts$learners) > 1){
   predprob_cap <- paste0("Cross-validated predicted probabilities of ", est_fillin, "sensitivity made by super learner, discrete super learner, and single best performing algorithm colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
-}else if(!opts$cvtune & length(opts$var_tresh) == 1){
+}else if(!opts$cvtune & length(opts$var_thresh) == 1){
   predprob_cap <- paste0("Cross-validated predicted probabilities of ", est_fillin, "sensitivity made by the specified learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
 }else{
   predprob_cap <- paste0("Cross-validated predicted probabilities of ", est_fillin, "sensitivity made by the cross-validation-tuned learner colored by cross-validation fold (n = ", ncomplete_sens, " observations).")
@@ -815,7 +815,7 @@ if ("figures" %in% opts$return) {
 
 `r if (!("sens1" %in% opts$outcomes) | (!("marg" %in% opts$importance_ind) & !("cond" %in% opts$importance_ind)) | !ran_vimp_dichot1) "-->"`
 
-`r if (!("sens1" %in% opts$outcomes) | !("pred" %in% opts$importance_ind) | !ran_vimp_dichot1) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | !("pred" %in% opts$importance_ind) | !ran_sl_dichot1) "<!--"`
 
 ### Predictive importance
 

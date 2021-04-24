@@ -1,6 +1,6 @@
 # A function that extracts importance measures for each feature
 # from a fitted super learner object. We get the best fitting ranger, xgboost,
-# and LASSO model from the library and extract importance features from those.
+# h2oboost, and/or LASSO model from the library and extract importance features from those.
 #' @param fit_sl the fitted regression function. If opts$learners is a single learner (e.g., xgboost),
 #' then this is an object with class equal to the class of that learner. If opts$learners has multiple learners,
 #' then this is a SuperLearner object.
@@ -39,6 +39,12 @@ extract_importance <- function(fit_sl, opts, ...){
         imp_dt <- data.frame(algo = "xgboost", Feature = xgboost_imp_dt_init$Feature,
                              rank = xgboost_imp_dt_init$rank,
                              Importance = xgboost_imp_dt_init$Feature)
+    }
+    if (any(grepl("H2O", class(fit_object)))) {
+        # get importance of best h2oboost
+        h2oboost_imp_dt_init <- fit_object@model$variable_importances
+        h2oboost_imp_dt_init$rank <- seq_len(nrow(h2oboost_imp_dt_init))
+        imp_dt <- data.frame(algo = "h2oboost", Feature = h2oboost_imp_dt_init$variable, rank = h2oboost_imp_dt_init$rank, Importance = h2oboost_imp_dt_init$relative_importance)
     }
     if ("cv.glmnet" %in% class(fit_object)) {
         # get importance of best glmnet

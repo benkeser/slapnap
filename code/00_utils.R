@@ -297,12 +297,14 @@ get_learner_descriptions <- function(opts, n_total_ft = NA, n_ft_screen = NA){
             "extreme gradient boosting [@chen2016]"
         }else if(opts$learners[1] == "lasso"){
             "elastic net regression [@zou2005]"
+        } else if (opts$learners[1] == "h2oboost") {
+            "gradient boosted trees [@h2opkg]"
         }
         if(all(opts$var_thresh == 0) & !opts$cvtune){
             tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.")
         }else if(all(opts$var_thresh == 0) & opts$cvtune){
             tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.")
-        }else if(!all(opts$var_thresh == 0) & !opts$cvtune & opts$learner != "xgboost"){
+        }else if(!all(opts$var_thresh == 0) & !opts$cvtune & !grepl("boost", opts$learners)){
             if(length(opts$var_thresh) == 1){
                 tmp <- paste0(tmp, " with tuning parameters set to their 'default' values.",
                               " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
@@ -313,7 +315,7 @@ get_learner_descriptions <- function(opts, n_total_ft = NA, n_ft_screen = NA){
                               " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.",
                               " The optimal screening approach was selected using cross-validation.")
             }
-        }else if(!all(opts$var_thresh == 0) & opts$cvtune & opts$learner != "xgboost"){
+        }else if(!all(opts$var_thresh == 0) & opts$cvtune & !grepl("boost", opts$learners)){
             if(length(opts$var_thresh) == 1){
                 tmp <- paste0(tmp, " with tuning parameters selected using a limited grid search and cross-validation.",
                               " Variable pre-screening was applied to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
@@ -332,29 +334,30 @@ get_learner_descriptions <- function(opts, n_total_ft = NA, n_ft_screen = NA){
         if("rf" %in% opts$learners){
             lib_label <- c(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "random forest", ifelse(opts$cvtune, "s [@breiman2001] with varied tuning parameters", " [@breiman2001]")))
         }
+        if ("h2oboost" %in% opts$learners) {
+            lib_label <- c(lib_label, "gradient boosted trees with tuning parameters chosen via cross-validation [@h2opkg]")
+        }
         if("xgboost" %in% opts$learners){
-            if("rf" %in% opts$learners){
-                if(!("lasso" %in% opts$learners)){
-                    lib_label <- paste0(lib_label, " and ")
-                }else{
-                    lib_label <- paste0(lib_label, ", ")
-                }
-            }
-            lib_label <- paste0(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "gradient boosted tree", ifelse(opts$cvtune, "s [@chen2016] with varied tuning parameters", " [@chen2016]")))
+            lib_label <- c(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "gradient boosted tree", ifelse(opts$cvtune, "s [@chen2016] with varied tuning parameters", " [@chen2016]")))
         }
         if("lasso" %in% opts$learners){
-            if("rf" %in% opts$learners | "xgboost" %in% opts$learners){
-                lib_label <- paste0(lib_label, " and ")
-            }
-            lib_label <- paste0(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "elastic net regression", ifelse(opts$cvtune, "s [@zou2005] with varied tuning parameters", " [@zou2005]")))
+            lib_label <- c(lib_label, paste0(ifelse(opts$cvtune, "several ", ""), "elastic net regression", ifelse(opts$cvtune, "s [@zou2005] with varied tuning parameters", " [@zou2005]")))
         }
-        tmp <- paste0("a super learner ensemble [@vanderlaan2007] of ", lib_label, " and intercept-only regression.")
+        if (length(lib_label) > 2) {
+            final_lib_label <- paste0(c(paste0(lib_label[-length(lib_label)], collapse = ", "), lib_label[length(lib_label)]), collapse = ", and ")
+        } else if (length(lib_label) > 1) {
+            final_lib_label <- paste0(lib_label, collapse = " and ")
+        } else {
+            final_lib_label <- lib_label
+        }
+        tmp <- paste0("a super learner ensemble [@vanderlaan2007] of ", final_lib_label, " and intercept-only regression.")
         if(!all(opts$var_thresh == 0)){
+            except_boost <- ifelse(any(grepl("boost", opts$learners)), paste0("(excepting ", paste0(c(switch(("xgboost" %in% opts$learners) + 1, NULL, "xgboost"), switch(("h2oboost" %in% opts$learners) + 1, NULL, "h2oboost")), collapse = " and "), ")"), "")
             if(length(opts$var_thresh) == 1){
-                tmp <- paste0(tmp, " Each algorithm ", ifelse("xgboost" %in% opts$learners, "(excepting xgboost) ", ""), "included a variable pre-screening to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
+                tmp <- paste0(tmp, " Each algorithm ", except_boost, "included a variable pre-screening to ensure all binary features had at least ", opts$var_thresh, " minority variants.",
                               " This constituted a total of ", n_ft_screen, "/", n_total_ft, " features.")
             }else{
-                tmp <- paste0(tmp, " Each algorithm ", ifelse("xgboost" %in% opts$learners, "(excepting xgboost) ", ""), "was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
+                tmp <- paste0(tmp, " Each algorithm ", except_boost, "was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
                               " This constituted a total of ", paste0(n_ft_screen, "/", n_total_ft, collapse = ", "), " features, respectively.")
             }
         }
@@ -408,7 +411,8 @@ get_sllibtab_caption <- function(opts = list(learners = "rf", var_thresh = 0)){
                 tmp <- paste0(tmp, ". Variable pre-screening procedures were applied to each algorithm to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.",
                               " The optimal screening approach was selected using cross-validation.")
             }else{
-                tmp <- paste0(tmp, ". Each algorithm ", ifelse("xgboost" %in% opts$learners, "(excepting xgboost) ", ""), "was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.")
+                except_boost <- ifelse(any(grepl("boost", opts$learners)), paste0("(excepting ", paste0(c(switch(("xgboost" %in% opts$learners) + 1, NULL, "xgboost"), switch(("h2oboost" %in% opts$learners) + 1, NULL, "h2oboost")), collapse = " and "), ")"), "")
+                tmp <- paste0(tmp, ". Each algorithm ", except_boost, "was additionally implemented in combination with variable pre-screening procedures to ensure that all binary features had at least ", paste0(opts$var_thresh, collapse = ", "), " minority variants.")
             }
         }
     }
@@ -425,6 +429,7 @@ relabel_library <- function(library_names = "SL.ranger", opts = list(var_thresh 
       c("SL.xgboost.6", "xgboost_tune2"),
       c("SL.xgboost.8", "xgboost_tune3"),
       c("SL.xgboost.12", "xgboost_tune4"),
+      c("SL.h2oboost", "h2oboost_default"),
       c("SL.glmnet.0", "lasso_default"),
       c("SL.glmnet.25", "lasso_tune1"),
       c("SL.glmnet.50", "lasso_tune2"),
@@ -443,12 +448,12 @@ relabel_library <- function(library_names = "SL.ranger", opts = list(var_thresh 
     if(!all(opts$var_thresh == 0) & !screens_included){
         tmp <- NULL
         library_names_minus_mean <- library_names[!(library_names %in% c("mean", "Discrete SL", "Super Learner"))]
-        library_names_minus_xgboost <- library_names_minus_mean[!grepl("xgboost", library_names_minus_mean)]
+        library_names_minus_boost <- library_names_minus_mean[!grepl("boost", library_names_minus_mean)]
         for(i in opts$var_thresh){
-            tmp <- c(tmp, paste0(library_names_minus_xgboost, "_screen", i))
+            tmp <- c(tmp, paste0(library_names_minus_boost, "_screen", i))
         }
-        if(any(grepl("xgboost", library_names))){
-            tmp <- c(tmp, library_names[grepl("xgboost", library_names)])
+        if(any(grepl("boost", library_names))){
+            tmp <- c(tmp, library_names[grepl("boost", library_names)])
         }
         if(any(library_names == "mean")){
             tmp <- c(tmp, "mean")
@@ -486,6 +491,8 @@ get_importance_text <- function(opts = list(learners = "rf", cvtune = FALSE, cvp
         if(is_tuned){
             text_out <- paste0(text_out, " These measures are shown for the choice of tuning parameters with the best model fit, as chosen by cross-validation.")
         }
+    } else if (!is_sl & "h2oboost" %in% opts$learners) {
+        text_out <- paste0("Specifically, h2oboost gain importance measures were computed and the top ", n_ft, " features are shown. Gain measures the improvement in accuracy brought by a given feature to the tree branches on which it appears. The essential idea is that before adding a split on a given feature to the branch, there may be some observations that were poorly predicted, while after adding an additional split on this feature, and each resultant branch is more accurate. Gain measures this change in accuracy.")
     }else if(!is_sl & "lasso" %in% opts$learners){
         text_out <- paste0("Specifically, lasso variable importance is taken to be the magnitude of the coefficient for the model with $\\lambda$ chosen via cross-validation, and the top ", n_ft, " are shown.")
         if(is_tuned){
@@ -502,6 +509,8 @@ get_importance_text <- function(opts = list(learners = "rf", cvtune = FALSE, cvp
             text_out <- paste0(text_out, " Overall, there were ", sum(abs(imp_df$Importance) > 0), " features that had non-zero coefficient in the final lasso fit.")
         }else if(algo_with_highest_wt == "xgboost"){
             text_out <- paste0(text_out, "xgboost gain importance measures were computed and are shown by their rank. Gain measures the improvement in accuracy brought by a given feature to the tree branches on which it appears. The essential idea is that before adding a split on a given feature to the branch, there may be some observations that are poorly predicted, while after adding an additional split on this feature, and each resultant branch is more accurate. Gain measures this change in accuracy.")
+        } else if (algo_with_highest_wt == "h2oboost") {
+            text_out <- paste0(text_out, "h2oboost gain importance measures were computed and are shown by their rank. Gain measures the improvement in accuracy brought by a given feature to the tree branches on which it appears. The essential idea is that before adding a split on a given feature to the branch, there may be some observations that are poorly predicted, while after adding an additional split on this feature, and each resultant branch is more accurate. Gain measures this change in accuracy.")
         }
     }
     return(text_out)
