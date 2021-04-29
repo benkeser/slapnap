@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Courtney Simmons, Peter B. Gilbert" />
 
 
-<meta name="date" content="2021-04-24" />
+<meta name="date" content="2021-04-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -159,7 +159,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="5.3" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>5.3</b> Super learner</a></li>
 <li class="chapter" data-level="5.4" data-path="5-sec-methods.html"><a href="5-sec-methods.html#variable-importance"><i class="fa fa-check"></i><b>5.4</b> Variable importance</a><ul>
 <li class="chapter" data-level="5.4.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:biolimp"><i class="fa fa-check"></i><b>5.4.1</b> Intrinsic importance</a></li>
-<li class="chapter" data-level="5.4.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#predictive-importance"><i class="fa fa-check"></i><b>5.4.2</b> Predictive importance</a></li>
+<li class="chapter" data-level="5.4.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:predimp"><i class="fa fa-check"></i><b>5.4.2</b> Predictive importance</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="6-sec-report.html"><a href="6-sec-report.html"><i class="fa fa-check"></i><b>6</b> Report</a><ul>
@@ -195,7 +195,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>A call to <code>slapnap</code> with all default options can be run using the following command.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output slapnap/slapnap</code></pre></div>
 <p>Note that this call mounts the local directory <code>path/to/local/dir</code> to receive output from the container (see Section <a href="3-sec-runningcontainer.html#sec:mounting">3.2.1</a>).</p>
-<p>When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in <code>/path/to/local/dir</code> (note that the name of the log file is based on the current time, which is in UTC+0). The container will then compile an analytic data set from the CATNAP database for the default bnAb (VRC01), train the default learner (random forest <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span>) for the default outcomes (<code>ic50</code> and <code>sens</code>), evaluate its performance using two-fold (default for <code>nfolds</code>) cross validation, and compile a report detailing the results, and place the compiled report in <code>path/to/local/dir</code> (note that the default name of the report is based on the current time, which is in UTC+0).</p>
+<p>When this command is executed, messages will print to indicate the progress of the container. The first message will report the name of the log file, which will appear in <code>/path/to/local/dir</code> (note that the name of the log file is based on the current time, which is in UTC+0). The container will then compile an analytic data set from the CATNAP database for the default bnAb (VRC01), train the default learner (random forest) for the default outcomes (<code>ic50</code> and <code>sens</code>), evaluate its performance using two-fold (default for <code>nfolds</code>) cross validation, and compile a report detailing the results, and place the compiled report in <code>path/to/local/dir</code> (note that the default name of the report is based on the current time, which is in UTC+0).</p>
 </div>
 <div id="sec:webbrowse" class="section level2">
 <h2><span class="header-section-number">4.2</span> Viewing report in browser</h2>
@@ -209,7 +209,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="super-learning" class="section level2">
 <h2><span class="header-section-number">4.3</span> Super learning</h2>
-<p>If multiple <code>learner</code>s are specified, then a super learner ensemble <span class="citation">(M. J. van der Laan, Polley, and Hubbard <a href="#ref-vanderlaan2007">2007</a>)</span> is constructed based on the requested <code>learner</code>s and a predictor that simply returns the empirical average of the outcome (i.e., ignores all features entirely). In the following command, we construct an ensemble based on a random forest <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span> and elastic net <span class="citation">(Zou and Hastie <a href="#ref-zou2005">2005</a>)</span>. Note that the execution time for super learners can be considerably greater than for single <code>learner</code>s because of the extra layer of cross validation needed to construct the ensemble.</p>
+<p>If multiple <code>learners</code> are specified, then a super learner ensemble <span class="citation">(M. J. van der Laan, Polley, and Hubbard <a href="#ref-vanderlaan2007">2007</a>)</span> is constructed based on the requested <code>learners</code> and a predictor that simply returns the empirical average of the outcome (i.e., ignores all features entirely). In the following command, we construct an ensemble based on a random forest <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span> and elastic net <span class="citation">(Zou and Hastie <a href="#ref-zou2005">2005</a>)</span>. Note that the execution time for super learners can be considerably greater than for single <code>learner</code>s because of the extra layer of cross validation needed to construct the ensemble.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
            -e learners=<span class="st">&quot;rf;lasso&quot;</span> \
            slapnap/slapnap</code></pre></div>
@@ -233,11 +233,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
            -e return=<span class="st">&quot;data&quot;</span> \
            slapnap/slapnap</code></pre></div>
-<p>Note that the data set returned by <code>slapnap</code> contains the <code>outcomes</code> used by <code>slapnap</code>; in other words, (estimated) IC<span class="math inline">\(_{50}\)</span>, (estimated) IC<span class="math inline">\(_{80}\)</span>, and IIP are all log-transformed (see Section <a href="5-sec-methods.html#sec:outcomedefs">5.1</a> for more details).</p>
+<p>Note that the data set returned by <code>slapnap</code> contains the <code>outcomes</code> used by <code>slapnap</code>; in other words, (estimated) IC<span class="math inline">\(_{50},\)</span> (estimated) IC<span class="math inline">\(_{80}\)</span>, and IIP are all log-transformed (see Section <a href="5-sec-methods.html#sec:outcomedefs">5.1</a> for more details).</p>
 </div>
 <div id="interactive-sessions" class="section level2">
 <h2><span class="header-section-number">4.6</span> Interactive sessions</h2>
-<p>To simply enter the container and poke around, use an interactive session by including <code>-it</code> and overriding the container's entry-point.</p>
+<p>To simply enter and explore the container, use an interactive session by including <code>-it</code> and overriding the container's entry point.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -it slapnap/slapnap /bin/bash</code></pre></div>
 <p>This will enter you into the container in a bash terminal prior to any portions of the analysis being run. This may be useful for exploring the file structure, examining versions of <code>R</code> packages that are included in the container, etc.</p>
 <p>To enter the container interactively <em>after</em> the analysis has run, you can execute the following commands. Here we add the <code>-d</code> option to start the container in <a href="https://docs.docker.com/engine/reference/run/#detached--d">detached mode</a>.</p>
