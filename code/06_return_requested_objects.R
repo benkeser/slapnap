@@ -20,9 +20,9 @@ if (any(grepl("data", opts$return))) {
     data_dir <- "/home/dat/analysis/"
     analysis_data_names <- list.files(data_dir)
     analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-    init_data <- read.csv(paste0(data_dir, analysis_data_name), stringsAsFactors = FALSE)
+    init_data <- readRDS(paste0(data_dir, analysis_data_name))
     analysis_dataset <- clean_analysis_dataset(init_data, opts)
-    write.csv(analysis_dataset, file = paste0("/home/output/", analysis_data_name), row.names = FALSE)
+    readr::write_csv(analysis_dataset, file = paste0("/home/output/", analysis_data_name))
 }
 #--------------------------------------
 # save full super learner, if requested

@@ -237,7 +237,7 @@ current_date <- as.Date(Sys.getenv('current_date'), "%d%b%Y")
 # filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(current_date, "%d%b%Y"), ".csv")
 final_filename <- paste0("slapnap_", filename, "_", format(current_date, "%d%b%Y"), ".csv")
 setwd(path.data.analysis)
-write.csv(data.final, file=final_filename, row.names=F)
+saveRDS(data.final, file=final_filename)
 
 # save missing data stats for report compilation later
 nprevious <- length(data.final[,1])

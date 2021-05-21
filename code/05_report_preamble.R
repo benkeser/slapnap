@@ -63,7 +63,7 @@ get_dat <- function(cc = TRUE){
 	# load data
     analysis_data_names <- list.files("/home/dat/analysis")
     analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-	dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
+	dat <- readRDS(paste0(data_dir, "analysis/", analysis_data_name))
 
 	# check missing values
     if (cc) {
@@ -172,7 +172,7 @@ ncomplete_sens <- ifelse(opts$binary_outcomes == "ic50", ncomplete_ic50, ncomple
 # read in data
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
+dat <- readRDS(paste0(data_dir, "analysis/", analysis_data_name))
 
 # first covariate column
 min_cov_col_idx <- min(grep("geographic", colnames(dat)))

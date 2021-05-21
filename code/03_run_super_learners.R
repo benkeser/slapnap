@@ -36,7 +36,7 @@ if (h2o_here) {
 # load data and subset to complete cases
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
+dat <- readRDS(paste0("/home/dat/analysis/", analysis_data_name))
 
 # make super learner library
 SL.library <- make_sl_library_vector(opts = opts)

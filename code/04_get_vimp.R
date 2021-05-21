@@ -21,7 +21,7 @@ opts <- get_global_options()
 # load data and subset to complete cases
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-complete_dat <- read.csv(paste0("/home/dat/analysis/", analysis_data_name), header = TRUE)
+complete_dat <- readRDS(paste0("/home/dat/analysis/", analysis_data_name))
 
 # make super learner library
 SL.library <- make_sl_library_vector(opts = opts)
