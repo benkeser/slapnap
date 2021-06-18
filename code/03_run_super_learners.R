@@ -87,6 +87,8 @@ for (i in 1:length(outcome_names)) {
 # ----------------------------------------------------------------------------
 # (1) run full super learners for each outcome specified in outcome_names
 # ----------------------------------------------------------------------------
+# get the sample-splitting folds for variable importance
+sample_splitting_folds <- vimp::make_folds(y = seq_len(V), V = 2)
 for (i in 1:length(outcome_names)) {
     set.seed(123125)
     this_outcome_name <- outcome_names[i]
@@ -95,7 +97,7 @@ for (i in 1:length(outcome_names)) {
     if (run_sl_vimp_bools2$run_sl[i]) {
         print(paste0("Fitting ", nice_outcomes[i]))
         sl_fit_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names, family = sl_opts$fam, SL.library = SL.library,
-            cvControl = sl_opts$ctrl, method = sl_opts$method, opts = opts, h2o_here = h2o_here)
+            cvControl = sl_opts$ctrl, method = sl_opts$method, opts = opts, h2o_here = h2o_here, ss_folds = sample_splitting_folds)
     }
 }
 
@@ -107,8 +109,6 @@ ind_sl_lib <- switch(
     (grepl("residue", opts$ind_importance_type)) + 1,
     SL.library, "SL.glm"
 )
-# get the sample-splitting folds for variable importance
-sample_splitting_folds <- vimp::make_folds(y = seq_len(V), V = 2)
 # ----------------------------------------------------------------------------
 # (2) If "cond" is in opts$importance_grp, run regression of each outcome in outcome_names on the reduced set of features defined by removing the group of interest
 # (3) If "marg" is in opts$importance_grp, run regression of each outcome in outcome_names on the set of features defined by the group of interest + confounders
@@ -122,7 +122,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | "marg
         this_outcome_name <- outcome_names[i]
         sl_opts <- get_sl_options(this_outcome_name, V = V)
         # set up validation rows for CV SuperLearner
-        cros_fitting_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
+        cross_fitting_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
         sl_opts$ctrl$validRows <- cross_fitting_folds
         # only do this if we have enough obs to run it
         if (run_sl_vimp_bools2$run_vimp[i]) {
@@ -166,7 +166,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | "marg
                     save_full_object = FALSE, ss_folds = sample_splitting_folds, full_fit = TRUE,
                     opts = opts, h2o_here = h2o_here)
             }
-            # if "marg" is in opts$importance_ind, fit a regression of outcome on geographic confounders only
+            # if "marg" is in opts$importance_ind, fit a simple regression of outcome on geographic confounders only
             if ("marg" %in% opts$importance_ind & grepl("residue", opts$ind_importance_type)) {
                 sl_geog_glm_i <- sl_one_outcome(complete_dat = dat, outcome_name = this_outcome_name, pred_names = pred_names[(pred_names %in% all_geog_vars)],
                     fit_name = paste0("fitted_", this_outcome_name, "_geog_glm.rds"),
