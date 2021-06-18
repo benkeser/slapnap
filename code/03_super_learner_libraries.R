@@ -603,6 +603,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
                            cv_fit_name = paste0("cvfit_", outcome_name, ".rds"),
                            save_full_object = TRUE,
                            full_fit = TRUE,
+                           ss_folds = rep(1, opts$nfolds),
                            SL.library = "SL.mean",
                            call_out = FALSE,
                            ...){
@@ -627,6 +628,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   learner_name <- gsub("fit_", "learner_", fit_name)
   fitted_name <- gsub("fit_", "fitted_", fit_name)
   cv_fitted_name <- gsub("cvfit_", "cvfitted_", cv_fit_name)
+  cv_preds_name <- gsub("cvpreds_", "cvfitted_", cv_fit_name)
   cv_folds_name <- gsub("cvfitted_", "cvfolds_", gsub("cvfit_", "cvfolds_", cv_fit_name))
   cv_learner_name <- gsub("cvfit_", "cvlearner_", cv_fit_name)
   # unless we do not want to tune using CV nor evaluate performance using CV,
@@ -635,7 +637,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
     if(call_out){
         print(paste0("Fitting super learner with", SL.library, collapse = ","))
     }else{
-        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+        L$cvControl$validRows <- NULL
+        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, family = L$family, method = L$method, cvControl = L$cvControl)
         # since cv super learner saves this as output and we need some parsimony later...
         fit$Y <- newdat[ , outcome_name]
         if (save_full_object) {
@@ -671,7 +674,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         if(call_out){
             print(paste0("Fitting SuperLearner with ", SL.library, collapse = ","))
         }else{
-            fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, ...)
+            L$cvControl$validRows <- NULL
+            fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, family = L$family, method = L$method, cvControl = L$cvControl)
             fit$Y <- newdat[ , outcome_name]
             if (save_full_object) {
                 saveRDS(fit, file = paste0(save_dir, fit_name))
@@ -748,6 +752,9 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         }
         saveRDS(cv_fit$SL.predict, file = paste0(save_dir, cv_fitted_name))
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
+        vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
+        cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
     }
 } else {
     # do nothing
