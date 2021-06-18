@@ -151,7 +151,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | "marg
                                 cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"),
                                 family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
                                 method = sl_opts$method, save_full_object = FALSE, ss_folds = sample_splitting_folds,
-                                full_fit = FALSE, opts = opts, h2o_here = h2o_here)
+                                full_fit = TRUE, opts = opts, h2o_here = h2o_here)
                         }
                     }
                 }
@@ -163,7 +163,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | "marg
                     cv_fit_name = paste0("cvfitted_", this_outcome_name, "_geog.rds"),
                     family = sl_opts$fam, SL.library = SL.library, cvControl = sl_opts$ctrl,
                     method = sl_opts$method,
-                    save_full_object = FALSE, ss_folds = sample_splitting_folds, full_fit = TRUE,
+                    save_full_object = FALSE, ss_folds = sample_splitting_folds, full_fit = FALSE,
                     opts = opts, h2o_here = h2o_here)
             }
             # if "marg" is in opts$importance_ind, fit a simple regression of outcome on geographic confounders only
@@ -173,7 +173,7 @@ if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | "marg
                     cv_fit_name = paste0("cvfitted_", this_outcome_name, "_geog_glm.rds"),
                     family = sl_opts$fam, SL.library = "SL.glm", cvControl = sl_opts$ctrl,
                     method = sl_opts$method,
-                    save_full_object = FALSE, ss_folds = sample_splitting_folds, full_fit = TRUE,
+                    save_full_object = FALSE, ss_folds = sample_splitting_folds, full_fit = FALSE,
                     opts = opts, h2o_here = h2o_here)
             }
         }
@@ -213,7 +213,7 @@ if (("cond" %in% opts$importance_ind) | ("marg" %in% opts$importance_ind)) {
                         cv_fit_name = paste0("cvfitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"),
                         family = sl_opts$fam, SL.library = ind_sl_lib, cvControl = sl_opts$ctrl,
                         method = sl_opts$method, save_full_object = FALSE, ss_folds = sample_splitting_folds,
-                        full_fit = FALSE, opts = opts, h2o_here = h2o_here)
+                        full_fit = TRUE, opts = opts, h2o_here = h2o_here)
                 }
             }
         }
