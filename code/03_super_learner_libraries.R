@@ -591,7 +591,6 @@ make_screen_wrapper <- function(var_thresh){
 #' @param fit_name name of fits (defaults to fit_<outcome_name>.rds)
 #' @param cv_fit_name name of CV fits (defaults to cvfit_<outcome_name>.rds)
 #' @param save_full_object Flag for whether or not to save the full fitted object, or just the fitted values
-#' @param outer_folds a set of outer folds for VIM hypothesis testing
 #' @param full_fit is it the full fit (TRUE) or a reduced fit (FALSE)?
 #' @param SL.library the library to pass to SuperLearner
 #' @param ... additional arguments to pass to individual algorithms or the SuperLearner
@@ -603,7 +602,6 @@ sl_one_outcome <- function(complete_dat, outcome_name,
                            fit_name = paste0("fit_", outcome_name, ".rds"),
                            cv_fit_name = paste0("cvfit_", outcome_name, ".rds"),
                            save_full_object = TRUE,
-                           outer_folds = rep(1, length(complete_dat[, outcome_name])),
                            full_fit = TRUE,
                            SL.library = "SL.mean",
                            call_out = FALSE,
@@ -620,18 +618,9 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   } else {
     complete_cases_idx <- complete.cases(complete_dat)
   }
-  if (all(outer_folds == 1)) {
-      outer_folds <- outer_folds[complete_cases_idx]
-  }
-  if (full_fit) {
-      outer_bool <- outer_folds == 1
-  } else {
-      outer_bool <- outer_folds == 2
-  }
   # subset data to only complete outcome and pred_names
   dat <- complete_dat[complete_cases_idx, ]
-  newdat <- subset(dat, outer_bool)
-  pred <- newdat[ , pred_names]
+  pred <- dat[ , pred_names]
   # grab args
   L <- list(...)
   # make names for the full learner, cv learner, fitted values, cv fitted values, etc.
