@@ -165,6 +165,7 @@ ENV cvperf="TRUE"
 
 # how many folds should be used for cross-validation?
 #   only has an effect if cvtune=TRUE or cvperf=TRUE
+#   note that intrinsic importance is based on (nfolds / 2)-fold cross-validation
 ENV nfolds="2"
 
 # what group-level importance measures should be computed?
