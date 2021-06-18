@@ -140,7 +140,7 @@ SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length
     }
     if (family$family == "binomial") {
         model = xgboost::xgboost(data = xgmat, objective = "binary:logistic",
-            nrounds = ntrees, max_depth = max_depth, min_child_weight = minobspernode,
+            nrounds = ntrees, max_depth = max_depth, min_child_weight = minobspernode, eval_metric = "logloss",
             eta = shrinkage, verbose = verbose, nthread = nthread,
             params = params, save_period = save_period)
     }
@@ -624,11 +624,13 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   pred <- dat[ , pred_names]
   # grab args
   L <- list(...)
+  non_cv_L <- L
+  non_cv_L$cvControl$validRows <- NULL
   # make names for the full learner, cv learner, fitted values, cv fitted values, etc.
   learner_name <- gsub("fit_", "learner_", fit_name)
   fitted_name <- gsub("fit_", "fitted_", fit_name)
   cv_fitted_name <- gsub("cvfit_", "cvfitted_", cv_fit_name)
-  cv_preds_name <- gsub("cvpreds_", "cvfitted_", cv_fit_name)
+  cv_preds_name <- gsub("cvfitted_", "cvpreds_", gsub("cvfit_", "cvpreds_", cv_fit_name))
   cv_folds_name <- gsub("cvfitted_", "cvfolds_", gsub("cvfit_", "cvfolds_", cv_fit_name))
   cv_learner_name <- gsub("cvfit_", "cvlearner_", cv_fit_name)
   # unless we do not want to tune using CV nor evaluate performance using CV,
@@ -637,10 +639,9 @@ sl_one_outcome <- function(complete_dat, outcome_name,
     if(call_out){
         print(paste0("Fitting super learner with", SL.library, collapse = ","))
     }else{
-        L$cvControl$validRows <- NULL
-        fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, family = L$family, method = L$method, cvControl = L$cvControl)
+        fit <- SuperLearner(Y = dat[ , outcome_name], X = pred, SL.library = SL.library, family = non_cv_L$family, method = non_cv_L$method, cvControl = non_cv_L$cvControl)
         # since cv super learner saves this as output and we need some parsimony later...
-        fit$Y <- newdat[ , outcome_name]
+        fit$Y <- dat[ , outcome_name]
         if (save_full_object) {
             saveRDS(fit, file = paste0(save_dir, fit_name))
             saveRDS(fit, file = paste0(save_dir, learner_name))
@@ -674,9 +675,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         if(call_out){
             print(paste0("Fitting SuperLearner with ", SL.library, collapse = ","))
         }else{
-            L$cvControl$validRows <- NULL
-            fit <- SuperLearner(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library, family = L$family, method = L$method, cvControl = L$cvControl)
-            fit$Y <- newdat[ , outcome_name]
+            fit <- SuperLearner(Y = dat[ , outcome_name], X = pred, SL.library = SL.library, family = non_cv_L$family, method = non_cv_L$method, cvControl = non_cv_L$cvControl)
+            fit$Y <- dat[ , outcome_name]
             if (save_full_object) {
                 saveRDS(fit, file = paste0(save_dir, fit_name))
                 saveRDS(fit, file = paste0(save_dir, learner_name))
@@ -703,7 +703,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         if(call_out){
             print(paste0("Fitting single algorithm ", ifelse(all(include), "with no screening", "with screening")))
         }else{
-            fit <- do.call(SL.library, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = newdat[ , outcome_name], X = pred[,include, drop = FALSE], newX = pred[,include, drop = FALSE])))
+            fit <- do.call(SL.library, args = c(L[!grepl("cvControl", names(L)) & !grepl("method", names(L))], list(Y = dat[ , outcome_name], X = pred[,include, drop = FALSE], newX = pred[,include, drop = FALSE])))
             saveRDS(fit$pred, file = paste0(save_dir, fitted_name))
             # this will be an object with class native to what the individual learner is
             # i.e., if rf is desired, it'll be ranger object
@@ -721,8 +721,10 @@ sl_one_outcome <- function(complete_dat, outcome_name,
     }
   }
   # now copy cvControl to innerCvControl to pass to CV.SL
-  L$innerCvControl <- list(L$cvControl)
-  new_arg_list <- c(list(Y = newdat[ , outcome_name], X = pred, SL.library = SL.library), L)
+  inner_cv_control <- L$cvControl
+  inner_cv_control$validRows <- NULL
+  L$innerCvControl <- list(inner_cv_control)
+  new_arg_list <- c(list(Y = dat[ , outcome_name], X = pred, SL.library = SL.library), L)
   if (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) {
     # in this case, we want to report back only results for discrete super learner
     # since we're trying to pick out e.g., the best single random forest fit
@@ -738,6 +740,9 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         }
         saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, cv_fitted_name))
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
+        vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
+        cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
     }
   } else if ((length(opts$learners) > 1 | length(opts$var_thresh) > 1) & opts$cvperf) {
     if(call_out){
