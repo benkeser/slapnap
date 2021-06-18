@@ -631,7 +631,9 @@ sl_one_outcome <- function(complete_dat, outcome_name,
   fitted_name <- gsub("fit_", "fitted_", fit_name)
   cv_fitted_name <- gsub("cvfit_", "cvfitted_", cv_fit_name)
   cv_preds_name <- gsub("cvfitted_", "cvpreds_", gsub("cvfit_", "cvpreds_", cv_fit_name))
+  cv_se_preds_name <- gsub("cvfitted_", "cv_se_preds_", gsub("cvfit_", "cv_se_preds_", cv_fit_name))
   cv_folds_name <- gsub("cvfitted_", "cvfolds_", gsub("cvfit_", "cvfolds_", cv_fit_name))
+  se_ss <- rep(ifelse(full_fit, 1, 2), L$cvControl$V)
   cv_learner_name <- gsub("cvfit_", "cvlearner_", cv_fit_name)
   # unless we do not want to tune using CV nor evaluate performance using CV,
   # we will make a call to super learner
@@ -742,7 +744,9 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
         vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
         cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        cv_se_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = se_ss, full = full_fit)
         saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
+        saveRDS(cv_se_preds, file = paste0(save_dir, cv_se_preds_name))
     }
   } else if ((length(opts$learners) > 1 | length(opts$var_thresh) > 1) & opts$cvperf) {
     if(call_out){
@@ -759,7 +763,9 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
         vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
         cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        cv_se_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = se_ss, full = full_fit)
         saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
+        saveRDS(cv_se_preds, file = paste0(save_dir, cv_se_preds_name))
     }
 } else {
     # do nothing
