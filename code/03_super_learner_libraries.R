@@ -763,7 +763,7 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
         vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
         cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
-        cv_se_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = se_ss, full = full_fit)
+        cv_se_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = FALSE, sample_splitting_folds = se_ss, full = full_fit)
         saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
         saveRDS(cv_se_preds, file = paste0(save_dir, cv_se_preds_name))
     }
