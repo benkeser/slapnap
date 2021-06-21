@@ -30,12 +30,12 @@ for (i in 1:length(outcome_names)) {
         ## importance results
         eval(parse(text = paste0(this_outcome_name, "_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_vimp.rds'))")))
         eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_cv_vimp.rds'))")))
-        eval(parse(text = paste0(this_outcome_name, "_outer_folds <- readRDS(file = paste0(slfits_dir, '", this_outcome_name, "_outer_folds.rds'))")))
+        eval(parse(text = paste0(this_outcome_name, "_cf_folds <- vimp::get_cv_sl_folds(readRDS(file = paste0(slfits_dir, 'cvfolds_", this_outcome_name, ".rds')))")))
         ## set whether or not any were significant; a list of booleans
         eval(parse(text = paste0(this_outcome_name, "_any_signif <- check_signif(", this_outcome_name, "_vimp_lst, vimp_threshold)")))
         eval(parse(text = paste0(this_outcome_name, "_any_signif_cv <- check_signif(", this_outcome_name, "_cv_vimp_lst, vimp_threshold)")))
-        eval(parse(text = paste0("num_obs_fulls[i] <- sum(", this_outcome_name, "_outer_folds == 1)")))
-        eval(parse(text = paste0("num_obs_reds[i] <- sum(", this_outcome_name, "_outer_folds == 2)")))
+        eval(parse(text = paste0("num_obs_fulls[i] <- sum(", this_outcome_name, "_cf_folds == 1)")))
+        eval(parse(text = paste0("num_obs_reds[i] <- sum(", this_outcome_name, "_cf_folds == 2)")))
         ## make plots
         eval(parse(text = paste0("current_vimp_lst <- ", this_outcome_name, "_vimp_lst")))
         eval(parse(text = paste0("current_cv_vimp_lst <- ", this_outcome_name, "_cv_vimp_lst")))
