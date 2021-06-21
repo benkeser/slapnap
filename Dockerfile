@@ -27,6 +27,8 @@ RUN add-apt-repository -y ppa:marutter/rrutter3.5
 #   r and r-dev
 #   pandoc (for Rmarkdown conversions)
 #   vim (for editing while in container)
+#   nginx (for static website hosting)
+#   ffmpeg (for animating figures)
 RUN apt-get update && apt-get install -y \
   curl \
   libcurl4-openssl-dev \
@@ -35,7 +37,11 @@ RUN apt-get update && apt-get install -y \
   r-base-dev \
   pandoc \
   pandoc-citeproc \
-  vim
+  vim \
+  nginx \
+  ffmpeg
+
+RUN rm /var/www/html/index.nginx-debian.html
 
 # install R libraries needed for analysis
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
@@ -60,10 +66,6 @@ RUN Rscript -e 'install.packages("RCurl", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bit64", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("h2o", type = "source", repos="https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")'
 
-# install nginx for static website hosting
-RUN apt-get install -y nginx
-RUN rm /var/www/html/index.nginx-debian.html
-
 # make directories
 # lib contains R source files
 # dat contains data
@@ -71,9 +73,6 @@ RUN rm /var/www/html/index.nginx-debian.html
 # dat/analysis contains analysis data
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits /home/output
-
-# install ffmpeg for animating figures
-RUN apt-get update && apt-get install -y ffmpeg
 
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
 COPY code/00_utils.R /home/lib/00_utils.R
