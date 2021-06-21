@@ -73,17 +73,14 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             # create output list
             eval(parse(text = paste0(this_outcome_name, '_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
             eval(parse(text = paste0(this_outcome_name, '_cv_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
-            # if "cond" is in either opts$importance_grp or opts$importance_ind, read in the full fit
-            if (("cond" %in% opts$importance_grp) | ("cond" %in% opts$importance_ind)) {
-                # load full fit corresponding to this outcome
-                full_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, ".rds"))
-                if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    full_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, ".rds"))
-                    full_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
-                    cross_fitting_folds <- vimp::get_cv_sl_folds(full_cv_folds)
-                    full_cv_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, ".rds"))
-                    full_cv_se_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, ".rds"))
-                }
+            # read in the full fit
+            full_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, ".rds"))
+            if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
+                full_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, ".rds"))
+                full_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
+                cross_fitting_folds <- vimp::get_cv_sl_folds(full_cv_folds)
+                full_cv_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, ".rds"))
+                full_cv_se_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, ".rds"))
             }
             # if "marg" is in opts$importance_grp, read in the fit with geographic confounders only
             if (("marg" %in% opts$importance_grp) | ("marg" %in% opts$importance_ind & grepl("site", opts$ind_importance_type))) {
@@ -95,7 +92,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                     geog_cv_se_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, "_geog.rds"))
                 }
             }
-            # if "marg" is in opts$importance_ind, read in the fit with geographic confounders only
+            # if "marg" is in opts$importance_ind, read in the simple fit with geographic confounders only
             if (("marg" %in% opts$importance_ind) & grepl("residue", opts$ind_importance_type)) {
                 # load geog-only fit corresponding to this outcome
                 geog_glm_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_geog_glm.rds"))
