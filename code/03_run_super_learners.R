@@ -88,11 +88,17 @@ for (i in 1:length(outcome_names)) {
 # (1) run full super learners for each outcome specified in outcome_names
 # ----------------------------------------------------------------------------
 # get the sample-splitting folds for variable importance
-sample_splitting_folds <- vimp::make_folds(y = seq_len(V), V = 2)
+if (V > 1) {
+    sample_splitting_folds <- vimp::make_folds(y = seq_len(V), V = 2)
+}
 for (i in 1:length(outcome_names)) {
     set.seed(123125)
     this_outcome_name <- outcome_names[i]
     sl_opts <- get_sl_options(this_outcome_name, V = V)
+    if (V <= 1) {
+        sample_splitting_folds <- vimp::make_folds(y = dat[, this_outcome_name], V = 2)
+    }
+    saveRDS(sample_splitting_folds, paste0("/home/slfits/ss_folds_", this_outcome_name, ".rds"))
     # do the fitting, if there are enough outcomes
     if (run_sl_vimp_bools2$run_sl[i]) {
         print(paste0("Fitting ", nice_outcomes[i]))
@@ -115,8 +121,6 @@ ind_sl_lib <- switch(
 # (4) If "marg" is in opts$importance_grp, run regression of each outcome in outcome_names on geographic confounders only
 # ----------------------------------------------------------------------------
 if (("cond" %in% opts$importance_grp) | ("marg" %in% opts$importance_grp | "marg" %in% opts$importance_ind)) {
-    # save off the sample-splitting folds
-    saveRDS(sample_splitting_folds, paste0("/home/slfits/vim_ss_folds.rds"))
     for (i in 1:length(outcome_names)) {
         set.seed(4747)
         this_outcome_name <- outcome_names[i]

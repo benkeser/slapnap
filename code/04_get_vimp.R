@@ -51,15 +51,17 @@ run_sl_vimp_bools2 <- lapply(run_sl_vimp_bools, function(x){
 # ---------------------------------------------------------------------------
 # get variable importance! but only run if one of opts$importance_grp or opts$importance_ind is not empty
 # ---------------------------------------------------------------------------
+# logical: should we estimated VIM using cross-fitting?
+cf_vim <- (length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)
 set.seed(474747)
 # if none of them, then don't run variable importance
 if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
     print("Variable importance was not requested during this run. If you desire variable importance, please use the environment variables 'importance_grp' (for group importance) or 'importance_ind' (for individual-variable importance).")
 } else { # otherwise, do run variable importance
-    ss_folds <- readRDS("/home/slfits/vim_ss_folds.rds")
     for (i in 1:length(outcome_names)) {
         this_outcome_name <- outcome_names[i]
         vimp_opts <- get_vimp_options(this_outcome_name)
+        ss_folds <- readRDS(paste0("/home/slfits/ss_folds_", this_outcome_name, ".rds"))
         # subset to the complete data for this outcome (or all outcomes, if specified)
         if(!opts$same_subset | !(("ic80" %in% opts$outcomes | "iip" %in% opts$outcomes) & length(opts$outcomes) > 1)){
           complete_cases_idx <- complete.cases(complete_dat[, c(this_outcome_name, pred_names)])
@@ -68,38 +70,33 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
         }
         dat <- complete_dat[complete_cases_idx, ]
         y <- dat[, this_outcome_name]
-        non_cv_ss_folds <- vimp::make_folds(y = y, V = 2)
         if (run_sl_vimp_bools2$run_vimp[i]) {
             # create output list
             eval(parse(text = paste0(this_outcome_name, '_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
-            eval(parse(text = paste0(this_outcome_name, '_cv_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
             # read in the full fit
-            full_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, ".rds"))
-            if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                full_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, ".rds"))
-                full_cv_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
-                cross_fitting_folds <- vimp::get_cv_sl_folds(full_cv_folds)
-                full_cv_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, ".rds"))
-                full_cv_se_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, ".rds"))
+            if (cf_vim) {
+                full_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, ".rds"))
+                full_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
+                cross_fitting_folds <- vimp::get_cv_sl_folds(full_folds)
+            } else {
+                full_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, ".rds"))
             }
-            # if "marg" is in opts$importance_grp, read in the fit with geographic confounders only
+            # if "marg" is in opts$importance_grp AND/OR using sitewise individual importance, read in the fit with geographic confounders only
             if (("marg" %in% opts$importance_grp) | ("marg" %in% opts$importance_ind & grepl("site", opts$ind_importance_type))) {
                 # load geog-only fit corresponding to this outcome
-                geog_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_geog.rds"))
-                if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    geog_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_geog.rds"))
-                    geog_cv_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_geog.rds"))
-                    geog_cv_se_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, "_geog.rds"))
+                if (cf_vim) {
+                    geog_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_geog.rds"))
+                } else {
+                    geog_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_geog.rds"))
                 }
             }
-            # if "marg" is in opts$importance_ind, read in the simple fit with geographic confounders only
+            # if "marg" is in opts$importance_ind AND using residuewise individual importance, read in the simple fit with geographic confounders only
             if (("marg" %in% opts$importance_ind) & grepl("residue", opts$ind_importance_type)) {
-                # load geog-only fit corresponding to this outcome
-                geog_glm_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_geog_glm.rds"))
-                if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    geog_glm_cv_fit <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_geog_glm.rds"))
-                    geog_glm_cv_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_geog_glm.rds"))
-                    geog_glm_cv_se_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, "_geog_glm.rds"))
+                # load simple geog-only fit corresponding to this outcome
+                if (cf_vim) {
+                    geog_glm_preds <-readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_geog_glm.rds"))
+                } else {
+                    geog_glm_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_geog_glm.rds"))
                 }
             }
             # -----------------------------------
@@ -109,41 +106,35 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             if ("cond" %in% opts$importance_grp) {
                 for (j in 1:length(all_var_groups)) {
                     this_group_name <- names(all_var_groups)[j]
-                    cond_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_conditional_", this_group_name, ".rds"))
-                    # get conditional, non-cv vimp
-                    suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, " <- vimp::vim(Y = y, f1 = full_fit, f2 = cond_fit, indx = which(pred_names %in% all_var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, sample_splitting_folds = non_cv_ss_folds, na.rm = TRUE, scale = 'identity')"))))
-                    if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                        cond_cv_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_conditional_", this_group_name, ".rds"))
-                        cond_cv_se_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, "_conditional_", this_group_name, ".rds"))
-                        # get conditional, cv vimp
-                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_cond_", this_group_name, " <- vimp::cv_vim(Y = y, cross_fitted_f1 = full_cv_preds, cross_fitted_f2 = cond_cv_preds, f1 = full_cv_se_preds, f2 = cond_cv_se_preds, indx = which(pred_names %in% all_var_groups[[j]]), run_regression = FALSE, sample_splitting = TRUE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, cross_fitting_folds = cross_fitting_folds, sample_splitting_folds = ss_folds, V = V / 2, na.rm = TRUE, scale = 'identity')"))))
+                    if (cf_vim) {
+                        cond_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_conditional_", this_group_name, ".rds"))
+                        # get conditional, CV-VIM
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, " <- vimp::cv_vim(Y = y, cross_fitted_f1 = full_preds, cross_fitted_f2 = cond_preds, indx = which(pred_names %in% all_var_groups[[j]]), run_regression = FALSE, sample_splitting = TRUE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, cross_fitting_folds = cross_fitting_folds, sample_splitting_folds = ss_folds, V = V / 2, na.rm = TRUE, scale = 'identity')"))))
+                    } else {
+                        cond_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_conditional_", this_group_name, ".rds"))
+                        # get conditional, non-CV VIM
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, " <- vimp::vim(Y = y, f1 = full_preds, f2 = cond_preds, indx = which(pred_names %in% all_var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, sample_splitting_folds = ss_folds, na.rm = TRUE, scale = 'identity')"))))
                     }
                 }
                 # merge together
                 eval(parse(text = paste0(this_outcome_name, "_vimp_lst$grp_conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", names(all_var_groups)), collapse = ", "), ")")))
-                if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$grp_conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cv_cond_", names(all_var_groups)), collapse = ", "), ")")))
-                }
             }
             # if "marg" is in opts$importance_grp, run this loop
             if ("marg" %in% opts$importance_grp) {
                 for (j in 1:length(all_var_groups)) {
                     this_group_name <- names(all_var_groups)[j]
-                    marg_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
-                    # get marginal, non-cv vimp
-                    suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, " <- vimp::vim(Y = y, f1 = marg_fit, f2 = geog_fit, indx = which(pred_names %in% all_var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, sample_splitting_folds = non_cv_ss_folds, na.rm = TRUE, scale = 'identity')"))))
-                    if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                        marg_cv_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
-                        marg_cv_se_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
-                        # get marginal, cv vimp
-                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_marg_", this_group_name, " <- vimp::cv_vim(Y = y, cross_fitted_f1 = marg_cv_preds, cross_fitted_f2 = geog_cv_preds, f1 = marg_cv_se_preds, f2 = geog_cv_se_preds, indx = which(pred_names %in% all_var_groups[[j]]), run_regression = FALSE, sample_splitting = TRUE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, cross_fitting_folds = cross_fitting_folds, sample_splitting_folds = ss_folds, V = V / 2, na.rm = TRUE, scale = 'identity')"))))
+                    if (cf_vim) {
+                        # get marginal, CV-VIM
+                        marg_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, " <- vimp::cv_vim(Y = y, cross_fitted_f1 = marg_preds, cross_fitted_f2 = geog_preds, indx = which(pred_names %in% all_var_groups[[j]]), run_regression = FALSE, sample_splitting = TRUE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, cross_fitting_folds = cross_fitting_folds, sample_splitting_folds = ss_folds, V = V / 2, na.rm = TRUE, scale = 'identity')"))))
+                    } else {
+                        # get marginal, non-CV VIM
+                        marg_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_marginal_", this_group_name, ".rds"))
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, " <- vimp::vim(Y = y, f1 = marg_preds, f2 = geog_preds, indx = which(pred_names %in% all_var_groups[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, sample_splitting_folds = ss_folds, na.rm = TRUE, scale = 'identity')"))))
                     }
                 }
                 # merge together
                 eval(parse(text = paste0(this_outcome_name, "_vimp_lst$grp_marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", names(all_var_groups)), collapse = ", "), ")")))
-                if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$grp_marginal <- merge_vim(", paste(paste0(this_outcome_name, "_cv_marg_", names(all_var_groups)), collapse = ", "), ")")))
-                }
             }
             # -----------------------------------
             # individual variable importance
@@ -152,57 +143,43 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             if ("cond" %in% opts$importance_ind) {
                 for (j in 1:length(var_inds)) {
                     this_var_name <- names(var_inds)[j]
-                    indi_cond_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_conditional_", this_var_name, ".rds"))
-                    # get individual, non-cv vimp
-                    suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_var_name, " <- vimp::vim(Y = y, f1 = full_fit, f2 = indi_cond_fit, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, sample_splitting_folds = non_cv_ss_folds, na.rm = TRUE, scale = 'identity')"))))
-                    if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                        indi_cv_cond_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_conditional_", this_var_name, ".rds"))
-                        indi_cv_se_cond_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, "_conditional_", this_var_name, ".rds"))
-                        # get individual, cv vimp
-                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_cond_", this_var_name, " <- vimp::cv_vim(Y = y, cross_fitted_f1 = full_cv_preds, cross_fitted_f2 = indi_cv_cond_preds, f1 = full_cv_se_preds, f2 = indi_cv_se_cond_preds, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, cross_fitting_folds = cross_fitting_folds, sample_splitting_folds = ss_folds, V = V / 2, na.rm = TRUE, scale = 'identity')"))))
+                    if (cf_vim) {
+                        # get individual, CV-VIM (conditional)
+                        indi_cond_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_conditional_", this_var_name, ".rds"))
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_var_name, " <- vimp::cv_vim(Y = y, cross_fitted_f1 = full_preds, cross_fitted_f2 = indi_cond_preds, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, cross_fitting_folds = cross_fitting_folds, sample_splitting_folds = ss_folds, V = V / 2, na.rm = TRUE, scale = 'identity')"))))
+                    } else {
+                        # get individual, non-CV VIM (conditional)
+                        indi_cond_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_conditional_", this_var_name, ".rds"))
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_var_name, " <- vimp::vim(Y = y, f1 = full_preds, f2 = indi_cond_preds, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, sample_splitting_folds = ss_folds, na.rm = TRUE, scale = 'identity')"))))
                     }
                 }
                 # merge together
                 eval(parse(text = paste0(this_outcome_name, "_vimp_lst$ind_conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cond_", names(var_inds)), collapse = ", "), ")")))
-                if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$ind_conditional <- merge_vim(", paste(paste0(this_outcome_name, "_cv_cond_", names(var_inds)), collapse = ", "), ")")))
-                }
             }
             # if "marg" is in opts$importance_ind, run this loop
             if ("marg" %in% opts$importance_ind) {
                 if (grepl("residue", opts$ind_importance_type)) {
-                    reduced_fit <- geog_glm_fit
-                    reduced_cv_fit <- geog_glm_cv_fit
-                    reduced_cv_preds <- geog_glm_cv_preds
-                    reduced_cv_se_preds <- geog_glm_cv_se_preds
+                    reduced_preds <- geog_glm_preds
                 } else {
-                    reduced_fit <- geog_fit
-                    reduced_cv_fit <- geog_cv_fit
-                    reduced_cv_preds <- geog_cv_preds
-                    reduced_cv_se_preds <- geog_cv_se_preds
+                    reduced_preds <- geog_preds
                 }
                 for (j in 1:length(var_inds)) {
                     this_var_name <- names(var_inds)[j]
-                    indi_marg_fit <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
-                    # get individual, non-cv vimp
-                    suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::vim(Y = y, f1 = indi_marg_fit, f2 = reduced_fit, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, sample_splitting_folds = non_cv_ss_folds, na.rm = TRUE, scale = 'identity')"))))
-                    if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                        # cv
-                        indi_cv_marg_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
-                        indi_cv_se_marg_preds <- readRDS(paste0("/home/slfits/cv_se_preds_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
-                        # get individual, cv vimp
-                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cv_marg_", this_var_name, " <- vimp::cv_vim(Y = y, cross_fitted_f1 = indi_cv_marg_preds, cross_fitted_f2 = reduced_cv_preds, f1 = indi_cv_se_marg_preds, f2 = reduced_cv_se_preds, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type =  vimp_opts$vimp_measure, cross_fitting_folds = cross_fitting_folds, sample_splitting_folds = ss_folds, V = V / 2, na.rm = TRUE, scale = 'identity')"))))
+                    if (cf_vim) {
+                        # get individual, CV-VIM (marginal)
+                        indi_marg_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::cv_vim(Y = y, cross_fitted_f1 = indi_marg_preds, cross_fitted_f2 = reduced_preds, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type =  vimp_opts$vimp_measure, cross_fitting_folds = cross_fitting_folds, sample_splitting_folds = ss_folds, V = V / 2, na.rm = TRUE, scale = 'identity')"))))
+                    } else {
+                        # get individual, non-CV VIM (marginal)
+                        indi_marg_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_marginal_", this_var_name, ".rds"))
+                        suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, " <- vimp::vim(Y = y, f1 = indi_marg_preds, f2 = reduced_preds, indx = which(pred_names %in% var_inds[[j]]), run_regression = FALSE, alpha = 0.05, delta = 0, type = vimp_opts$vimp_measure, sample_splitting_folds = ss_folds, na.rm = TRUE, scale = 'identity')"))))
                     }
                 }
                 # merge together
                 eval(parse(text = paste0(this_outcome_name, "_vimp_lst$ind_marginal <- merge_vim(", paste(paste0(this_outcome_name, "_marg_", names(var_inds)), collapse = ", "), ")")))
-                if ((length(opts$learners) == 1 & opts$cvtune & opts$cvperf) | (length(opts$learners) > 1 & opts$cvperf)) {
-                    eval(parse(text = paste0(this_outcome_name, "_cv_vimp_lst$ind_marginal <- merge_vim(", paste(paste0(this_outcome_name, "_cv_marg_", names(var_inds)), collapse = ", "), ")")))
-                }
             }
             # save them off
             eval(parse(text = paste0("saveRDS(", this_outcome_name, "_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_vimp"), ".rds')")))
-            eval(parse(text = paste0("saveRDS(", this_outcome_name, "_cv_vimp_lst, file = '/home/slfits/", paste0(this_outcome_name, "_cv_vimp"), ".rds')")))
         }
     }
 }
