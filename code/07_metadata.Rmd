@@ -61,9 +61,11 @@ ncomplete_features <- readRDS(paste0(slfits_dir, "ncomplete_features.rds"))
 ncomplete_ic50 <- readRDS(paste0(slfits_dir, "ncomplete_ic50.rds"))
 ncomplete_ic80 <- readRDS(paste0(slfits_dir, "ncomplete_ic80.rds"))
 ncomplete_ic5080 <- readRDS(paste0(slfits_dir, "ncomplete_ic5080.rds"))
+ncomplete_binary <- ifelse(opts$binary_outcomes == "ic50", ncomplete_ic50, ncomplete_ic80)
+all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_binary, ncomplete_binary)
 analysis_data_names <- list.files("/home/dat/analysis")
 analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
+dat <- readRDS(paste0(data_dir, "analysis/", analysis_data_name))
 dat <- dat[complete.cases(dat),]
 # make nice outcome names
 all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
@@ -87,6 +89,7 @@ cont_nms <- nice_outcomes[cont_idx]
 bin_nms <- nice_outcomes[bin_idx]
 # postfix for naming plots
 postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
+
 # get clean analysis dataset
 all_output_files <- list.files(output_dir)
 clean_data_names <- all_output_files[grepl(".csv", all_output_files)]
@@ -96,24 +99,6 @@ analysis_dataset <- read.csv(paste0(output_dir, analysis_data_name), stringsAsFa
 #-------------------------------------------------------
 # other variables and objects needed throughout report
 #-------------------------------------------------------
-
-# boolean of single nab
-one_nab <- length(opts$nab) == 1
-est_fillin <- ifelse(one_nab, "", "estimated ")
-any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
-any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
-# read in number of observations
-nprevious <- readRDS(paste0(slfits_dir, "nprevious.rds"))
-ncomplete_features <- readRDS(paste0(slfits_dir,"ncomplete_features.rds"))
-ncomplete_ic50 <- readRDS(paste0(slfits_dir,"ncomplete_ic50.rds"))
-ncomplete_ic80 <- readRDS(paste0(slfits_dir,"ncomplete_ic80.rds"))
-ncomplete_ic5080 <- readRDS(paste0(slfits_dir,"ncomplete_ic5080.rds"))
-
-# read in data
-analysis_data_names <- list.files("/home/dat/analysis")
-analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
-dat <- read.csv(paste0(data_dir, "analysis/", analysis_data_name), header = TRUE)
-
 # first covariate column
 min_cov_col_idx <- min(grep("geographic", colnames(dat)))
 ncol_data_final <- ncol(dat)
@@ -150,25 +135,8 @@ num_resis1 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outc
 num_sens2 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.2), sum(dat_ic80$dichotomous.2))
 num_resis2 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens2
 
-# make nice outcome names
-all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
-all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_ic50, ncomplete_ic50)
-names(all_ncomplete) <- all_outcomes
-all_labels <- c("IC$_{50}$", "IC$_{80}$", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
-nice_outcomes <- opts$outcomes
-for(i in seq_along(all_outcomes)){
-    nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
-}
-outcome_names <- get_outcome_names(opts)
 ncompletes <- all_ncomplete[names(all_ncomplete) %in% opts$outcomes]
 run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
-# now format continuous outcomes table
-cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
-bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
-cont_nms <- nice_outcomes[cont_idx]
-bin_nms <- nice_outcomes[bin_idx]
-# postfix for naming plots
-postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
 
 # for plotting IC50, IC80
 if (length(opts$nab) == 1) {
@@ -192,7 +160,6 @@ ran_vimp_dichot1 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.1", names(run
 ran_vimp_dichot2 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_vimp))]
 ran_vimp_dichot1 <- ifelse(length(ran_vimp_dichot1) == 0, FALSE, ran_vimp_dichot1)
 ran_vimp_dichot2 <- ifelse(length(ran_vimp_dichot2) == 0, FALSE, ran_vimp_dichot2)
-
 ```
 
 # Executive summary
