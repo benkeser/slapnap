@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>5 Methods | slapnap: Super LeArner Prediction of NAb Panels</title>
   <meta name="description" content="5 Methods | slapnap: Super LeArner Prediction of NAb Panels" />
-  <meta name="generator" content="bookdown 0.22 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
 
   <meta property="og:title" content="5 Methods | slapnap: Super LeArner Prediction of NAb Panels" />
   <meta property="og:type" content="book" />
@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Courtney Simmons, Peter B. Gilbert" />
 
 
-<meta name="date" content="2021-05-07" />
+<meta name="date" content="2021-07-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -33,6 +33,7 @@
   
 <link rel="prev" href="4-sec-examples.html"/>
 <link rel="next" href="6-sec-report.html"/>
+<script src="assets/header-attrs-2.4/header-attrs.js"></script>
 <script src="assets/jquery-2.2.3/jquery.min.js"></script>
 <link href="assets/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="assets/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -50,8 +51,7 @@
 
 
 
-<link href="assets/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
-<script src="assets/anchor-sections-1.0.1/anchor-sections.js"></script>
+<script src="assets/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config({
   CommonHTML: {
@@ -78,43 +78,68 @@ src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-
 
 
 <style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
-
 
 <link rel="stylesheet" href="slapnap_style.css" type="text/css" />
 </head>
@@ -135,14 +160,17 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Welcome</a></li>
 <li class="chapter" data-level="1" data-path="1-sec-docker.html"><a href="1-sec-docker.html"><i class="fa fa-check"></i><b>1</b> Docker</a></li>
 <li class="chapter" data-level="2" data-path="2-sec-catnap.html"><a href="2-sec-catnap.html"><i class="fa fa-check"></i><b>2</b> CATNAP</a></li>
-<li class="chapter" data-level="3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html"><i class="fa fa-check"></i><b>3</b> Running <code>slapnap</code></a><ul>
+<li class="chapter" data-level="3" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html"><i class="fa fa-check"></i><b>3</b> Running <code>slapnap</code></a>
+<ul>
 <li class="chapter" data-level="3.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:opts"><i class="fa fa-check"></i><b>3.1</b> <code>slapnap</code> run options</a></li>
-<li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#returning-output"><i class="fa fa-check"></i><b>3.2</b> Returning output</a><ul>
+<li class="chapter" data-level="3.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#returning-output"><i class="fa fa-check"></i><b>3.2</b> Returning output</a>
+<ul>
 <li class="chapter" data-level="3.2.1" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:mounting"><i class="fa fa-check"></i><b>3.2.1</b> Mounting a local directory</a></li>
 <li class="chapter" data-level="3.2.2" data-path="3-sec-runningcontainer.html"><a href="3-sec-runningcontainer.html#sec:viewreport"><i class="fa fa-check"></i><b>3.2.2</b> Viewing report in browser</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="4" data-path="4-sec-examples.html"><a href="4-sec-examples.html"><i class="fa fa-check"></i><b>4</b> Examples</a><ul>
+<li class="chapter" data-level="4" data-path="4-sec-examples.html"><a href="4-sec-examples.html"><i class="fa fa-check"></i><b>4</b> Examples</a>
+<ul>
 <li class="chapter" data-level="4.1" data-path="4-sec-examples.html"><a href="4-sec-examples.html#basic-call-to-slapnap"><i class="fa fa-check"></i><b>4.1</b> Basic call to <code>slapnap</code></a></li>
 <li class="chapter" data-level="4.2" data-path="4-sec-examples.html"><a href="4-sec-examples.html#sec:webbrowse"><i class="fa fa-check"></i><b>4.2</b> Viewing report in browser</a></li>
 <li class="chapter" data-level="4.3" data-path="4-sec-examples.html"><a href="4-sec-examples.html#super-learning"><i class="fa fa-check"></i><b>4.3</b> Super learning</a></li>
@@ -150,21 +178,26 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="4.5" data-path="4-sec-examples.html"><a href="4-sec-examples.html#pull-and-clean-data"><i class="fa fa-check"></i><b>4.5</b> Pull and clean data</a></li>
 <li class="chapter" data-level="4.6" data-path="4-sec-examples.html"><a href="4-sec-examples.html#interactive-sessions"><i class="fa fa-check"></i><b>4.6</b> Interactive sessions</a></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="5-sec-methods.html"><a href="5-sec-methods.html"><i class="fa fa-check"></i><b>5</b> Methods</a><ul>
-<li class="chapter" data-level="5.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>5.1</b> Outcomes</a><ul>
+<li class="chapter" data-level="5" data-path="5-sec-methods.html"><a href="5-sec-methods.html"><i class="fa fa-check"></i><b>5</b> Methods</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:outcomedefs"><i class="fa fa-check"></i><b>5.1</b> Outcomes</a>
+<ul>
 <li class="chapter" data-level="5.1.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#single-bnab"><i class="fa fa-check"></i><b>5.1.1</b> Single bnAb</a></li>
 <li class="chapter" data-level="5.1.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#multiple-bnabs"><i class="fa fa-check"></i><b>5.1.2</b> Multiple bnAbs</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:learnerdetails"><i class="fa fa-check"></i><b>5.2</b> Learners</a></li>
 <li class="chapter" data-level="5.3" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>5.3</b> Super learner</a></li>
-<li class="chapter" data-level="5.4" data-path="5-sec-methods.html"><a href="5-sec-methods.html#variable-importance"><i class="fa fa-check"></i><b>5.4</b> Variable importance</a><ul>
+<li class="chapter" data-level="5.4" data-path="5-sec-methods.html"><a href="5-sec-methods.html#variable-importance"><i class="fa fa-check"></i><b>5.4</b> Variable importance</a>
+<ul>
 <li class="chapter" data-level="5.4.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:biolimp"><i class="fa fa-check"></i><b>5.4.1</b> Intrinsic importance</a></li>
 <li class="chapter" data-level="5.4.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:predimp"><i class="fa fa-check"></i><b>5.4.2</b> Predictive importance</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="6" data-path="6-sec-report.html"><a href="6-sec-report.html"><i class="fa fa-check"></i><b>6</b> Report</a><ul>
+<li class="chapter" data-level="6" data-path="6-sec-report.html"><a href="6-sec-report.html"><i class="fa fa-check"></i><b>6</b> Report</a>
+<ul>
 <li class="chapter" data-level="6.1" data-path="6-sec-report.html"><a href="6-sec-report.html#general-structure"><i class="fa fa-check"></i><b>6.1</b> General structure</a></li>
-<li class="chapter" data-level="6.2" data-path="6-sec-report.html"><a href="6-sec-report.html#example-reports"><i class="fa fa-check"></i><b>6.2</b> Example reports</a><ul>
+<li class="chapter" data-level="6.2" data-path="6-sec-report.html"><a href="6-sec-report.html#example-reports"><i class="fa fa-check"></i><b>6.2</b> Example reports</a>
+<ul>
 <li class="chapter" data-level="6.2.1" data-path="6-sec-report.html"><a href="6-sec-report.html#single-antibodies"><i class="fa fa-check"></i><b>6.2.1</b> Single antibodies</a></li>
 <li class="chapter" data-level="6.2.2" data-path="6-sec-report.html"><a href="6-sec-report.html#multiple-antibodies"><i class="fa fa-check"></i><b>6.2.2</b> Multiple antibodies</a></li>
 </ul></li>
@@ -188,21 +221,21 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="sec:methods" class="section level1">
+<div id="sec:methods" class="section level1" number="5">
 <h1><span class="header-section-number">5</span> Methods</h1>
-<div id="sec:outcomedefs" class="section level2">
+<div id="sec:outcomedefs" class="section level2" number="5.1">
 <h2><span class="header-section-number">5.1</span> Outcomes</h2>
-<div id="single-bnab" class="section level3">
+<div id="single-bnab" class="section level3" number="5.1.1">
 <h3><span class="header-section-number">5.1.1</span> Single bnAb</h3>
 <p>If a single bnAb or combination of bnAbs that are measured directly in the CATNAP data is requested (i.e., the <code>nab</code> option is a single string of a single bnAb or measured combination of bnAbs from the CATNAP database), then the possible outcomes are:</p>
 <ul>
 <li><code>ic50</code> = <span class="math inline">\(\mbox{log}_{10}(\mbox{IC}_{50})\)</span>, where IC<span class="math inline">\(_{50}\)</span> is the half-maximal inhibitory concentration;</li>
 <li><code>ic80</code> = <span class="math inline">\(\mbox{log}_{10}(\mbox{IC}_{80})\)</span>, where IC<span class="math inline">\(_{80}\)</span> is the 80% maximal inhibitory concentration;</li>
-<li><code>iip</code> = <span class="math inline">\((-1)\mbox{log}_{10}(1 - \mbox{IIP})\)</span>, where IIP <span class="citation">(Shen et al. <a href="#ref-shen2008dose">2008</a>, <span class="citation">Wagh et al. (<a href="#ref-wagh2016optimal">2016</a>)</span>)</span> is the instantaneous inhibitory potential, computed as <span class="math display">\[ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , \]</span> where <span class="math inline">\(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))\)</span>; and</li>
-<li><code>sens</code> = sensitivity: the binary indicator that IC<span class="math inline">\(_{x}\)</span> <span class="math inline">\(&lt;\)</span> <code>sens_thresh</code>, the user-specified sensitivity threshold. The value of <span class="math inline">\(x\)</span> is determined by <code>binary_outcomes</code>, which defaults to <code>&quot;ic50&quot;</code> (i.e., <span class="math inline">\(x = 50\)</span>) but may be set to <code>&quot;ic80&quot;</code> (i.e., <span class="math inline">\(x = 80\)</span>).</li>
+<li><code>iip</code> = <span class="math inline">\((-1)\mbox{log}_{10}(1 - \mbox{IIP})\)</span>, where IIP <span class="citation">(Shen et al. <a href="#ref-shen2008dose" role="doc-biblioref">2008</a>, @wagh2016optimal)</span> is the instantaneous inhibitory potential, computed as <span class="math display">\[ \frac{10^m}{\mbox{IC$_{50}$}^m + 10^m} \ , \]</span> where <span class="math inline">\(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80}) - \mbox{log}_{10}(\mbox{IC}_{50}))\)</span>; and</li>
+<li><code>sens</code> = sensitivity: the binary indicator that IC<span class="math inline">\(_{x}\)</span> <span class="math inline">\(&lt;\)</span> <code>sens_thresh</code>, the user-specified sensitivity threshold. The value of <span class="math inline">\(x\)</span> is determined by <code>binary_outcomes</code>, which defaults to <code>"ic50"</code> (i.e., <span class="math inline">\(x = 50\)</span>) but may be set to <code>"ic80"</code> (i.e., <span class="math inline">\(x = 80\)</span>).</li>
 </ul>
 </div>
-<div id="multiple-bnabs" class="section level3">
+<div id="multiple-bnabs" class="section level3" number="5.1.2">
 <h3><span class="header-section-number">5.1.2</span> Multiple bnAbs</h3>
 <p>If multiple bnAbs are requested (i.e., the <code>nab</code> option is a semicolon separated string of more than one bnAb from CATNAP), then the possible <code>outcomes</code> that can be requested are:</p>
 <ul>
@@ -212,18 +245,22 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><code>estsens</code> = estimated sensitivity: the binary indicator that estimated IC<span class="math inline">\(_{x}\)</span> (defined above) is less than <code>sens_thresh</code> (where <span class="math inline">\(x\)</span> is determined by the value of <code>binary_outcomes</code>); and</li>
 <li><code>multsens</code> = multiple sensitivity: the binary indicator that measured IC<span class="math inline">\(_{x}\)</span> is less than the sensitivity threshold (<code>sens_thresh</code>) for a number of bnAbs defined by <code>multsens_nab</code> (where <span class="math inline">\(x\)</span> is determined by the value of <code>binary_outcomes</code>).</li>
 </ul>
-<p>Possible <code>combination_method</code>s used for computing estimated IC<span class="math inline">\(_{50}\)</span> and IC<span class="math inline">\(_{80}\)</span> are: * <code>additive</code>, the additive model of <span class="citation">Wagh et al. (<a href="#ref-wagh2016optimal">2016</a>)</span>. For <span class="math inline">\(J\)</span> bnAbs, <span class="math display">\[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]</span> where IC<span class="math inline">\(_{50,j}\)</span> denotes the measured IC<span class="math inline">\(_{50}\)</span> for antibody <span class="math inline">\(j\)</span>; * <code>Bliss-Hill</code>, the Bliss-Hill model of <span class="citation">Wagh et al. (<a href="#ref-wagh2016optimal">2016</a>)</span>. For <span class="math inline">\(J\)</span> bnAbs, computed using Brent's algorithm <span class="citation">(Brent <a href="#ref-brent1971">1971</a>)</span> as the concentration value <span class="math inline">\(c\)</span> that minimizes <span class="math inline">\(\lvert f_J(c) - k \rvert\)</span>, where <span class="math inline">\(k\)</span> denotes the desired neutralization fraction (50% for IC<span class="math inline">\(_{50}\)</span> or 80% for IC<span class="math inline">\(_{80}\)</span>), <span class="math display">\[ f_J(c) = 1 - \prod_{j = 1}^J \{1 - f_j(c, c / J)\}; \]</span> <span class="math display">\[ f_j(c, c_j) = (c^m) / (\mbox{IC}_{50,j}^m + c_j^m), \]</span> <span class="math inline">\(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80,j}) - \mbox{log}_{10}(\mbox{IC}_{50,j}))\)</span>, and IC<span class="math inline">\(_{50,j}\)</span> and IC<span class="math inline">\(_{80,j}\)</span> denote the measured IC<span class="math inline">\(_{50}\)</span> and IC<span class="math inline">\(_{80}\)</span> for bnAb <span class="math inline">\(j\)</span>, respectively.</p>
+<p>Possible <code>combination_method</code>s used for computing estimated IC<span class="math inline">\(_{50}\)</span> and IC<span class="math inline">\(_{80}\)</span> are:</p>
+<ul>
+<li><code>additive</code>, the additive model of <span class="citation">Wagh et al. (<a href="#ref-wagh2016optimal" role="doc-biblioref">2016</a>)</span>. For <span class="math inline">\(J\)</span> bnAbs, <span class="math display">\[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]</span> where IC<span class="math inline">\(_{50,j}\)</span> denotes the measured IC<span class="math inline">\(_{50}\)</span> for antibody <span class="math inline">\(j\)</span>;</li>
+<li><code>Bliss-Hill</code>, the Bliss-Hill model of <span class="citation">Wagh et al. (<a href="#ref-wagh2016optimal" role="doc-biblioref">2016</a>)</span>. For <span class="math inline">\(J\)</span> bnAbs, computed using Brent’s algorithm <span class="citation">(Brent <a href="#ref-brent1971" role="doc-biblioref">1971</a>)</span> as the concentration value <span class="math inline">\(c\)</span> that minimizes <span class="math inline">\(\lvert f_J(c) - k \rvert\)</span>, where <span class="math inline">\(k\)</span> denotes the desired neutralization fraction (50% for IC<span class="math inline">\(_{50}\)</span> or 80% for IC<span class="math inline">\(_{80}\)</span>), <span class="math display">\[ f_J(c) = 1 - \prod_{j = 1}^J \{1 - f_j(c, c / J)\}; \]</span> <span class="math display">\[ f_j(c, c_j) = (c^m) / (\mbox{IC}_{50,j}^m + c_j^m), \]</span> <span class="math inline">\(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80,j}) - \mbox{log}_{10}(\mbox{IC}_{50,j}))\)</span>, and IC<span class="math inline">\(_{50,j}\)</span> and IC<span class="math inline">\(_{80,j}\)</span> denote the measured IC<span class="math inline">\(_{50}\)</span> and IC<span class="math inline">\(_{80}\)</span> for bnAb <span class="math inline">\(j\)</span>, respectively.</li>
+</ul>
 </div>
 </div>
-<div id="sec:learnerdetails" class="section level2">
+<div id="sec:learnerdetails" class="section level2" number="5.2">
 <h2><span class="header-section-number">5.2</span> Learners</h2>
-<p>There are three possible <code>learners</code> available in <code>slapnap</code>: random forests <span class="citation">(Breiman <a href="#ref-breiman2001">2001</a>)</span>, as implemented in the <code>R</code> package <code>ranger</code> <span class="citation">(Wright and Ziegler <a href="#ref-rangerpkg">2017</a>)</span> and accessed in <code>slapnap</code> by including <code>'rf'</code> in <code>learners</code>; elastic net <span class="citation">(Zou and Hastie <a href="#ref-zou2005">2005</a>)</span> as implemented in <code>glmnet</code> <span class="citation">(J. Friedman, Hastie, and Tibshirani <a href="#ref-glmnetpkg">2010</a>)</span> and accessed in <code>slapnap</code> by including <code>'lasso'</code> in <code>learners</code>; and boosted trees <span class="citation">(J. H. Friedman <a href="#ref-friedman2001">2001</a>; T. Chen and Guestrin <a href="#ref-chen2016">2016</a>)</span> as implemented in either <code>xgboost</code> <span class="citation">(T. Chen et al. <a href="#ref-xgboostpkg">2019</a>)</span> (accessed in <code>slapnap</code> by including <code>'xgboost'</code> in <code>learners</code>) or <code>H2O.ai</code> <span class="citation">(H2O.ai <a href="#ref-h2opkg">2016</a>)</span> (accessed in <code>slapnap</code> by including <code>'h2oboost'</code> in <code>learners</code>).</p>
-<p>For each <code>learner</code>, there is a <code>default</code> choice of tuning parameters that is implemented if <code>cvtune=&quot;FALSE&quot;</code>. If instead <code>cvtune=&quot;TRUE&quot;</code>, then there are several choices of tuning parameters that are evaluated using <code>nfold</code> cross validation; see Table <a href="5-sec-methods.html#tab:learners">5.1</a> for a full list of these <code>learners</code>.</p>
+<p>There are three possible <code>learners</code> available in <code>slapnap</code>: random forests <span class="citation">(Breiman <a href="#ref-breiman2001" role="doc-biblioref">2001</a>)</span>, as implemented in the <code>R</code> package <code>ranger</code> <span class="citation">(Wright and Ziegler <a href="#ref-rangerpkg" role="doc-biblioref">2017</a>)</span> and accessed in <code>slapnap</code> by including <code>'rf'</code> in <code>learners</code>; elastic net <span class="citation">(Zou and Hastie <a href="#ref-zou2005" role="doc-biblioref">2005</a>)</span> as implemented in <code>glmnet</code> <span class="citation">(Friedman, Hastie, and Tibshirani <a href="#ref-glmnetpkg" role="doc-biblioref">2010</a>)</span> and accessed in <code>slapnap</code> by including <code>'lasso'</code> in <code>learners</code>; and boosted trees <span class="citation">(Friedman <a href="#ref-friedman2001" role="doc-biblioref">2001</a>; Chen and Guestrin <a href="#ref-chen2016" role="doc-biblioref">2016</a>)</span> as implemented in either <code>xgboost</code> <span class="citation">(Chen et al. <a href="#ref-xgboostpkg" role="doc-biblioref">2019</a>)</span> (accessed in <code>slapnap</code> by including <code>'xgboost'</code> in <code>learners</code>) or <code>H2O.ai</code> <span class="citation">(H2O.ai <a href="#ref-h2opkg" role="doc-biblioref">2016</a>)</span> (accessed in <code>slapnap</code> by including <code>'h2oboost'</code> in <code>learners</code>).</p>
+<p>For each <code>learner</code>, there is a <code>default</code> choice of tuning parameters that is implemented if <code>cvtune="FALSE"</code>. If instead <code>cvtune="TRUE"</code>, then there are several choices of tuning parameters that are evaluated using <code>nfold</code> cross validation; see Table <a href="5-sec-methods.html#tab:learners">5.1</a> for a full list of these <code>learners</code>.</p>
 <table>
 <caption><span id="tab:learners">Table 5.1: </span>Labels for <code>learners</code> in report and description of their respective tuning parameters</caption>
 <colgroup>
-<col width="12%" />
-<col width="87%" />
+<col width="11%" />
+<col width="88%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -286,99 +323,99 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <ul>
 <li><code>rf</code>: <code>num.trees = 500</code>, <code>min.node.size = 5</code> for continuous outcomes and <code>= 1</code> for binary outcomes;</li>
 <li><code>xgboost</code>: <code>nrounds = 1000</code>, <code>eta = 0.1</code>, <code>min_child_weight = 10</code>, <code>objective = binary:logistic</code> for binary outcomes and <code>objective = reg:squarederror</code> for continuous outcomes.</li>
-<li><code>h2oboost</code>: <code>ntrees = 1000</code>; for binary outcomes, <code>distribution = &quot;bernoulli&quot;</code>, <code>balance_classes = TRUE</code>, <code>fold_assignment = &quot;Stratified&quot;</code>, <code>stopping_metric = &quot;AUC&quot;</code>, while for continuous outcomes, <code>distribution = &quot;gaussian&quot;</code>, <code>balance_classes = FALSE</code>, <code>fold_assignment = &quot;AUTO&quot;</code>, <code>stopping_metric = &quot;MSE&quot;</code>; and <code>max_after_balance_class_size = 5</code>, <code>stopping_rounds = 3</code>, <code>stopping_tolerance = 0.001</code>, <code>max_runtime_secs = 60</code>.</li>
+<li><code>h2oboost</code>: <code>ntrees = 1000</code>; for binary outcomes, <code>distribution = "bernoulli"</code>, <code>balance_classes = TRUE</code>, <code>fold_assignment = "Stratified"</code>, <code>stopping_metric = "AUC"</code>, while for continuous outcomes, <code>distribution = "gaussian"</code>, <code>balance_classes = FALSE</code>, <code>fold_assignment = "AUTO"</code>, <code>stopping_metric = "MSE"</code>; and <code>max_after_balance_class_size = 5</code>, <code>stopping_rounds = 3</code>, <code>stopping_tolerance = 0.001</code>, <code>max_runtime_secs = 60</code>.</li>
 </ul>
 </div>
-<div id="sec:sldetails" class="section level2">
+<div id="sec:sldetails" class="section level2" number="5.3">
 <h2><span class="header-section-number">5.3</span> Super learner</h2>
-<p>If multiple <code>learners</code> are specified, then a super learner ensemble <span class="citation">(M. J. van der Laan, Polley, and Hubbard <a href="#ref-vanderlaan2007">2007</a>)</span> is constructed using <code>nfold</code> cross validation, as implemented in the <code>R</code> package <code>SuperLearner</code> <span class="citation">(E. Polley et al. <a href="#ref-superlearnerpkg">2019</a>)</span>. Specifically, the data are randomly partitioned into <code>nfold</code> chunks of approximately equal size. For binary outcomes, this partitioning is done in such a way as to ensure an approximately even number of sensitive/resistant pseudoviruses in each chunk. A so-called super learner <em>library</em> of candidate algorithms is constructed by including different <code>learners</code>:</p>
+<p>If multiple <code>learners</code> are specified, then a super learner ensemble <span class="citation">(van der Laan, Polley, and Hubbard <a href="#ref-vanderlaan2007" role="doc-biblioref">2007</a>)</span> is constructed using <code>nfold</code> cross validation, as implemented in the <code>R</code> package <code>SuperLearner</code> <span class="citation">(Polley et al. <a href="#ref-superlearnerpkg" role="doc-biblioref">2019</a>)</span>. Specifically, the data are randomly partitioned into <code>nfold</code> chunks of approximately equal size. For binary outcomes, this partitioning is done in such a way as to ensure an approximately even number of sensitive/resistant pseudoviruses in each chunk. A so-called super learner <em>library</em> of candidate algorithms is constructed by including different <code>learners</code>:</p>
 <ul>
 <li>the algorithm <code>mean</code>, which reports back the sample mean as prediction for all observations is always included;</li>
-<li>if <code>cvtune=&quot;FALSE&quot;</code> then the <code>default</code> version of each <code>learner</code> (Section <a href="5-sec-methods.html#sec:learnerdetails">5.2</a>) is included;</li>
-<li>if <code>cvtune=&quot;TRUE&quot;</code> then each choice of tuning parameters for the selected <code>learners</code> in Table <a href="5-sec-methods.html#tab:learners">5.1</a> is included.</li>
+<li>if <code>cvtune="FALSE"</code> then the <code>default</code> version of each <code>learner</code> (Section <a href="5-sec-methods.html#sec:learnerdetails">5.2</a>) is included;</li>
+<li>if <code>cvtune="TRUE"</code> then each choice of tuning parameters for the selected <code>learners</code> in Table <a href="5-sec-methods.html#tab:learners">5.1</a> is included.</li>
 </ul>
 <p>The cross-validated risk of each algorithm in the library is computed. For binary outcomes, mean negative log-likelihood loss is used; for continuous outcomes, mean squared-error loss is used. The single algorithm with the smallest cross-validated risk is reported as the <code>cv selector</code> (also known as the <em>discrete</em> super learner). The super learner ensemble is constructed by selecting convex weights (i.e., each algorithm is assigned a non-negative weight and the weights sum to one) that minimize cross-validated risk.</p>
-<p>When <code>cvperf=&quot;TRUE&quot;</code> and a super learner is constructed, an additional layer of cross validation is used to evaluate the predictive performance of the super learner and of the <code>cv selector</code>.</p>
+<p>When <code>cvperf="TRUE"</code> and a super learner is constructed, an additional layer of cross validation is used to evaluate the predictive performance of the super learner and of the <code>cv selector</code>.</p>
 </div>
-<div id="variable-importance" class="section level2">
+<div id="variable-importance" class="section level2" number="5.4">
 <h2><span class="header-section-number">5.4</span> Variable importance</h2>
 <p>If <code>importance_grp</code> or <code>importance_ind</code> is specified, variable importance estimates are computed based on the <code>learners</code>. Both intrinsic and prediction importance can be obtained; we discuss each in the following two sections.</p>
-<div id="sec:biolimp" class="section level3">
+<div id="sec:biolimp" class="section level3" number="5.4.1">
 <h3><span class="header-section-number">5.4.1</span> Intrinsic importance</h3>
-<p>Intrinsic importance may be obtained by specifying <code>importance_grp</code>, <code>importance_ind</code>, or both. We provide two types of intrinsic importance: marginal and conditional, accessed by passing <code>&quot;marg&quot;</code> and <code>&quot;cond&quot;</code>, respectively, to one of the importance options. Both types of intrinsic importance are based on the population prediction potential of features <span class="citation">(Williamson et al. <a href="#ref-williamson2020">2020</a>)</span>, as implemented in the <code>R</code> package <code>vimp</code> <span class="citation">(B. D. Williamson, Simon, and Carone <a href="#ref-vimppkg">2020</a>)</span>. We measure prediction potential using nonparametric <span class="math inline">\(R^2\)</span> for continuous outcomes [i.e., (estimated) IC<span class="math inline">\(_{50}\)</span>, (estimated) IC<span class="math inline">\(_{80}\)</span>, or IIP] and using the nonparametric area under the receiver operating characteristic curve (AUC) for binary outcomes [i.e., (estimated) sensitivity or multiple sensitivity]. Both marginal and conditional importance compare the population prediction potential including the feature(s) of interest to the population prediction potential excluding the feature(s) of interest; this provides a measure of the intrinsic importance of the feature(s). The two types of intrinsic importance differ only in the other adjustment variables that we consider: conditional importance compares the prediction potential of all features to the prediction potential of all features excluding the feature(s) of interest, and thus importance must be interpreted conditionally; whereas marginal importance compares the prediction potential of the feature(s) of interest plus geographic confounders to the prediction potential of the geographic confounders alone.</p>
+<p>Intrinsic importance may be obtained by specifying <code>importance_grp</code>, <code>importance_ind</code>, or both. We provide two types of intrinsic importance: marginal and conditional, accessed by passing <code>"marg"</code> and <code>"cond"</code>, respectively, to one of the importance options. Both types of intrinsic importance are based on the population prediction potential of features <span class="citation">(Williamson et al. <a href="#ref-williamson2020" role="doc-biblioref">2020</a>)</span>, as implemented in the <code>R</code> package <code>vimp</code> <span class="citation">(B. D. Williamson, Simon, and Carone <a href="#ref-vimppkg" role="doc-biblioref">2020</a>)</span>. We measure prediction potential using nonparametric <span class="math inline">\(R^2\)</span> for continuous outcomes [i.e., (estimated) IC<span class="math inline">\(_{50}\)</span>, (estimated) IC<span class="math inline">\(_{80}\)</span>, or IIP] and using the nonparametric area under the receiver operating characteristic curve (AUC) for binary outcomes [i.e., (estimated) sensitivity or multiple sensitivity]. Both marginal and conditional importance compare the population prediction potential including the feature(s) of interest to the population prediction potential excluding the feature(s) of interest; this provides a measure of the intrinsic importance of the feature(s). The two types of intrinsic importance differ only in the other adjustment variables that we consider: conditional importance compares the prediction potential of all features to the prediction potential of all features excluding the feature(s) of interest, and thus importance must be interpreted conditionally; whereas marginal importance compares the prediction potential of the feature(s) of interest plus geographic confounders to the prediction potential of the geographic confounders alone.</p>
 <p>Both marginal and conditional intrinsic importance can be computed for groups of features or individual features. The available feature groups are detailed in Section <a href="7-sec-data.html#sec:data">7</a>. Execution time may increase when intrinsic importance is requested, depending upon the other options passed to <code>slapnap</code>: a separate <code>learner</code> (or super learner ensemble) must be trained for each feature group (or individual feature) of interest. Marginal importance tends to be computed more quickly than conditional importance, but both types of importance provide useful information about the population of interest and the underlying biology.</p>
-<p>If intrinsic importance is requested, then point estimates, confidence intervals, and p-values (for a test of the null hypothesis that the intrinsic importance is equal to zero) will be computed and displayed for each feature or group of features of interest. All results are based on an internal sample-splitting procedure, whereby the algorithm including the feature(s) of interest is evaluated on independent data from the algorithm excluding the feature(s) of interest. This ensures that the procedure has a type I error rate of 0.05 <span class="citation">(Williamson et al. <a href="#ref-williamson2020">2020</a>)</span>.</p>
+<p>If intrinsic importance is requested, then point estimates, confidence intervals, and p-values (for a test of the null hypothesis that the intrinsic importance is equal to zero) will be computed and displayed for each feature or group of features of interest. All results are based on an internal sample-splitting procedure, whereby the algorithm including the feature(s) of interest is evaluated on independent data from the algorithm excluding the feature(s) of interest. This ensures that the procedure has a type I error rate of 0.05 <span class="citation">(Williamson et al. <a href="#ref-williamson2020" role="doc-biblioref">2020</a>)</span>.</p>
 <p>In the following command, we request marginal intrinsic importance for the feature groups defined in Section <a href="7-sec-data.html#sec:data">7</a>. We do not specify a super learner ensemble to reduce computation time; however, in most problems we recommend an ensemble to protect against model misspecification.</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
-           -e importance_grp=<span class="st">&quot;marg&quot;</span> \
-           slapnap/slapnap</code></pre></div>
-<p>The raw <code>R</code> objects (saved as <code>.rds</code> files) containing the point estimates, confidence intervals, and p-values for intrinsic importance can be saved by passing <code>&quot;vimp&quot;</code> to <code>return</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="5-sec-methods.html#cb10-1"></a><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \</span>
+<span id="cb10-2"><a href="5-sec-methods.html#cb10-2"></a>           -e importance_grp=<span class="st">&quot;marg&quot;</span> \</span>
+<span id="cb10-3"><a href="5-sec-methods.html#cb10-3"></a>           slapnap/slapnap</span></code></pre></div>
+<p>The raw <code>R</code> objects (saved as <code>.rds</code> files) containing the point estimates, confidence intervals, and p-values for intrinsic importance can be saved by passing <code>"vimp"</code> to <code>return</code>.</p>
 </div>
-<div id="sec:predimp" class="section level3">
+<div id="sec:predimp" class="section level3" number="5.4.2">
 <h3><span class="header-section-number">5.4.2</span> Predictive importance</h3>
-<p><code>learner</code>-level predictive importance may be obtained by including <code>&quot;pred&quot;</code> in the <code>importance_ind</code> option. If a single <code>learner</code> is fit, then the predictive importance is the <code>R</code> default for that type of learner:</p>
+<p><code>learner</code>-level predictive importance may be obtained by including <code>"pred"</code> in the <code>importance_ind</code> option. If a single <code>learner</code> is fit, then the predictive importance is the <code>R</code> default for that type of learner:</p>
 <ul>
-<li><code>rf</code>: the <code>impurity</code> importance from <code>ranger</code> <span class="citation">(Wright and Ziegler <a href="#ref-rangerpkg">2017</a>)</span> is returned. The impurity importance for a given feature is computed by taking a normalized sum of the decrease in impurity (i.e., Gini index for binary outcomes; mean squared-error for continuous outcomes) over all nodes in the forest at which a split on that feature has been conducted.</li>
-<li><code>xgboost</code>: the <code>gain</code> importance from <code>xgboost</code> <span class="citation">(T. Chen et al. <a href="#ref-xgboostpkg">2019</a>)</span> is returned. Interpretation is essentially the same as for <code>rf</code>'s <code>impurity</code> importance.</li>
-<li><code>h2oboost</code>: the <code>gain</code> importance <span class="citation">(H2O.ai <a href="#ref-h2opkg">2016</a>)</span> is returned. Interpretation is the same as for <code>xgboost</code>'s <code>gain</code> importance.</li>
+<li><code>rf</code>: the <code>impurity</code> importance from <code>ranger</code> <span class="citation">(Wright and Ziegler <a href="#ref-rangerpkg" role="doc-biblioref">2017</a>)</span> is returned. The impurity importance for a given feature is computed by taking a normalized sum of the decrease in impurity (i.e., Gini index for binary outcomes; mean squared-error for continuous outcomes) over all nodes in the forest at which a split on that feature has been conducted.</li>
+<li><code>xgboost</code>: the <code>gain</code> importance from <code>xgboost</code> <span class="citation">(Chen et al. <a href="#ref-xgboostpkg" role="doc-biblioref">2019</a>)</span> is returned. Interpretation is essentially the same as for <code>rf</code>’s <code>impurity</code> importance.</li>
+<li><code>h2oboost</code>: the <code>gain</code> importance <span class="citation">(H2O.ai <a href="#ref-h2opkg" role="doc-biblioref">2016</a>)</span> is returned. Interpretation is the same as for <code>xgboost</code>’s <code>gain</code> importance.</li>
 <li><code>lasso</code>: the absolute value of the estimated regression coefficient at the cross-validation-selected <span class="math inline">\(\lambda\)</span> is returned.</li>
 </ul>
 <p>Note that these importance measures each have important limitations: the <code>rf</code> , <code>h2oboost</code>, and <code>xgboost</code> measures will tend to favor features with many levels, while the <code>lasso</code> variable importance will tend to favor features with few levels. Nevertheless, these commonly reported measures can provide some insight into how a given learner is making predictions.</p>
 <p>If multiple <code>learners</code> are used, and thus a super learner is constructed, then the importance measures for the <code>learner</code> with the highest weight in the super learner are reported.</p>
-<p>If a single <code>learner</code> is used, but <code>cvtune=&quot;TRUE&quot;</code> then importance measures for the <code>cv selector</code> are reported.</p>
+<p>If a single <code>learner</code> is used, but <code>cvtune="TRUE"</code> then importance measures for the <code>cv selector</code> are reported.</p>
 <p>In the following command, we request predictive importance for a simple scenario. Predictive importance is displayed for the top 15 features.</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \
-           -e importance_ind=<span class="st">&quot;pred&quot;</span> \
-           slapnap/slapnap</code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="5-sec-methods.html#cb11-1"></a><span class="ex">docker</span> run -v /path/to/local/dir:/home/output \</span>
+<span id="cb11-2"><a href="5-sec-methods.html#cb11-2"></a>           -e importance_ind=<span class="st">&quot;pred&quot;</span> \</span>
+<span id="cb11-3"><a href="5-sec-methods.html#cb11-3"></a>           slapnap/slapnap</span></code></pre></div>
 </div>
 </div>
 </div>
 <h3> References</h3>
 <div id="refs" class="references">
 <div id="ref-breiman2001">
-<p>Breiman, Leo. 2001. “Random Forests.” <em>Machine Learning</em> 45 (1). Springer: 5–32. doi:<a href="https://doi.org/10.1023/A:1010933404324">10.1023/A:1010933404324</a>.</p>
+<p>Breiman, Leo. 2001. “Random Forests.” <em>Machine Learning</em> 45 (1): 5–32. <a href="https://doi.org/10.1023/A:1010933404324">https://doi.org/10.1023/A:1010933404324</a>.</p>
 </div>
 <div id="ref-brent1971">
 <p>Brent, Richard P. 1971. “An Algorithm with Guaranteed Convergence for Finding a Zero of a Function.” <em>The Computer Journal</em> 14 (4): 422–25.</p>
 </div>
 <div id="ref-chen2016">
-<p>Chen, Tianqi, and Carlos Guestrin. 2016. “Xgboost: A Scalable Tree Boosting System.” In <em>Proceedings of the 22nd Acm Sigkdd International Conference on Knowledge Discovery and Data Mining</em>, 785–94. doi:<a href="https://doi.org/10.1145/2939672.2939785">10.1145/2939672.2939785</a>.</p>
+<p>Chen, Tianqi, and Carlos Guestrin. 2016. “Xgboost: A Scalable Tree Boosting System.” In <em>Proceedings of the 22nd Acm Sigkdd International Conference on Knowledge Discovery and Data Mining</em>, 785–94. <a href="https://doi.org/10.1145/2939672.2939785">https://doi.org/10.1145/2939672.2939785</a>.</p>
 </div>
 <div id="ref-xgboostpkg">
-<p>Chen, Tianqi, Tong He, Michael Benesty, Vadim Khotilovich, Yuan Tang, Hyunsu Cho, Kailong Chen, et al. 2019. <em>xgboost: Extreme Gradient Boosting</em>. <a href="https://CRAN.R-project.org/package=xgboost" class="uri">https://CRAN.R-project.org/package=xgboost</a>.</p>
+<p>Chen, Tianqi, Tong He, Michael Benesty, Vadim Khotilovich, Yuan Tang, Hyunsu Cho, Kailong Chen, et al. 2019. <em>xgboost: Extreme Gradient Boosting</em>. <a href="https://CRAN.R-project.org/package=xgboost">https://CRAN.R-project.org/package=xgboost</a>.</p>
 </div>
 <div id="ref-friedman2001">
-<p>Friedman, Jerome H. 2001. “Greedy Function Approximation: A Gradient Boosting Machine.” <em>Annals of Statistics</em>. JSTOR, 1189–1232. doi:<a href="https://doi.org/10.1214/aos/1013203451">10.1214/aos/1013203451</a>.</p>
+<p>Friedman, Jerome H. 2001. “Greedy Function Approximation: A Gradient Boosting Machine.” <em>Annals of Statistics</em>, 1189–1232. <a href="https://doi.org/10.1214/aos/1013203451">https://doi.org/10.1214/aos/1013203451</a>.</p>
 </div>
 <div id="ref-glmnetpkg">
-<p>Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. 2010. “Regularization Paths for Generalized Linear Models via Coordinate Descent.” <em>Journal of Statistical Software</em> 33 (1): 1–22. doi:<a href="https://doi.org/10.18637/jss.v033.i01">10.18637/jss.v033.i01</a>.</p>
+<p>Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. 2010. “Regularization Paths for Generalized Linear Models via Coordinate Descent.” <em>Journal of Statistical Software</em> 33 (1): 1–22. <a href="https://doi.org/10.18637/jss.v033.i01">https://doi.org/10.18637/jss.v033.i01</a>.</p>
 </div>
 <div id="ref-h2opkg">
-<p>H2O.ai. 2016. <em>R Interface for H2o</em>. <a href="https://github.com/h2oai/h2o-3" class="uri">https://github.com/h2oai/h2o-3</a>.</p>
+<p>H2O.ai. 2016. <em>R Interface for H2o</em>. <a href="https://github.com/h2oai/h2o-3">https://github.com/h2oai/h2o-3</a>.</p>
 </div>
 <div id="ref-superlearnerpkg">
-<p>Polley, Eric, Erin LeDell, Chris Kennedy, and Mark van der Laan. 2019. <em>SuperLearner: Super Learner Prediction</em>. <a href="https://CRAN.R-project.org/package=SuperLearner" class="uri">https://CRAN.R-project.org/package=SuperLearner</a>.</p>
+<p>Polley, Eric, Erin LeDell, Chris Kennedy, and Mark van der Laan. 2019. <em>SuperLearner: Super Learner Prediction</em>. <a href="https://CRAN.R-project.org/package=SuperLearner">https://CRAN.R-project.org/package=SuperLearner</a>.</p>
 </div>
 <div id="ref-shen2008dose">
-<p>Shen, Lin, Susan Peterson, Ahmad R Sedaghat, Moira A McMahon, Marc Callender, Haili Zhang, Yan Zhou, et al. 2008. “Dose-Response Curve Slope Sets Class-Specific Limits on Inhibitory Potential of anti-HIV Drugs.” <em>Nature Medicine</em> 14 (7). Nature Publishing Group: 762–66. doi:<a href="https://doi.org/10.1038/nm1777">10.1038/nm1777</a>.</p>
+<p>Shen, Lin, Susan Peterson, Ahmad R Sedaghat, Moira A McMahon, Marc Callender, Haili Zhang, Yan Zhou, et al. 2008. “Dose-Response Curve Slope Sets Class-Specific Limits on Inhibitory Potential of anti-HIV Drugs.” <em>Nature Medicine</em> 14 (7): 762–66. <a href="https://doi.org/10.1038/nm1777">https://doi.org/10.1038/nm1777</a>.</p>
 </div>
 <div id="ref-vanderlaan2007">
-<p>van der Laan, Mark J, Eric C Polley, and Alan E Hubbard. 2007. “Super Learner.” <em>Statistical Applications in Genetics and Molecular Biology</em> 6 (1). De Gruyter. doi:<a href="https://doi.org/10.2202/1544-6115.1309">10.2202/1544-6115.1309</a>.</p>
+<p>van der Laan, Mark J, Eric C Polley, and Alan E Hubbard. 2007. “Super Learner.” <em>Statistical Applications in Genetics and Molecular Biology</em> 6 (1). <a href="https://doi.org/10.2202/1544-6115.1309">https://doi.org/10.2202/1544-6115.1309</a>.</p>
 </div>
 <div id="ref-wagh2016optimal">
-<p>Wagh, Kshitij, Tanmoy Bhattacharya, Carolyn Williamson, Alex Robles, Madeleine Bayne, Jetta Garrity, Michael Rist, et al. 2016. “Optimal Combinations of Broadly Neutralizing Antibodies for Prevention and Treatment of HIV-1 Clade C Infection.” <em>PLoS Pathogens</em> 12 (3). Public Library of Science. doi:<a href="https://doi.org/10.1371/journal.ppat.1005520">10.1371/journal.ppat.1005520</a>.</p>
+<p>Wagh, Kshitij, Tanmoy Bhattacharya, Carolyn Williamson, Alex Robles, Madeleine Bayne, Jetta Garrity, Michael Rist, et al. 2016. “Optimal Combinations of Broadly Neutralizing Antibodies for Prevention and Treatment of HIV-1 Clade C Infection.” <em>PLoS Pathogens</em> 12 (3). <a href="https://doi.org/10.1371/journal.ppat.1005520">https://doi.org/10.1371/journal.ppat.1005520</a>.</p>
 </div>
 <div id="ref-williamson2020">
-<p>Williamson, Brian D, Peter B Gilbert, Noah R Simon, and Marco Carone. 2020. “A Unified Approach for Inference on Algorithm-Agnostic Variable Importance.” <em>arXiv Preprint</em>. <a href="https://arxiv.org/abs/2004.03683" class="uri">https://arxiv.org/abs/2004.03683</a>.</p>
+<p>Williamson, Brian D, Peter B Gilbert, Noah R Simon, and Marco Carone. 2020. “A Unified Approach for Inference on Algorithm-Agnostic Variable Importance.” <em>arXiv Preprint</em>. <a href="https://arxiv.org/abs/2004.03683">https://arxiv.org/abs/2004.03683</a>.</p>
 </div>
 <div id="ref-vimppkg">
-<p>Williamson, Brian D., Noah Simon, and Marco Carone. 2020. “vimp: Perform Inference on Algorithm-Agnostic Variable Importance.” <a href="https://CRAN.R-project.org/package=vimp" class="uri">https://CRAN.R-project.org/package=vimp</a>.</p>
+<p>Williamson, Brian D., Noah Simon, and Marco Carone. 2020. “vimp: Perform Inference on Algorithm-Agnostic Variable Importance.” <a href="https://CRAN.R-project.org/package=vimp">https://CRAN.R-project.org/package=vimp</a>.</p>
 </div>
 <div id="ref-rangerpkg">
-<p>Wright, Marvin N., and Andreas Ziegler. 2017. “ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R.” <em>Journal of Statistical Software</em> 77 (1): 1–17. doi:<a href="https://doi.org/10.18637/jss.v077.i01">10.18637/jss.v077.i01</a>.</p>
+<p>Wright, Marvin N., and Andreas Ziegler. 2017. “ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R.” <em>Journal of Statistical Software</em> 77 (1): 1–17. <a href="https://doi.org/10.18637/jss.v077.i01">https://doi.org/10.18637/jss.v077.i01</a>.</p>
 </div>
 <div id="ref-zou2005">
-<p>Zou, Hui, and Trevor Hastie. 2005. “Regularization and Variable Selection via the Elastic Net.” <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 67 (2). Wiley Online Library: 301–20. doi:<a href="https://doi.org/10.1111/j.1467-9868.2005.00503.x">10.1111/j.1467-9868.2005.00503.x</a>.</p>
+<p>Zou, Hui, and Trevor Hastie. 2005. “Regularization and Variable Selection via the Elastic Net.” <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 67 (2): 301–20. <a href="https://doi.org/10.1111/j.1467-9868.2005.00503.x">https://doi.org/10.1111/j.1467-9868.2005.00503.x</a>.</p>
 </div>
 </div>
             </section>
@@ -445,7 +482,7 @@ gitbook.start({
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    var src = "";
+    var src = "true";
     if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
     if (location.protocol !== "file:")
       if (/^https?:/.test(src))

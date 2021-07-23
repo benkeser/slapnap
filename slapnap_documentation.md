@@ -21,7 +21,7 @@ The [CATNAP database](https://www.hiv.lanl.gov/components/sequence/HIV/neutraliz
 
 During each build of the `slapnap` container, all raw data are downloaded from CATNAP. At run time, pseudovirus features are derived and measured sensitivity outcomes are derived from the raw CATNAP database files and merged into a `.csv` file that is used in subsequent predictive analyses.
 
-The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on May 07, 2021.
+The CATNAP data are updated periodically. The data are downloaded into the `slapnap` container at every build. The most recent build occurred on July 23, 2021.
 
 # Running `slapnap` {#sec:runningcontainer}
 
@@ -201,6 +201,7 @@ If multiple bnAbs are requested (i.e., the `nab` option is a semicolon separated
 * `multsens` = multiple sensitivity: the binary indicator that measured IC$_{x}$ is less than the sensitivity threshold (`sens_thresh`) for a number of bnAbs defined by `multsens_nab` (where $x$ is determined by the value of `binary_outcomes`).
 
 Possible `combination_method`s used for computing estimated IC$_{50}$ and IC$_{80}$ are:
+
 * `additive`, the additive model of @wagh2016optimal. For $J$ bnAbs, $$ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , $$ where IC$_{50,j}$ denotes the measured IC$_{50}$ for antibody $j$;
 * `Bliss-Hill`, the Bliss-Hill model of @wagh2016optimal. For $J$ bnAbs, computed using Brent's algorithm [@brent1971] as the concentration value $c$ that minimizes $\lvert f_J(c) - k \rvert$, where $k$ denotes the desired neutralization fraction (50% for IC$_{50}$ or 80% for IC$_{80}$), $$ f_J(c) = 1 - \prod_{j = 1}^J \{1 - f_j(c, c / J)\}; $$ $$ f_j(c, c_j) = (c^m) / (\mbox{IC}_{50,j}^m + c_j^m), $$ $m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80,j}) - \mbox{log}_{10}(\mbox{IC}_{50,j}))$, and IC$_{50,j}$ and IC$_{80,j}$ denote the measured IC$_{50}$ and IC$_{80}$ for bnAb $j$, respectively.
 
