@@ -24,7 +24,7 @@
 <meta name="author" content="David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Courtney Simmons, Peter B. Gilbert" />
 
 
-<meta name="date" content="2021-04-24" />
+<meta name="date" content="2021-05-07" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -159,7 +159,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="5.3" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:sldetails"><i class="fa fa-check"></i><b>5.3</b> Super learner</a></li>
 <li class="chapter" data-level="5.4" data-path="5-sec-methods.html"><a href="5-sec-methods.html#variable-importance"><i class="fa fa-check"></i><b>5.4</b> Variable importance</a><ul>
 <li class="chapter" data-level="5.4.1" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:biolimp"><i class="fa fa-check"></i><b>5.4.1</b> Intrinsic importance</a></li>
-<li class="chapter" data-level="5.4.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#predictive-importance"><i class="fa fa-check"></i><b>5.4.2</b> Predictive importance</a></li>
+<li class="chapter" data-level="5.4.2" data-path="5-sec-methods.html"><a href="5-sec-methods.html#sec:predimp"><i class="fa fa-check"></i><b>5.4.2</b> Predictive importance</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="6-sec-report.html"><a href="6-sec-report.html"><i class="fa fa-check"></i><b>6</b> Report</a><ul>
@@ -191,22 +191,22 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="header">
 <h1 class="title"><code>slapnap</code>: Super LeArner Prediction of NAb Panels</h1>
 <p class="author"><em>David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam, Courtney Simmons, Peter B. Gilbert</em></p>
-<p class="date" style="margin-top: 1.5em;"><em>April 24, 2021</em></p>
+<p class="date" style="margin-top: 1.5em;"><em>May 07, 2021</em></p>
 </div>
 <div id="welcome" class="section level1 unnumbered">
 <h1>Welcome</h1>
-<p>The <a href="https://hub.docker.com/r/slapnap/slapnap"><code>slapnap</code></a> container is a tool for using the Compile, Analyze and Tally NAb Panels (CATNAP) database to develop predictive models of HIV-1 neutralization sensitivity to one or several broadly neutralizing antibodies (bnAbs).</p>
+<p>The <a href="https://hub.docker.com/r/slapnap/slapnap"><code>slapnap</code></a> container is a tool for using the Compile, Analyze and Tally NAb Panels <span class="citation">(CATNAP; Yoon et al. <a href="#ref-yoon2015catnap">2015</a>)</span> database to develop predictive models of HIV-1 neutralization sensitivity to one or several broadly neutralizing antibodies (bnAbs).</p>
 <img src="gp120.png" width="70%" style="display: block; margin: auto;" />
 <div class="center">
 <p>
 Crystal structure of HIV-1 gp120 glycoprotein. Highlighted residues indicating sites most-predictive of VRC01 neutralization resistance. <span class="citation"><span class="citation">(Magaret et al. <a href="#ref-magaret2019prediction">2019</a>)</span></span>
 </p>
 </div>
-<p>In its simplest form, <code>slapnap</code> can be used simply to access and format data from CATNAP in a way that is usable for machine learning analysis. However, the tool also offers fully automated and customizable machine learning analyses based on up to five different neutralization endpoints, complete with automated report generation to summarize results and identify the most predictive features.</p>
+<p>The tool can be used for a wide variety of tasks. In its simplest form, <code>slapnap</code> can be used simply to access and format data from CATNAP in a way that is usable for machine learning analysis. The tool also offers fully automated and customizable machine learning analyses based on up to five different neutralization endpoints, complete with automated report generation to summarize results and identify the most predictive features.</p>
 <p>This document serves as the user manual for the <code>slapnap</code> container. Here, we describe everything needed to utilize <code>slapnap</code> and understand its output. The documentation is organized into the following sections:</p>
 <ul>
 <li>Section <a href="1-sec-docker.html#sec:docker">1</a> provides a brief overview of Docker, including information on installing Docker and downloading the <code>slapnap</code> container.</li>
-<li>Section <a href="2-sec-catnap.html#sec:catnap">2</a> provides a brief overview of the CATNAP database and the specifics of how and when these data were accessed to build the <code>slapnap</code> container.</li>
+<li>Section <a href="2-sec-catnap.html#sec:catnap">2</a> provides a brief overview of the CATNAP database and the details of how and when these data were accessed to build the <code>slapnap</code> container.</li>
 <li>Section <a href="3-sec-runningcontainer.html#sec:runningcontainer">3</a> provides a detailed description of how to make calls to <code>slapnap</code> and all options that are available at run time to customize its behavior.</li>
 <li>Section <a href="4-sec-examples.html#sec:examples">4</a> includes example calls to <code>slapnap</code> for accomplishing different tasks.</li>
 <li>Section <a href="5-sec-methods.html#sec:methods">5</a> describes the methodology used by <code>slapnap</code> to generate and analyze data.</li>
@@ -220,6 +220,9 @@ Crystal structure of HIV-1 gp120 glycoprotein. Highlighted residues indicating s
 <div id="refs" class="references">
 <div id="ref-magaret2019prediction">
 <p>Magaret, Craig A, David C Benkeser, Brian D Williamson, Bhavesh R Borate, Lindsay N Carpp, Ivelin S Georgiev, Ian Setliff, et al. 2019. “Prediction of Vrc01 Neutralization Sensitivity by HIV-1 gp160 Sequence Features.” <em>PLoS Computational Biology</em> 15 (4). Public Library of Science: e1006952. doi:<a href="https://doi.org/10.1371/journal.pcbi.1006952">10.1371/journal.pcbi.1006952</a>.</p>
+</div>
+<div id="ref-yoon2015catnap">
+<p>Yoon, Hyejin, Jennifer Macke, Anthony P West Jr, Brian Foley, Pamela J Bjorkman, Bette Korber, and Karina Yusim. 2015. “CATNAP: A Tool to Compile, Analyze and Tally Neutralizing Antibody Panels.” <em>Nucleic Acids Research</em> 43 (W1). Oxford University Press: W213–W219. doi:<a href="https://doi.org/10.1093/nar/gkv404">10.1093/nar/gkv404</a>.</p>
 </div>
 </div>
             </section>

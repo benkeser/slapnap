@@ -113,7 +113,7 @@
 \title{\texttt{slapnap}: Super LeArner Prediction of NAb Panels}
 \author{David Benkeser, Brian D. Williamson, Craig A. Magaret, Sohail Nizam,
 Courtney Simmons, Peter B. Gilbert}
-\date{April 24, 2021}
+\date{May 07, 2021}
 
 \begin{document}
 \maketitle
@@ -127,8 +127,9 @@ Courtney Simmons, Peter B. Gilbert}
 
 The \href{https://hub.docker.com/r/slapnap/slapnap}{\texttt{slapnap}}
 container is a tool for using the Compile, Analyze and Tally NAb Panels
-(CATNAP) database to develop predictive models of HIV-1 neutralization
-sensitivity to one or several broadly neutralizing antibodies (bnAbs).
+\citep[CATNAP;][]{yoon2015catnap} database to develop predictive models
+of HIV-1 neutralization sensitivity to one or several broadly
+neutralizing antibodies (bnAbs).
 
 \begin{center}\includegraphics[width=0.7\linewidth]{gp120} \end{center}\begin{center}
 Crystal structure of HIV-1 gp120 glycoprotein. Highlighted residues
@@ -136,12 +137,13 @@ indicating sites most-predictive of VRC01 neutralization resistance.
 {[}@magaret2019prediction{]}
 \end{center}
 
-In its simplest form, \texttt{slapnap} can be used simply to access and
-format data from CATNAP in a way that is usable for machine learning
-analysis. However, the tool also offers fully automated and customizable
-machine learning analyses based on up to five different neutralization
-endpoints, complete with automated report generation to summarize
-results and identify the most predictive features.
+The tool can be used for a wide variety of tasks. In its simplest form,
+\texttt{slapnap} can be used simply to access and format data from
+CATNAP in a way that is usable for machine learning analysis. The tool
+also offers fully automated and customizable machine learning analyses
+based on up to five different neutralization endpoints, complete with
+automated report generation to summarize results and identify the most
+predictive features.
 
 This document serves as the user manual for the \texttt{slapnap}
 container. Here, we describe everything needed to utilize
@@ -156,7 +158,7 @@ organized into the following sections:
   \texttt{slapnap} container.
 \item
   Section \ref{sec:catnap} provides a brief overview of the CATNAP
-  database and the specifics of how and when these data were accessed to
+  database and the details of how and when these data were accessed to
   build the \texttt{slapnap} container.
 \item
   Section \ref{sec:runningcontainer} provides a detailed description of
@@ -183,7 +185,7 @@ GitHub.
 \section{Docker}\label{sec:docker}
 
 Docker is a free platform for building containers. Containers are
-standard units of software that package code and all its dependencies,
+standard units of software that package together code and dependencies,
 so that the code can be executed reliably irrespective of computing
 environment. \texttt{slapnap} relies on machine learning implemented in
 the \texttt{R} language and relies on several packages. Achieving full
@@ -192,8 +194,9 @@ synchronization across the specific version of \texttt{R} and dependent
 packages. In other words, two users running two versions of \texttt{R}
 or two versions of the same \texttt{R} package may arrive at different
 output when running the same code. Containerization ensures that this
-does not happen. Any two runs of \texttt{slapnap} with the same input
-options will yield the same output every time.
+does not happen. Any two runs of the same built \texttt{slapnap}
+container with the same input options will yield the same output every
+time.
 
 \href{https://docs.docker.com/docker-for-windows/install/}{Installing
 Docker} is necessary for running \texttt{slapnap}. While it is not
@@ -211,12 +214,12 @@ Once Docker has been installed on your local computer, you can download
 \end{Highlighting}
 \end{Shaded}
 
-This command pulls the image from
+This command pulls an image (a built \texttt{slapnap} container) from
 \href{https://hub.docker.com/}{DockerHub}. Once the image has been
 downloaded, we are ready to learn about how to execute \texttt{slapnap}
 jobs. The next section contains information on the source data used by
 \texttt{slapnap}. Users familiar with the CATNAP data may wish to skip
-directly to Section \ref{sec:opts}.
+directly to Section \ref{sec:runningcontainer}.
 
 \section{CATNAP}\label{sec:catnap}
 
@@ -225,7 +228,7 @@ The
 database} is a web server hosted by Los Alamos National Laboratory
 \citep{yoon2015catnap}. The database integrates antibody neutralization
 and HIV-1 sequence data from published studies. Neutralization is
-measured in terms of half maximal inhibitory concentration (IC\(_{50}\))
+measured in terms of half-maximal inhibitory concentration (IC\(_{50}\))
 and 80\% inhibitory concentration (IC\(_{80}\)). These measures of
 neutralization against HIV envelope pseudoviruses are available for many
 broadly neutralizing antibodies (bnAbs) and for some combination bnAbs.
@@ -240,7 +243,7 @@ subsequent predictive analyses.
 
 The CATNAP data are updated periodically. The data are downloaded into
 the \texttt{slapnap} container at every build. The most recent build
-occurred on April 24, 2021.
+occurred on May 07, 2021.
 
 \section{\texorpdfstring{Running
 \texttt{slapnap}}{Running slapnap}}\label{sec:runningcontainer}
@@ -264,11 +267,11 @@ These options are passed in using the \texttt{-e} option\footnote{This
   sets an environment variable in the container environment. These
   variables are accessed by the various \texttt{R} and \texttt{bash}
   scripts in the container to dictate how the container executes code.}.
-Semi-colon separated strings are used to set options. For example, to
+Semicolon-separated strings are used to set options. For example, to
 provide input for the option \texttt{option\_name}, we would used
-\texttt{-e\ option\_name="a;semi-colon;separated;string"}. Note that
+\texttt{-e\ option\_name="a;semicolon;separated;string"}. Note that
 there are no spaces between the option name and its value and no spaces
-after semi-colons in the separated list. See Section \ref{sec:examples}
+after semicolons in the separated list. See Section \ref{sec:examples}
 for full syntax.
 
 Each description below lists the default value that is assumed if the
@@ -292,7 +295,7 @@ values should be determined based on scientific context.
   \textbf{\texttt{outcomes}}: A semicolon-separated string of outcomes
   to include in the analysis. Possible values are \texttt{"ic50"}
   (included in default), \texttt{"ic80"}, \texttt{"iip"},
-  \texttt{"sens"} (included in default), \texttt{"estsens"},
+  \texttt{"sens"} (included in default), \texttt{"estsens"}, and
   \texttt{"multsens"}. If only a single \texttt{nab} is specified, use
   \texttt{sens} to include a dichotomous endpoint. If multiple
   \texttt{nab}s are specified, use \texttt{estsens} and/or
@@ -301,9 +304,9 @@ values should be determined based on scientific context.
 \item
   \textbf{\texttt{combination\_method}} A string defining the method to
   use for predicting combination IC\(_{50}\) and/or IC\(_{80}\).
-  Possible values are \texttt{"additive"} (the default, for the additive
-  model defined in \citep{wagh2016optimal}) or \texttt{"Bliss-Hill"}
-  (for the Bliss-Hill model defined in \citep{wagh2016optimal}).
+  Possible values are \texttt{"additive"} \citep[the default, for the
+  additive model defined in][]{wagh2016optimal} or \texttt{"Bliss-Hill"}
+  \citep[for the Bliss-Hill model defined in][]{wagh2016optimal}.
 \item
   \textbf{\texttt{binary\_outcomes}} A string defining the measure of
   neutralization to use for defining binary outcomes. Possible values
@@ -314,14 +317,14 @@ values should be determined based on scientific context.
   \textbf{\texttt{sens\_thresh}} A numeric value defining the
   neutralization threshold for defining a sensitive versus resistant
   pseudovirus (default = 1). The dichotomous sensitivity/resistant
-  \texttt{outcome}s are defined as the indicator that (estimated)
-  IC\(_{50}\) (or IC\(_{80}\), if \texttt{binary\_outcomes="ic80"}) is
-  greater than or equal to \texttt{sens\_thresh}.
+  outcome is defined as the indicator that (estimated) IC\(_{50}\) (or
+  IC\(_{80}\), if \texttt{binary\_outcomes="ic80"}) is greater than or
+  equal to \texttt{sens\_thresh}.
 \item
   \textbf{\texttt{multsens\_nab}} A numeric value used for defining
   whether a pseudovirus is resistant to a multi-nAb cocktail. Only used
-  if \texttt{multsens} is included in \texttt{outcome} and more than one
-  \texttt{nab} is requested. The dichotomous \texttt{outcome}
+  if \texttt{multsens} is included in \texttt{outcomes} and more than
+  one \texttt{nab} is requested. The dichotomous outcome
   \texttt{multsens} is defined as the indicator that a virus has
   IC\(_{50}\) (or IC\(_{80}\), if \texttt{binary\_outcomes="ic80"})
   greater than \texttt{sens\_thresh} for at least \texttt{multsens\_nab}
@@ -342,8 +345,8 @@ values should be determined based on scientific context.
   the \texttt{learners} should be tuned using cross validation and a
   small grid search. Defaults to \texttt{"FALSE"}. If multiple
   \texttt{learners} are specified, then the super learner ensemble
-  includes three versions of each of the requested \texttt{learners}
-  with different tuning parameters.
+  includes up to three versions of each of the requested
+  \texttt{learners} with different tuning parameters.
 \item
   \textbf{\texttt{cvperf}}: A boolean string (i.e., either
   \texttt{"TRUE"} or \texttt{"FALSE"} {[}default{]}) indicating whether
@@ -378,13 +381,14 @@ values should be determined based on scientific context.
   be computed. Possible values are none \texttt{""} (default),
   learner-level \texttt{"pred"}, marginal \texttt{"marg"} and
   conditional \texttt{"cond"}. The latter two take significant
-  computation time to compute.
+  computation time to compute. See Sections \ref{sec:biolimp} and
+  \ref{sec:predimp} for details on these measures.
 \item
   \textbf{\texttt{same\_subset}} If \texttt{"FALSE"} (default) all data
   available for each outcome will be used in the analysis. If
   \texttt{"TRUE"}, when multiple \texttt{outcomes} are requested, the
   data will be subset to just those sequences that have all measured
-  \texttt{outcome}, and, if \texttt{iip} is requested, for which
+  \texttt{outcomes}, and, if \texttt{iip} is requested, for which
   \texttt{iip} can be computed (i.e., measured IC\(_{50}\) and
   IC\(_{80}\) values are different). Thus, if \texttt{"TRUE"} all
   requested \texttt{outcomes} will be evaluated using the
@@ -480,12 +484,12 @@ log file, which will appear in \texttt{/path/to/local/dir} (note that
 the name of the log file is based on the current time, which is in
 UTC+0). The container will then compile an analytic data set from the
 CATNAP database for the default bnAb (VRC01), train the default learner
-(random forest \citep{breiman2001}) for the default outcomes
-(\texttt{ic50} and \texttt{sens}), evaluate its performance using
-two-fold (default for \texttt{nfolds}) cross validation, and compile a
-report detailing the results, and place the compiled report in
-\texttt{path/to/local/dir} (note that the default name of the report is
-based on the current time, which is in UTC+0).
+(random forest) for the default outcomes (\texttt{ic50} and
+\texttt{sens}), evaluate its performance using two-fold (default for
+\texttt{nfolds}) cross validation, and compile a report detailing the
+results, and place the compiled report in \texttt{path/to/local/dir}
+(note that the default name of the report is based on the current time,
+which is in UTC+0).
 
 \subsection{Viewing report in browser}\label{sec:webbrowse}
 
@@ -531,9 +535,9 @@ report is desired to be returned.
 
 \subsection{Super learning}\label{super-learning}
 
-If multiple \texttt{learner}s are specified, then a super learner
+If multiple \texttt{learners} are specified, then a super learner
 ensemble \citep{vanderlaan2007} is constructed based on the requested
-\texttt{learner}s and a predictor that simply returns the empirical
+\texttt{learners} and a predictor that simply returns the empirical
 average of the outcome (i.e., ignores all features entirely). In the
 following command, we construct an ensemble based on a random forest
 \citep{breiman2001} and elastic net \citep{zou2005}. Note that the
@@ -605,14 +609,13 @@ all \texttt{outcomes} are included in the resultant data set.
 
 Note that the data set returned by \texttt{slapnap} contains the
 \texttt{outcomes} used by \texttt{slapnap}; in other words, (estimated)
-IC\(_{50}\), (estimated) IC\(_{80}\), and IIP are all log-transformed
+IC\(_{50},\) (estimated) IC\(_{80}\), and IIP are all log-transformed
 (see Section \ref{sec:outcomedefs} for more details).
 
 \subsection{Interactive sessions}\label{interactive-sessions}
 
-To simply enter the container and poke around, use an interactive
-session by including \texttt{-it} and overriding the container's
-entry-point.
+To simply enter and explore the container, use an interactive session by
+including \texttt{-it} and overriding the container's entry point.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -661,7 +664,7 @@ database), then the possible outcomes are:
 \tightlist
 \item
   \texttt{ic50} = \(\mbox{log}_{10}(\mbox{IC}_{50})\), where IC\(_{50}\)
-  is the half maximal inhibitory concentration;
+  is the half-maximal inhibitory concentration;
 \item
   \texttt{ic80} = \(\mbox{log}_{10}(\mbox{IC}_{80})\), where IC\(_{80}\)
   is the 80\% maximal inhibitory concentration;
@@ -683,23 +686,19 @@ database), then the possible outcomes are:
 \subsubsection{Multiple bnAbs}\label{multiple-bnabs}
 
 If multiple bnAbs are requested (i.e., the \texttt{nab} option is a
-semi-colon separated string of more than one bnAb from CATNAP), then the
+semicolon separated string of more than one bnAb from CATNAP), then the
 possible \texttt{outcomes} that can be requested are:
 
 \begin{itemize}
 \tightlist
 \item
   \texttt{ic50} = \(\mbox{log}_{10}(\mbox{estimated IC}_{50})\), where
-  estimated IC\(_{50}\) is computed as follows: for \(J\) bnAbs,
-  \[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]
-  where IC\(_{50,j}\) denotes the measured IC\(_{50}\) for antibody
-  \(j\) \citep{wagh2016optimal};
+  estimated IC\(_{50}\) is computed using the requested
+  \texttt{combination\_method} (see below);
 \item
   \texttt{ic80} = \(\mbox{log}_{10}(\mbox{estimated IC}_{80})\), where
-  estimated IC\(_{80}\) is computed as follows: for \(J\) bnAbs,
-  \[ \mbox{estimated IC}_{80} = \left( \sum_{j=1}^J \mbox{IC}_{80,j}^{-1} \right)^{-1} \ , \]
-  where IC\(_{80,j}\) denotes the measured IC\(_{80}\) for antibody
-  \(j\) \citep{wagh2016optimal};
+  estimated IC\(_{80}\) is computed using the requested
+  \texttt{combination\_method} (see below);
 \item
   \texttt{iip} = \((-1)\mbox{log}_{10}(1 - \mbox{IIP})\), where IIP is
   computed as \[ \frac{10^m}{\mbox{estimated IC$_{50}$}^m + 10^m} \ , \]
@@ -719,20 +718,45 @@ possible \texttt{outcomes} that can be requested are:
   \texttt{binary\_outcomes}).
 \end{itemize}
 
+Possible \texttt{combination\_method}s used for computing estimated
+IC\(_{50}\) and IC\(_{80}\) are: * \texttt{additive}, the additive model
+of \citet{wagh2016optimal}. For \(J\) bnAbs,
+\[ \mbox{estimated IC}_{50} = \left( \sum_{j=1}^J \mbox{IC}_{50,j}^{-1} \right)^{-1} \ , \]
+where IC\(_{50,j}\) denotes the measured IC\(_{50}\) for antibody \(j\);
+* \texttt{Bliss-Hill}, the Bliss-Hill model of \citet{wagh2016optimal}.
+For \(J\) bnAbs, computed using Brent's algorithm \citep{brent1971} as
+the concentration value \(c\) that minimizes
+\(\lvert f_J(c) - k \rvert\), where \(k\) denotes the desired
+neutralization fraction (50\% for IC\(_{50}\) or 80\% for IC\(_{80}\)),
+\[ f_J(c) = 1 - \prod_{j = 1}^J \{1 - f_j(c, c / J)\}; \]
+\[ f_j(c, c_j) = (c^m) / (\mbox{IC}_{50,j}^m + c_j^m), \]
+\(m = \mbox{log}_{10}(4) / (\mbox{log}_{10}(\mbox{IC}_{80,j}) - \mbox{log}_{10}(\mbox{IC}_{50,j}))\),
+and IC\(_{50,j}\) and IC\(_{80,j}\) denote the measured IC\(_{50}\) and
+IC\(_{80}\) for bnAb \(j\), respectively.
+
 \subsection{Learners}\label{sec:learnerdetails}
 
 There are three possible \texttt{learners} available in
 \texttt{slapnap}: random forests \citep{breiman2001}, as implemented in
-the \texttt{R} package \texttt{ranger} \citep{rangerpkg}; elastic net
-\citep{zou2005} as implemented in \texttt{glmnet} \citep{glmnetpkg}; and
-boosted trees \citep{friedman2001, chen2016} as implemented in either
-\texttt{xgboost} \citep{xgboostpkg} or \texttt{H2O.ai} \citep{h2opkg}.
+the \texttt{R} package \texttt{ranger} \citep{rangerpkg} and accessed in
+\texttt{slapnap} by including
+\texttt{\textquotesingle{}rf\textquotesingle{}} in \texttt{learners};
+elastic net \citep{zou2005} as implemented in \texttt{glmnet}
+\citep{glmnetpkg} and accessed in \texttt{slapnap} by including
+\texttt{\textquotesingle{}lasso\textquotesingle{}} in \texttt{learners};
+and boosted trees \citep{friedman2001, chen2016} as implemented in
+either \texttt{xgboost} \citep{xgboostpkg} (accessed in \texttt{slapnap}
+by including \texttt{\textquotesingle{}xgboost\textquotesingle{}} in
+\texttt{learners}) or \texttt{H2O.ai} \citep{h2opkg} (accessed in
+\texttt{slapnap} by including
+\texttt{\textquotesingle{}h2oboost\textquotesingle{}} in
+\texttt{learners}).
 
 For each \texttt{learner}, there is a \texttt{default} choice of tuning
 parameters that is implemented if \texttt{cvtune="FALSE"}. If instead
 \texttt{cvtune="TRUE"}, then there are several choices of tuning
-parameters that are evaluated using \texttt{nfold} cross validation,
-Table \ref{tab:learners}.
+parameters that are evaluated using \texttt{nfold} cross validation; see
+Table \ref{tab:learners} for a full list of these \texttt{learners}.
 
 \begin{table}
 
@@ -826,8 +850,8 @@ candidate algorithms is constructed by including different
 
 The cross-validated risk of each algorithm in the library is computed.
 For binary outcomes, mean negative log-likelihood loss is used; for
-continuous outcomes, mean squared-error is used. The single algorithm
-with the smallest cross-validated risk is reported as the
+continuous outcomes, mean squared-error loss is used. The single
+algorithm with the smallest cross-validated risk is reported as the
 \texttt{cv\ selector} (also known as the \emph{discrete} super learner).
 The super learner ensemble is constructed by selecting convex weights
 (i.e., each algorithm is assigned a non-negative weight and the weights
@@ -850,25 +874,25 @@ Intrinsic importance may be obtained by specifying
 \texttt{importance\_grp}, \texttt{importance\_ind}, or both. We provide
 two types of intrinsic importance: marginal and conditional, accessed by
 passing \texttt{"marg"} and \texttt{"cond"}, respectively, to one of the
-importance variables. Both types of intrinsic importance are based on
-the population prediction potential of features \citep{williamson2020},
-as implemented in the \texttt{R} package \texttt{vimp} \citep{vimppkg}.
-We measure prediction potential using nonparametric \(R^2\) for
-continuous outcomes (i.e., IC\(_{50}\), IC\(_{80}\), or IIP) and using
-the nonparametric area under the receiver operating characteristic curve
-(AUC) for binary outcomes (i.e., sensitivity, estimated sensitivity, or
-multiple sensitivity). In both marginal and conditional importance, we
-compare the population prediction potential including the feature(s) of
-interest to the population prediction potential excluding the feature(s)
-or interest; this provides a measure of the intrinsic importance of the
-feature(s). The two types of intrinsic importance differ only in the
-other adjustment variables that we consider: conditional importance
-compares the prediction potential of all features to the prediction
-potential of all features excluding the feature(s) of interest, and thus
-importance must be interpreted conditionally; whereas marginal
-importance compares the prediction potential of the feature(s) of
-interest plus geographic confounders to the prediction potential of the
-geographic confounders alone.
+importance options. Both types of intrinsic importance are based on the
+population prediction potential of features \citep{williamson2020}, as
+implemented in the \texttt{R} package \texttt{vimp} \citep{vimppkg}. We
+measure prediction potential using nonparametric \(R^2\) for continuous
+outcomes {[}i.e., (estimated) IC\(_{50}\), (estimated) IC\(_{80}\), or
+IIP{]} and using the nonparametric area under the receiver operating
+characteristic curve (AUC) for binary outcomes {[}i.e., (estimated)
+sensitivity or multiple sensitivity{]}. Both marginal and conditional
+importance compare the population prediction potential including the
+feature(s) of interest to the population prediction potential excluding
+the feature(s) of interest; this provides a measure of the intrinsic
+importance of the feature(s). The two types of intrinsic importance
+differ only in the other adjustment variables that we consider:
+conditional importance compares the prediction potential of all features
+to the prediction potential of all features excluding the feature(s) of
+interest, and thus importance must be interpreted conditionally; whereas
+marginal importance compares the prediction potential of the feature(s)
+of interest plus geographic confounders to the prediction potential of
+the geographic confounders alone.
 
 Both marginal and conditional intrinsic importance can be computed for
 groups of features or individual features. The available feature groups
@@ -885,11 +909,11 @@ If intrinsic importance is requested, then point estimates, confidence
 intervals, and p-values (for a test of the null hypothesis that the
 intrinsic importance is equal to zero) will be computed and displayed
 for each feature or group of features of interest. All results are based
-on first creating two independent splits of the data: the population
-prediction potential including the feature(s) of interest is estimated
-on one half of the data, while the population prediction potential
-excluding the feature(s) of interest is estimated on the remaining half.
-This ensures that the procedure has the desired type I error rate.
+on an internal sample-splitting procedure, whereby the algorithm
+including the feature(s) of interest is evaluated on independent data
+from the algorithm excluding the feature(s) of interest. This ensures
+that the procedure has a type I error rate of 0.05
+\citep{williamson2020}.
 
 In the following command, we request marginal intrinsic importance for
 the feature groups defined in Section \ref{sec:data}. We do not specify
@@ -909,7 +933,7 @@ The raw \texttt{R} objects (saved as \texttt{.rds} files) containing the
 point estimates, confidence intervals, and p-values for intrinsic
 importance can be saved by passing \texttt{"vimp"} to \texttt{return}.
 
-\subsubsection{Predictive importance}\label{predictive-importance}
+\subsubsection{Predictive importance}\label{sec:predimp}
 
 \texttt{learner}-level predictive importance may be obtained by
 including \texttt{"pred"} in the \texttt{importance\_ind} option. If a
@@ -1009,16 +1033,18 @@ subsections may also be present:
 \tightlist
 \item
   a table of super learner weights (Section \ref{sec:sldetails}) if an
-  ensemble is used;
+  ensemble is used (i.e., multiple \texttt{learners} are requested);
 \item
   cross-validated prediction performance for the fitted learner (or
-  super learner): figures showing cross-validated prediction performance
-  (all outcomes), cross-validated receiver operating characteristic
-  (ROC) curves (binary outcomes), and cross-validated predicted
-  probabilities of resistance (binary outcomes); and
+  super learner), if \texttt{cvperf="TRUE"}: figures showing
+  cross-validated prediction performance (all outcomes), cross-validated
+  receiver operating characteristic (ROC) curves (binary outcomes), and
+  cross-validated predicted probabilities of resistance (binary
+  outcomes); and
 \item
-  variable importance: intrinsic importance (group and individual) and
-  predictive importance.
+  variable importance (if \texttt{importance\_ind} and/or
+  \texttt{importance\_grp} is specified): intrinsic importance (group
+  and/or individual) and/or predictive importance.
 \end{itemize}
 
 Finally, if group intrinsic importance is requested, then the variable
@@ -1033,7 +1059,7 @@ container \texttt{run} commands that generated them.
 
 The following code evaluates binary sensitivity (defined as the
 indicator that IC\(_{80} < 1\)) for VRC01 using a super learner that
-includes all three learner types, each with multiple tuning arameter
+includes all three learner types, each with multiple tuning parameter
 values, and with different variable screening techniques. We also
 request marginal group and individual intrinsic importance and
 individual predictive importance. If running this command locally,
@@ -1065,7 +1091,7 @@ where the output is to be saved.
 
 The next code chunk evaluates binary sensitivity (defined as the
 indicator that IC\(_{50} < 50\)) for 10-1074 using a super learner that
-includes all three learner types, each with multiple tuning arameter
+includes all three learner types, each with multiple tuning parameter
 values. If running this command locally, change
 \texttt{docker\_output\_directory} to the path to the folder where the
 output is to be saved.
