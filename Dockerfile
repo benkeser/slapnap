@@ -27,6 +27,8 @@ RUN add-apt-repository -y ppa:marutter/rrutter3.5
 #   r and r-dev
 #   pandoc (for Rmarkdown conversions)
 #   vim (for editing while in container)
+#   nginx (for static website hosting)
+#   ffmpeg (for animating figures)
 RUN apt-get update && apt-get install -y \
   curl \
   libcurl4-openssl-dev \
@@ -35,7 +37,11 @@ RUN apt-get update && apt-get install -y \
   r-base-dev \
   pandoc \
   pandoc-citeproc \
-  vim
+  vim \
+  nginx \
+  ffmpeg
+
+RUN rm /var/www/html/index.nginx-debian.html
 
 # install R libraries needed for analysis
 RUN Rscript -e 'install.packages("nloptr", repos="https://cran.rstudio.com")'
@@ -44,29 +50,21 @@ RUN Rscript -e 'install.packages("bookdown", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("seqinr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("SuperLearner", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("quadprog", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("dplyr", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("tidyr", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("stringr", repos="https://cran.rstudio.com")'
+# get ggplot2, dplyr, tidyr, readr, tibble, stringr, forcats (and purrr for free)
+RUN Rscript -e 'install.packages("tidyverse", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("cowplot", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("ggplot2", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("glmnet", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ranger", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("xgboost", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("gridExtra", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("sandwich", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("ggseqlogo", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("forcats", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("tibble", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("vimp", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("RCurl", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bit64", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("h2o", type = "source", repos="https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")'
-
-# install nginx for static website hosting
-RUN apt-get install -y nginx
-RUN rm /var/www/html/index.nginx-debian.html
+RUN Rscript -e 'install.packages("vimp", repos="https://cran.rstudio.com")'
 
 # make directories
 # lib contains R source files
@@ -75,9 +73,6 @@ RUN rm /var/www/html/index.nginx-debian.html
 # dat/analysis contains analysis data
 RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
 RUN mkdir /home/slfits /home/output
-
-# install ffmpeg for animating figures
-RUN apt-get update && apt-get install -y ffmpeg
 
 # copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
 COPY code/00_utils.R /home/lib/00_utils.R
@@ -165,6 +160,7 @@ ENV cvperf="TRUE"
 
 # how many folds should be used for cross-validation?
 #   only has an effect if cvtune=TRUE or cvperf=TRUE
+#   note that intrinsic importance is based on (nfolds / 2)-fold cross-validation
 ENV nfolds="2"
 
 # what group-level importance measures should be computed?
