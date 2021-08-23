@@ -26,10 +26,10 @@ The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` 
 * out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` `r ifelse(iip_undef == 1, "has", "have")` the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and `r ifelse(iip_undef == 1, "its", "their")` exclusion from IIP analyses.
 `r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
 `r if(!("sens1" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r num_sens1` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bnAbs", "bnAb")`, while `r num_resis1` were `r ifelse(one_nab, "", "estimated to be")` resistant`r ifelse(opts$importance_grp == "", "", check_sl_vimp_bin(opts, ran_sl_dichot1, ran_vimp_dichot1, "sens1"))``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+* out of the sequences with complete data, `r num_sens1` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bnAbs", "bnAb")`, while `r num_resis1` were `r ifelse(one_nab, "", "estimated to be")` resistant`r ifelse(all(opts$importance_grp == ""), "", check_sl_vimp_bin(opts, ran_sl_dichot1, ran_vimp_dichot1, "sens1"))``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
 `r if(!("sens1" %in% opts$outcomes)) "-->"`
 `r if(!("sens2" %in% opts$outcomes)) "<!--"`
-* out of the sequences with complete data, `r num_sens2` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bnAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bnAb", " bnAbs")))`, while `r num_resis2` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bnAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bnAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bnAbs")))``r ifelse(opts$importance_grp == "", ".", check_sl_vimp_bin(opts, ran_sl_dichot2, ran_vimp_dichot2, "sens2"))`
+* out of the sequences with complete data, `r num_sens2` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bnAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bnAb", " bnAbs")))`, while `r num_resis2` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bnAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bnAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bnAbs")))``r ifelse(all(opts$importance_grp == ""), ".", check_sl_vimp_bin(opts, ran_sl_dichot2, ran_vimp_dichot2, "sens2"))`
 `r if(!("sens2" %in% opts$outcomes)) "-->"`
 
 Prediction of each outcome was performed using `r get_learner_descriptions(opts, n_total_ft, n_ft_screen)`
@@ -236,11 +236,11 @@ if ("figures" %in% opts$return) {
 
 `r if (!("ic50" %in% opts$outcomes) | (all(opts$importance_grp == "") & all(opts$importance_ind == ""))) "-->"`
 
-`r if (!("ic50" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
+`r if (!("ic50" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
 ### Intrinsic importance
 
-`r if (!("ic50" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
+`r if (!("ic50" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
 
 `r if (!("ic50" %in% opts$outcomes) | (!("marg" %in% opts$importance_grp) & !("cond" %in% opts$importance_grp))) "<!--"`
 
@@ -251,13 +251,13 @@ The intrinsic variable importance of groups of features (defined in Table \@ref(
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     ic50_grp_vimp_grob_lst <- list(log10.pc.ic50_vimp_plots$grp_marginal, log10.pc.ic50_vimp_plots$grp_conditional)
 } else if ("marg" %in% opts$importance_grp) {
-  ic50_grp_vimp_grob_lst <- log10.pc.ic50_vimp_plots$grp_marginal
+  ic50_grp_vimp_grob_lst <- list(log10.pc.ic50_vimp_plots$grp_marginal)
 } else {
-  ic50_grp_vimp_grob_lst <- log10.pc.ic50_vimp_plots$grp_conditional
+  ic50_grp_vimp_grob_lst <- list(log10.pc.ic50_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
+grid.arrange(grobs = ic50_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = ic50_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -273,13 +273,13 @@ We show the intrinsic variable importance of individual `r ind_import_txt` in pr
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     ic50_ind_vimp_grob_lst <- list(log10.pc.ic50_vimp_plots$ind_marginal, log10.pc.ic50_vimp_plots$ind_conditional)
 } else if ("marg" %in% opts$importance_ind) {
-  ic50_ind_vimp_grob_lst <- log10.pc.ic50_vimp_plots$ind_marginal
+  ic50_ind_vimp_grob_lst <- list(log10.pc.ic50_vimp_plots$ind_marginal)
 } else {
-  ic50_ind_vimp_grob_lst <- log10.pc.ic50_vimp_plots$ind_conditional
+  ic50_ind_vimp_grob_lst <- list(log10.pc.ic50_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
+grid.arrange(grobs = ic50_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic50_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = ic50_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -426,11 +426,11 @@ if ("figures" %in% opts$return) {
 
 <!-- If we did any population vimp, print it -->
 
-`r if (!("ic80" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
+`r if (!("ic80" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
 ### Intrinsic importance
 
-`r if (!("ic80" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
+`r if (!("ic80" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
 
 <!-- If we did group vimp, print it -->
 
@@ -444,13 +444,13 @@ We show the intrinsic variable importance of groups of features (defined in Tabl
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     ic80_grp_vimp_grob_lst <- list(log10.pc.ic80_vimp_plots$grp_marginal, log10.pc.ic80_vimp_plots$grp_conditional)
 } else if ("marg" %in% opts$importance_grp) {
-  ic80_grp_vimp_grob_lst <- log10.pc.ic80_vimp_plots$grp_marginal
+  ic80_grp_vimp_grob_lst <- list(log10.pc.ic80_vimp_plots$grp_marginal)
 } else {
-  ic80_grp_vimp_grob_lst <- log10.pc.ic80_vimp_plots$grp_conditional
+  ic80_grp_vimp_grob_lst <- list(log10.pc.ic80_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
+grid.arrange(grobs = ic80_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = ic80_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -467,13 +467,13 @@ We show the intrinsic variable importance of individual `r ind_import_txt` in pr
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     ic80_ind_vimp_grob_lst <- list(log10.pc.ic80_vimp_plots$ind_marginal, log10.pc.ic80_vimp_plots$ind_conditional)
 } else if ("marg" %in% opts$importance_ind) {
-  ic80_ind_vimp_grob_lst <- log10.pc.ic80_vimp_plots$ind_marginal
+  ic80_ind_vimp_grob_lst <- list(log10.pc.ic80_vimp_plots$ind_marginal)
 } else {
-  ic80_ind_vimp_grob_lst <- log10.pc.ic80_vimp_plots$ind_conditional
+  ic80_ind_vimp_grob_lst <- list(log10.pc.ic80_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
+grid.arrange(grobs = ic80_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(ic80_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = ic80_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -589,11 +589,11 @@ if ("figures" %in% opts$return) {
 
 <!-- If we did any population vimp, print it -->
 
-`r if (!("iip" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
+`r if (!("iip" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "<!--"`
 
 ### Intrinsic importance
 
-`r if (!("iip" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
+`r if (!("iip" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind)))) "-->"`
 
 <!-- If we did group vimp, print it -->
 
@@ -607,13 +607,13 @@ We show the intrinsic variable importance of groups of features (defined in Tabl
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     iip_grp_vimp_grob_lst <- list(iip_vimp_plots$grp_marginal, iip_vimp_plots$grp_conditional)
 } else if ("marg" %in% opts$importance_grp) {
-  iip_grp_vimp_grob_lst <- iip_vimp_plots$grp_marginal
+  iip_grp_vimp_grob_lst <- list(iip_vimp_plots$grp_marginal)
 } else {
-  iip_grp_vimp_grob_lst <- iip_vimp_plots$grp_conditional
+  iip_grp_vimp_grob_lst <- list(iip_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
+grid.arrange(grobs = iip_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/iip_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/iip_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = iip_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -630,13 +630,13 @@ We show the intrinsic variable importance of individual `r ind_import_txt` in pr
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     iip_ind_vimp_grob_lst <- list(iip_vimp_plots$ind_marginal, iip_vimp_plots$ind_conditional)
 } else if ("marg" %in% opts$importance_ind) {
-  iip_ind_vimp_grob_lst <- iip_vimp_plots$ind_marginal
+  iip_ind_vimp_grob_lst <- list(iip_vimp_plots$ind_marginal)
 } else {
-  iip_ind_vimp_grob_lst <- iip_vimp_plots$ind_conditional
+  iip_ind_vimp_grob_lst <- list(iip_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
+grid.arrange(grobs = iip_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/iip_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(iip_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/iip_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = iip_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -762,11 +762,11 @@ if ("figures" %in% opts$return) {
 
 <!-- If we did any population vimp, print it -->
 
-`r if (!("sens1" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot1) "<!--"`
+`r if (!("sens1" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot1) "<!--"`
 
 ### Intrinsic importance
 
-`r if (!("sens1" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot1) "-->"`
+`r if (!("sens1" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot1) "-->"`
 
 <!-- If we did group vimp, print it -->
 
@@ -780,13 +780,13 @@ We show the intrinsic variable importance of groups of features (defined in Tabl
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     sens1_grp_vimp_grob_lst <- list(dichotomous.1_vimp_plots$grp_marginal, dichotomous.1_vimp_plots$grp_conditional)
 } else if ("marg" %in% opts$importance_grp) {
-  sens1_grp_vimp_grob_lst <- dichotomous.1_vimp_plots$grp_marginal
+  sens1_grp_vimp_grob_lst <- list(dichotomous.1_vimp_plots$grp_marginal)
 } else {
-  sens1_grp_vimp_grob_lst <- dichotomous.1_vimp_plots$grp_conditional
+  sens1_grp_vimp_grob_lst <- list(dichotomous.1_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
+grid.arrange(grobs = sens1_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = sens1_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -803,13 +803,13 @@ We show the intrinsic variable importance of individual `r ind_import_txt` in pr
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     sens1_ind_vimp_grob_lst <- list(dichotomous.1_vimp_plots$ind_marginal, dichotomous.1_vimp_plots$ind_conditional)
 } else if ("marg" %in% opts$importance_ind) {
-  sens1_ind_vimp_grob_lst <- dichotomous.1_vimp_plots$ind_marginal
+  sens1_ind_vimp_grob_lst <- list(dichotomous.1_vimp_plots$ind_marginal)
 } else {
-  sens1_ind_vimp_grob_lst <- dichotomous.1_vimp_plots$ind_conditional
+  sens1_ind_vimp_grob_lst <- list(dichotomous.1_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
+grid.arrange(grobs = sens1_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens1_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/", sens1_plot_nm, "_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = sens1_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -937,11 +937,11 @@ if ("figures" %in% opts$return) {
 
 <!-- If we did any population vimp, print it -->
 
-`r if (!("sens2" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot2) "<!--"`
+`r if (!("sens2" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot2) "<!--"`
 
 ### Intrinsic importance
 
-`r if (!("sens2" %in% opts$outcomes) | ((opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot2) "-->"`
+`r if (!("sens2" %in% opts$outcomes) | (all(opts$importance_grp == "") & !(("marg" %in% opts$importance_ind) | ("cond" %in% opts$importance_ind))) | !ran_vimp_dichot2) "-->"`
 
 <!-- If we did group vimp, print it -->
 
@@ -955,13 +955,13 @@ We show the intrinsic variable importance of groups of features (defined in Tabl
 if (("marg" %in% opts$importance_grp) & ("cond" %in% opts$importance_grp)) {
     sens2_grp_vimp_grob_lst <- list(dichotomous.2_vimp_plots$grp_marginal, dichotomous.2_vimp_plots$grp_conditional)
 } else if ("marg" %in% opts$importance_grp) {
-  sens2_grp_vimp_grob_lst <- dichotomous.2_vimp_plots$grp_marginal
+  sens2_grp_vimp_grob_lst <- list(dichotomous.2_vimp_plots$grp_marginal)
 } else {
-  sens2_grp_vimp_grob_lst <- dichotomous.2_vimp_plots$grp_conditional
+  sens2_grp_vimp_grob_lst <- list(dichotomous.2_vimp_plots$grp_conditional)
 }
-grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
+grid.arrange(grobs = sens2_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/multsens_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_grp_vimp_grob_lst), ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/multsens_intrinsic_import_grp_", postfix, ".png"), plot = grid.arrange(grobs = sens2_grp_vimp_grob_lst, ncol = length(opts$importance_grp), top = "Group Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -978,13 +978,13 @@ We show the intrinsic variable importance of individual `r ind_import_txt` in pr
 if (("marg" %in% opts$importance_ind) & ("cond" %in% opts$importance_ind)) {
     sens2_ind_vimp_grob_lst <- list(dichotomous.2_vimp_plots$ind_marginal, dichotomous.2_vimp_plots$ind_conditional)
 } else if ("marg" %in% opts$importance_ind) {
-  sens2_ind_vimp_grob_lst <- dichotomous.2_vimp_plots$ind_marginal
+  sens2_ind_vimp_grob_lst <- list(dichotomous.2_vimp_plots$ind_marginal)
 } else {
-  sens2_ind_vimp_grob_lst <- dichotomous.2_vimp_plots$ind_conditional
+  sens2_ind_vimp_grob_lst <- list(dichotomous.2_vimp_plots$ind_conditional)
 }
-grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
+grid.arrange(grobs = sens2_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance")
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/multsens_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = list(sens2_ind_vimp_grob_lst), ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/multsens_intrinsic_import_ind_", postfix, ".png"), plot = grid.arrange(grobs = sens2_ind_vimp_grob_lst, ncol = ifelse("pred" %in% opts$importance_ind, length(opts$importance_ind) - 1, length(opts$importance_ind)), top = "Individual Intrinsic Variable Importance"), width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -1006,12 +1006,12 @@ kable(imp_sens2[seq_len(n_imp_ft), c("Feature", "Importance")], row.names = FALS
 ```
 `r if(!("sens2" %in% opts$outcomes) | !("pred" %in% opts$importance_ind) | !ran_sl_dichot2) "-->"`
 
-`r if (opts$importance_grp == "") "<!--"`
+`r if (all(opts$importance_grp == "")) "<!--"`
 # Variable group definitions
 
 Table \@ref(tab:vimpGroupTab) provides the individual HXB2 coordinates and variable names of the variables that make up each of the variable groups considered for intrinsic importance.
 
-```{r vimpGroupTab, eval = !(opts$importance_grp == "")}
+```{r vimpGroupTab, eval = !all(opts$importance_grp == "")}
 # all_var_groups is created in preamble
 var_grps_chr_lst <- lapply(lapply(all_var_groups, function(x) strsplit(x, ".", fixed = TRUE)), function(x) do.call(c, lapply(x, function(y) paste0(y[!grepl("hxb2", y) & !grepl("mer", y)], collapse = "."))))
 grptab <- do.call(rbind, lapply(var_grps_chr_lst, function(x) paste0(x, collapse = ", ")))
@@ -1020,6 +1020,6 @@ kable(grptab, col.names = "Variables",
       caption = "Individual variables within each variable group. Numeric codes followed by a single letter denote the presence of an amino acid (AA) residue at a given site (relative to HXB2). Other suffixes are: 'sequon_actual', referring to the site having a leading AA for the canonical N-linked glycosylation motif (“N[!P]{S/T]”; in other words, this AA will be an “N”, and the following two AAs will conform to the motif); 'gap', referring to an observed gap at this site after alignment to maintain site-specific relevance; and 'frameshift', referring to a gap at this site that resulted in a frameshift. The prefix 'num' denotes the number (e.g., 'num.cysteines' refers to the number of cysteines), while the prefix 'length' denotes the length of the specified region (excluding gaps and frameshifts).")
 ```
 
-`r if (opts$importance_grp == "") "-->"`
+`r if (all(opts$importance_grp == "")) "-->"`
 
 # References
