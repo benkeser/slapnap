@@ -1104,9 +1104,6 @@ vimp_nice_rownames <- function(vimp_obj = NULL, cv = FALSE) {
     lst_s <- vimp_obj$s
     indx_mat <- sapply(1:length(mat_s), function(x) which(mat_s[x] == lst_s))
     paste_ind <- 3
-    if (cv) {
-        paste_ind <- 4
-    }
     tmp_nms <- unlist(lapply(strsplit(names(lst_s), "_", fixed = TRUE), function(x) paste(x[paste_ind:length(x)], collapse = "_")))
     return(tmp_nms[indx_mat])
 }
