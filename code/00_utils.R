@@ -580,11 +580,11 @@ intrinsic_importance_figure_caption <- function(ncomplete = NA, num_obs_full = N
     if (grp) {
         outer_descr <- "Group"
         inner_descr <- "feature group"
-        signif_check <- ifelse(marg & cond, any(any_signif[grepl("grp", names(any_signif))]), ifelse(marg, any(any_signif$grp_marginal), any(any_signif$grp_conditional)))
+        signif_check <- ifelse(marg & cond, any(unlist(any_signif[grepl("grp", names(any_signif))])), ifelse(marg, any(any_signif$grp_marginal), any(any_signif$grp_conditional)))
     } else {
         outer_descr <- "Individual"
         inner_descr <- "feature"
-        signif_check <- ifelse(marg & cond, any(any_signif[grepl("ind", names(any_signif))]), ifelse(marg, any(any_signif$ind_marginal), any(any_signif$ind_conditional)))
+        signif_check <- ifelse(marg & cond, any(unlist(any_signif[grepl("ind", names(any_signif))])), ifelse(marg, any(any_signif$ind_marginal), any(any_signif$ind_conditional)))
     }
     all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, ncomplete, outcomes = outcome)
     complete_obs_txt <- all_obs_txt$complete
