@@ -269,3 +269,12 @@ sens2_min_num <- min(c(length(opts$nab), opts$multsens_nab))
 
 # print "features" for individual intrinsic importance if type is residuewise, otherwise print "sites"
 ind_import_txt <- switch((grepl("residue", opts$ind_importance_type)) + 1, "sites, subtype variables, and viral geometry variables", "features")
+
+# number of columns for individual importance plots
+ncol_ind_vim <- length(opts$importance_ind) - ifelse(any(grepl("pred", opts$importance_ind)), 1, 0)
+
+# width for VIM figures
+vim_grp_width <- ifelse(length(opts$importance_grp) > 1, 12, 6)
+vim_grp_out_width <- ifelse(length(opts$importance_grp) > 1, "90%", "50%")
+vim_ind_width <- ifelse(ncol_ind_vim > 1, 12, 6)
+vim_ind_out_width <- ifelse(ncol_ind_vim > 1, "90%", "50%")
