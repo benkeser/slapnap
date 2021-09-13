@@ -13,6 +13,8 @@
 plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, ifelse(!is.null(vimp_obj), ifelse(max(vimp_obj$mat$ciu) > 1, max(vimp_obj$mat$ciu) + 0.2, 1), 0)), x_lab = expression(paste(R^2)), lgnd_pos = c(0.1, 0.3), cv = FALSE, grp = TRUE, num_plot = 50, text_size = 9, threshold = 0.05, opts) {
     text_pos <- x_lim[2] - 0.05
     signif_pos <- x_lim[2] - 0.025
+    ylab_txt <- ifelse(grp, "Feature group", "Feature")
+    ylab_angle <- ifelse(grp, 15, 0)
     if (!is.null(vimp_obj)) {
         ## get the variable importances
         if (!is.null(vimp_obj$mat)) {
@@ -47,12 +49,12 @@ plot_one_vimp <- function(vimp_obj, title = "Variable importance", x_lim = c(0, 
             geom_text(aes(x = rep(signif_pos, dim_plot), label = signif_p), hjust = "inward", color = "blue") +
             ggtitle(title) +
             xlab(x_lab) +
-            ylab("Feature group") +
+            ylab(ylab_txt) +
             scale_x_continuous(breaks = round(seq(x_lim[1], x_lim[2], 0.1), 1),
                            labels = as.character(round(seq(x_lim[1], x_lim[2], 0.1), 1)),
                            limits = x_lim) +
-            theme(legend.position = lgnd_pos, legend.text = element_text(size = text_size), axis.text = element_text(size = text_size), plot.title.position = "plot")
-
+            theme_bw() +
+            theme(legend.position = lgnd_pos, legend.text = element_text(size = text_size), axis.text = element_text(size = text_size), plot.title.position = "plot", axis.text.y = element_text(angle = ylab_angle, vjust = 1, hjust = 1))
         return(vimp_plot)
     } else {
         return(grid::grob(NULL))
