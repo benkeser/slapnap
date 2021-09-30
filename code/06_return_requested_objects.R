@@ -22,7 +22,7 @@ if (any(grepl("data", opts$return))) {
     analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
     init_data <- readRDS(paste0(data_dir, analysis_data_name))
     analysis_dataset <- clean_analysis_dataset(init_data, opts)
-    readr::write_csv(analysis_dataset, file = paste0("/home/output/", analysis_data_name))
+    readr::write_csv(analysis_dataset, file = paste0("/home/output/", gsub(".rds", ".csv", analysis_data_name)))
 }
 #--------------------------------------
 # save full super learner, if requested

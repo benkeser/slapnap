@@ -374,10 +374,10 @@ get_cont_table_cap <- function(opts, V = 2, n_row_ic50 = NA, n_row_ic80 = NA, n_
         tmp <- paste0(tmp, "IC$_{50}$")
     }
     if (any(c("ic80", "iip") %in% opts$outcomes)) {
-        if (n_row_ic50 != n_row_ic80) {
-            tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
-        } else {
-            # tmp <- paste0(tmp, ", ")
+        if (!is.null(n_row_ic50)) {
+            if (n_row_ic50 != n_row_ic80) {
+                tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
+            }
         }
         if ("ic80" %in% opts$outcomes) {
             tmp <- paste0(tmp, ifelse(!("ic50" %in% opts$outcomes), "IC$_{80}$", ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$")))
@@ -580,11 +580,11 @@ intrinsic_importance_figure_caption <- function(ncomplete = NA, num_obs_full = N
     if (grp) {
         outer_descr <- "Group"
         inner_descr <- "feature group"
-        signif_check <- ifelse(marg & cond, any(any_signif[grepl("grp", names(any_signif))]), ifelse(marg, any(any_signif$grp_marginal), any(any_signif$grp_conditional)))
+        signif_check <- ifelse(marg & cond, any(unlist(any_signif[grepl("grp", names(any_signif))])), ifelse(marg, any(any_signif$grp_marginal), any(any_signif$grp_conditional)))
     } else {
         outer_descr <- "Individual"
         inner_descr <- "feature"
-        signif_check <- ifelse(marg & cond, any(any_signif[grepl("ind", names(any_signif))]), ifelse(marg, any(any_signif$ind_marginal), any(any_signif$ind_conditional)))
+        signif_check <- ifelse(marg & cond, any(unlist(any_signif[grepl("ind", names(any_signif))])), ifelse(marg, any(any_signif$ind_marginal), any(any_signif$ind_conditional)))
     }
     all_obs_txt <- get_num_obs_text(opts, num_obs_fulls, num_obs_reds, ncomplete, outcomes = outcome)
     complete_obs_txt <- all_obs_txt$complete
@@ -1104,9 +1104,6 @@ vimp_nice_rownames <- function(vimp_obj = NULL, cv = FALSE) {
     lst_s <- vimp_obj$s
     indx_mat <- sapply(1:length(mat_s), function(x) which(mat_s[x] == lst_s))
     paste_ind <- 3
-    if (cv) {
-        paste_ind <- 4
-    }
     tmp_nms <- unlist(lapply(strsplit(names(lst_s), "_", fixed = TRUE), function(x) paste(x[paste_ind:length(x)], collapse = "_")))
     return(tmp_nms[indx_mat])
 }
