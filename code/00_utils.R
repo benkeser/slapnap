@@ -374,10 +374,10 @@ get_cont_table_cap <- function(opts, V = 2, n_row_ic50 = NA, n_row_ic80 = NA, n_
         tmp <- paste0(tmp, "IC$_{50}$")
     }
     if (any(c("ic80", "iip") %in% opts$outcomes)) {
-        if (n_row_ic50 != n_row_ic80) {
-            tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
-        } else {
-            # tmp <- paste0(tmp, ", ")
+        if (!is.null(n_row_ic50)) {
+            if (n_row_ic50 != n_row_ic80) {
+                tmp <- paste0(tmp, " (n = ", n_row_ic50, ")")
+            }
         }
         if ("ic80" %in% opts$outcomes) {
             tmp <- paste0(tmp, ifelse(!("ic50" %in% opts$outcomes), "IC$_{80}$", ifelse("iip" %in% opts$outcomes, ", IC$_{80}$", " and IC$_{80}$")))

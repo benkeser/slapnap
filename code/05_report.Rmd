@@ -135,10 +135,11 @@ Histograms of IC$_{50}$ for each individual bnAb are shown in Figure \@ref(fig:h
 
 ```{r, histic50, eval = ("ic50" %in% opts$outcomes) & !one_nab, fig.cap = paste0("Distribution of IC$_{50}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic50), ") for each bnAb.")}
 ic50_descr <- get_individual_nab_summaries("ic50", opts, dat_ic50)
-do.call(grid.arrange, ic50_descr$hist)
+ic50_hist <- do.call(arrangeGrob, ic50_descr$hist)
+grid.draw(ic50_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_hist_", postfix, ".png"), plot = do.call(grid.arrange, ic50_descr$hist), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_hist_", postfix, ".png"), plot = ic50_hist, width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -172,10 +173,11 @@ ic50_figcap <- if(length(opts$nab) == 1){
 combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat_ic50, "pc.ic50", ic50_lab, "Density")
 combn_hist[[2]] <- make_hist_plot(dat_ic50, "log10.pc.ic50", ic50_loglab, "")
-do.call(grid.arrange, combn_hist)
+ic50_combn_hist <- do.call(arrangeGrob, combn_hist)
+grid.draw(ic50_combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic50_combn_hist_", postfix, ".png"), plot = do.call(grid.arrange, combn_hist), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic50_combn_hist_", postfix, ".png"), plot = ic50_combn_hist, width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -335,10 +337,11 @@ Histograms of IC$_{80}$ for each individual bnAb are shown in Figure \@ref(fig:h
 
 ```{r, histic80, eval = ("ic80" %in% opts$outcomes) & (!one_nab), fig.cap = paste0("Distribution of IC$_{80}$ values (n = ", ifelse(opts$same_subset, ncomplete_ic5080, ncomplete_ic80), ") for each bnAb.")}
 ic80_descr <- get_individual_nab_summaries("ic80", opts, dat_ic80)
-do.call(grid.arrange, ic80_descr$hist)
+ic80_hist <- do.call(arrangeGrob, ic80_descr$hist)
+grid.draw(ic80_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_hist_", postfix, ".png"), plot = do.call(grid.arrange, ic80_descr$hist), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_hist_", postfix, ".png"), plot = ic80_hist, width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -367,10 +370,11 @@ ic80_figcap <- if(length(opts$nab) == 1){
 combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat_ic80, "pc.ic80", ic80_lab, "Density")
 combn_hist[[2]] <- make_hist_plot(dat_ic80, "log10.pc.ic80", ic80_loglab, "")
-do.call(grid.arrange, combn_hist)
+ic80_combn_hist <- do.call(arrangeGrob, combn_hist)
+grid.draw(ic80_combn_hist)
 # if saving figures was requested, save
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/ic80_combn_hist_", postfix, ".png"), plot = do.call(grid.arrange, combn_hist), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/ic80_combn_hist_", postfix, ".png"), plot = ic80_combn_hist, width = 20, height = 20, units = "cm")
 }
 ```
 
@@ -537,9 +541,10 @@ iip_figcap <- if(length(opts$nab) == 1){
 ```{r histcombniip, eval = "iip" %in% opts$outcomes, fig.cap = iip_figcap}
 combn_hist <- list()
 combn_hist[[1]] <- make_hist_plot(dat_ic5080, "iip", "IIP", "Density")
-do.call(grid.arrange, combn_hist)
+iip_combn_hist <- do.call(arrangeGrob, combn_hist)
+grid.draw(iip_combn_hist)
 if ("figures" %in% opts$return) {
-    ggsave(filename = paste0("/home/output/iip_combn_hist_", postfix, ".png"), plot = do.call(grid.arrange, combn_hist), width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("/home/output/iip_combn_hist_", postfix, ".png"), plot = iip_combn_hist, width = 20, height = 20, units = "cm")
 }
 ```
 
