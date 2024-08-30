@@ -20,7 +20,9 @@ RUN apt-get update && apt-get install -y \
   software-properties-common
 
 # install R from command line; get >= R-3.5
-RUN add-apt-repository -y ppa:marutter/rrutter3.5
+RUN add-apt-repository -y ppa:marutter/rrutter4.0
+# RUN add-apt-repository -y ppa:c2d4u.team/c2d4u4.0+
+
 # install:
 #   curl
 #   libcurl, Java (for h20)
@@ -29,17 +31,19 @@ RUN add-apt-repository -y ppa:marutter/rrutter3.5
 #   vim (for editing while in container)
 #   nginx (for static website hosting)
 #   ffmpeg (for animating figures)
-RUN apt-get update && apt-get install -y \
+# No need to install pandoc-citeproc -> https://github.com/jgm/pandoc-citeproc?tab=readme-ov-file#pandoc-citeproc
+RUN apt-get update && apt-get install -y -qq --no-install-recommends --purge \
   curl \
   libcurl4-openssl-dev \
   openjdk-8-jdk \
   r-base \
   r-base-dev \
   pandoc \
-  pandoc-citeproc \
-  vim \
+  cmake \
   nginx \
   ffmpeg
+#   r-cran-devtools \
+  #   vim \
 
 RUN rm /var/www/html/index.nginx-debian.html
 
@@ -50,6 +54,8 @@ RUN Rscript -e 'install.packages("bookdown", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("seqinr", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("SuperLearner", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("quadprog", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("remotes", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'remotes::install_github("benkeser/cvma")'
 # get ggplot2, dplyr, tidyr, readr, tibble, stringr, forcats (and purrr for free)
 RUN Rscript -e 'install.packages("tidyverse", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("cowplot", repos="https://cran.rstudio.com")'
@@ -63,55 +69,45 @@ RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("RCurl", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bit64", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("h2o", type = "source", repos="https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")'
-RUN Rscript -e 'install.packages("vimp", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("jsonlite", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'options(timeout=600); install.packages("h2o", type="source", repos="http://h2o-release.s3.amazonaws.com/h2o/rel-3.46.0/4/R"); library(h2o)'
+RUN Rscript -e 'library(h2o); h2o.init()'
 
-# make directories
-# lib contains R source files
-# dat contains data
-# dat/catnap contains original catnap data
-# dat/analysis contains analysis data
-RUN mkdir /home/dat /home/dat/catnap /home/dat/analysis /home/out
-RUN mkdir /home/slfits /home/output
+# RUN wget "https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R"
+# RUN Rscript -e 'install.packages("h20", type = "source"); library(h2o)'
+RUN Rscript -e 'install.packages("gam", repos="https://cran.rstudio.com")'
 
-# copy R scripts to do do data pull, check options, run analysis, and return requested objects (and make executable)
-COPY code/00_utils.R /home/lib/00_utils.R
-COPY code/01_check_opts.R /home/lib/01_check_opts.R
-COPY code/01_check_opts_functions.R /home/lib/01_check_opts_functions.R
-COPY code/02_compile_analysis_dataset.R /home/lib/02_compile_analysis_dataset.R
-COPY code/02_multi_ab.Rlib /home/lib/02_multi_ab.Rlib
-COPY code/03_run_super_learners.R /home/lib/03_run_super_learners.R
-COPY code/03_super_learner_libraries.R /home/lib/03_super_learner_libraries.R
-COPY code/04_get_vimp.R /home/lib/04_get_vimp.R
-COPY code/04_variable_groups.R /home/lib/04_variable_groups.R
-COPY code/05_intrinsic_importance.R /home/lib/05_intrinsic_importance.R
-COPY code/05_ml_var_importance_measures.R /home/lib/05_ml_var_importance_measures.R
-COPY code/05_outcome_dist_plot.R /home/lib/05_outcome_dist_plot.R
-COPY code/05_plot_one_vimp.R /home/lib/05_plot_one_vimp.R
-COPY code/05_plotting_functions.R /home/lib/05_plotting_functions.R
-COPY code/05_pred_importance.R /home/lib/05_pred_importance.R
-COPY code/05_var_import_plot.R /home/lib/05_var_import_plot.R
-COPY code/05_vimp_executive_summary_table.R /home/lib/05_vimp_executive_summary_table.R
-COPY code/06_return_requested_objects.R /home/lib/06_return_requested_objects.R
+RUN Rscript -e 'remotes::install_github(repo = "bdwilliamson/vimp"); library(vimp)'
+# RUN Rscript -e 'remotes::install_version("vimp", version="2.1.9", repos="https://cran.rstudio.com"); library(vimp)'
 
-RUN chmod +x /home/lib/01_check_opts.R /home/lib/02_compile_analysis_dataset.R /home/lib/03_run_super_learners.R /home/lib/04_get_vimp.R /home/lib/06_return_requested_objects.R
+ADD slapnap slapnap/
+RUN R CMD INSTALL -dc slapnap
+# RUN Rscript -e 'setwd("slapnap/"); devtools::check()'
+# RUN Rscript -e 'install.packages("slapnap_0.1.0.tar.gz", type="source")'
+RUN Rscript -e 'library("slapnap")'
 
-# copy report Rmd
-COPY code/05_report.Rmd /home/lib/05_report.Rmd
-COPY docs/refs.bib /home/lib/refs.bib
-COPY code/run_analysis.sh /home/lib/run_analysis.sh
-COPY code/05_render_report.R /home/lib/05_render_report.R
-COPY code/05_report_preamble.R /home/lib/05_report_preamble.R
-RUN chmod +x /home/lib/run_analysis.sh /home/lib/05_render_report.R /home/lib/05_report_preamble.R
+RUN rm -rf slapnap_0.1.0.tar.gz slapnap/
 
-# copy metadata Rmd
-COPY code/07_metadata.Rmd /home/lib/07_metadata.Rmd
-COPY code/07_render_metadata.R /home/lib/07_render_metadata.R
-RUN chmod +x /home/lib/07_render_metadata.R
+# Create default user and workdir
+RUN useradd -ms /bin/bash slapnap
+WORKDIR /home/slapnap/
+
+RUN chown -R slapnap:slapnap /home/slapnap/
 
 #---------------------------------------------------------------------
 # Permanent options
 #---------------------------------------------------------------------
+RUN mkdir -p slfits output dat/analysis dat/catnap
+
+# Slapnap data analysis directory
+ENV analysis="/home/slapnap/dat/analysis/"
+
+# Slapnap slfits directory
+ENV slfits="/home/slapnap/slfits/"
+
+# Slapnap output directory
+ENV output="/home/slapnap/output/"
+
 # which antibody to analyze
 #   "VRC01" is arbitrarily selected as default
 ENV nab="VRC01"
@@ -122,7 +118,7 @@ ENV nab="VRC01"
 #   combinations of these
 #   For a single/multispecific bnAb, enter "sens".
 #   For a bnAb combination, enter "estsens" or "multsens".
-ENV outcomes="ic50;sens"
+ENV outcomes="ic50"
 
 # which method to use for predicting combination IC-50 and IC-80
 #   possible methods are "additive" and "Bliss-Hill". For "Bliss-Hill",
@@ -210,11 +206,18 @@ ENV var_thresh="0"
 ARG CACHEBUST=1
 RUN echo "$CACHEBUST"
 
+COPY bin/* /bin/
+
+RUN chown -R slapnap:slapnap /home/slapnap/
+
+# USER slapnap
+
 # pull CATNAP data from LANL
-RUN wget -O /home/dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"
-RUN wget -O /home/dat/catnap/viruses.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/viruses.txt"
-RUN wget -O /home/dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/virseqs_aa.fasta"
-RUN wget -O /home/dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
+RUN wget -O dat/catnap/assay.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/assay.txt"
+RUN wget -O dat/catnap/viruses.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/viruses.txt"
+# RUN wget -O dat/catnap/virseqs_aa.fasta "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/virseqs_aa.fasta"
+COPY virseqs_aa.fasta dat/catnap/virseqs_aa.fasta
+RUN wget -O dat/catnap/abs.txt "https://www.hiv.lanl.gov/cgi-bin/common_code/download.cgi?/scratch/NEUTRALIZATION/abs.txt"
 
 # entry point to container runs run_analysis.sh
-CMD /home/lib/run_analysis.sh
+CMD run_analysis.sh

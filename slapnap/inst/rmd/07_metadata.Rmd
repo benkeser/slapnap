@@ -1,0 +1,186 @@
+---
+title: "SLAPNAP Metadata: `r paste(format(strsplit(Sys.getenv('nab'), split = ';')[[1]], justify = 'none'), collapse = ', ')`"
+author: "SLAPNAP Team"
+date: "`r format(as.Date(Sys.getenv('current_date'), '%d%b%Y'), '%d %B, %Y')`"
+output: bookdown::html_document2
+header-includes:
+   - \usepackage{subfig}
+bibliography: refs.bib
+link-citations: true
+---
+
+```{r setup, include=FALSE}
+path.data.analysis <- Sys.getenv("analysis") #file.path(path.data, "analysis")
+path.ml.slfits <- Sys.getenv("slfits") #file.path(path.data, "analysis")
+
+## ----------------------------------------------------------------------------
+## Knitr options, packages, files
+## ----------------------------------------------------------------------------
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+
+options(stringsAsFactors = FALSE)
+
+library(grid)
+library(magrittr)
+library(ggplot2)
+library(cowplot)
+theme_set(theme_cowplot())
+library(dplyr)
+library(tidyr)
+library(ROCR)
+library(knitr)
+library(gridExtra)
+library(xgboost); library(ranger); library(glmnet)
+library(vimp)
+library(tibble)
+library(stringr)
+library(slapnap)
+```
+
+```{r get-options-and-dataset}
+opts <- get_global_options()
+# boolean of single nab
+one_nab <- length(opts$nab) == 1
+est_fillin <- ifelse(one_nab, "", "estimated ")
+any_cont <- any(c("ic50", "ic80") %in% opts$outcomes)
+any_dich <- any(c("sens1", "sens2") %in% opts$outcomes)
+# read in number of observations
+nprevious <- readRDS(paste0(path.ml.slfits, "nprevious.rds"))
+ncomplete_features <- readRDS(paste0(path.ml.slfits, "ncomplete_features.rds"))
+ncomplete_ic50 <- readRDS(paste0(path.ml.slfits, "ncomplete_ic50.rds"))
+ncomplete_ic80 <- readRDS(paste0(path.ml.slfits, "ncomplete_ic80.rds"))
+ncomplete_ic5080 <- readRDS(paste0(path.ml.slfits, "ncomplete_ic5080.rds"))
+ncomplete_binary <- ifelse(opts$binary_outcomes == "ic50", ncomplete_ic50, ncomplete_ic80)
+all_ncomplete <- c(ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, ncomplete_binary, ncomplete_binary)
+analysis_data_names <- list.files(path.data.analysis)
+analysis_data_name <- get_analysis_dataset_name(analysis_data_names, opts)
+dat <- readRDS(paste0(path.data.analysis, analysis_data_name))
+dat <- dat[complete.cases(dat),]
+# make nice outcome names
+all_outcomes <- c("ic50", "ic80", "iip", "sens1", "sens2")
+all_labels <- c("IC-50", "IC-80", "IIP", ifelse(one_nab, "Sensitivity", "Estimated sensitivity"), "Multiple sensitivity")
+nice_outcomes <- opts$outcomes
+for(i in seq_along(all_outcomes)){
+    nice_outcomes <- gsub(all_outcomes[i], all_labels[i], nice_outcomes)
+}
+outcome_names <- get_outcome_names(opts)
+# set number of CV folds
+V <- as.numeric(opts$nfolds)
+# check the outcomes to see if we can run them or not
+run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
+run_sl_vimp_bools2 <- lapply(check_outcomes(dat, outcome_names, V), function(x){
+    x[c("ic50", "ic80", "iip", "sens1", "sens2") %in% opts$outcomes]
+})
+# now format continuous outcomes table
+cont_idx <- which(opts$outcomes %in% c("ic50", "ic80", "iip"))
+bin_idx <- which(opts$outcomes %in% c("sens1", "sens2"))
+cont_nms <- nice_outcomes[cont_idx]
+bin_nms <- nice_outcomes[bin_idx]
+# postfix for naming plots
+postfix <- paste0(paste(opts$nab, collapse = "_"), "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
+
+# get clean analysis dataset
+all_output_files <- list.files(opts$output)
+clean_data_names <- all_output_files[grepl(".csv", all_output_files)]
+analysis_data_name <- get_analysis_dataset_name(clean_data_names, opts)
+analysis_dataset <- read.csv(paste0(opts$output, analysis_data_name), stringsAsFactors = FALSE)
+
+#-------------------------------------------------------
+# other variables and objects needed throughout report
+#-------------------------------------------------------
+# first covariate column
+min_cov_col_idx <- min(grep("geographic", colnames(dat)))
+ncol_data_final <- ncol(dat)
+# number with complete sequence/geog information
+complete_features_idx <- complete.cases(dat[ , min_cov_col_idx:ncol_data_final])
+
+# data with complete features
+dat_comp_ft <- dat[complete_features_idx, ]
+
+# iip column
+iip_col_idx <- which(colnames(dat_comp_ft) == "iip")
+# data used for ic50-related analyses
+if(opts$same_subset){
+  dat_ic50 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+}else{
+  dat_ic50 <- dat_comp_ft[!is.na(dat_comp_ft$pc.ic50), ]
+}
+# data used for ic80-related analyses
+if(!opts$same_subset | !("ic80" %in% opts$outcomes & length(opts$outcomes) > 1)){
+  dat_ic80 <- dat_comp_ft[!is.na(dat_comp_ft$pc.ic80), ]
+}else{
+  dat_ic80 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+}
+
+dat_ic5080 <- dat_comp_ft[complete.cases(dat_comp_ft[,-iip_col_idx]), ]
+
+# compute number of sequences with same ic50 and ic80,
+# these guys do not have IIP defined
+iip_undef <- sum(dat_ic5080$log10.pc.ic80 == dat_ic5080$log10.pc.ic50)
+
+# compute number of sensitive/resistant sequences for sens1, sens2 outcomes
+num_sens1 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.1), sum(dat_ic80$dichotomous.1))
+num_resis1 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens1
+num_sens2 <- switch((opts$binary_outcomes == "ic80") + 1, sum(dat_ic50$dichotomous.2), sum(dat_ic80$dichotomous.2))
+num_resis2 <- ifelse(opts$same_subset, ncomplete_ic5080, ifelse(opts$binary_outcomes == "ic80", ncomplete_ic80, ncomplete_ic50)) - num_sens2
+
+ncompletes <- all_ncomplete[names(all_ncomplete) %in% opts$outcomes]
+run_sl_vimp_bools <- check_outcomes(dat, outcome_names, V)
+
+# for plotting IC50, IC80
+if (length(opts$nab) == 1) {
+    ic50_lab <- bquote(IC[50])
+    ic50_loglab <- bquote(log[10]~"(IC"[50]*")")
+    ic80_lab <- bquote(IC[80])
+    ic80_loglab <- bquote(log[10]~"(IC"[80]*")")
+} else {
+    ic50_lab <- bquote("Estimated"~IC[50])
+    ic50_loglab <- bquote(log[10]~"(Estimated IC"[50]*")")
+    ic80_lab <- bquote("Estimated"~IC[80])
+    ic80_loglab <- bquote(log[10]~"(Estimated IC"[80]*")")
+}
+
+# for if we ran sl for dichotomous endpoints
+ran_sl_dichot1 <- run_sl_vimp_bools2$run_sl[grepl("dichotomous.1", names(run_sl_vimp_bools2$run_sl))]
+ran_sl_dichot2 <- run_sl_vimp_bools2$run_sl[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_sl))]
+ran_sl_dichot1 <- ifelse(length(ran_sl_dichot1) == 0, FALSE, ran_sl_dichot1)
+ran_sl_dichot2 <- ifelse(length(ran_sl_dichot2) == 0, FALSE, ran_sl_dichot2)
+ran_vimp_dichot1 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.1", names(run_sl_vimp_bools2$run_vimp))]
+ran_vimp_dichot2 <- run_sl_vimp_bools2$run_vimp[grepl("dichotomous.2", names(run_sl_vimp_bools2$run_vimp))]
+ran_vimp_dichot1 <- ifelse(length(ran_vimp_dichot1) == 0, FALSE, ran_vimp_dichot1)
+ran_vimp_dichot2 <- ifelse(length(ran_vimp_dichot2) == 0, FALSE, ran_vimp_dichot2)
+```
+
+# Executive summary
+
+This file describes the analysis dataset `r analysis_data_name`.
+
+The broadly neutralizing antibod`r ifelse(!one_nab, "ies (bnAbs)", "y (bnAb)")` studied in this analysis `r ifelse(!one_nab, "are ", "is ")` `r paste0(paste0(antibodies[-length(antibodies)], collapse = ", "), ifelse(length(antibodies) > 1, paste0(" and ", antibodies[length(antibodies)]), antibodies))`. The analysis considered `r length(opts$outcomes)` `r ifelse(length(opts$outcomes) == 1, "measure", "measures")` of neutralization sensitivity: `r get_comma_sep_outcomes(opts)` `r get_outcome_descriptions(opts)` Based on this specification of `r ifelse(!one_nab, "bnAbs", "bnAb")` and `r ifelse(length(opts$outcomes) > 1, "outcomes", "outcome")`:
+
+* `r nprevious` sequences were extracted from the CATNAP database [@yoon2015catnap];
+
+* `r ncomplete_features` sequences had complete geographic and genetic sequence information;
+
+* `r paste0(get_complete_data_text(opts, ncomplete_ic50, ncomplete_ic80, ncomplete_ic5080, iip_undef), ifelse(any_dich, ";", "."))`
+`r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "<!--"`
+* out of the sequences with both IC$_{50}$ and IC$_{80}$ measured, `r iip_undef` `r ifelse(iip_undef == 1, "has", "have")` the same measured value of IC$_{50}$ and IC$_{80}$, which led to an undefined value for IIP and `r ifelse(iip_undef == 1, "its", "their")` exclusion from IIP analyses.
+`r if(!("iip" %in% opts$outcomes) | iip_undef == 0 | opts$same_subset) "-->"`
+`r if(!("sens1" %in% opts$outcomes)) "<!--"`
+* out of the sequences with complete data, `r num_sens1` were `r ifelse(one_nab, "", "estimated to be")` sensitive to the `r ifelse(!one_nab, "combination of bnAbs", "bnAb")`, while `r num_resis1` were `r ifelse(one_nab, "", "estimated to be")` resistant`r ifelse(opts$importance_grp == "", "", check_sl_vimp_bin(opts, ran_sl_dichot1, ran_vimp_dichot1, "sens1"))``r ifelse("sens2" %in% opts$outcomes, ";", ".")`
+`r if(!("sens1" %in% opts$outcomes)) "-->"`
+`r if(!("sens2" %in% opts$outcomes)) "<!--"`
+* out of the sequences with complete data, `r num_sens2` were estimated to be sensitive to `r ifelse(opts$multsens_nab == length(opts$nab), paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bnAbs"), paste0("at least ", opts$multsens_nab, ifelse(opts$multsens_nab == 1, " bnAb", " bnAbs")))`, while `r num_resis2` were estimated to be resistant to `r ifelse(opts$multsens_nab == 1, paste0(ifelse(length(opts$nab) == 2, "both", "all of the"), " bnAbs"), ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 1, "one of the bnAbs", paste0(length(opts$nab) - as.numeric(opts$multsens_nab) + 1, ifelse(length(opts$nab) - as.numeric(opts$multsens_nab) == 0, " ", " or more "), "of the bnAbs")))``r ifelse(opts$importance_grp == "", ".", check_sl_vimp_bin(opts, ran_sl_dichot2, ran_vimp_dichot2, "sens2"))`
+`r if(!("sens2" %in% opts$outcomes)) "-->"`
+
+# Variables in the dataset
+
+Table \@ref(tab:variables) provides the name and description of each variable in the returned dataset.
+
+```{r variables}
+metadata_tab <- create_metadata(analysis_dataset, opts)
+kable(metadata_tab, caption = "Variables in the analysis dataset, with names and descriptions. Numeric codes followed by a single letter denote the presence of an amino acid (AA) residue at a given site (relative to HXB2). Other suffixes are: 'sequon_actual', referring to the site having a leading AA for the canonical N-linked glycosylation motif (“N[!P]{S/T]”; in other words, this AA will be an “N”, and the following two AAs will conform to the motif); 'gap', referring to an observed gap at this site after alignment to maintain site-specific relevance; and 'frameshift', referring to a gap at this site that resulted in a frameshift. The prefix 'num' denotes the number (e.g., 'num.cysteines' refers to the number of cysteines), while the prefix 'length' denotes the length of the specified region (excluding gaps and frameshifts).")
+```
+
+# References
