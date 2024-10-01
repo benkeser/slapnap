@@ -454,14 +454,14 @@ tmp_method.CC_nloglik <- function ()
           class(out) <- "error"
           out
         })
-        if (r$status < 1 || r$status > 4) {
-            warning(r$message)
-        }
         if(class(r) != "error"){
           coef <- r$solution
         }else{
           coef <- rep(0, ncol(Z))
           coef[which.min(cvRisk)] <- 1
+        }
+        if (r$status < 1 || r$status > 4) {
+            warning(r$message)
         }
         if (anyNA(coef)) {
             warning("Some algorithms have weights of NA, setting to 0.")
