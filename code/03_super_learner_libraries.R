@@ -126,7 +126,7 @@ SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length
     nthread = 1, verbose = 0, save_period = NULL, ...)
 {
     SuperLearner:::.SL.require("xgboost")
-    if (packageVersion("xgboost") < 0.6)
+    if (as.character(packageVersion("xgboost")) < 0.6)
         stop("SL.xgboost requires xgboost version >= 0.6, try help('SL.xgboost') for details")
     if (!is.matrix(X)) {
         X = model.matrix(~. - 1, X)
