@@ -37,9 +37,9 @@ path.out <- file.path(path.home, "output")
 source(file.path(path.lib, "00_utils.R"))
 opts <- get_global_options()
 # load data
-data.assay <- readr::read_delim(file.path(path.data.catnap, "assay.txt"), delim="\t", quote="\"", show_col_types = FALSE)
-data.viruses <- readr::read_delim(file.path(path.data.catnap, "viruses.txt"), delim="\t", quote="\"", show_col_types = FALSE)
-data.abs <- readr::read_delim(file.path(path.data.catnap, "abs.txt"), delim="\t", quote="\"", show_col_types = FALSE)
+data.assay <- as.data.frame(readr::read_delim(file.path(path.data.catnap, "assay.txt"), delim="\t", quote="\"", show_col_types = FALSE))
+data.viruses <- as.data.frame(readr::read_delim(file.path(path.data.catnap, "viruses.txt"), delim="\t", quote="\"", show_col_types = FALSE))
+data.abs <- as.data.frame(readr::read_delim(file.path(path.data.catnap, "abs.txt"), delim="\t", quote="\"", show_col_types = FALSE))
 
 # source our function library
 source(file.path(path.lib, "02_multi_ab.Rlib"))
