@@ -17,14 +17,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 #   software-properties-common to help manage repos
 RUN apt-get update && apt-get install -y \
   wget \
-  software-properties-common
+  software-properties-common 
 
-# install R from command line; get >= R-3.5
-RUN add-apt-repository -y ppa:marutter/rrutter3.5
+# install R from command line; get >= R-4.0
+RUN add-apt-repository -y ppa:marutter/rrutter4.0
+RUN apt-get update
 # install:
 #   curl
 #   libcurl, Java (for h20)
-#   r and r-dev
+#   r and r-dev 
 #   pandoc (for Rmarkdown conversions)
 #   vim (for editing while in container)
 #   nginx (for static website hosting)
@@ -36,7 +37,6 @@ RUN apt-get update && apt-get install -y \
   r-base \
   r-base-dev \
   pandoc \
-  pandoc-citeproc \
   vim \
   nginx \
   ffmpeg
