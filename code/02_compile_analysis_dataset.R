@@ -9,7 +9,8 @@
 # ---------------------------------------------------------------------------- #
 # STEP -1:  prepare our environment
 # ---------------------------------------------------------------------------- #
-library(seqinr)
+library("seqinr")
+library("readr")
 path.home <- "/home"
 
 # antibody names are passed to docker container at run time as
@@ -36,9 +37,9 @@ path.out <- file.path(path.home, "output")
 source(file.path(path.lib, "00_utils.R"))
 opts <- get_global_options()
 # load data
-data.assay <- read.table(file.path(path.data.catnap, "assay.txt"), header=T, sep="\t", quote="\"")
-data.viruses <- read.table(file.path(path.data.catnap, "viruses.txt"), header=T, sep="\t", quote="\"")
-data.abs <- read.table(file.path(path.data.catnap, "abs.txt"), header=T, sep="\t", quote="\"")
+data.assay <- readr::read_delim(file.path(path.data.catnap, "assay.txt"), delim="\t", quote="\"", show_col_types = FALSE)
+data.viruses <- readr::read_delim(file.path(path.data.catnap, "viruses.txt"), delim="\t", quote="\"", show_col_types = FALSE)
+data.abs <- readr::read_delim(file.path(path.data.catnap, "abs.txt"), delim="\t", quote="\"", show_col_types = FALSE)
 
 # source our function library
 source(file.path(path.lib, "02_multi_ab.Rlib"))
@@ -53,7 +54,7 @@ year <- unlist(lapply(header.info, function(x) return(x[3])))
 seqname.db <- unlist(lapply(header.info, function(x) return(x[4])))
 
 # let's filter out outlier assay results(with IC50 of ">1")
-data.assay.reduced <- data.assay[data.assay$IC50 != ">1", ]
+data.assay.reduced <- data.assay[(!is.na(data.assay$IC50) & data.assay$IC50 != ">1") | is.na(data.assay$IC50), ]
 
 # determine which sequences were assayed for all antibodies in the cocktail
 ab.seqs <- list()
