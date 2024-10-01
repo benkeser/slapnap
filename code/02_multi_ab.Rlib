@@ -182,8 +182,9 @@ geometric.mean <- function (x, na.rm=TRUE) {
 
 merge.readouts <- function (readouts) {
 
-  # remove all empty values
-  readouts <- readouts[readouts != ""]
+  # remove all empty or NA values
+  readouts_no_na <- readouts[!is.na(readouts)]
+  readouts <- readouts_no_na[readouts_no_na != ""]
 
   # create our new readouts, imputing when necessary
   readouts.new <- rep (NA, length (na.omit (readouts)))
@@ -221,12 +222,14 @@ count.sequons <- function (seq) {
   sequons.count <- 0
 
   # loop through the positions in the sequence ...
-  for (index in 1:(length (seq.tmp) - 2)) {
-
-    # looking for and counting PNGSes as we go
-    if (seq.tmp[index] == "N" & seq.tmp[index + 1] != "P" & seq.tmp[index + 2] %in% c ("S", "T")) {
-      sequons.count <- sequons.count + 1
-    }
+  tmp_length <- length(seq.tmp) - 2
+  if (tmp_length > 0) {
+    for (index in 1:tmp_length) {
+      # looking for and counting PNGSes as we go
+      if (seq.tmp[index] == "N" & seq.tmp[index + 1] != "P" & seq.tmp[index + 2] %in% c ("S", "T")) {
+        sequons.count <- sequons.count + 1
+      }
+    } 
   }
 
   # that's it, return the result

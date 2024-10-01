@@ -99,7 +99,8 @@ for(ab.tmp in antibodies) {
     data.assay.reduced.tmp <- data.assay.reduced[data.assay.reduced$Antibody == ab.tmp & data.assay.reduced$Virus == seqname.tmp, 5:6]
 
     # IC50:  let's confirm that we actually have readout data for this sequence
-    if(length(data.assay.reduced.tmp[data.assay.reduced.tmp[, 1] != "", 1]) > 0) {
+    if(length(data.assay.reduced.tmp[data.assay.reduced.tmp[, 1] != "", 1]) > 0 & 
+       sum(is.na(data.assay.reduced.tmp[, 1])) < nrow(data.assay.reduced.tmp)) {
 
       # make the binary notation that we have a right-censored variable
       if(">" %in% substr(data.assay.reduced.tmp[, 1], 1, 1)) {
@@ -116,7 +117,8 @@ for(ab.tmp in antibodies) {
     }
 
     # IC80:  let's confirm that we actually have readout data for this sequence
-    if(length(data.assay.reduced.tmp[data.assay.reduced.tmp[, 2] != "", 2])) {
+    if(length(data.assay.reduced.tmp[data.assay.reduced.tmp[, 2] != "", 2]) > 0 & 
+       sum(is.na(data.assay.reduced.tmp[, 2])) < nrow(data.assay.reduced.tmp)) {
 
       # make the binary notation that we have a right-censored variable
       if(">" %in% substr(data.assay.reduced.tmp[, 2], 1, 1)) {
