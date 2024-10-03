@@ -742,7 +742,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, cv_fitted_name))
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
         vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
-        cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        # cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        cv_preds <- cv_fit$discreteSL.predict
         saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
     }
   } else if ((length(opts$learners) > 1 | length(opts$var_thresh) > 1) & opts$cvperf) {
@@ -759,7 +760,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         saveRDS(cv_fit$SL.predict, file = paste0(save_dir, cv_fitted_name))
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
         vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
-        cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        # cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        cv_preds <- cv_fit$SL.predict
         saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
     }
 } else {

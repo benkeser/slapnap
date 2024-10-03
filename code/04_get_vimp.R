@@ -75,7 +75,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             eval(parse(text = paste0(this_outcome_name, '_vimp_lst <- make_vimp_list(all_var_groups, var_inds)')))
             # read in the full fit
             if (cf_vim) {
-                full_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, ".rds"))
+                full_preds <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, ".rds"))
                 full_folds <- readRDS(paste0("/home/slfits/cvfolds_", this_outcome_name, ".rds"))
                 cross_fitting_folds <- vimp::get_cv_sl_folds(full_folds)
             } else {
@@ -86,7 +86,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                 ("marg" %in% opts$importance_ind & grepl("site", opts$ind_importance_type))) {
                 # load geog-only fit corresponding to this outcome
                 if (cf_vim) {
-                    geog_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_geog.rds"))
+                    geog_preds <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_geog.rds"))
                 } else {
                     geog_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_geog.rds"))
                 }
@@ -95,7 +95,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
             if (("marg" %in% opts$importance_ind) & grepl("residue", opts$ind_importance_type)) {
                 # load simple geog-only fit corresponding to this outcome
                 if (cf_vim) {
-                    geog_glm_preds <-readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_geog_glm.rds"))
+                    geog_glm_preds <-readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_geog_glm.rds"))
                 } else {
                     geog_glm_preds <- readRDS(paste0("/home/slfits/fitted_", this_outcome_name, "_geog_glm.rds"))
                 }
@@ -108,7 +108,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                 for (j in 1:length(all_var_groups)) {
                     this_group_name <- names(all_var_groups)[j]
                     if (cf_vim) {
-                        cond_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, 
+                        cond_preds <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, 
                                                      "_conditional_", this_group_name, ".rds"))
                         # get conditional, CV-VIM
                         suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_group_name, 
@@ -146,7 +146,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                     this_group_name <- names(all_var_groups)[j]
                     if (cf_vim) {
                         # get marginal, CV-VIM
-                        marg_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, "_marginal_", 
+                        marg_preds <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, "_marginal_", 
                                                      this_group_name, ".rds"))
                         suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_group_name, 
                                                                   " <- vimp::cv_vim(Y = y, ",
@@ -186,7 +186,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                     this_var_name <- names(var_inds)[j]
                     if (cf_vim) {
                         # get individual, CV-VIM (conditional)
-                        indi_cond_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, 
+                        indi_cond_preds <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, 
                                                           "_conditional_", this_var_name, ".rds"))
                         suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_cond_", this_var_name, 
                                                                   " <- vimp::cv_vim(Y = y, ",
@@ -228,7 +228,7 @@ if (((length(opts$importance_grp) == 0) & (length(opts$importance_ind) == 0))) {
                     this_var_name <- names(var_inds)[j]
                     if (cf_vim) {
                         # get individual, CV-VIM (marginal)
-                        indi_marg_preds <- readRDS(paste0("/home/slfits/cvpreds_", this_outcome_name, 
+                        indi_marg_preds <- readRDS(paste0("/home/slfits/cvfitted_", this_outcome_name, 
                                                           "_marginal_", this_var_name, ".rds"))
                         suppressWarnings(eval(parse(text = paste0(this_outcome_name, "_marg_", this_var_name, 
                                                                   " <- vimp::cv_vim(Y = y, ",

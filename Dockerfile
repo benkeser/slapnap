@@ -33,6 +33,7 @@ RUN apt-get update
 RUN apt-get update && apt-get install -y \
   curl \
   libcurl4-openssl-dev \
+  libnlopt-dev \
   openjdk-8-jdk \
   r-base \
   r-base-dev \
