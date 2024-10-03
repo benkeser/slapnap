@@ -236,9 +236,9 @@ for (var.index in 1:ncol(data.final)) {
 data.final <- data.final[ , filter.insertions]
 
 # name our outfile and save
-current_date <- as.Date(Sys.getenv('current_date'), "%d%b%Y")
-# filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(current_date, "%d%b%Y"), ".csv")
-final_filename <- paste0("slapnap_", filename, "_", format(current_date, "%d%b%Y"), ".rds")
+current_date <- as.Date(Sys.getenv('current_date'), "%Y%m%d")
+# filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(current_date, "%Y%m%d"), ".csv")
+final_filename <- paste0("slapnap_", filename, "_", format(current_date, "%Y%m%d"), ".rds")
 setwd(path.data.analysis)
 saveRDS(data.final, file=final_filename)
 
