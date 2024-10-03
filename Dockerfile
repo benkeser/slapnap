@@ -64,8 +64,9 @@ RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("RCurl", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bit64", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("h2o", type = "source", repos="https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")'
 RUN Rscript -e 'install.packages("vimp", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("h2o", type = "source", repos="https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")'
+RUN Rscript -e 'install.packages("h2o", type="source", repos=(c("http://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")))'
 
 # make directories
 # lib contains R source files
