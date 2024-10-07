@@ -9,7 +9,7 @@ source("/home/lib/00_utils.R")
 # read in options
 opts <- get_global_options()
 filename <- Sys.getenv("nab_str")
-postfix <- paste0(filename, "_", format(as.Date(Sys.getenv('current_date'), "%d%b%Y"), "%d%b%Y"))
+postfix <- paste0(filename, "_", format(as.Date(Sys.getenv('current_date'), "%Y%m%d"), "%Y%m%d"))
 
 h2o_here <- !(all(grepl("h2oboost", opts$learners) == FALSE))
 

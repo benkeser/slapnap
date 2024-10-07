@@ -126,7 +126,7 @@ SL.xgboost.corrected <- function (Y, X, newX, family, obsWeights = rep(1, length
     nthread = 1, verbose = 0, save_period = NULL, ...)
 {
     SuperLearner:::.SL.require("xgboost")
-    if (packageVersion("xgboost") < 0.6)
+    if (as.character(packageVersion("xgboost")) < 0.6)
         stop("SL.xgboost requires xgboost version >= 0.6, try help('SL.xgboost') for details")
     if (!is.matrix(X)) {
         X = model.matrix(~. - 1, X)
@@ -454,14 +454,14 @@ tmp_method.CC_nloglik <- function ()
           class(out) <- "error"
           out
         })
-        if (r$status < 1 || r$status > 4) {
-            warning(r$message)
-        }
         if(class(r) != "error"){
           coef <- r$solution
         }else{
           coef <- rep(0, ncol(Z))
           coef[which.min(cvRisk)] <- 1
+        }
+        if (r$status < 1 || r$status > 4) {
+            warning(r$message)
         }
         if (anyNA(coef)) {
             warning("Some algorithms have weights of NA, setting to 0.")
@@ -742,7 +742,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         saveRDS(cv_fit$discreteSL.predict, file = paste0(save_dir, cv_fitted_name))
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
         vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
-        cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        # cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        cv_preds <- cv_fit$discreteSL.predict
         saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
     }
   } else if ((length(opts$learners) > 1 | length(opts$var_thresh) > 1) & opts$cvperf) {
@@ -759,7 +760,8 @@ sl_one_outcome <- function(complete_dat, outcome_name,
         saveRDS(cv_fit$SL.predict, file = paste0(save_dir, cv_fitted_name))
         saveRDS(cv_fit$folds, file = paste0(save_dir, cv_folds_name))
         vimp_cf_folds <- vimp::get_cv_sl_folds(cv_fit$folds)
-        cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        # cv_preds <- vimp::extract_sampled_split_predictions(cvsl_obj = cv_fit, sample_splitting = TRUE, sample_splitting_folds = ss_folds, full = full_fit)
+        cv_preds <- cv_fit$SL.predict
         saveRDS(cv_preds, file = paste0(save_dir, cv_preds_name))
     }
 } else {

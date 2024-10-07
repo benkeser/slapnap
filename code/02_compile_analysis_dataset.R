@@ -9,7 +9,8 @@
 # ---------------------------------------------------------------------------- #
 # STEP -1:  prepare our environment
 # ---------------------------------------------------------------------------- #
-library(seqinr)
+library("seqinr")
+library("readr")
 path.home <- "/home"
 
 # antibody names are passed to docker container at run time as
@@ -36,9 +37,9 @@ path.out <- file.path(path.home, "output")
 source(file.path(path.lib, "00_utils.R"))
 opts <- get_global_options()
 # load data
-data.assay <- read.table(file.path(path.data.catnap, "assay.txt"), header=T, sep="\t", quote="\"")
-data.viruses <- read.table(file.path(path.data.catnap, "viruses.txt"), header=T, sep="\t", quote="\"")
-data.abs <- read.table(file.path(path.data.catnap, "abs.txt"), header=T, sep="\t", quote="\"")
+data.assay <- as.data.frame(readr::read_delim(file.path(path.data.catnap, "assay.txt"), delim="\t", quote="\"", show_col_types = FALSE))
+data.viruses <- as.data.frame(readr::read_delim(file.path(path.data.catnap, "viruses.txt"), delim="\t", quote="\"", show_col_types = FALSE))
+data.abs <- as.data.frame(readr::read_delim(file.path(path.data.catnap, "abs.txt"), delim="\t", quote="\"", show_col_types = FALSE))
 
 # source our function library
 source(file.path(path.lib, "02_multi_ab.Rlib"))
@@ -53,7 +54,7 @@ year <- unlist(lapply(header.info, function(x) return(x[3])))
 seqname.db <- unlist(lapply(header.info, function(x) return(x[4])))
 
 # let's filter out outlier assay results(with IC50 of ">1")
-data.assay.reduced <- data.assay[data.assay$IC50 != ">1", ]
+data.assay.reduced <- data.assay[(!is.na(data.assay$IC50) & data.assay$IC50 != ">1") | is.na(data.assay$IC50), ]
 
 # determine which sequences were assayed for all antibodies in the cocktail
 ab.seqs <- list()
@@ -98,7 +99,8 @@ for(ab.tmp in antibodies) {
     data.assay.reduced.tmp <- data.assay.reduced[data.assay.reduced$Antibody == ab.tmp & data.assay.reduced$Virus == seqname.tmp, 5:6]
 
     # IC50:  let's confirm that we actually have readout data for this sequence
-    if(length(data.assay.reduced.tmp[data.assay.reduced.tmp[, 1] != "", 1]) > 0) {
+    if(length(data.assay.reduced.tmp[data.assay.reduced.tmp[, 1] != "", 1]) > 0 & 
+       sum(is.na(data.assay.reduced.tmp[, 1])) < nrow(data.assay.reduced.tmp)) {
 
       # make the binary notation that we have a right-censored variable
       if(">" %in% substr(data.assay.reduced.tmp[, 1], 1, 1)) {
@@ -115,7 +117,8 @@ for(ab.tmp in antibodies) {
     }
 
     # IC80:  let's confirm that we actually have readout data for this sequence
-    if(length(data.assay.reduced.tmp[data.assay.reduced.tmp[, 2] != "", 2])) {
+    if(length(data.assay.reduced.tmp[data.assay.reduced.tmp[, 2] != "", 2]) > 0 & 
+       sum(is.na(data.assay.reduced.tmp[, 2])) < nrow(data.assay.reduced.tmp)) {
 
       # make the binary notation that we have a right-censored variable
       if(">" %in% substr(data.assay.reduced.tmp[, 2], 1, 1)) {
@@ -233,9 +236,9 @@ for (var.index in 1:ncol(data.final)) {
 data.final <- data.final[ , filter.insertions]
 
 # name our outfile and save
-current_date <- as.Date(Sys.getenv('current_date'), "%d%b%Y")
-# filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(current_date, "%d%b%Y"), ".csv")
-final_filename <- paste0("slapnap_", filename, "_", format(current_date, "%d%b%Y"), ".rds")
+current_date <- as.Date(Sys.getenv('current_date'), "%Y%m%d")
+# filename <- paste0("slapnap_", paste(gsub("/", "-", antibodies), collapse="_"), "_", format(current_date, "%Y%m%d"), ".csv")
+final_filename <- paste0("slapnap_", filename, "_", format(current_date, "%Y%m%d"), ".rds")
 setwd(path.data.analysis)
 saveRDS(data.final, file=final_filename)
 

@@ -17,14 +17,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 #   software-properties-common to help manage repos
 RUN apt-get update && apt-get install -y \
   wget \
-  software-properties-common
+  software-properties-common 
 
-# install R from command line; get >= R-3.5
-RUN add-apt-repository -y ppa:marutter/rrutter3.5
+# install R from command line; get >= R-4.0
+RUN add-apt-repository -y ppa:marutter/rrutter4.0
+RUN apt-get update
 # install:
 #   curl
 #   libcurl, Java (for h20)
-#   r and r-dev
+#   r and r-dev 
 #   pandoc (for Rmarkdown conversions)
 #   vim (for editing while in container)
 #   nginx (for static website hosting)
@@ -32,11 +33,11 @@ RUN add-apt-repository -y ppa:marutter/rrutter3.5
 RUN apt-get update && apt-get install -y \
   curl \
   libcurl4-openssl-dev \
+  libnlopt-dev \
   openjdk-8-jdk \
   r-base \
   r-base-dev \
   pandoc \
-  pandoc-citeproc \
   vim \
   nginx \
   ffmpeg
@@ -63,8 +64,9 @@ RUN Rscript -e 'install.packages("shiny", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("testthat", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("RCurl", repos="https://cran.rstudio.com")'
 RUN Rscript -e 'install.packages("bit64", repos="https://cran.rstudio.com")'
-RUN Rscript -e 'install.packages("h2o", type = "source", repos="https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")'
 RUN Rscript -e 'install.packages("vimp", repos="https://cran.rstudio.com")'
+RUN Rscript -e 'install.packages("h2o", type = "source", repos="https://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")'
+RUN Rscript -e 'install.packages("h2o", type="source", repos=(c("http://h2o-release.s3.amazonaws.com/h2o/latest_stable_R")))'
 
 # make directories
 # lib contains R source files

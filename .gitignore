@@ -14,6 +14,7 @@ slfits/*
 dat/*
 docs/_book/*
 docs/*.rds
+docs/*.pdf
 output/*
 talks/*
 manuscript/*

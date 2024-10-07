@@ -14,7 +14,7 @@ fi
 # allow errors to propagate up to container
 set -e
 # grab the current date, promote to system environment variable
-current_date=$(date "+%d%b%Y")
+current_date=$(date "+%Y%m%d")
 export current_date
 # make the nab string suitable for naming files, promote to system env var
 remove_slashes=${nab//'/'/'-'}

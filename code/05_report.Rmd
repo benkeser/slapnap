@@ -1,6 +1,6 @@
 ---
 title: "SLAPNAP Report: `r paste(format(strsplit(Sys.getenv('nab'), split = ';')[[1]], justify = 'none'), collapse = ', ')`"
-date: "`r format(as.Date(Sys.getenv('current_date'), '%d%b%Y'), '%d %B, %Y')`"
+date: "`r format(as.Date(Sys.getenv('current_date'), '%Y%m%d'), '%d %B, %Y')`"
 output: bookdown::html_document2
 header-includes:
    - \usepackage{subfig}
